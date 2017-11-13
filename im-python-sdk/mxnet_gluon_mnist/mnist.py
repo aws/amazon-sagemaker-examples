@@ -6,6 +6,7 @@ from mxnet import gluon, autograd
 from mxnet.gluon import nn
 import numpy as np
 import json
+import time
 
 
 logging.basicConfig(level=logging.DEBUG)
@@ -48,6 +49,7 @@ def train(channel_input_dirs, hyperparameters, **kwargs):
     for epoch in range(epochs):
         # reset data iterator and metric at begining of epoch.
         metric.reset()
+        btic = time.time()
         for i, (data, label) in enumerate(train_data):
             # Copy data to ctx if necessary
             data = data.as_in_context(ctx)
@@ -65,7 +67,10 @@ def train(channel_input_dirs, hyperparameters, **kwargs):
 
             if i % log_interval == 0 and i > 0:
                 name, acc = metric.get()
-                print('[Epoch %d Batch %d] Training: %s=%f' % (epoch, i, name, acc))
+                print('[Epoch %d Batch %d] Training: %s=%f, %f samples/s' %
+                      (epoch, i, name, acc, batch_size / (time.time() - btic)))
+
+            btic = time.time()
 
         name, acc = metric.get()
         print('[Epoch %d] Training: %s=%f' % (epoch, name, acc))
