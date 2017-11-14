@@ -17,7 +17,7 @@ logging.basicConfig(level=logging.DEBUG)
 
 
 def train(channel_input_dirs, hyperparameters, **kwargs):
-    # IM passes num_cpus, num_gpus and other args we can use to tailor training to
+    # SageMaker passes num_cpus, num_gpus and other args we can use to tailor training to
     # the current container environment, but here we just use simple cpu context.
     ctx = mx.cpu()
 
@@ -30,7 +30,7 @@ def train(channel_input_dirs, hyperparameters, **kwargs):
 
     # load training and validation data
     # we use the gluon.data.vision.MNIST class because of its built in mnist pre-processing logic,
-    # but point it at the location where IM placed the data files, so it doesn't download them again.
+    # but point it at the location where SageMaker placed the data files, so it doesn't download them again.
     training_dir = channel_input_dirs['training']
     train_data = get_train_data(training_dir + '/train', batch_size)
     val_data = get_val_data(training_dir + '/test', batch_size)

@@ -37,7 +37,7 @@ def train(current_host, hosts, num_cpus, num_gpus, channel_input_dirs, model_dir
 
     # load training and validation data
     # we use the gluon.data.vision.CIFAR10 class because of its built in pre-processing logic,
-    # but point it at the location where IM placed the data files, so it doesn't download them again.
+    # but point it at the location where SageMaker placed the data files, so it doesn't download them again.
     data_dir = channel_input_dirs['training']
     train_data = get_train_data(num_cpus, data_dir, batch_size, (3, 32, 32))
     test_data = get_test_data(num_cpus, data_dir, batch_size, (3, 32, 32))
