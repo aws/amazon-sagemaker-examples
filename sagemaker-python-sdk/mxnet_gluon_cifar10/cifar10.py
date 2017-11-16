@@ -33,7 +33,6 @@ def train(current_host, hosts, num_cpus, num_gpus, channel_input_dirs, model_dir
     ctx = [mx.gpu(i) for i in range(num_gpus)] if num_gpus > 0 else [mx.cpu()]
     net = models.get_model('resnet34_v2', ctx=ctx, pretrained=False, classes=10)
     batch_size *= max(1, len(ctx))
-    learning_rate *= max(1, len(ctx))
 
     # load training and validation data
     # we use the gluon.data.vision.CIFAR10 class because of its built in pre-processing logic,
