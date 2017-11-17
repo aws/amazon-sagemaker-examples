@@ -7,7 +7,7 @@ function() {
     list(status='200', code='200')}
 
 
-#' Echo the parameter that was sent in
+#' Parse input and return prediction from model
 #' @param req The http request sent
 #' @post /invocations
 function(req) {

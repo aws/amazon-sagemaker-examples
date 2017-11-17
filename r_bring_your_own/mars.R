@@ -29,7 +29,7 @@ train <- function() {
 
     target <- training_params$target
 
-    if (is.null(training_params$degree)) {
+    if (!is.null(training_params$degree)) {
         degree <- as.numeric(training_params$degree)}
     else {
         degree <- 2}
