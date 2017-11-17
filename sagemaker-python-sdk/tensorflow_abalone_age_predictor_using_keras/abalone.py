@@ -1,6 +1,7 @@
 import numpy as np
 import os
 import tensorflow as tf
+from tensorflow.contrib.keras.python.keras.layers import Dense
 from tensorflow.python.estimator.export.export import build_raw_serving_input_receiver_fn
 from tensorflow.python.estimator.export.export_output import PredictOutput
 
@@ -21,9 +22,9 @@ def model_fn(features, labels, mode, params):
 
     # 1. Configure the model via Keras functional api
 
-    first_hidden_layer = tf.keras.layers.Dense(10, activation='relu', name='first-layer')(features[INPUT_TENSOR_NAME])
-    second_hidden_layer = tf.keras.layers.Dense(10, activation='relu')(first_hidden_layer)
-    output_layer = tf.keras.layers.Dense(1, activation='linear')(second_hidden_layer)
+    first_hidden_layer = Dense(10, activation='relu', name='first-layer')(features[INPUT_TENSOR_NAME])
+    second_hidden_layer = Dense(10, activation='relu')(first_hidden_layer)
+    output_layer = Dense(1, activation='linear')(second_hidden_layer)
 
     predictions = tf.reshape(output_layer, [-1])
 
