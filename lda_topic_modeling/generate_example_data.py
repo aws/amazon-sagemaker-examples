@@ -111,6 +111,7 @@ def plot_lda(data, nrows, ncols, with_colorbar=True, cmap=cm.viridis):
     fig, ax = plt.subplots(nrows, ncols, figsize=(ncols,nrows))
     vmin = 0
     vmax = data.max()
+    
     V = len(data[0])
     n = int(np.sqrt(V))
     for i in range(nrows):
@@ -149,4 +150,4 @@ def match_estimated_topics(topics_known, topics_estimated):
                 permutation[i] = estimated_topic_index
                 break
                 
-    return (topics_estimated[permutation,:]).copy()
+    return permutation, (topics_estimated[permutation,:]).copy()
