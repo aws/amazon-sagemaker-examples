@@ -1,5 +1,0 @@
-### Multiclass classification with single machine and distributed SageMaker XGBoost algorithm
-This notebook `xgboost-multiclass-classification.ipynb` demos end2end training and scoring multi-classification model with single machine and distributed versions of Amazon SageMaker XGBoost. The dataset used is MNIST digit recognition dataset in `LIBSVM` format, which has a training set of 60,000 examples, and a test set of 10,000 examples. This notebook will walk the users through data preparation, IM training, IM hosting, and prediction.
- 
-### Regression with single machine SageMaker XGBoost algorithm
-This notebook `single-xgboost-regression.ipynb` demos end2end training and scoring a regression model with single machine XGBoost. The dataset used is the [Abalone dataset](https://www.csie.ntu.edu.tw/~cjlin/libsvmtools/datasets/regression.html) in `LIBSVM` format. Age of abalone is to be predicted from eight physical measurements (numeric attributes). This notebook will walk the user through data preparation, IM training, IM hosting, and prediction.
