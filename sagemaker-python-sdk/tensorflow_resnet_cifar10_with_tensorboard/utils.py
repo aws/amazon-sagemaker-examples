@@ -2,6 +2,8 @@ import os
 import sys
 import tarfile
 from six.moves import urllib
+from ipywidgets import FloatProgress
+from IPython.display import display
 
 DATA_URL = 'https://www.cs.toronto.edu/~kriz/cifar-10-binary.tar.gz'
 
@@ -19,11 +21,13 @@ def cifar10_download(data_dir='/tmp/cifar10_data', print_progress=True):
     filepath = os.path.join(data_dir, filename)
 
     if not os.path.exists(filepath):
+        f = FloatProgress(min=0, max=100)
+        display(f)
+        sys.stdout.write('\r>> Downloading %s ' % (filename))        
+
         def _progress(count, block_size, total_size):
             if print_progress:
-                sys.stdout.write('\r>> Downloading %s %.1f%%' % (
-                    filename, 100.0 * count * block_size / total_size))
-                sys.stdout.flush()
+                f.value = 100.0 * count * block_size / total_size
 
         filepath, _ = urllib.request.urlretrieve(DATA_URL, filepath, _progress)
         print()
