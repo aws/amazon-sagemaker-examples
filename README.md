@@ -31,7 +31,7 @@ These examples provide quick walkthroughs to get you up and running with Amazon 
 
 These examples provide more thorough mathematical treatment on a select group of algorithms.
 
-- [Latent Dirichlet Allocation (LDA)](scientific_details_on_algorithms/lda_topic_modeling) dives into Amazon SageMaker's spectral decomposition approach to LDA.
+- [Latent Dirichlet Allocation (LDA)](scientific_details_of_algorithms/lda_topic_modeling) dives into Amazon SageMaker's spectral decomposition approach to LDA.
 
 ### Advanced Amazon SageMaker Functionality
 
