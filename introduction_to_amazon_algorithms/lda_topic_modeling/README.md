@@ -1,17 +1,11 @@
 # Latent Dirichlet Allocation and Topic Modeling
 
-Example notebooks on using Amazon SageMaker to train and use LDA models.
+An introductory notebook on using Amazon SageMaker to train and use LDA models.
 
 <p align="center">
-<img src="https://github.com/awslabs/im-notebook-templates/blob/lda_topic_modeling/lda_topic_modeling/img/img_documents.png">
-<img src="https://github.com/awslabs/im-notebook-templates/blob/lda_topic_modeling/lda_topic_modeling/img/img_topics.png">
+<img src="https://github.com/awslabs/amazon-sagemaker-examples/blob/lda_topic_modeling/introduction_to_amazon_algorithms/lda_topic_modeling/img/img_documents.png">
+<img src="https://github.com/awslabs/amazon-sagemaker-examples/blob/lda_topic_modeling/introduction_to_amazon_algorithms/lda_topic_modeling/img/img_topics.png">
 </p>
-
-* **LDA - Rosetta Stone** - An end-to-end example of generating training data,
-  uploading to an S3 bucket, training an LDA model, turning the model into an
-  endpoint, and inferring topic mixtures using the endpoint.
-* **LDA - Science** - A deep dive into the science of LDA using Amazon
-  SageMaker.
 
 ## References
 
