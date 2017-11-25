@@ -1,5 +1,0 @@
-### Single machine Iron Man XGBoost multiclass classification
-This notebook `single-xgboost-multiclassification.ipynb` demos end2end training and scoring multi-classification model with single machine XGBoost. The dataset used is MNIST digit recognition dataset in LIBSVM format, which has a training set of 60,000 examples, and a test set of 10,000 examples. The parameters are the same as the open source XGBoost. This notebook will walk the users through data preparation, IM training, IM hosting, and prediction.
- 
-### Distributed Iron Man XGBoost multi-classification
-This notebook `distributed-xgboost-multiclassification.ipynb` demos end2end training and scoring multi-classification model with distributed XGBoost backed by YARN. The dataset used is MNIST digit recognition dataset in LIBSVM format. which has a training set of 60,000 examples, and a test set of 10,000 examples. The parameters are the same as the open source XGBoost. This notebook will walk the user through data preparation, IM training, IM hosting, and prediction.
