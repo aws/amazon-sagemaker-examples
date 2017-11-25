@@ -65,21 +65,20 @@ def train():
         # save the model
         with open(os.path.join(model_path, 'decision-tree-model.pkl'), 'w') as out:
             pickle.dump(clf, out)
-
-        # Write out the success file
-        with open(os.path.join(output_path, 'success'), 'w') as s:
-            s.write('Done')
         print('Training complete.')
     except Exception as e:
-        # Write out an error file
-        # Either a failure file or non-zero exit code will indicate failure. Here we do
-        # both.
+        # Write out an error file. This will be returned as the failureReason in the
+        # DescribeTrainingJob result.
         trc = traceback.format_exc()
         with open(os.path.join(output_path, 'failure'), 'w') as s:
             s.write('Exception during training: ' + str(e) + '\n' + trc)
+        # Printing this causes the exception to be in the training job logs, as well.
         print('Exception during training: ' + str(e) + '\n' + trc, file=sys.stderr)
+        # A non-zero exit code causes the training job to be marked as Failed.
         sys.exit(255)
 
 if __name__ == '__main__':
     train()
+
+    # A zero exit code causes the job to be marked a Succeeded.
     sys.exit(0)
