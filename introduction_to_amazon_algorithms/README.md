@@ -9,3 +9,4 @@ Example Notebooks include:
 - *ntm_synthetic*: Uses Amazon SageMaker Neural Topic Model (NTM) to uncover topics in documents from a synthetic data source, where topic distributions are known.
 - *xgboost_mnist*: Uses Amazon SageMaker XGBoost to classifiy handwritten digits from the MNIST dataset into one of the ten digits using a multi-class classifier. Both single machine and distributed use-cases are presented. 
 - *xgboost_abalone*: Predicts the age of abalone ([Abalone dataset](https://www.csie.ntu.edu.tw/~cjlin/libsvmtools/datasets/regression.html)) using regression from Amazon SageMaker XGBoost.
+- *image_classification*: Uses Amazon SageMaker Image classification algorithm to train a Resnet on [caltech dataset](http://www.vision.caltech.edu/Image_Datasets/Caltech256/), either from scratch or using a pre-trained model. 
