@@ -2,7 +2,10 @@
 
 A scientific deep dive on Amazon SageMaker for training and using LDA models.
 
-> Insert Images Here
+<p align="center">
+<img src="https://github.com/awslabs/amazon-sagemaker-examples/blob/lda_topic_modeling/scientific_details_of_algorithms/lda_topic_modeling/img/img_documents.png">
+<img src="https://github.com/awslabs/amazon-sagemaker-examples/blob/lda_topic_modeling/scientific_details_of_algorithms/lda_topic_modeling/img/img_topics.png">
+</p>
 
 ## References
 
