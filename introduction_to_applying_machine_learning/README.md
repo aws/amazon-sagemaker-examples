@@ -1,8 +1,10 @@
-# Introduction to Applying Machine Learning
+# Amazon SageMaker Examples
 
-This directory includes introductory examples for applying machine learning to real world problems using Amazon SageMaker.  The notebooks tend to provide descriptive overviews rather than dense mathematical content to provide an easy on-ramp to using machine learning in common problems faced across a variety of industries.
+### Introduction to Applying Machine Learning
 
-Example Notebooks include:
-- *linear_time_series_forecast*: Generate a time-series forecast for product demand using Amazon SageMaker's Linear Learner algorithm.
-- *xgboost_customer_churn*: Predict customer churn by building a highly predictive gradient boosted trees model using Amazon SageMaker's implementation of the popular open source XGBoost package.
-- *xgboost_direct_marketing*: Predict successful conversion of prospective customers using gradient boosted trees from Amazon SageMaker's implementation of the popular open source XGBoost package.
+These examples provide a gentle introduction to machine learning concepts as they are applied in practical use cases across a variety of sectors.
+
+- [Targeted Direct Marketing](xgboost_direct_marketing) predicts potential customers that are most likely to convert based on customer and aggregate level metrics, using Amazon SageMaker's implementation of [XGBoost](https://github.com/dmlc/xgboost).
+- [Predicting Customer Churn](xgboost_customer_churn) uses customer interaction and service usage data to find those most likely to churn, and then walks through the cost/benefit trade-offs of providing retention incentives.  This uses Amazon SageMaker's implementation of [XGBoost](https://github.com/dmlc/xgboost) to create a highly predictive model.
+- [Time-series Forecasting](linear_time_series_forecast) generates a forecast for topline product demand using Amazon SageMaker's Linear Learner algorithm.
+- [Cancer Prediction](breast_cancer_prediction) predicts Breast Cancer based on features derived from images, using SageMaker's Linear Learner.
