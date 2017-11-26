@@ -39,6 +39,8 @@ These examples provide more thorough mathematical treatment on a select group of
 - [Bring Your Own Model for k-means](advanced_functionality/kmeans_bring_your_own_model) shows how to take a model that's been fit elsewhere and use Amazon SageMaker Algorithms containers to host it.
 - [Bring Your Own Algorithm with R](advanced_functionality/r_bring_your_own) shows how to bring your own algorithm container to Amazon SageMaker using the R language.
 - [Bring Your Own Tensorflow Model](sagemaker-python-sdk/tensorflow_iris_byom) shows how to bring a model trained anywhere into Amazon SageMaker
+- [Bring Your Own MXNet Model](sagemaker-python-sdk/tensorflow_iris_byom) shows how to bring a model trained anywhere using MXNet into Amazon SageMaker
+- [Bring Your Own TensorFlow Model](sagemaker-python-sdk/tensorflow_iris_byom) shows how to bring a model trained anywhere using TensorFlow into Amazon SageMaker
 
 ## FAQ
 
