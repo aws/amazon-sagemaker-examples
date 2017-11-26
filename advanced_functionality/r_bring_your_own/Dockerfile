@@ -1,6 +1,6 @@
 FROM ubuntu:16.04
 
-MAINTAINER David Arpin <arpin@amazon.com>
+MAINTAINER Amazon SageMaker Examples <amazon-sagemaker-examples@amazon.com>
 
 RUN apt-get -y update && apt-get install -y --no-install-recommends \
     wget \
