@@ -3,8 +3,8 @@
 An introductory notebook on using Amazon SageMaker to train and use LDA models.
 
 <p align="center">
-<img src="https://github.com/awslabs/amazon-sagemaker-examples/blob/lda_topic_modeling/introduction_to_amazon_algorithms/lda_topic_modeling/img/img_documents.png">
-<img src="https://github.com/awslabs/amazon-sagemaker-examples/blob/lda_topic_modeling/introduction_to_amazon_algorithms/lda_topic_modeling/img/img_topics.png">
+<img src="https://github.com/awslabs/amazon-sagemaker-examples/blob/master/introduction_to_amazon_algorithms/lda_topic_modeling/img/img_documents.png">
+<img src="https://github.com/awslabs/amazon-sagemaker-examples/blob/master/introduction_to_amazon_algorithms/lda_topic_modeling/img/img_topics.png">
 </p>
 
 ## References
