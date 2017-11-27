@@ -27,7 +27,6 @@ def train(current_host, hosts, num_cpus, num_gpus, channel_input_dirs, model_dir
     learning_rate = hyperparameters.get('learning_rate', 0.01)
     log_interval = hyperparameters.get('log_interval', 1000)
     embedding_size = hyperparameters.get('embedding_size', 50)
-    wd = hyperparameters.get('wd', 0.0001)
 
     if len(hosts) == 1:
         kvstore = 'device' if num_gpus > 0 else 'local'
@@ -100,9 +99,7 @@ def train(current_host, hosts, num_cpus, num_gpus, channel_input_dirs, model_dir
 
 
 class BucketSentenceIter(DataIter):
-    """Simple bucketing iterator for language model.
-    The label at each sequence step is the following token
-    in the sequence.
+    """Simple bucketing iterator for text classification model.
     Parameters
     ----------
     sentences : list of list of int
