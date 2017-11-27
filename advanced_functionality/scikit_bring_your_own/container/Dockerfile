@@ -33,10 +33,6 @@ ENV PYTHONUNBUFFERED=TRUE
 ENV PYTHONDONTWRITEBYTECODE=TRUE
 ENV PATH="/opt/program:${PATH}"
 
-# Make nginx log to stdout/err so that the log messages will be picked up by the
-# Docker logger
-RUN ln -s /dev/stdout /tmp/nginx.access.log && ln -s /dev/stderr /tmp/nginx.error.log
-
 # Set up the program in the image
 COPY decision_trees /opt/program
 WORKDIR /opt/program
