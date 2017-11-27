@@ -1,12 +1,15 @@
-# Introduction to Amazon Algorithms
+# Amazon SageMaker Examples
 
-This directory includes introductory examples to Amazon SageMaker Algorithms that we have developed so far.  It seeks to provide guidance and examples on basic functionality rather than a detailed scientific review or an implementation on complex, real-world data.
+### Introduction to Amazon Algorithms
 
-Example Notebooks include:
-- *linear_mnist*: Predicts whether a handwritten digit from the MNIST dataset is a 0 or not using a binary classifier from Amazon SageMaker Linear Learner.
-- *factorization_machines_mnist*: Predicts whether a handwritten digit from the MNIST dataset is a 0 or not using a binary classifier from Amazon SageMaker Factorization Machines.
-- *pca_mnist*: Uses Amazon SageMaker Principal Components Analysis (PCA) to calculate eigendigits from MNIST.
-- *ntm_synthetic*: Uses Amazon SageMaker Neural Topic Model (NTM) to uncover topics in documents from a synthetic data source, where topic distributions are known.
-- *xgboost_mnist*: Uses Amazon SageMaker XGBoost to classifiy handwritten digits from the MNIST dataset into one of the ten digits using a multi-class classifier. Both single machine and distributed use-cases are presented. 
-- *xgboost_abalone*: Predicts the age of abalone ([Abalone dataset](https://www.csie.ntu.edu.tw/~cjlin/libsvmtools/datasets/regression.html)) using regression from Amazon SageMaker XGBoost.
-- *image_classification*: Uses Amazon SageMaker Image classification algorithm to train a Resnet on [caltech dataset](http://www.vision.caltech.edu/Image_Datasets/Caltech256/), either from scratch or using a pre-trained model. 
+These examples provide quick walkthroughs to get you up and running with Amazon SageMaker's custom developed algorithms.  Most of these algorithms can train on distributed hardware, scale incredibly well, and are faster and cheaper than popular alternatives.
+
+- [k-means](../sagemaker-python-sdk/1P_kmeans_highlevel) is our introductory example for Amazon SageMaker.  It walks through the process of clustering MNIST images of handwritten digits using Amazon SageMaker k-means.
+- [Factorization Machines](factorization_machines_mnist) showcases Amazon SageMaker's implementation of the algorithm to predict whether a handwritten digit from the MNIST dataset is a 0 or not using a binary classifier.
+- [Latent Dirichlet Allocation (LDA)](lda_topic_modeling) introduces topic modeling using Amazon SageMaker Latent Dirichlet Allocation (LDA) on a synthetic dataset.
+- [Linear Learner](linear_learner_mnist) predicts whether a handwritten digit from the MNIST dataset is a 0 or not using a binary classifier from Amazon SageMaker Linear Learner.
+- [Neural Topic Model (NTM)](ntm_synthetic) uses Amazon SageMaker Neural Topic Model (NTM) to uncover topics in documents from a synthetic data source, where topic distributions are known.
+- [Principal Components Analysis (PCA)](pca_mnist) uses Amazon SageMaker PCA to calculate eigendigits from MNIST.
+- [Seq2Seq](seq2seq) uses the Amazon SageMaker Seq2Seq algorithm that's built on top of [Sockeye](https://github.com/awslabs/sockeye), which is a sequence-to-sequence framework for Neural Machine Translation based on MXNet.  Seq2Seq implements state-of-the-art encoder-decoder architectures which can also be used for tasks like Abstractive Summarization in addition to Machine Translation.  This notebook shows translation from English to German text.
+- [XGBoost for regression](xgboost_abalone) predicts the age of abalone ([Abalone dataset](https://www.csie.ntu.edu.tw/~cjlin/libsvmtools/datasets/regression.html)) using regression from Amazon SageMaker's implementation of [XGBoost](https://github.com/dmlc/xgboost).
+- [XGBoost for multi-class classification](xgboost_mnist) uses Amazon SageMaker's implementation of [XGBoost](https://github.com/dmlc/xgboost) to classifiy handwritten digits from the MNIST dataset as one of the ten digits using a multi-class classifier. Both single machine and distributed use-cases are presented.
