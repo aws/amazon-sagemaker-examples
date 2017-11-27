@@ -53,7 +53,7 @@ def train(channel_input_dirs, hyperparameters, hosts, num_cpus, num_gpus, **kwar
                   optimizer_params={'learning_rate': float(hyperparameters.get("learning_rate", 0.1))},
                   eval_metric='acc',
                   batch_end_callback=mx.callback.Speedometer(batch_size, 100),
-                  num_epoch=10)
+                  num_epoch=25)
     return mlp_model
 
 
