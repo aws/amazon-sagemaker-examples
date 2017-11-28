@@ -1,12 +1,11 @@
 from __future__ import print_function
 
+import json
 import logging
+import os
 import time
 
-import json
 import mxnet as mx
-import numpy as np
-import os
 from mxnet import autograd as ag
 from mxnet import gluon
 from mxnet.gluon.model_zoo import vision as models
@@ -28,7 +27,7 @@ def train(current_host, hosts, num_cpus, num_gpus, channel_input_dirs, model_dir
     if len(hosts) == 1:
         kvstore = 'device' if num_gpus > 0 else 'local'
     else:
-        kvstore = 'dist_sync'  # TODO retest 'dist_sync_device'
+        kvstore = 'dist_device_sync'
 
     ctx = [mx.gpu(i) for i in range(num_gpus)] if num_gpus > 0 else [mx.cpu()]
     net = models.get_model('resnet34_v2', ctx=ctx, pretrained=False, classes=10)
