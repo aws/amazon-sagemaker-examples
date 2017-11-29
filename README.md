@@ -60,7 +60,7 @@ These examples focus on the Amazon SageMaker Python SDK which allows you to writ
 - [TensorFlow Networks with Keras](sagemaker-python-sdk/tensorflow_abalone_age_predictor_using_keras)
 - [Introduction to Estimators in TensorFlow](sagemaker-python-sdk/tensorflow_iris_dnn_classifier_using_estimators)
 - [TensorFlow and TensorBoard](sagemaker-python-sdk/tensorflow_resnet_cifar10_with_tensorboard)
-- [Distributed TensorFlow)(sagemaker-python-sdk/tensorflow_distributed_mnist)
+- [Distributed TensorFlow](sagemaker-python-sdk/tensorflow_distributed_mnist)
 
 ### Under Development
 
