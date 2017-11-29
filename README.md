@@ -44,6 +44,7 @@ These examples that showcase unique functionality available in Amazon SageMaker.
 - [Connecting to Redshift](advanced_functionality/working_with_redshift_data) demonstrates how to copy data from Redshift to S3 and vice-versa without leaving Amazon SageMaker Notebooks.
 - [Bring Your Own XGBoost Model](advanced_functionality/xgboost_bring_your_own_model) shows how to use Amazon SageMaker Algorithms containers to bring a pre-trained model to a realtime hosted endpoint without ever needing to think about REST APIs.
 - [Bring Your Own k-means Model](advanced_functionality/kmeans_bring_your_own_model) shows how to take a model that's been fit elsewhere and use Amazon SageMaker Algorithms containers to host it.
+- [Bring Your Own R Algorithm](advanced_functionality/r_bring_your_own) shows how to bring your own algorithm container to Amazon SageMaker using the R language.
 - [Installing the R Kernel](advanced_functionality/install_r_kernel) shows how to install the R kernel into an Amazon SageMaker Notebook Instance.
 - [Bring Your Own scikit Algorithm](advanced_functionality/scikit_bring_your_own) provides a detailed walkthrough on how to package a scikit learn algorithm for training and production-ready hosting.
 
@@ -59,7 +60,7 @@ These examples focus on the Amazon SageMaker Python SDK which allows you to writ
 - [TensorFlow Networks with Keras](sagemaker-python-sdk/tensorflow_abalone_age_predictor_using_keras)
 - [Introduction to Estimators in TensorFlow](sagemaker-python-sdk/tensorflow_iris_dnn_classifier_using_estimators)
 - [TensorFlow and TensorBoard](sagemaker-python-sdk/tensorflow_resnet_cifar10_with_tensorboard)
-- [Distributed TensorFlow)(sagemaker-python-sdk/tensorflow_distributed_mnist)
+- [Distributed TensorFlow](sagemaker-python-sdk/tensorflow_distributed_mnist)
 
 ### Under Development
 
@@ -68,7 +69,6 @@ These Amazon SageMaker examples fully illustrate a concept, but may require some
 - [Bring Your Own MXNet Model](under_development/tensorflow_iris_byom) shows how to bring a model trained anywhere using MXNet into Amazon SageMaker
 - [Bring Your Own TensorFlow Model](under_development/tensorflow_iris_byom) shows how to bring a model trained anywhere using TensorFlow into Amazon SageMaker
 - [Ensembling Multiple Models](under_development/modeling) creates two different models for prediction, hosts them independently and shows how their outputs can be combined for better accuracy than either one alone.
-- [Bring Your Own R Algorithm](advanced_functionality/r_bring_your_own) shows how to bring your own algorithm container to Amazon SageMaker using the R language.
 
 ## FAQ
 
