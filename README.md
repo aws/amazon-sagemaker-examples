@@ -39,7 +39,7 @@ These examples provide more thorough mathematical treatment on a select group of
 These examples that showcase unique functionality available in Amazon SageMaker.  They cover a broad range of topics and will utilize a variety of methods, but aim to provide the user with sufficient insight or inspiration to develop within Amazon SageMaker.
 
 - [Data Distribution Types](advanced_functionality/data_distribution_types) showcases the difference between two methods for sending data from S3 to Amazon SageMaker Training instances.  This has particular implication for scalability and accuracy of distributed training.
-- [Encrypting Your Data](advanced_functionality/handling_kms_encrypted_data) shows how to use Server Side KMS encrypted data with Amazon SageMaker training works. The IAM role used for S3 access needs to have permissions to encrypt and decrypt data with the KMS key.
+- [Encrypting Your Data](advanced_functionality/handling_kms_encrypted_data) shows how to use Server Side KMS encrypted data with Amazon SageMaker training. The IAM role used for S3 access needs to have permissions to encrypt and decrypt data with the KMS key.
 - [Using Parquet Data](advanced_functionality/parquet_to_recordio_protobuf) shows how to bring [Parquet](https://parquet.apache.org/) data sitting in S3 into an Amazon SageMaker Notebook and convert it into the recordIO-protobuf format that many SageMaker algorithms consume. 
 - [Connecting to Redshift](advanced_functionality/working_with_redshift_data) demonstrates how to copy data from Redshift to S3 and vice-versa without leaving Amazon SageMaker Notebooks.
 - [Bring Your Own XGBoost Model](advanced_functionality/xgboost_bring_your_own_model) shows how to use Amazon SageMaker Algorithms containers to bring a pre-trained model to a realtime hosted endpoint without ever needing to think about REST APIs.
@@ -66,9 +66,8 @@ These examples focus on the Amazon SageMaker Python SDK which allows you to writ
 
 These Amazon SageMaker examples fully illustrate a concept, but may require some additional configuration on the users part to complete.
 
-- [Bring Your Own MXNet Model](under_development/tensorflow_iris_byom) shows how to bring a model trained anywhere using MXNet into Amazon SageMaker
+- [Bring Your Own MXNet Model](under_development/mxnet_mnist_byom) shows how to bring a model trained anywhere using MXNet into Amazon SageMaker
 - [Bring Your Own TensorFlow Model](under_development/tensorflow_iris_byom) shows how to bring a model trained anywhere using TensorFlow into Amazon SageMaker
-- [Ensembling Multiple Models](under_development/modeling) creates two different models for prediction, hosts them independently and shows how their outputs can be combined for better accuracy than either one alone.
 
 ## FAQ
 
@@ -78,4 +77,4 @@ These Amazon SageMaker examples fully illustrate a concept, but may require some
 
 *How do I contribute my own example notebook?*
 
-- Although we're extremely excited to receive contributions from the community, we're still working on the best mechanism to take in examples from and external source.  Please bear with us in the short-term if pull requests take longer than expected or are closed.
+- Although we're extremely excited to receive contributions from the community, we're still working on the best mechanism to take in examples from external sources.  Please bear with us in the short-term if pull requests take longer than expected or are closed.
