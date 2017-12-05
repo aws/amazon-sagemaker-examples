@@ -41,7 +41,7 @@ def train(channel_input_dirs, hyperparameters, hosts, **kwargs):
     # Collect all parameters from net and its children, then initialize them.
     net.initialize(mx.init.Xavier(magnitude=2.24), ctx=ctx)
     # Trainer is for updating parameters with gradient.
-    store = kv.create('dist_sync' if hosts > 1 else 'local')
+    store = kv.create('dist_sync' if len(hosts) > 1 else 'local')
     trainer = gluon.Trainer(net.collect_params(), 'sgd',
                             {'learning_rate': learning_rate, 'momentum': momentum},
                             kvstore=store)
