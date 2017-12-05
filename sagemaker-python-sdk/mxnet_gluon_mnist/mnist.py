@@ -2,7 +2,7 @@ from __future__ import print_function
 
 import logging
 import mxnet as mx
-from mxnet import gluon, autograd, kv
+from mxnet import gluon, autograd
 from mxnet.gluon import nn
 import numpy as np
 import json
@@ -16,7 +16,7 @@ logging.basicConfig(level=logging.DEBUG)
 # ------------------------------------------------------------ #
 
 
-def train(channel_input_dirs, hyperparameters, hosts, **kwargs):
+def train(channel_input_dirs, hyperparameters, hosts, num_gpus, **kwargs):
     # SageMaker passes num_cpus, num_gpus and other args we can use to tailor training to
     # the current container environment, but here we just use simple cpu context.
     ctx = mx.cpu()
@@ -41,10 +41,15 @@ def train(channel_input_dirs, hyperparameters, hosts, **kwargs):
     # Collect all parameters from net and its children, then initialize them.
     net.initialize(mx.init.Xavier(magnitude=2.24), ctx=ctx)
     # Trainer is for updating parameters with gradient.
-    store = kv.create('dist_sync' if len(hosts) > 1 else 'local')
+
+    if len(hosts) == 1:
+        kvstore = 'device' if num_gpus > 0 else 'local'
+    else:
+        kvstore = 'dist_device_sync' if num_gpus > 0 else 'dist_sync'
+
     trainer = gluon.Trainer(net.collect_params(), 'sgd',
                             {'learning_rate': learning_rate, 'momentum': momentum},
-                            kvstore=store)
+                            kvstore=kvstore)
     metric = mx.metric.Accuracy()
     loss = gluon.loss.SoftmaxCrossEntropyLoss()
 

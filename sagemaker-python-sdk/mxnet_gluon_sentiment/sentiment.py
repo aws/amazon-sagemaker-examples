@@ -31,7 +31,7 @@ def train(current_host, hosts, num_cpus, num_gpus, channel_input_dirs, model_dir
     if len(hosts) == 1:
         kvstore = 'device' if num_gpus > 0 else 'local'
     else:
-        kvstore = 'dist_sync'
+        kvstore = 'dist_device_sync' if num_gpus > 0 else 'dist_sync'
 
     ctx = mx.gpu() if num_gpus > 0 else mx.cpu()
 
@@ -56,7 +56,8 @@ def train(current_host, hosts, num_cpus, num_gpus, channel_input_dirs, model_dir
     net.initialize(mx.init.Xavier(magnitude=2.24), ctx=ctx)
     # Trainer is for updating parameters with gradient.
     trainer = gluon.Trainer(net.collect_params(), 'adam',
-                            {'learning_rate': learning_rate})
+                            {'learning_rate': learning_rate},
+                            kvstore=kvstore)
     metric = mx.metric.Accuracy()
     loss = gluon.loss.SoftmaxCrossEntropyLoss()
 
