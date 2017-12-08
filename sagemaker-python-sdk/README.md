@@ -1,6 +1,6 @@
 # Amazon SageMaker Examples
 
-### Amazon SageMaker TensorFlow and MXNet Pre-Built Containers and the Python SDDK
+### Amazon SageMaker TensorFlow and MXNet Pre-Built Containers and the Python SDK
 
 These examples focus on the Amazon SageMaker Python SDK which allows you to write idiomatic TensorFlow or MXNet and then train or host in pre-built containers.
 
