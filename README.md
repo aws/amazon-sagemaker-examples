@@ -13,6 +13,7 @@ These examples provide a gentle introduction to machine learning concepts as the
 - [Time-series Forecasting](introduction_to_applying_machine_learning/linear_time_series_forecast) generates a forecast for topline product demand using Amazon SageMaker's Linear Learner algorithm.
 - [Cancer Prediction](introduction_to_applying_machine_learning/breast_cancer_prediction) predicts Breast Cancer based on features derived from images, using SageMaker's Linear Learner.
 - [Ensembling](introduction_to_applying_machine_learning/ensemble_modeling) predicts income using two Amazon SageMaker models to show the advantages in ensembling.
+- [Video Game Sales](introduction_to_applying_machine_learning/video_game_sales) develops a binary prediction model for the success of video games based on review scores.
 
 ### Introduction to Amazon Algorithms
 
@@ -48,6 +49,7 @@ These examples that showcase unique functionality available in Amazon SageMaker.
 - [Bring Your Own R Algorithm](advanced_functionality/r_bring_your_own) shows how to bring your own algorithm container to Amazon SageMaker using the R language.
 - [Installing the R Kernel](advanced_functionality/install_r_kernel) shows how to install the R kernel into an Amazon SageMaker Notebook Instance.
 - [Bring Your Own scikit Algorithm](advanced_functionality/scikit_bring_your_own) provides a detailed walkthrough on how to package a scikit learn algorithm for training and production-ready hosting.
+- [Bring Your Own TensorFlow Model](advanced_functionality/tensorflow_iris_byom) shows how to bring a model trained anywhere using TensorFlow into Amazon SageMaker
 
 ### Amazon SageMaker TensorFlow and MXNet Pre-Built Containers and the Python SDK
 
@@ -68,9 +70,16 @@ These examples focus on the Amazon SageMaker Python SDK which allows you to writ
 These Amazon SageMaker examples fully illustrate a concept, but may require some additional configuration on the users part to complete.
 
 - [Bring Your Own MXNet Model](under_development/mxnet_mnist_byom) shows how to bring a model trained anywhere using MXNet into Amazon SageMaker
-- [Bring Your Own TensorFlow Model](under_development/tensorflow_iris_byom) shows how to bring a model trained anywhere using TensorFlow into Amazon SageMaker
 
 ## FAQ
+
+*What do I need in order to get started?*
+
+- The quickest setup to run example notebooks includes:
+  - An [AWS account](http://docs.aws.amazon.com/sagemaker/latest/dg/gs-account.html)
+  - Proper [IAM User and Role](http://docs.aws.amazon.com/sagemaker/latest/dg/authentication-and-access-control.html) setup
+  - An [Amazon SageMaker Notebook Instance](http://docs.aws.amazon.com/sagemaker/latest/dg/gs-setup-working-env.html)
+  - An [S3 bucket](http://docs.aws.amazon.com/sagemaker/latest/dg/gs-config-permissions.html)
 
 *Will these examples work outside of Amazon SageMaker Notebook Instances?*
 
