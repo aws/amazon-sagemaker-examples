@@ -13,7 +13,7 @@ These examples provide a gentle introduction to machine learning concepts as the
 - [Time-series Forecasting](introduction_to_applying_machine_learning/linear_time_series_forecast) generates a forecast for topline product demand using Amazon SageMaker's Linear Learner algorithm.
 - [Cancer Prediction](introduction_to_applying_machine_learning/breast_cancer_prediction) predicts Breast Cancer based on features derived from images, using SageMaker's Linear Learner.
 - [Ensembling](introduction_to_applying_machine_learning/ensemble_modeling) predicts income using two Amazon SageMaker models to show the advantages in ensembling.
-- [Video Game Sales](introduction_to_applying_machine_learning/video_game_sales) develops a binary prediction model for the success video games based on review scores.
+- [Video Game Sales](introduction_to_applying_machine_learning/video_game_sales) develops a binary prediction model for the success of video games based on review scores.
 
 ### Introduction to Amazon Algorithms
 
