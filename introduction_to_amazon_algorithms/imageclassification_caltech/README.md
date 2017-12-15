@@ -1,0 +1,5 @@
+### SageMaker Image classification full training
+This notebook `ImageClassification_FullTraining.ipynb` demos an end-2-end system for image classification training using resnet model. Caltech-256 dataset is used as a sample dataset. Various parameters such as network depth (number of layers), batch_size, learning_rate, etc., can be varied in the training. Once the training is complete, the notebook shows how to host the trained model for inference.
+
+### SageMaker Image classification transfer learning
+This notebook `Imageclassification-transfer-learning.ipynb` demos an end-2-end system for image classification fine-tuning using a pre-trained resnet model on imagenet dataset. Caltech-256 dataset is used as a transfer learning dataset. The network re-initializes the output layer with the number of classes in the Caltech dataset and retrains the layer while at the same time fine-tuning the other layers. Various parameters such as network depth (number of layers), batch_size, learning_rate, etc., can be varied in the training. Once the training is complete, the notebook shows how to host the trained model for inference.
