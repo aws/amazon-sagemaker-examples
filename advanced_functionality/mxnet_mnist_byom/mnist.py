@@ -12,7 +12,6 @@ def find_file(root_path, file_name):
         if file_name in files:
             return os.path.join(root, file_name)
 
-
 def build_graph():
     data = mx.sym.var('data')
     data = mx.sym.flatten(data=data)

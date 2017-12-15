@@ -49,6 +49,7 @@ These examples that showcase unique functionality available in Amazon SageMaker.
 - [Bring Your Own R Algorithm](advanced_functionality/r_bring_your_own) shows how to bring your own algorithm container to Amazon SageMaker using the R language.
 - [Installing the R Kernel](advanced_functionality/install_r_kernel) shows how to install the R kernel into an Amazon SageMaker Notebook Instance.
 - [Bring Your Own scikit Algorithm](advanced_functionality/scikit_bring_your_own) provides a detailed walkthrough on how to package a scikit learn algorithm for training and production-ready hosting.
+- [Bring Your Own MXNet Model](advanced_functionality/mxnet_mnist_byom) shows how to bring a model trained anywhere using MXNet into Amazon SageMaker
 - [Bring Your Own TensorFlow Model](advanced_functionality/tensorflow_iris_byom) shows how to bring a model trained anywhere using TensorFlow into Amazon SageMaker
 
 ### Amazon SageMaker TensorFlow and MXNet Pre-Built Containers and the Python SDK
@@ -68,8 +69,6 @@ These examples focus on the Amazon SageMaker Python SDK which allows you to writ
 ### Under Development
 
 These Amazon SageMaker examples fully illustrate a concept, but may require some additional configuration on the users part to complete.
-
-- [Bring Your Own MXNet Model](under_development/mxnet_mnist_byom) shows how to bring a model trained anywhere using MXNet into Amazon SageMaker
 
 ## FAQ
 
