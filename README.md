@@ -13,6 +13,7 @@ These examples provide a gentle introduction to machine learning concepts as the
 - [Time-series Forecasting](introduction_to_applying_machine_learning/linear_time_series_forecast) generates a forecast for topline product demand using Amazon SageMaker's Linear Learner algorithm.
 - [Cancer Prediction](introduction_to_applying_machine_learning/breast_cancer_prediction) predicts Breast Cancer based on features derived from images, using SageMaker's Linear Learner.
 - [Ensembling](introduction_to_applying_machine_learning/ensemble_modeling) predicts income using two Amazon SageMaker models to show the advantages in ensembling.
+- [Video Game Sales](introduction_to_applying_machine_learning/video_game_sales) develops a binary prediction model for the success of video games based on review scores.
 
 ### Introduction to Amazon Algorithms
 
@@ -65,7 +66,19 @@ These examples focus on the Amazon SageMaker Python SDK which allows you to writ
 - [TensorFlow and TensorBoard](sagemaker-python-sdk/tensorflow_resnet_cifar10_with_tensorboard)
 - [Distributed TensorFlow](sagemaker-python-sdk/tensorflow_distributed_mnist)
 
+### Under Development
+
+These Amazon SageMaker examples fully illustrate a concept, but may require some additional configuration on the users part to complete.
+
 ## FAQ
+
+*What do I need in order to get started?*
+
+- The quickest setup to run example notebooks includes:
+  - An [AWS account](http://docs.aws.amazon.com/sagemaker/latest/dg/gs-account.html)
+  - Proper [IAM User and Role](http://docs.aws.amazon.com/sagemaker/latest/dg/authentication-and-access-control.html) setup
+  - An [Amazon SageMaker Notebook Instance](http://docs.aws.amazon.com/sagemaker/latest/dg/gs-setup-working-env.html)
+  - An [S3 bucket](http://docs.aws.amazon.com/sagemaker/latest/dg/gs-config-permissions.html)
 
 *Will these examples work outside of Amazon SageMaker Notebook Instances?*
 
