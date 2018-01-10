@@ -272,7 +272,7 @@ def create_vocab(sentences, min_count=5, num_words = 100000):
 
 def vocab_to_json(vocab, path):
     with open(path, "w") as out:
-        json.dump(vocab, out, indent=4, ensure_ascii=False)
+        json.dump(vocab, out, indent=4, ensure_ascii=True)
         print('Vocabulary saved to "%s"', path)
 
 
