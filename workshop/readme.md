@@ -11,4 +11,4 @@ The lectures will be one hour long. There will two types of lectures. The introd
 List of lectures
 ----------------
 
-1. [Linear and Ridge Regressions - Analytical Solutions](/lec1/lec1.ipynb)
+1. [Linear and Ridge Regressions - Analytical Solutions](lec1/lec1.ipynb)
