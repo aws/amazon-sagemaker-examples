@@ -7,3 +7,8 @@ Format of the lectures
 ----------------------
 
 The lectures will be one hour long. There will two types of lectures. The introductory lectures will cover the science aspects and the follow-up lectures will cover the programming aspects. As we proceed further along the material, we will lectures that will introduce the [SageMaker Python SDK](https://github.com/aws/sagemaker-python-sdk/blob/master/README.rst) while implemeting some of the material.
+
+List of lectures
+----------------
+
+1. [Linear and Ridge Regressions - Analytical Solutions](/lec1/lec1.ipynb)
