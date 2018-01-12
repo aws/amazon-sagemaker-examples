@@ -69,5 +69,28 @@ class regressor(object):
         plt.plot(grid, predictions, 'r')
         plt.show()
 
+class ridge_regressor(regressor):
+    """
+    This is a sample class for lecture 1.
+
+    Args:
+        data: Is a tuple, ``(x,y)``
+              ``x`` is a two or one dimensional ndarray ordered such that axis 0 is independent 
+              data and data is spread along axis 1. If the array had only one dimension, it implies
+              that data is 1D.
+              ``y`` is a 1D ndarray it will be of the same length as axis 0 or x.   
+        alpha: Co-efficient for L2 regularizer.
+                          
+    """
+    def __init__(self, data, alpha = 0.0001):
+        self.x, self.y = data        
+        # Here is where your training and all the other magic should happen. 
+        # Once trained you should have these parameters trained. 
+        x = np.concatenate((np.ones((self.x.shape[0],1)), self.x), axis = 1)
+        w = np.dot(np.linalg.pinv(np.dot(x.T,x) + alpha*np.eye(x.shape[1])), np.dot(x.T,self.y))
+        alpha
+        self.w = w[1:]
+        self.b = w[0]
+        
 if __name__ == '__main__':
     pass 
