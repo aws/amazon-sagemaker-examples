@@ -49,12 +49,13 @@ class regressor(object):
         predictions = np.add(np.dot(x, self.w), self.b)
         return predictions
 
-    def plot(self, data = None):
+    def plot(self, data = None, color = 'r'):
         """ Method will plot the line on an existing pyplot. 
         If data is provided, it will plot with the data. 
         
         Args:
             data: tuple of `(x,y)`. 
+            color: What color the line should be default is red.
         """
         if data is not None:
             x, y = data
@@ -64,9 +65,9 @@ class regressor(object):
         plt.title('Amazon Employee Compensation (Linear) Dataset')  
         plt.xlabel('Years of experience of the employee.')
         plt.ylabel('Compensation in $100,000')     
-        grid = np.asarray([0, 1])[:,np.newaxis]
+        grid = np.asarray([0, 10])[:,np.newaxis]
         predictions = self.get_predictions(grid)
-        plt.plot(grid, predictions, 'r')
+        plt.plot(grid, predictions, color)
         plt.show()
 
 class ridge_regressor(regressor):
@@ -88,7 +89,6 @@ class ridge_regressor(regressor):
         # Once trained you should have these parameters trained. 
         x = np.concatenate((np.ones((self.x.shape[0],1)), self.x), axis = 1)
         w = np.dot(np.linalg.pinv(np.dot(x.T,x) + alpha*np.eye(x.shape[1])), np.dot(x.T,self.y))
-        alpha
         self.w = w[1:]
         self.b = w[0]
         
