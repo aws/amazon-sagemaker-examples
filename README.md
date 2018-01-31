@@ -67,6 +67,12 @@ These examples focus on the Amazon SageMaker Python SDK which allows you to writ
 - [TensorFlow and TensorBoard](sagemaker-python-sdk/tensorflow_resnet_cifar10_with_tensorboard)
 - [Distributed TensorFlow](sagemaker-python-sdk/tensorflow_distributed_mnist)
 
+### Using Amazon SageMaker with Apache Spark
+
+These examples show how to use Amazon SageMaker for model training, hosting, and inference through Apache Spark using [SageMaker Spark](https://github.com/aws/sagemaker-spark). SageMaker Spark allows you to interleave Spark Pipeline stages with Pipeline stages that interact with Amazon SageMaker.
+
+- [MNIST with SageMaker Spark](sagemaker-spark/pyspark_mnist)
+
 ### Under Development
 
 These Amazon SageMaker examples fully illustrate a concept, but may require some additional configuration on the users part to complete.
