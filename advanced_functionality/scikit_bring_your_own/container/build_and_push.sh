@@ -13,6 +13,9 @@ then
     exit 1
 fi
 
+chmod +x decision_trees/train
+chmod +x decision_trees/serve
+
 # Get the account number associated with the current IAM credentials
 account=$(aws sts get-caller-identity --query Account --output text)
 
@@ -43,12 +46,6 @@ $(aws ecr get-login --region ${region} --no-include-email)
 
 # Build the docker image locally with the image name and then push it to ECR
 # with the full name.
-
-# On a SageMaker Notebook Instance, the docker daemon may need to be restarted in order
-# to detect your network configuration correctly.  (This is a known issue.)
-if [ -d "/home/ec2-user/SageMaker" ]; then
-  sudo service docker restart
-fi
 
 docker build  -t ${image} .
 docker tag ${image} ${fullname}
