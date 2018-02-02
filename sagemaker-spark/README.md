@@ -1,9 +1,7 @@
 # Amazon SageMaker Examples
 
-## Amazon SageMaker using SageMaker Spark
+### Using Amazon SageMaker with Apache Spark
 
-These examples demonstrate using SageMaker Spark, which allows you to interleave Apache Spark code with Amazon SageMaker.
+These examples show how to use Amazon SageMaker for model training, hosting, and inference through Apache Spark using [SageMaker Spark](https://github.com/aws/sagemaker-spark). SageMaker Spark allows you to interleave Spark Pipeline stages with Pipeline stages that interact with Amazon SageMaker.
 
-See [SageMaker Spark](https://github.com/aws/sagemaker-spark) for more information.
-
-- [MNIST with SageMaker Spark](pyspark_mnist)
+- [MNIST with SageMaker PySpark](pyspark_mnist)
