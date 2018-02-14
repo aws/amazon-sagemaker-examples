@@ -36,8 +36,17 @@ def train(current_host, hosts, num_cpus, num_gpus, channel_input_dirs, model_dir
     # load training and validation data
     # we use the gluon.data.vision.CIFAR10 class because of its built in pre-processing logic,
     # but point it at the location where SageMaker placed the data files, so it doesn't download them again.
+
+    part_index = 0
+    for i, host in enumerate(hosts):
+        if host == current_host:
+            part_index = i
+            break
+
+
     data_dir = channel_input_dirs['training']
-    train_data = get_train_data(num_cpus, data_dir, batch_size, (3, 32, 32))
+    train_data = get_train_data(num_cpus, data_dir, batch_size, (3, 32, 32),
+                                num_parts=len(hosts), part_index=part_index)
     test_data = get_test_data(num_cpus, data_dir, batch_size, (3, 32, 32))
 
     # Collect all parameters from net and its children, then initialize them.
@@ -104,7 +113,7 @@ def save(net, model_dir):
         os.rename(os.path.join(model_dir, best), os.path.join(model_dir, 'model.params'))
 
 
-def get_data(path, augment, num_cpus, batch_size, data_shape, resize=-1):
+def get_data(path, augment, num_cpus, batch_size, data_shape, resize=-1, num_parts=1, part_index=0):
     return mx.io.ImageRecordIter(
         path_imgrec=path,
         resize=resize,
@@ -112,15 +121,18 @@ def get_data(path, augment, num_cpus, batch_size, data_shape, resize=-1):
         batch_size=batch_size,
         rand_crop=augment,
         rand_mirror=augment,
-        preprocess_threads=num_cpus)
+        preprocess_threads=num_cpus,
+        num_parts=num_parts,
+        part_index=part_index)
 
 
 def get_test_data(num_cpus, data_dir, batch_size, data_shape, resize=-1):
-    return get_data(os.path.join(data_dir, "test.rec"), False, num_cpus, batch_size, data_shape, resize)
+    return get_data(os.path.join(data_dir, "test.rec"), False, num_cpus, batch_size, data_shape, resize, 1, 0)
 
 
-def get_train_data(num_cpus, data_dir, batch_size, data_shape, resize=-1):
-    return get_data(os.path.join(data_dir, "train.rec"), True, num_cpus, batch_size, data_shape, resize)
+def get_train_data(num_cpus, data_dir, batch_size, data_shape, resize=-1, num_parts=1, part_index=0):
+    return get_data(os.path.join(data_dir, "train.rec"), True, num_cpus, batch_size, data_shape, resize, num_parts,
+                    part_index)
 
 
 def test(ctx, net, test_data):
