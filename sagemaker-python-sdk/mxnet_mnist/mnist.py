@@ -39,7 +39,9 @@ def train(current_host, channel_input_dirs, hyperparameters, hosts, num_cpus, nu
     (train_labels, train_images) = load_data(os.path.join(channel_input_dirs['train']))
     (test_labels, test_images) = load_data(os.path.join(channel_input_dirs['test']))
 
-    shard_size = len(train_images) / len(hosts)
+    # Alternatively to splitting in memory, the data could be pre-split in S3 and use ShardedByS3Key
+    # to do parallel training.
+    shard_size = len(train_images) // len(hosts)
     for i, host in enumerate(hosts):
         if host == current_host:
             start = shard_size * i
