@@ -62,6 +62,7 @@ These examples focus on the Amazon SageMaker Python SDK which allows you to writ
 - [MNIST with MXNet Gluon](sagemaker-python-sdk/mxnet_gluon_mnist)
 - [MNIST with MXNet](sagemaker-python-sdk/mxnet_mnist)
 - [Sentiment Analysis with MXNet Gluon](sagemaker-python-sdk/mxnet_gluon_sentiment)
+- [Semantic Segmentation with MXNet](sagemaker-python-sdk/mxnet_semantic_segmentation)
 - [TensorFlow Neural Networks with Layers](sagemaker-python-sdk/tensorflow_abalone_age_predictor_using_layers)
 - [TensorFlow Networks with Keras](sagemaker-python-sdk/tensorflow_abalone_age_predictor_using_keras)
 - [Introduction to Estimators in TensorFlow](sagemaker-python-sdk/tensorflow_iris_dnn_classifier_using_estimators)
