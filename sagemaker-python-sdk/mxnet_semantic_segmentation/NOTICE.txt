@@ -1,0 +1,18 @@
+[gen.py]
+Copyright [2018]-[2018] Amazon.com, Inc. or its affiliates. All Rights Reserved.
+
+[segmentation.py]
+Copyright [2018]-[2018] Amazon.com, Inc. or its affiliates. All Rights Reserved.
+
+[enet_full_res_deploy.py]
+Copyright [2018]-[2018] Amazon.com, Inc. or its affiliates. All Rights Reserved.
+
+**********************
+THIRD PARTY COMPONENTS
+**********************
+This software includes third party software subject to the following copyrights:
+
+- Functions for generating random affine transformations for data generation from https://github.com/matthewearl/deep-anpr - Copyright (c) 2015 matthewearl
+- Functions for constructing ENet architecture, adapted/ported from Keras implementation from https://github.com/PavlosMelissinos/enet-keras - Copyright (c) 2017 Pavlos
+
+The licenses for these third party components are included in LICENSE.txt
