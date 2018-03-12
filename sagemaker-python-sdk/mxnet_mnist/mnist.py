@@ -35,11 +35,21 @@ def build_graph():
     return mx.sym.SoftmaxOutput(data=fc3, name='softmax')
 
 
-def train(channel_input_dirs, hyperparameters, hosts, num_cpus, num_gpus, **kwargs):
+def train(current_host, channel_input_dirs, hyperparameters, hosts, num_cpus, num_gpus):
     (train_labels, train_images) = load_data(os.path.join(channel_input_dirs['train']))
     (test_labels, test_images) = load_data(os.path.join(channel_input_dirs['test']))
+
+    # Alternatively to splitting in memory, the data could be pre-split in S3 and use ShardedByS3Key
+    # to do parallel training.
+    shard_size = len(train_images) // len(hosts)
+    for i, host in enumerate(hosts):
+        if host == current_host:
+            start = shard_size * i
+            end = start + shard_size
+            break
+
     batch_size = 100
-    train_iter = mx.io.NDArrayIter(train_images, train_labels, batch_size, shuffle=True)
+    train_iter = mx.io.NDArrayIter(train_images[start:end], train_labels[start:end], batch_size, shuffle=True)
     val_iter = mx.io.NDArrayIter(test_images, test_labels, batch_size)
     logging.getLogger().setLevel(logging.DEBUG)
     kvstore = 'local' if len(hosts) == 1 else 'dist_sync'

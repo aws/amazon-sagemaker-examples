@@ -46,7 +46,16 @@ def train(current_host, hosts, num_cpus, num_gpus, channel_input_dirs, model_dir
     train_sentences = [[vocab.get(token, 1) for token in line if len(line)>0] for line in train_sentences]
     val_sentences = [[vocab.get(token, 1) for token in line if len(line)>0] for line in val_sentences]
 
-    train_iterator = BucketSentenceIter(train_sentences, train_labels, batch_size)
+    # Alternatively to splitting in memory, the data could be pre-split in S3 and use ShardedByS3Key
+    # to do parallel training.
+    shard_size = len(train_sentences) // len(hosts)
+    for i, host in enumerate(hosts):
+        if host == current_host:
+            start = shard_size * i
+            end = start + shard_size
+            break
+
+    train_iterator = BucketSentenceIter(train_sentences[start:end], train_labels[start:end], batch_size)
     val_iterator = BucketSentenceIter(val_sentences, val_labels, batch_size)
 
     # define the network

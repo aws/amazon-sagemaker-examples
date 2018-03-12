@@ -16,7 +16,7 @@ logging.basicConfig(level=logging.DEBUG)
 # ------------------------------------------------------------ #
 
 
-def train(channel_input_dirs, hyperparameters, hosts, num_gpus, **kwargs):
+def train(current_host, channel_input_dirs, hyperparameters, hosts, num_gpus):
     # SageMaker passes num_cpus, num_gpus and other args we can use to tailor training to
     # the current container environment, but here we just use simple cpu context.
     ctx = mx.cpu()
@@ -52,6 +52,19 @@ def train(channel_input_dirs, hyperparameters, hosts, num_gpus, **kwargs):
                             kvstore=kvstore)
     metric = mx.metric.Accuracy()
     loss = gluon.loss.SoftmaxCrossEntropyLoss()
+
+    # shard the training data in case we are doing distributed training. Alternatively to splitting in memory,
+    # the data could be pre-split in S3 and use ShardedByS3Key to do distributed training.
+    if len(hosts) > 1:
+        train_data = [x for x in train_data]
+        shard_size = len(train_data) // len(hosts)
+        for i, host in enumerate(hosts):
+            if host == current_host:
+                start = shard_size * i
+                end = start + shard_size
+                break
+
+        train_data = train_data[start:end]
 
     for epoch in range(epochs):
         # reset data iterator and metric at begining of epoch.
