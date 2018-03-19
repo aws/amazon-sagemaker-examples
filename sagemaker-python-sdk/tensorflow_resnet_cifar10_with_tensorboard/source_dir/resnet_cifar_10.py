@@ -106,39 +106,39 @@ def model_fn(features, labels, mode, params):
 
 
 def serving_input_fn(params):
-    feature_spec = {INPUT_TENSOR_NAME: tf.FixedLenFeature(dtype=tf.float32, shape=(32, 32, 3))}
-    return tf.estimator.export.build_parsing_serving_input_receiver_fn(feature_spec)()
+    inputs = {INPUT_TENSOR_NAME: tf.placeholder(tf.float32, [None, 32, 32, 3])}
+    return tf.estimator.export.ServingInputReceiver(inputs, inputs)
 
 
 def train_input_fn(training_dir, params):
-    return input_fn(tf.estimator.ModeKeys.TRAIN,
+    return _input_from_files(tf.estimator.ModeKeys.TRAIN,
                     batch_size=BATCH_SIZE, data_dir=training_dir)
 
 
 def eval_input_fn(training_dir, params):
-    return input_fn(tf.estimator.ModeKeys.EVAL,
+    return _input_from_files(tf.estimator.ModeKeys.EVAL,
                     batch_size=BATCH_SIZE, data_dir=training_dir)
 
 
-def input_fn(mode, batch_size, data_dir):
-    """Input_fn using the contrib.data input pipeline for CIFAR-10 dataset.
+def _input_from_files(mode, batch_size, data_dir):
+    """Uses the contrib.data input pipeline for CIFAR-10 dataset.
 
   Args:
     mode: Standard names for model modes (tf.estimators.ModeKeys).
     batch_size: The number of samples per batch of input requested.
   """
-    dataset = record_dataset(filenames(mode, data_dir))
+    dataset = _record_dataset(_filenames(mode, data_dir))
 
     # For training repeat forever.
     if mode == tf.estimator.ModeKeys.TRAIN:
         dataset = dataset.repeat()
 
-    dataset = dataset.map(dataset_parser, num_threads=1,
+    dataset = dataset.map(_dataset_parser, num_threads=1,
                           output_buffer_size=2 * batch_size)
 
     # For training, preprocess the image and shuffle.
     if mode == tf.estimator.ModeKeys.TRAIN:
-        dataset = dataset.map(train_preprocess_fn, num_threads=1,
+        dataset = dataset.map(_train_preprocess_fn, num_threads=1,
                               output_buffer_size=2 * batch_size)
 
         # Ensure that the capacity is sufficiently large to provide good random
@@ -160,7 +160,7 @@ def input_fn(mode, batch_size, data_dir):
     return {INPUT_TENSOR_NAME: images}, labels
 
 
-def train_preprocess_fn(image, label):
+def _train_preprocess_fn(image, label):
     """Preprocess a single training image of layout [height, width, depth]."""
     # Resize the image to add four extra pixels on each side.
     image = tf.image.resize_image_with_crop_or_pad(image, HEIGHT + 8, WIDTH + 8)
@@ -174,7 +174,7 @@ def train_preprocess_fn(image, label):
     return image, label
 
 
-def dataset_parser(value):
+def _dataset_parser(value):
     """Parse a CIFAR-10 record from value."""
     # Every record consists of a label followed by the image, with a fixed number
     # of bytes for each.
@@ -200,13 +200,13 @@ def dataset_parser(value):
     return image, tf.one_hot(label, NUM_CLASSES)
 
 
-def record_dataset(filenames):
+def _record_dataset(filenames):
     """Returns an input pipeline Dataset from `filenames`."""
     record_bytes = HEIGHT * WIDTH * DEPTH + 1
     return tf.contrib.data.FixedLengthRecordDataset(filenames, record_bytes)
 
 
-def filenames(mode, data_dir):
+def _filenames(mode, data_dir):
     """Returns a list of filenames based on 'mode'."""
     data_dir = os.path.join(data_dir, 'cifar-10-batches-bin')
 
