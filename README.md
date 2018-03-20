@@ -36,6 +36,7 @@ These examples provide quick walkthroughs to get you up and running with Amazon 
 
 These examples provide more thorough mathematical treatment on a select group of algorithms.
 
+- [Streaming Median](scientific_details_of_algorithms/streaming_median) sequentially introduces concepts used in streaming algorithms, which many SageMaker algorithms rely on to deliver speed and scalability.
 - [Latent Dirichlet Allocation (LDA)](scientific_details_of_algorithms/lda_topic_modeling) dives into Amazon SageMaker's spectral decomposition approach to LDA.
 
 ### Advanced Amazon SageMaker Functionality
