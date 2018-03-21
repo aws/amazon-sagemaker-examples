@@ -138,7 +138,7 @@ class SpatialDropoutProp(mx.operator.CustomOpProp):
         return (data_shape,), (output_shape,), ()
             
     def create_operator(self, ctx, in_shape, in_dtypes):
-        return SpatialDropout(self._p, self._num_filters, ctx
+        return SpatialDropout(self._p, self._num_filters, ctx)
 
 #begin third party code
 #third party code has been modified by porting from Keras to MXNet
