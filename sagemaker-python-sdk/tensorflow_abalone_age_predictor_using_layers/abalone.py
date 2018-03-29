@@ -57,9 +57,6 @@ def serving_input_fn(params):
     return build_raw_serving_input_receiver_fn({INPUT_TENSOR_NAME: tensor})()
 
 
-params = {"learning_rate": LEARNING_RATE}
-
-
 def train_input_fn(training_dir, params):
     return _input_fn(training_dir, 'abalone_train.csv')
 
