@@ -10,3 +10,4 @@ These examples provide a gentle introduction to machine learning concepts as the
 - [Cancer Prediction](breast_cancer_prediction) predicts Breast Cancer based on features derived from images, using SageMaker's Linear Learner.
 - [Ensembling](ensemble_modeling) predicts income using two Amazon SageMaker models to show the advantages in ensembling.
 - [Video Game Sales](video_game_sales) develops a binary prediction model for the success of video games based on review scores.
+- [MXNet Gluon Recommender System](gluon_recommender_system) uses neural network embeddings for non-linear matrix factorization to predict user movie ratings on Amazon digital reviews.
