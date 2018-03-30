@@ -50,6 +50,7 @@ def train(channel_input_dirs, hyperparameters, hosts, num_gpus, **kwargs):
     net.collect_params().initialize(mx.init.Xavier(magnitude=2.24),
                                     ctx=ctx,
                                     force_reinit=True)
+    net.hybridize()
 
     trainer = gluon.Trainer(net.collect_params(),
                             opt,
@@ -63,7 +64,7 @@ def train(channel_input_dirs, hyperparameters, hosts, num_gpus, **kwargs):
     return trained_net, customer_index, product_index
 
 
-class MFBlock(gluon.Block):
+class MFBlock(gluon.HybridBlock):
     def __init__(self, max_users, max_items, num_emb, dropout_p=0.5):
         super(MFBlock, self).__init__()
         
@@ -78,7 +79,7 @@ class MFBlock(gluon.Block):
             self.dropout = gluon.nn.Dropout(dropout_p)
             self.dense = gluon.nn.Dense(num_emb, activation='relu')
             
-    def forward(self, users, items):
+    def hybrid_forward(self, F, users, items):
         a = self.user_embeddings(users)
         a = self.dense(a)
         
@@ -86,7 +87,7 @@ class MFBlock(gluon.Block):
         b = self.dense(b)
 
         predictions = self.dropout(a) * self.dropout(b)      
-        predictions = nd.sum(predictions, axis=1)
+        predictions = F.sum(predictions, axis=1)
         return predictions
 
     
@@ -102,8 +103,7 @@ def execute(train_iter, test_iter, net, trainer, epochs, ctx):
                 with mx.autograd.record():
                     output = net(user, item)               
                     loss = loss_function(output, label)
-                    loss.backward()
-                net.collect_params().values()
+                loss.backward()
                 trainer.step(batch_size)
             except:
                 pass
