@@ -4,7 +4,7 @@ An introductory notebook on using Amazon SageMaker to train and use random cut
 forest models to perform anomaly detection.
 
 <p align="center">
-<img src="https://github.com/awslabs/amazon-sagemaker-examples/blob/rcf/introduction_to_amazon_algorithms/random_cut_forest/img/rcf.png">
+<img src="https://github.com/awslabs/amazon-sagemaker-examples/blob/master/introduction_to_amazon_algorithms/random_cut_forest/img/rcf.png">
 </p>
 
 ## References
