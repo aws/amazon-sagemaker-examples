@@ -7,8 +7,7 @@ from mxnet import gluon, nd, ndarray
 from mxnet.metric import MSE
 import numpy as np
 
-import pip
-pip.main(['install', 'pandas'])
+os.system('pip install pandas')
 import pandas as pd
 
 logging.basicConfig(level=logging.DEBUG)
