@@ -38,7 +38,7 @@ if __name__=='__main__':
     parser.add_argument('--model-type', type=str, default='rnn')
 
     # Data, model, and output directories. These are required.
-    parser.add_argument('--output-data-dir', type=str, default=os.environ['SM_OUTPUT_DATA_DIR'])
+    parser.add_argument('--output-dir', type=str, default=os.environ['SM_OUTPUT_DIR'])
     parser.add_argument('--model-dir', type=str, default=os.environ['SM_MODEL_DIR'])
     parser.add_argument('--train', type=str, default=os.environ['SM_CHANNEL_TRAIN'])
     parser.add_argument('--test', type=str, default=os.environ['SM_CHANNEL_TEST'])
@@ -103,7 +103,11 @@ if __name__=='__main__':
         test_iter = chainer.iterators.SerialIterator(test, args.batch_size, repeat=False, shuffle=False)
         updater = training.updater.StandardUpdater(train_iter, optimizer, converter=convert_seq, device=device)
 
-    trainer = training.Trainer(updater, (args.epochs, 'epoch'), out=args.output_data_dir)
+    # SageMaker saves the return value of train() in the `save` function in the resulting
+    # model artifact model.tar.gz, and the contents of `output_data_dir` in the output
+    # artifact output.tar.gz.
+    output_data_dir = os.path.join(args.output_dir, 'data')
+    trainer = training.Trainer(updater, (args.epochs, 'epoch'), out=output_data_dir)
 
     # Evaluate the model with the test dataset for each epoch
     trainer.extend(extensions.Evaluator(test_iter, model, converter=convert_seq, device=device))
@@ -138,15 +142,11 @@ if __name__=='__main__':
     # Run the training
     trainer.run()
 
-    # SageMaker saves the return value of train() in the `save` function in the resulting
-    # model artifact model.tar.gz, and the contents of `output_data_dir` in the output
-    # artifact output.tar.gz.
-
     # load the best model
-    serializers.load_npz(os.path.join(args.output_data_dir, 'best_model.npz'), model)
+    serializers.load_npz(os.path.join(output_data_dir, 'best_model.npz'), model)
 
     # remove the best model from output artifacts (since it will be saved as a model artifact)
-    os.remove(os.path.join(args.output_data_dir, 'best_model.npz'))
+    os.remove(os.path.join(output_data_dir, 'best_model.npz'))
     
     serializers.save_npz(os.path.join(args.model_dir, 'my_model.npz'), model)
     with open(os.path.join(args.model_dir, 'vocab.json'), 'w') as f:

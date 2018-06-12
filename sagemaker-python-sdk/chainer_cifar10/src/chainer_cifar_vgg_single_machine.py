@@ -37,7 +37,7 @@ if __name__ =='__main__':
     parser.add_argument('--learning-rate', type=float, default=0.05)
 
     # Data, model, and output directories These are required.
-    parser.add_argument('--output-data-dir', type=str, default=os.environ['SM_OUTPUT_DATA_DIR'])
+    parser.add_argument('--output-dir', type=str, default=os.environ['SM_OUTPUT_DIR'])
     parser.add_argument('--model-dir', type=str, default=os.environ['SM_MODEL_DIR'])
     parser.add_argument('--train', type=str, default=os.environ['SM_CHANNEL_TRAIN'])
     parser.add_argument('--test', type=str, default=os.environ['SM_CHANNEL_TEST'])
@@ -82,7 +82,9 @@ if __name__ =='__main__':
         updater = training.updater.StandardUpdater(train_iter, optimizer, device=device)
 
     stop_trigger = (args.epochs, 'epoch')
-    trainer = training.Trainer(updater, stop_trigger, out=args.output_data_dir)
+    
+    output_data_dir = os.path.join(args.output_dir, 'data')
+    trainer = training.Trainer(updater, stop_trigger, out=output_data_dir)
     # Evaluate the model with the test dataset for each epoch
     trainer.extend(extensions.Evaluator(test_iter, model, device=device))
 
