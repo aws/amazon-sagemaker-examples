@@ -1,7 +1,8 @@
-##Analyze US census data for population segmentation using Amazon SageMaker
+## Analyze US census data for population segmentation using Amazon SageMaker
 
 https://aws.amazon.com/blogs/machine-learning/analyze-us-census-data-for-population-segmentation-using-amazon-sagemaker/
-Introduction
+
+*Introduction*
 
 In the United States, with the 2018 midterm elections approaching, people are looking for more information about the voting process. This example notebook explores how we can apply machine learning (ML) to better integrate science into the task of understanding the electorate.
 
@@ -15,7 +16,7 @@ You can follow along in this sample notebook where you can run the code and inte
 
 There are two goals for this exercise:
 
-1) Walk through a data science workflow using Amazon SageMaker for unsupervised learning using PCA and Kmeans modelling techniques.
+1. Walk through a data science workflow using Amazon SageMaker for unsupervised learning using PCA and Kmeans modelling techniques.
 
-2) Demonstrate how users can access the underlying models that are built within Amazon SageMaker to extract useful model attributes. Often, it can be difficult to draw conclusions from unsupervised learning, so being able to access the models for PCA and Kmeans becomes even more important beyond simply generating predictions using the model.
+2. Demonstrate how users can access the underlying models that are built within Amazon SageMaker to extract useful model attributes. Often, it can be difficult to draw conclusions from unsupervised learning, so being able to access the models for PCA and Kmeans becomes even more important beyond simply generating predictions using the model.
 
