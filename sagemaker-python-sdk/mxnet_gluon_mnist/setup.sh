@@ -14,7 +14,7 @@ if [ $? -eq 0 ]; then
     sudo /etc/init.d/docker start
 
     curl -s -L https://nvidia.github.io/nvidia-docker/amzn1/nvidia-docker.repo | sudo tee /etc/yum.repos.d/nvidia-docker.repo
-    sudo yum install -y nvidia-docker2
+    sudo yum install -y nvidia-docker2-2.0.3-1.docker17.09.1.ce.amzn1
     sudo cp daemon.json /etc/docker/daemon.json
     sudo pkill -SIGHUP dockerd
     echo "installed nvidia-docker2"
