@@ -102,14 +102,14 @@ def read_and_decode(filename_queue):
 
 
 def train_input_fn(training_dir, params):
-    return _input_fn(training_dir, 'train.tfrecords', batch_size=100)
+    return _read_tfrecord_data(training_dir, 'train.tfrecords', batch_size=100)
 
 
 def eval_input_fn(training_dir, params):
-    return _input_fn(training_dir, 'test.tfrecords', batch_size=100)
+    return _read_tfrecord_data(training_dir, 'test.tfrecords', batch_size=100)
 
 
-def _input_fn(training_dir, training_filename, batch_size=100):
+def _read_tfrecord_data(training_dir, training_filename, batch_size=100):
     test_file = os.path.join(training_dir, training_filename)
     filename_queue = tf.train.string_input_producer([test_file])
 

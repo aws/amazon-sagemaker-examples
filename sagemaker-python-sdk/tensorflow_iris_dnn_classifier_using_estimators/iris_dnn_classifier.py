@@ -19,23 +19,25 @@ def serving_input_fn(params):
 
 
 def train_input_fn(training_dir, params):
-    """Returns input function that would feed the model during training"""
-    return _generate_input_fn(training_dir, 'iris_training.csv')
+    """Returns training input data as a Tuple: (dict of `features`, `targets`)"""
+    return _get_numpy_data(training_dir, 'iris_training.csv')
 
 
 def eval_input_fn(training_dir, params):
-    """Returns input function that would feed the model during evaluation"""
-    return _generate_input_fn(training_dir, 'iris_test.csv')
+    """Returns evaluation input data as a Tuple: (dict of `features`, `targets`)"""
+    return _get_numpy_data(training_dir, 'iris_test.csv')
 
 
-def _generate_input_fn(training_dir, training_filename):
+def _get_numpy_data(training_dir, training_filename):
     training_set = tf.contrib.learn.datasets.base.load_csv_with_header(
         filename=os.path.join(training_dir, training_filename),
         target_dtype=np.int,
         features_dtype=np.float32)
 
-    return tf.estimator.inputs.numpy_input_fn(
+    numpy_input_fn = tf.estimator.inputs.numpy_input_fn(
         x={INPUT_TENSOR_NAME: np.array(training_set.data)},
         y=np.array(training_set.target),
         num_epochs=None,
-        shuffle=True)()
+        shuffle=True)
+
+    return numpy_input_fn()

@@ -71,19 +71,23 @@ params = {"learning_rate": LEARNING_RATE}
 
 
 def train_input_fn(training_dir, params):
-    return _input_fn(training_dir, 'abalone_train.csv')
+    """Returns training input data as a Tuple: (dict of `features`, `targets`)"""
+    return _get_numpy_data(training_dir, 'abalone_train.csv')
 
 
 def eval_input_fn(training_dir, params):
-    return _input_fn(training_dir, 'abalone_test.csv')
+    """Returns evaluation input data as a Tuple: (dict of `features`, `targets`)"""
+    return _get_numpy_data(training_dir, 'abalone_test.csv')
 
 
-def _input_fn(training_dir, training_filename):
+def _get_numpy_data(training_dir, training_filename):
     training_set = tf.contrib.learn.datasets.base.load_csv_without_header(
         filename=os.path.join(training_dir, training_filename), target_dtype=np.int, features_dtype=np.float32)
 
-    return tf.estimator.inputs.numpy_input_fn(
+    numpy_input_fn = tf.estimator.inputs.numpy_input_fn(
         x={INPUT_TENSOR_NAME: np.array(training_set.data)},
         y=np.array(training_set.target),
         num_epochs=None,
-        shuffle=True)()
+        shuffle=True)
+
+    return numpy_input_fn()
