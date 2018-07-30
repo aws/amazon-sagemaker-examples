@@ -5,11 +5,9 @@ from __future__ import print_function
 import os
 
 import tensorflow as tf
-from tensorflow.python.estimator.export.export import build_raw_serving_input_receiver_fn
-from tensorflow.python.keras._impl.keras.engine.topology import InputLayer
-from tensorflow.python.keras._impl.keras.layers import Conv2D, Activation, MaxPooling2D, Dropout, Flatten, Dense
-from tensorflow.python.keras._impl.keras.models import Sequential
-from tensorflow.python.keras._impl.keras.optimizers import rmsprop
+from tensorflow.python.keras.layers import InputLayer, Conv2D, Activation, MaxPooling2D, Dropout, Flatten, Dense
+from tensorflow.python.keras.models import Sequential
+from tensorflow.python.keras.optimizers import RMSprop
 from tensorflow.python.saved_model.signature_constants import PREDICT_INPUTS
 
 HEIGHT = 32
@@ -18,23 +16,23 @@ DEPTH = 3
 NUM_CLASSES = 10
 NUM_DATA_BATCHES = 5
 NUM_EXAMPLES_PER_EPOCH_FOR_TRAIN = 10000 * NUM_DATA_BATCHES
-BATCH_SIZE = 1
+BATCH_SIZE = 128
 
 
 def keras_model_fn(hyperparameters):
     """keras_model_fn receives hyperparameters from the training job and returns a compiled keras model.
-    The model will transformed in a TensorFlow Estimator before training and it will saved in a TensorFlow Serving
-    SavedModel in the end of training.
+    The model will be transformed into a TensorFlow Estimator before training and it will be saved in a 
+    TensorFlow Serving SavedModel at the end of training.
 
     Args:
-        hyperparameters: The hyperparameters passed to SageMaker TrainingJob that runs your TensorFlow training
-                         script.
+        hyperparameters: The hyperparameters passed to the SageMaker TrainingJob that runs your TensorFlow 
+                         training script.
     Returns: A compiled Keras model
     """
     model = Sequential()
 
-    # TensorFlow Serving default prediction input tensor name is PREDICT_INPUTS. I will keep the same name for the
-    # InputLayer
+    # TensorFlow Serving default prediction input tensor name is PREDICT_INPUTS. 
+    # We must conform to this naming scheme.
     model.add(InputLayer(input_shape=(HEIGHT, WIDTH, DEPTH), name=PREDICT_INPUTS))
     model.add(Conv2D(32, (3, 3), padding='same'))
     model.add(Activation('relu'))
@@ -56,69 +54,56 @@ def keras_model_fn(hyperparameters):
     model.add(Dropout(0.5))
     model.add(Dense(NUM_CLASSES))
     model.add(Activation('softmax'))
+    
+    _model = tf.keras.Model(inputs=model.input, outputs=model.output)
 
-    opt = rmsprop(lr=0.0001, decay=1e-6)
+    opt = RMSprop(lr=hyperparameters['learning_rate'], decay=hyperparameters['decay'])
 
-    model.compile(loss='categorical_crossentropy',
+    _model.compile(loss='categorical_crossentropy',
                   optimizer=opt,
                   metrics=['accuracy'])
 
-    print(model.summary())
-
-    return model
+    return _model
 
 
-def serving_input_fn(hyperparameters):
-    """This function defines the placeholders that will be added to the model during serving.
-    The function returns a tf.estimator.export.ServingInputReceiver object, which packages the placeholders and the
-    resulting feature Tensors together.
-
-    For more information: https://github.com/aws/sagemaker-python-sdk#creating-a-serving_input_fn
-
-    Args:
-        hyperparameters: The hyperparameters passed to SageMaker TrainingJob that runs your TensorFlow training
-                        script.
-    Returns: ServingInputReceiver or fn that returns a ServingInputReceiver
-    """
-
+def serving_input_fn(params):
     # Notice that the input placeholder has the same input shape as the Keras model input
     tensor = tf.placeholder(tf.float32, shape=[None, HEIGHT, WIDTH, DEPTH])
+    
+    # The inputs key PREDICT_INPUTS matches the Keras InputLayer name
+    inputs = {PREDICT_INPUTS: tensor}
+    return tf.estimator.export.ServingInputReceiver(inputs, inputs)
 
-    # the features key PREDICT_INPUTS matches the Keras Input Layer name
-    features = {PREDICT_INPUTS: tensor}
-    return build_raw_serving_input_receiver_fn(features)
 
-
-def train_input_fn(training_dir, hyperparameters):
+def train_input_fn(training_dir, params):
     return _input(tf.estimator.ModeKeys.TRAIN,
-                  batch_size=BATCH_SIZE, data_dir=training_dir)
+                    batch_size=BATCH_SIZE, data_dir=training_dir)
 
 
-def eval_input_fn(training_dir, hyperparameters):
+def eval_input_fn(training_dir, params):
     return _input(tf.estimator.ModeKeys.EVAL,
-                  batch_size=BATCH_SIZE, data_dir=training_dir)
+                    batch_size=BATCH_SIZE, data_dir=training_dir)
 
 
 def _input(mode, batch_size, data_dir):
-    """Input_fn using the contrib.data input pipeline for CIFAR-10 dataset.
-
-  Args:
-    mode: Standard names for model modes (tf.estimators.ModeKeys).
-    batch_size: The number of samples per batch of input requested.
-  """
+    """Uses the tf.data input pipeline for CIFAR-10 dataset.
+    Args:
+        mode: Standard names for model modes (tf.estimators.ModeKeys).
+        batch_size: The number of samples per batch of input requested.
+    """
     dataset = _record_dataset(_filenames(mode, data_dir))
 
     # For training repeat forever.
     if mode == tf.estimator.ModeKeys.TRAIN:
         dataset = dataset.repeat()
 
-    dataset = dataset.map(_dataset_parser, num_threads=1,
-                          output_buffer_size=2 * batch_size)
+    dataset = dataset.map(_dataset_parser)
+    dataset.prefetch(2 * batch_size)
 
     # For training, preprocess the image and shuffle.
     if mode == tf.estimator.ModeKeys.TRAIN:
-        dataset = dataset.map(_train_preprocess_fn, num_threads=1,
-                              output_buffer_size=2 * batch_size)
+        dataset = dataset.map(_train_preprocess_fn)
+        dataset.prefetch(2 * batch_size)
 
         # Ensure that the capacity is sufficiently large to provide good random
         # shuffling.
@@ -127,9 +112,8 @@ def _input(mode, batch_size, data_dir):
 
     # Subtract off the mean and divide by the variance of the pixels.
     dataset = dataset.map(
-        lambda image, label: (tf.image.per_image_standardization(image), label),
-        num_threads=1,
-        output_buffer_size=2 * batch_size)
+        lambda image, label: (tf.image.per_image_standardization(image), label))
+    dataset.prefetch(2 * batch_size)
 
     # Batch results by up to batch_size, and then fetch the tuple from the
     # iterator.
@@ -182,7 +166,7 @@ def _dataset_parser(value):
 def _record_dataset(filenames):
     """Returns an input pipeline Dataset from `filenames`."""
     record_bytes = HEIGHT * WIDTH * DEPTH + 1
-    return tf.contrib.data.FixedLengthRecordDataset(filenames, record_bytes)
+    return tf.data.FixedLengthRecordDataset(filenames, record_bytes)
 
 
 def _filenames(mode, data_dir):
