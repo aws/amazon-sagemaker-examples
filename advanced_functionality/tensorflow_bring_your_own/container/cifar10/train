@@ -6,7 +6,6 @@
 
 from __future__ import print_function
 
-import logging
 import os
 import json
 import sys
@@ -14,11 +13,8 @@ import subprocess
 import traceback
 
 # These are the paths to where SageMaker mounts interesting things in your container.
-from fcntl import fcntl, F_GETFL, F_SETFL
-
 prefix = '/opt/ml/'
-
-input_path = prefix + 'input/data'
+input_path = os.path.join(prefix,'input/data')
 output_path = os.path.join(prefix, 'output')
 model_path = os.path.join(prefix, 'model')
 param_path = os.path.join(prefix, 'input/config/hyperparameters.json')
@@ -32,49 +28,10 @@ training_path = os.path.join(input_path, channel_name)
 training_script = 'cifar10.py'
 default_params = ['--model-dir', str(model_path)]
 
-logging.basicConfig(format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', level=logging.DEBUG)
 
-
-def _stream_output(process):
-    """Stream the output of a process to stdout
-    This function takes an existing process that will be polled for output. Both stdout and
-    stderr will be polled and both will be sent to sys.stdout.
-    Args:
-        process(subprocess.Popen): a process that has been started with
-            stdout=PIPE and stderr=PIPE
-    Returns (int): process exit code
-    """
-    exit_code = None
-
-    # Get the current flags for the  stderr file descriptor
-    # And add the NONBLOCK flag to allow us to read even if there is no data.
-    # Since usually stderr will be empty unless there is an error.
-    flags = fcntl(process.stderr, F_GETFL)  # get current process.stderr flags
-    fcntl(process.stderr, F_SETFL, flags | os.O_NONBLOCK)
-
-    while exit_code is None:
-        stdout = process.stdout.readline().decode("utf-8")
-        sys.stdout.write(stdout)
-        try:
-            stderr = process.stderr.readline().decode("utf-8")
-            sys.stdout.write(stderr)
-        except IOError:
-            # If there is nothing to read on stderr we will get an IOError
-            # this is fine.
-            pass
-
-        exit_code = process.poll()
-
-    if exit_code != 0:
-        raise RuntimeError("Process exited with code: %s" % exit_code)
-
-    return exit_code
-
-
-# The function to execute the training.
+# Execute your training algorithm.
 def _run(cmd):
     process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=os.environ)
-    _stream_output(process)
     stdout, stderr = process.communicate()
 
     return_code = process.poll()
@@ -102,7 +59,6 @@ if __name__ == '__main__':
         cmd_args = _hyperparameters_to_cmd_args(training_params)
 
         train_cmd = [python_executable, training_script] + default_params + cmd_args
-        print(train_cmd)
 
         _run(train_cmd)
         print('Training complete.')

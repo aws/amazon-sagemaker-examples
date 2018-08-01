@@ -10,5 +10,5 @@ RUN apt-get update && apt-get install tensorflow-model-server
 
 ENV PATH="/opt/ml/code:${PATH}"
 
-COPY src /opt/ml/code
+COPY /cifar10 /opt/ml/code
 WORKDIR /opt/ml/code

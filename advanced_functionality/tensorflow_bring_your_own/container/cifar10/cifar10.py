@@ -16,7 +16,6 @@ from __future__ import print_function
 
 import argparse
 import functools
-import logging
 
 import os
 
@@ -46,8 +45,6 @@ _MOMENTUM = 0.9
 _WEIGHT_DECAY = 2e-4
 
 _BATCHES_PER_EPOCH = NUM_EXAMPLES_PER_EPOCH_FOR_TRAIN / BATCH_SIZE
-
-logging.basicConfig(format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', level=logging.DEBUG)
 
 
 def model_fn(features, labels, mode):
@@ -186,7 +183,6 @@ def train(model_dir, data_dir, train_steps):
 def main(model_dir, data_dir, train_steps):
     tf.logging.set_verbosity(tf.logging.INFO)
     train(model_dir, data_dir, train_steps)
-    print('Training Done!')
 
 
 if __name__ == '__main__':
