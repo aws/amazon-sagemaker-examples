@@ -18,18 +18,16 @@ Generates tf.train.Example protos and writes them to TFRecord files from the
 python version of the CIFAR-10 dataset downloaded from
 https://www.cs.toronto.edu/~kriz/cifar.html.
 """
-
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
 import argparse
 import os
+import shutil
 import sys
-
 import tarfile
 
-import shutil
 from six.moves import cPickle as pickle
 from six.moves import xrange  # pylint: disable=redefined-builtin
 import tensorflow as tf

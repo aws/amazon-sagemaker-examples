@@ -16,11 +16,11 @@ from __future__ import print_function
 
 import argparse
 import functools
-
 import os
 
-import resnet_model
 import tensorflow as tf
+
+import resnet_model
 
 INPUT_TENSOR_NAME = "inputs"
 SIGNATURE_NAME = "serving_default"
@@ -48,7 +48,10 @@ _BATCHES_PER_EPOCH = NUM_EXAMPLES_PER_EPOCH_FOR_TRAIN / BATCH_SIZE
 
 
 def model_fn(features, labels, mode):
-    """Model function for CIFAR-10."""
+    """
+    Model function for CIFAR-10.
+    For more information: https://www.tensorflow.org/guide/custom_estimators#write_a_model_function
+    """
     inputs = features[INPUT_TENSOR_NAME]
     tf.summary.image('images', inputs, max_outputs=6)
 
@@ -113,6 +116,10 @@ def model_fn(features, labels, mode):
 
 
 def serving_input_fn():
+    """
+    Serving input function for CIFAR-10. Specifies the input format the caller of predict() will have to provide.
+    For more information: https://www.tensorflow.org/guide/saved_model#build_and_load_a_savedmodel
+    """
     inputs = {INPUT_TENSOR_NAME: tf.placeholder(tf.float32, [None, 32, 32, 3])}
     return tf.estimator.export.ServingInputReceiver(inputs, inputs)
 
@@ -187,23 +194,30 @@ def main(model_dir, data_dir, train_steps):
 
 if __name__ == '__main__':
     args_parser = argparse.ArgumentParser()
+    # For more information:
+    # https://docs.aws.amazon.com/sagemaker/latest/dg/your-algorithms-training-algo.html
     args_parser.add_argument(
         '--data-dir',
         default='/opt/ml/input/data/training',
         type=str,
-        # required=True,
-        help='The directory where the CIFAR-10 input data is stored.')
+        help='The directory where the CIFAR-10 input data is stored. Default: /opt/ml/input/data/training. This '
+             'directory corresponds to the SageMaker channel named \'training\', which was specified when creating '
+             'our training job on SageMaker')
+
+    # For more information:
+    # https://docs.aws.amazon.com/sagemaker/latest/dg/your-algorithms-inference-code.html
     args_parser.add_argument(
         '--model-dir',
         default='/opt/ml/model',
         type=str,
-        # required=True,
-        help='The directory where the model will be stored.')
+        help='The directory where the model will be stored. Default: /opt/ml/model. This directory should contain all '
+             'final model artifacts as Amazon SageMaker copies all data within this directory as a single object in '
+             'compressed tar format.')
+
     args_parser.add_argument(
         '--train-steps',
         type=int,
         default=100,
-        # required=True,
         help='The number of steps to use for training.')
     args = args_parser.parse_args()
     main(**vars(args))
