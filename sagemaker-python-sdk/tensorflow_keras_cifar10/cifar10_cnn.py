@@ -1,3 +1,16 @@
+#     Copyright 2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+#
+#     Licensed under the Apache License, Version 2.0 (the "License").
+#     You may not use this file except in compliance with the License.
+#     A copy of the License is located at
+#    
+#         https://aws.amazon.com/apache-2-0/
+#    
+#     or in the "license" file accompanying this file. This file is distributed
+#     on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+#     express or implied. See the License for the specific language governing
+#     permissions and limitations under the License.
+
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
@@ -66,7 +79,18 @@ def keras_model_fn(hyperparameters):
     return _model
 
 
-def serving_input_fn(params):
+def serving_input_fn(hyperparameters):
+    """This function defines the placeholders that will be added to the model during serving.
+    The function returns a tf.estimator.export.ServingInputReceiver object, which packages the 
+    placeholders and the resulting feature Tensors together.
+    For more information: https://github.com/aws/sagemaker-python-sdk/blob/master/src/sagemaker/tensorflow/README.rst#creating-a-serving_input_fn
+    
+    Args:
+        hyperparameters: The hyperparameters passed to SageMaker TrainingJob that runs your TensorFlow 
+                        training script.
+    Returns: ServingInputReceiver or fn that returns a ServingInputReceiver
+    """
+    
     # Notice that the input placeholder has the same input shape as the Keras model input
     tensor = tf.placeholder(tf.float32, shape=[None, HEIGHT, WIDTH, DEPTH])
     
@@ -75,12 +99,14 @@ def serving_input_fn(params):
     return tf.estimator.export.ServingInputReceiver(inputs, inputs)
 
 
-def train_input_fn(training_dir, params):
+def train_input_fn(training_dir, hyperparameters):
+    """Returns input function that would feed the model during training"""
     return _input(tf.estimator.ModeKeys.TRAIN,
                     batch_size=BATCH_SIZE, data_dir=training_dir)
 
 
-def eval_input_fn(training_dir, params):
+def eval_input_fn(training_dir, hyperparameters):
+    """Returns input function that would feed the model during evaluation"""
     return _input(tf.estimator.ModeKeys.EVAL,
                     batch_size=BATCH_SIZE, data_dir=training_dir)
 
@@ -120,6 +146,7 @@ def _input(mode, batch_size, data_dir):
     iterator = dataset.batch(batch_size).make_one_shot_iterator()
     images, labels = iterator.get_next()
 
+    # We must use the default input tensor name PREDICT_INPUTS
     return {PREDICT_INPUTS: images}, labels
 
 
