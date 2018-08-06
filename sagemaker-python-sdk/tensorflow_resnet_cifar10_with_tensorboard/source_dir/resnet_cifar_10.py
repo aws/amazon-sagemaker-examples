@@ -133,13 +133,13 @@ def _input_from_files(mode, batch_size, data_dir):
     if mode == tf.estimator.ModeKeys.TRAIN:
         dataset = dataset.repeat()
 
-    dataset = dataset.map(_dataset_parser, num_threads=1,
-                          output_buffer_size=2 * batch_size)
+    dataset = dataset.map(_dataset_parser, num_parallel_calls=1)
+    dataset.prefetch(2 * batch_size)
 
     # For training, preprocess the image and shuffle.
     if mode == tf.estimator.ModeKeys.TRAIN:
-        dataset = dataset.map(_train_preprocess_fn, num_threads=1,
-                              output_buffer_size=2 * batch_size)
+        dataset = dataset.map(_train_preprocess_fn, num_parallel_calls=1)
+        dataset.prefetch(2 * batch_size)
 
         # Ensure that the capacity is sufficiently large to provide good random
         # shuffling.
@@ -149,8 +149,8 @@ def _input_from_files(mode, batch_size, data_dir):
     # Subtract off the mean and divide by the variance of the pixels.
     dataset = dataset.map(
         lambda image, label: (tf.image.per_image_standardization(image), label),
-        num_threads=1,
-        output_buffer_size=2 * batch_size)
+        num_parallel_calls=1)
+    dataset.prefetch(2 * batch_size)
 
     # Batch results by up to batch_size, and then fetch the tuple from the
     # iterator.
@@ -203,7 +203,7 @@ def _dataset_parser(value):
 def _record_dataset(filenames):
     """Returns an input pipeline Dataset from `filenames`."""
     record_bytes = HEIGHT * WIDTH * DEPTH + 1
-    return tf.contrib.data.FixedLengthRecordDataset(filenames, record_bytes)
+    return tf.data.FixedLengthRecordDataset(filenames, record_bytes)
 
 
 def _filenames(mode, data_dir):
