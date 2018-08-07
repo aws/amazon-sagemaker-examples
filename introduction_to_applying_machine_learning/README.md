@@ -11,3 +11,4 @@ These examples provide a gentle introduction to machine learning concepts as the
 - [Ensembling](ensemble_modeling) predicts income using two Amazon SageMaker models to show the advantages in ensembling.
 - [Video Game Sales](video_game_sales) develops a binary prediction model for the success of video games based on review scores.
 - [MXNet Gluon Recommender System](gluon_recommender_system) uses neural network embeddings for non-linear matrix factorization to predict user movie ratings on Amazon digital reviews.
+- [Fair Linear Learner](fair_linear_learner) is an example of an effective way to create fair linear models with respect to sensitive features.
