@@ -4,6 +4,10 @@ import tensorflow as tf
 
 INPUT_TENSOR_NAME = 'inputs'
 
+# Disable MKL to get a better perfomance for this model.
+os.environ['TF_DISABLE_MKL'] = '1'
+os.environ['TF_DISABLE_POOL_ALLOCATOR'] = '1'
+
 
 def estimator_fn(run_config, params):
     feature_columns = [tf.feature_column.numeric_column(INPUT_TENSOR_NAME, shape=[4])]
