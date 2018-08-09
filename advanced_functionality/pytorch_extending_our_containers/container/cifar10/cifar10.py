@@ -10,9 +10,9 @@
 # distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF
 # ANY KIND, either express or implied. See the License for the specific
 # language governing permissions and limitations under the License.
+import ast
 import argparse
 import logging
-import sagemaker_containers
 
 import os
 
@@ -161,11 +161,13 @@ if __name__ == '__main__':
     parser.add_argument('--momentum', type=float, default=0.9, metavar='M', help='momentum (default: 0.9)')
     parser.add_argument('--dist-backend', type=str, default='gloo', help='distributed backend (default: gloo)')
 
-    env = sagemaker_containers.training_env()
-    parser.add_argument('--hosts', type=list, default=env.hosts)
-    parser.add_argument('--current-host', type=str, default=env.current_host)
-    parser.add_argument('--model-dir', type=str, default=env.model_dir)
-    parser.add_argument('--data-dir', type=str, default=env.channel_input_dirs.get('training'))
-    parser.add_argument('--num-gpus', type=int, default=env.num_gpus)
+    # The parameters below retrieve their default values from SageMaker environment variables, which are
+    # instantiated by the SageMaker containers framework.
+    # https://github.com/aws/sagemaker-containers#how-a-script-is-executed-inside-the-container
+    parser.add_argument('--hosts', type=str, default=ast.literal_eval(os.environ['SM_HOSTS']))
+    parser.add_argument('--current-host', type=str, default=os.environ['SM_CURRENT_HOST'])
+    parser.add_argument('--model-dir', type=str, default=os.environ['SM_MODEL_DIR'])
+    parser.add_argument('--data-dir', type=str, default=os.environ['SM_CHANNEL_TRAINING'])
+    parser.add_argument('--num-gpus', type=int, default=os.environ['SM_NUM_GPUS'])
 
     _train(parser.parse_args())
