@@ -116,7 +116,7 @@ def get_metrics(jobs, regex):
         jobs: A dictionary where training job names are keys.
         regex: a regular expression string to parse the objective metric value.
     Returns a dictionary of training job names as keys and corresponding list 
-        which contains the final metric from each log stream.
+        which contains the objective metric from each log stream.
     '''
     job_metrics = {}
     for job in jobs.keys():
