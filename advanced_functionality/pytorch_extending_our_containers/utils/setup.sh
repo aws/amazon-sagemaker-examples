@@ -41,16 +41,16 @@ fi
 # Notebook instance Docker networking fixes
 RUNNING_ON_NOTEBOOK_INSTANCE=`sudo iptables -S OUTPUT -t nat | grep -c 169.254.0.2`
 
-# Get the Docker Network CIDR and IP for the sagemaker-local docker interface.
-SAGEMAKER_INTERFACE=br-`docker network ls | grep sagemaker-local | cut -d' ' -f1`
-DOCKER_NET=`ip route | grep $SAGEMAKER_INTERFACE | cut -d" " -f1`
-DOCKER_IP=`ip route | grep $SAGEMAKER_INTERFACE | cut -d" " -f12`
-
-# check if both IPTables and the Route Table are OK.
-IPTABLES_PATCHED=`sudo iptables -S PREROUTING -t nat | grep -c 169.254.0.2`
-ROUTE_TABLE_PATCHED=`sudo ip route show table agent | grep -c $SAGEMAKER_INTERFACE`
-
 if [ $RUNNING_ON_NOTEBOOK_INSTANCE -gt 0 ]; then
+
+  # Get the Docker Network CIDR and IP for the sagemaker-local docker interface.
+  SAGEMAKER_INTERFACE=br-`docker network ls | grep sagemaker-local | cut -d' ' -f1`
+  DOCKER_NET=`ip route | grep $SAGEMAKER_INTERFACE | cut -d" " -f1`
+  DOCKER_IP=`ip route | grep $SAGEMAKER_INTERFACE | cut -d" " -f12`
+
+  # check if both IPTables and the Route Table are OK.
+  IPTABLES_PATCHED=`sudo iptables -S PREROUTING -t nat | grep -c 169.254.0.2`
+  ROUTE_TABLE_PATCHED=`sudo ip route show table agent | grep -c $SAGEMAKER_INTERFACE`
 
   if [ $ROUTE_TABLE_PATCHED -eq 0 ]; then
     # fix routing
