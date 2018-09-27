@@ -7,27 +7,26 @@ if [ $? -eq 0 ]; then
   NVIDIA_DOCKER=`rpm -qa | grep -c nvidia-docker2`
   if [ $NVIDIA_DOCKER -eq 0 ]; then
     # Install nvidia-docker2
-    DOCKER_PKG_VERSION=`yum list docker | tail -1 | awk '{print $2}'`
-    DOCKER_VERSION=`echo $DOCKER_PKG_VERSION | grep -oP '^\d+\.\d+\.\d+'`
+    DOCKER_VERSION=`yum list docker | tail -1 | awk '{print $2}' | head -c 2`
 
-    NVIDIA_DOCKER_PKG_VERSION=`yum list nvidia-docker2 | tail -1 | awk '{print $2}'`
-    NVIDIA_DOCKER_VERSION=`echo $NVIDIA_DOCKER_PKG_VERSION | grep -oP '(?<=docker)\d+\.\d+\.\d+'`
-
-    if [[ $NVIDIA_DOCKER_VERSION == $DOCKER_VERSION ]]; then
-      sudo yum -y remove docker
-      sudo yum -y install docker-$DOCKER_PKG_VERSION
-
-      sudo /etc/init.d/docker start
-
-      curl -s -L https://nvidia.github.io/nvidia-docker/amzn1/nvidia-docker.repo | sudo tee /etc/yum.repos.d/nvidia-docker.repo
-      sudo yum install -y nvidia-docker2-$NVIDIA_DOCKER_PKG_VERSION
-      sudo cp daemon.json /etc/docker/daemon.json
-      sudo pkill -SIGHUP dockerd
-      echo "installed nvidia-docker2"
+    if [ $DOCKER_VERSION -eq 17 ]; then
+      DOCKER_PKG_VERSION='17.09.1ce-1.111.amzn1'
+      NVIDIA_DOCKER_PKG_VERSION='2.0.3-1.docker17.09.1.ce.amzn1'
     else
-      echo "ERROR: Unable to find matching nvidia-docker2 and docker versions in yum. Try running 'yum update' and then retry this script. If that does not work, please contact AWS Support.">&2
-      exit 1
+      DOCKER_PKG_VERSION='18.06.1ce-3.17.amzn1'
+      NVIDIA_DOCKER_PKG_VERSION='2.0.3-1.docker18.06.1.ce.amzn1'
     fi
+
+    sudo yum -y remove docker
+    sudo yum -y install docker-$DOCKER_PKG_VERSION
+
+    sudo /etc/init.d/docker start
+
+    curl -s -L https://nvidia.github.io/nvidia-docker/amzn1/nvidia-docker.repo | sudo tee /etc/yum.repos.d/nvidia-docker.repo
+    sudo yum install -y nvidia-docker2-$NVIDIA_DOCKER_PKG_VERSION
+    sudo cp daemon.json /etc/docker/daemon.json
+    sudo pkill -SIGHUP dockerd
+    echo "installed nvidia-docker2"
   else
     echo "nvidia-docker2 already installed. We are good to go!"
   fi
