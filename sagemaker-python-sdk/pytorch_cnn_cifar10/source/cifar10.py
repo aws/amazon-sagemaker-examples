@@ -52,6 +52,7 @@ def _train(args):
         world_size = len(args.hosts)
         os.environ['WORLD_SIZE'] = str(world_size)
         host_rank = args.hosts.index(args.current_host)
+        os.environ['RANK'] = str(host_rank)
         dist.init_process_group(backend=args.dist_backend, rank=host_rank, world_size=world_size)
         logger.info(
             'Initialized the distributed environment: \'{}\' backend on {} nodes. '.format(
