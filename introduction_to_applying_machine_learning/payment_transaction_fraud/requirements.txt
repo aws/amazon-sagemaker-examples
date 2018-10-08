@@ -1,0 +1,7 @@
+numpy==1.13.3
+pandas==0.22.0
+boto3==1.8.9
+scikit-learn==0.19.2
+sagemaker==1.10.1
+matplotlib==2.2.2
+seaborn==0.8.1
