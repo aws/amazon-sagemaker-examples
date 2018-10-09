@@ -12,17 +12,19 @@ RUN apt-get -y update && apt-get install -y --no-install-recommends \
          python \
          nginx \
          ca-certificates \
+		 libpython2.7 \
     && rm -rf /var/lib/apt/lists/*
 
 # Here we get all python packages.
-# There's substantial overlap between scipy and numpy that we eliminate by
-# linking them together. Likewise, pip leaves the install caches populated which uses
+# Symbolically linking "dist-packages" as "site-packages"
+# Likewise, pip leaves the install caches populated which uses
 # a significant amount of space. These optimizations save a fair amount of space in the
 # image, which reduces start up time.
 RUN wget https://bootstrap.pypa.io/get-pip.py && python get-pip.py && \
-    pip install numpy==1.14.5 scipy scikit-learn pandas flask gevent gunicorn && \
-        (cd /usr/local/lib/python2.7/dist-packages/scipy/.libs; rm *; ln ../../numpy/.libs/* .) && \
-        rm -rf /root/.cache
+    pip install intel-numpy intel-scipy intel-scikit-learn flask gevent gunicorn && rm -rf /root/.cache && \	
+	(cd usr/local/lib/python2.7/;mv ./dist-packages/* ./site-packages/; rm -rf ./dist-packages; \
+	ln -s /usr/local/lib/python2.7/site-packages /usr/local/lib/python2.7/dist-packages)
+RUN pip install pandas && rm -rf /root/.cache
 
 # Set some environment variables. PYTHONUNBUFFERED keeps Python from buffering our standard
 # output stream, which means that logs can be delivered to the user quickly. PYTHONDONTWRITEBYTECODE
