@@ -18,10 +18,9 @@ from __future__ import print_function
 import os
 
 import tensorflow as tf
-from tensorflow.python.keras.layers import InputLayer, Conv2D, Activation, MaxPooling2D, Dropout, Flatten, Dense
+from tensorflow.python.keras.layers import Activation, Conv2D, Dense, Dropout, Flatten, MaxPooling2D
 from tensorflow.python.keras.models import Sequential
-from tensorflow.python.keras.optimizers import RMSprop
-from tensorflow.python.saved_model.signature_constants import PREDICT_INPUTS
+from tensorflow.python.training.rmsprop import RMSPropOptimizer
 
 HEIGHT = 32
 WIDTH = 32
