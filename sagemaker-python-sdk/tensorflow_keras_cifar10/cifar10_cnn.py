@@ -18,10 +18,10 @@ from __future__ import print_function
 import os
 
 import tensorflow as tf
-from tensorflow.python.keras.layers import InputLayer, Conv2D, Activation, MaxPooling2D, Dropout, Flatten, Dense
+from tensorflow.python.keras.layers import Activation, Conv2D, Dense, Dropout, Flatten, MaxPooling2D
 from tensorflow.python.keras.models import Sequential
-from tensorflow.python.keras.optimizers import RMSprop
 from tensorflow.python.saved_model.signature_constants import PREDICT_INPUTS
+from tensorflow.python.training.rmsprop import RMSPropOptimizer
 
 HEIGHT = 32
 WIDTH = 32
@@ -30,6 +30,7 @@ NUM_CLASSES = 10
 NUM_DATA_BATCHES = 5
 NUM_EXAMPLES_PER_EPOCH_FOR_TRAIN = 10000 * NUM_DATA_BATCHES
 BATCH_SIZE = 128
+INPUT_TENSOR_NAME = 'inputs_input'  # needs to match the name of the first layer + "_input"
 
 
 def keras_model_fn(hyperparameters):
@@ -44,10 +45,7 @@ def keras_model_fn(hyperparameters):
     """
     model = Sequential()
 
-    # TensorFlow Serving default prediction input tensor name is PREDICT_INPUTS. 
-    # We must conform to this naming scheme.
-    model.add(InputLayer(input_shape=(HEIGHT, WIDTH, DEPTH), name=PREDICT_INPUTS))
-    model.add(Conv2D(32, (3, 3), padding='same'))
+    model.add(Conv2D(32, (3, 3), padding='same', name='inputs', input_shape=(HEIGHT, WIDTH, DEPTH)))
     model.add(Activation('relu'))
     model.add(Conv2D(32, (3, 3)))
     model.add(Activation('relu'))
@@ -68,15 +66,13 @@ def keras_model_fn(hyperparameters):
     model.add(Dense(NUM_CLASSES))
     model.add(Activation('softmax'))
     
-    _model = tf.keras.Model(inputs=model.input, outputs=model.output)
+    opt = RMSPropOptimizer(learning_rate=hyperparameters['learning_rate'], decay=hyperparameters['decay'])
 
-    opt = RMSprop(lr=hyperparameters['learning_rate'], decay=hyperparameters['decay'])
-
-    _model.compile(loss='categorical_crossentropy',
+    model.compile(loss='categorical_crossentropy',
                   optimizer=opt,
                   metrics=['accuracy'])
 
-    return _model
+    return model
 
 
 def serving_input_fn(hyperparameters):
@@ -147,7 +143,7 @@ def _input(mode, batch_size, data_dir):
     images, labels = iterator.get_next()
 
     # We must use the default input tensor name PREDICT_INPUTS
-    return {PREDICT_INPUTS: images}, labels
+    return {INPUT_TENSOR_NAME: images}, labels
 
 
 def _train_preprocess_fn(image, label):
