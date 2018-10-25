@@ -20,6 +20,7 @@ import os
 import tensorflow as tf
 from tensorflow.python.keras.layers import Activation, Conv2D, Dense, Dropout, Flatten, MaxPooling2D
 from tensorflow.python.keras.models import Sequential
+from tensorflow.python.saved_model.signature_constants import PREDICT_INPUTS
 from tensorflow.python.training.rmsprop import RMSPropOptimizer
 
 HEIGHT = 32
@@ -90,7 +91,7 @@ def serving_input_fn(hyperparameters):
     tensor = tf.placeholder(tf.float32, shape=[None, HEIGHT, WIDTH, DEPTH])
     
     # The inputs key PREDICT_INPUTS matches the Keras InputLayer name
-    inputs = {INPUT_TENSOR_NAME: tensor}
+    inputs = {PREDICT_INPUTS: tensor}
     return tf.estimator.export.ServingInputReceiver(inputs, inputs)
 
 
