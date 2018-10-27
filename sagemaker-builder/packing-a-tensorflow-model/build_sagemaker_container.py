@@ -38,17 +38,37 @@ RUN git clone https://github.com/mvsusp/sagemaker-containers.git \
 COPY {1} /opt/ml/code
 
 ENV PYTHONPATH /opt/ml/code:$PYTHONPATH
-ENV SAGEMAKER_TRAINING_MODULE {2}"""
+ENV SAGEMAKER_TRAINING_MODULE {2}
+
+{3}"""
 
 
-def build(base_image, entrypoint, source_dir, tag):
+def build(base_image, entrypoint, source_dir, tag, build_commands=None):
+    """
+    Build your algo using from a Docker `base_image`.
 
+    Args:
+        base_image (string): Docker image which your algo is based from.
+        entrypoint (string): Path (relative) to the Python source file which should be executed
+                as the entry point to training. This should be compatible with either Python 2.7 or Python 3.5.
+        source_dir (str): Path (absolute or relative) to a directory with any other training
+                source code dependencies aside from tne entry point file (default: None). Structure within this
+                directory are preserved when training on Amazon SageMaker.
+        tag (string): tag name
+        build_commands (string): additional instructions to send to the container
+    """
     _ecr_login_if_needed(base_image)
+
+    _build(base_image, build_commands, entrypoint, source_dir, tag)
+
+
+def _build(base_image, build_commands, entrypoint, source_dir, tag):
+    build_commands = 'RUN %s' % build_commands if build_commands else ''
 
     with _tmpdir() as tmp:
         shutil.copytree(source_dir, os.path.join(tmp, 'src'))
 
-        dockerfile = DOCKERFILE_TEMPLATE.format(base_image, 'src', entrypoint[:-3])
+        dockerfile = DOCKERFILE_TEMPLATE.format(base_image, 'src', entrypoint[:-3], build_commands)
 
         with open(os.path.join(tmp, 'Dockerfile'), mode='w') as f:
             print(dockerfile)
@@ -58,17 +78,40 @@ def build(base_image, entrypoint, source_dir, tag):
 
 
 def push(tag, aws_account=None, aws_region=None):
-    session = boto3.Session()
+    """
+    Push the builded tag to ECR.
 
+    Args:
+        tag (string): tag which you named your algo
+        aws_account (string): aws account of the ECR repo
+        aws_region (string): aws region where the repo is located
+
+    Returns:
+        (string): ECR repo image that was pushed
+    """
+    session = boto3.Session()
     aws_account = aws_account or session.client("sts").get_caller_identity()['Account']
     aws_region = aws_region or session.region_name
-
-    ecr_repo = '%s.dkr.ecr.%s.amazonaws.com' % (aws_account, aws_region)
-
-    print("Pushing docker image to ECR repository %s/%s\n" % (ecr_repo, tag))
     repository_name, version = tag.split(':')
+    ecr_client = session.client('ecr', region_name=aws_region)
 
-    ecr_client = boto3.client('ecr', region_name=aws_region)
+    _create_ecr_repo(ecr_client, repository_name)
+    _ecr_login(ecr_client, aws_account)
+    ecr_tag = _push(aws_account, aws_region, tag)
+
+    return ecr_tag
+
+
+def _push(aws_account, aws_region, tag):
+    ecr_repo = '%s.dkr.ecr.%s.amazonaws.com' % (aws_account, aws_region)
+    ecr_tag = '%s/%s' % (ecr_repo, tag)
+    _execute(['docker', 'tag', tag, ecr_tag])
+    print("Pushing docker image to ECR repository %s/%s\n" % (ecr_repo, tag))
+    _execute(['docker', 'push', ecr_tag])
+    return ecr_tag
+
+
+def _create_ecr_repo(ecr_client, repository_name):
     try:
 
         ecr_client.describe_repositories(repositoryNames=[repository_name])['repositories']
@@ -78,16 +121,6 @@ def push(tag, aws_account=None, aws_region=None):
         ecr_client.create_repository(repositoryName=repository_name)
 
         print("Created new ECR repository: %s" % repository_name)
-
-    _ecr_login(ecr_client, aws_account)
-
-    ecr_tag = '%s/%s' % (ecr_repo, tag)
-
-    _execute(['docker', 'tag', tag, ecr_tag])
-
-    _execute(['docker', 'push', ecr_tag])
-
-    return ecr_tag
 
 
 def _ecr_login(ecr_client, aws_account):
