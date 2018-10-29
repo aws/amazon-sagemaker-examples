@@ -45,13 +45,14 @@ def get_train_context(num_gpus):
     else:
         return mx.cpu()
 
+
 def train(batch_size, epochs, learning_rate, num_gpus, training_channel, testing_channel,
           hosts, current_host, model_dir):
     (train_labels, train_images) = load_data(training_channel)
     (test_labels, test_images) = load_data(testing_channel)
 
-    # Data parallel training - shard the data so each host                                                                                                                                                                                                                                                                                                                
-    # only trains on a subset of the total data.                                                                                                                                                                                                                                                                                                                          
+    # Data parallel training - shard the data so each host
+    # only trains on a subset of the total data.
     shard_size = len(train_images) // len(hosts)
     for i, host in enumerate(hosts):
         if host == current_host:
