@@ -39,7 +39,7 @@ def build_graph():
     return mx.sym.SoftmaxOutput(data=fc3, name='softmax')
 
 
-def get_train_context(num_gpus):
+def get_training_context(num_gpus):
     if num_gpus:
         return [mx.gpu(i) for i in range(num_gpus)]
     else:
@@ -69,7 +69,7 @@ def train(batch_size, epochs, learning_rate, num_gpus, training_channel, testing
     kvstore = 'local' if len(hosts) == 1 else 'dist_sync'
 
     mlp_model = mx.mod.Module(symbol=build_graph(),
-                              context=get_train_context(num_gpus))
+                              context=get_training_context(num_gpus))
     mlp_model.fit(train_iter,
                   eval_data=val_iter,
                   kvstore=kvstore,
@@ -79,7 +79,7 @@ def train(batch_size, epochs, learning_rate, num_gpus, training_channel, testing
                   batch_end_callback=mx.callback.Speedometer(batch_size, 100),
                   num_epoch=epochs)
 
-    if len(hosts) == 1 or current_host == scheduler_host(hosts):
+    if current_host == scheduler_host(hosts):
         save(model_dir, mlp_model)
 
 
@@ -93,7 +93,7 @@ def save(model_dir, model):
         json.dump(signature, f)
 
 
-if __name__ == '__main__':
+def parse_args():
     parser = argparse.ArgumentParser()
 
     parser.add_argument('--batch-size', type=int, default=100)
@@ -107,8 +107,11 @@ if __name__ == '__main__':
     parser.add_argument('--current-host', type=str, default=os.environ['SM_CURRENT_HOST'])
     parser.add_argument('--hosts', type=list, default=json.loads(os.environ['SM_HOSTS']))
 
-    args = parser.parse_args()
+    return parser.parse_args()
 
+
+if __name__ == '__main__':
+    args = parse_args()
     num_gpus = int(os.environ['SM_NUM_GPUS'])
 
     train(args.batch_size, args.epochs, args.learning_rate, num_gpus, args.train, args.test,

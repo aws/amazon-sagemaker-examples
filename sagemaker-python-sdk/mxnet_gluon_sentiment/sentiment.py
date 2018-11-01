@@ -310,7 +310,7 @@ def test(ctx, net, val_data):
     return metric.get()
 
 
-if __name__ == '__main__':
+def parse_args():
     parser = argparse.ArgumentParser()
 
     # retrieve the hyperparameters we set in notebook (with some defaults)
@@ -326,8 +326,11 @@ if __name__ == '__main__':
     parser.add_argument('--current-host', type=str, default=os.environ['SM_CURRENT_HOST'])
     parser.add_argument('--hosts', type=list, default=json.loads(os.environ['SM_HOSTS']))
 
-    args = parser.parse_args()
+    return parser.parse_args()
 
+
+if __name__ == '__main__':
+    args = parse_args()
     num_cpus = int(os.environ['SM_NUM_CPUS'])
     num_gpus = int(os.environ['SM_NUM_GPUS'])
 
