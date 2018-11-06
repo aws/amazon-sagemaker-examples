@@ -30,7 +30,7 @@ def train(channel_input_dirs, hyperparameters, hosts, num_gpus, **kwargs):
     train_iter, test_iter, customer_index, product_index = prepare_train_data(training_dir)
     
     # get hyperparameters
-    num_embeddings = hyperparameters.get('num_embeddings', 256)
+    num_embeddings = hyperparameters.get('num_embeddings', 64)
     opt = hyperparameters.get('opt', 'sgd')
     lr = hyperparameters.get('lr', 0.02)
     momentum = hyperparameters.get('momentum', 0.9)
