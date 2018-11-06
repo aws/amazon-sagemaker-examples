@@ -3,6 +3,8 @@ import gzip
 import json
 import logging
 import os
+import tempfile
+import shutil
 import struct
 
 import mxnet as mx
@@ -85,16 +87,20 @@ def train(batch_size, epochs, learning_rate, num_gpus, training_channel, testing
 
 
 def save(model_dir, model):
-    symbol_file = os.path.join(model_dir, 'model-symbol.json')
-    params_file = os.path.join(model_dir, 'model-0000.params')
+    tmp_dir = tempfile.mkdtemp()
+
+    symbol_file = os.path.join(tmp_dir, 'model-symbol.json')
+    params_file = os.path.join(tmp_dir, 'model-0000.params')
 
     model.symbol.save(symbol_file)
     model.save_params(params_file)
 
     data_shapes = [[dim for dim in data_desc.shape] for data_desc in model.data_shapes]
     output_path = os.path.join(model_dir, 'model.onnx')
-    
+
     onnx_mxnet.export_model(symbol_file, params_file, data_shapes, np.float32, output_path)
+
+    shutil.rmtree(tmp_dir)
 
 
 def parse_args():
