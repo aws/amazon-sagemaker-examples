@@ -91,7 +91,7 @@ def serving_input_fn(hyperparameters):
     tensor = tf.placeholder(tf.float32, shape=[None, HEIGHT, WIDTH, DEPTH])
     
     # The inputs key PREDICT_INPUTS matches the Keras InputLayer name
-    inputs = {PREDICT_INPUTS: tensor}
+    inputs = {INPUT_TENSOR_NAME: tensor}
     return tf.estimator.export.ServingInputReceiver(inputs, inputs)
 
 
