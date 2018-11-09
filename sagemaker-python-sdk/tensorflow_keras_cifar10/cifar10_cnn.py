@@ -90,7 +90,7 @@ def serving_input_fn(hyperparameters):
     # Notice that the input placeholder has the same input shape as the Keras model input
     tensor = tf.placeholder(tf.float32, shape=[None, HEIGHT, WIDTH, DEPTH])
     
-    # The inputs key PREDICT_INPUTS matches the Keras InputLayer name
+    # The inputs key INPUT_TENSOR_NAME matches the Keras InputLayer name
     inputs = {INPUT_TENSOR_NAME: tensor}
     return tf.estimator.export.ServingInputReceiver(inputs, inputs)
 
