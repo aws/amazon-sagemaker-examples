@@ -45,7 +45,7 @@ def train(channel_input_dirs, hyperparameters, hosts, num_gpus, **kwargs):
                   num_emb=num_embeddings,
                   dropout_p=0.5)
     
-    net.collect_params().initialize(mx.init.Xavier(magnitude=2.24),
+    net.collect_params().initialize(mx.init.Xavier(magnitude=60),
                                     ctx=ctx,
                                     force_reinit=True)
     net.hybridize()
