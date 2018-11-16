@@ -1,0 +1,16 @@
+{
+    "configuration": { 
+	"frequency": 7,
+        "method": "ets",
+        "output_types": ["mean", "quantiles", "samples"],
+        "prediction_length": 10,
+        "num_samples": 10,
+        "quantiles": ["0.1", "0.5", "0.9"]
+    },
+    "instances": [
+	{
+		"start": "2018-01-01", 
+		"target": [1.0, 2.0, 3.0, 4.0] 
+	}
+    ]
+}
