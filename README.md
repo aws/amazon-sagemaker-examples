@@ -49,6 +49,7 @@ These examples provide quick walkthroughs to get you up and running with Amazon 
 - [Object2Vec for movie recommendation](introduction_to_amazon_algorithms/object2vec_movie_recommendation) demonstrates how Object2Vec can be used to model data consisting of pairs of singleton tokens using movie recommendation as a running example.
 - [Object2Vec for multi-label classification](introduction_to_amazon_algorithms/object2vec_multilabel_genre_classification) shows how ObjectToVec algorithm can train on data consisting of pairs of sequences and singleton tokens using the setting of genre prediction of movies based on their plot descriptions.
 - [Object2Vec for sentence similarity](introduction_to_amazon_algorithms/object2vec_sentence_similarity) explains how to train Object2Vec using sequence pairs as input using sentence similarity analysis as the application.
+- [IP Insights for suspicious logins][introduction_to_amazon_algorithms/ipinsights_login/] shows how to train IP Insights on a login events for a web server to identify suspicious login attempts.
 
 ### Scientific Details of Algorithms
 
