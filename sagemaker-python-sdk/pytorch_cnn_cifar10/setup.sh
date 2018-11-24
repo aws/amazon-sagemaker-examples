@@ -56,7 +56,7 @@ DOCKER_NET=`ip route | grep $SAGEMAKER_INTERFACE | cut -d" " -f1`
 DOCKER_IP=`ip route | grep $SAGEMAKER_INTERFACE | cut -d" " -f12`
 
 # check if both IPTables and the Route Table are OK.
-IPTABLES_PATCHED=`sudo iptables -S PREROUTING -t nat | grep -c 169.254.0.2`
+IPTABLES_PATCHED=`sudo iptables -S PREROUTING -t nat | grep -c $SAGEMAKER_INTERFACE`
 ROUTE_TABLE_PATCHED=`sudo ip route show table agent | grep -c $SAGEMAKER_INTERFACE`
 
 if [ $RUNNING_ON_NOTEBOOK_INSTANCE -gt 0 ]; then
