@@ -105,7 +105,7 @@ def train(current_host, channel_input_dirs, hyperparameters, hosts, num_gpus):
 
 def save(net, model_dir):
     # save the model
-    y = net.export('%s/model'% model_dir)
+    net.export('%s/model'% model_dir)
 
 
 def define_network():
