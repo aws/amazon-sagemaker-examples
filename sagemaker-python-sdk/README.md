@@ -1,6 +1,6 @@
 # Amazon SageMaker Examples
 
-### Amazon SageMaker TensorFlow and MXNet Pre-Built Containers and the Python SDK
+### Amazon SageMaker Pre-Built Framework Containers and the Python SDK
 
 #### Pre-Built Deep Learning Framework Containers
 
