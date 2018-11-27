@@ -2,6 +2,8 @@
 
 ### Amazon SageMaker TensorFlow and MXNet Pre-Built Containers and the Python SDK
 
+#### Pre-Built Deep Learning Framework Containers
+
 These examples focus on the Amazon SageMaker Python SDK which allows you to write idiomatic TensorFlow or MXNet and then train or host in pre-built containers.
 
 - [cifar 10 with MXNet Gluon](mxnet_gluon_cifar10)
@@ -16,3 +18,9 @@ These examples focus on the Amazon SageMaker Python SDK which allows you to writ
 - [Introduction to Estimators in TensorFlow](tensorflow_iris_dnn_classifier_using_estimators)
 - [TensorFlow and TensorBoard](tensorflow_resnet_cifar10_with_tensorboard)
 - [Distributed TensorFlow](tensorflow_distributed_mnist)
+
+#### Pre-Built Machine Learning Framework Containers
+
+These examples focus on building standard Machine Learning models powered by frameworks like Apache Spark or Scikit-learn using SageMaker Python SDK.
+
+- [Inference with SparkML Serving](sparkml_serving_emr_mleap_abalone)
