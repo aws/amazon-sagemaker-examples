@@ -6,7 +6,7 @@ Portfolio management is the process of constant redistribution of a capital into
 
 ## Contents
 
-* `rl_portfolio_management_coach_customEnv.ipynb`: notebook used for training predictive auto-scaling policy.
+* `rl_portfolio_management_coach_customEnv.ipynb`: notebook used for training portfolio management policy.
 * `src/`
   * `datasets/stocks_history_target.h5`: source data. See notebook for license.
   * `config.py`: configurations including data selection, data directory.
