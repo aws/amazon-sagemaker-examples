@@ -109,6 +109,38 @@ def parse_args():
 
     return parser.parse_args()
 
+### NOTE: this function cannot use MXNet
+def neo_preprocess(payload, content_type):
+    import logging
+    import numpy as np
+    import io
+
+    logging.info('Invoking user-defined pre-processing function')
+
+    if content_type != 'application/vnd+python.numpy+binary':
+        raise RuntimeError('Content type must be application/vnd+python.numpy+binary')
+
+    f = io.BytesIO(payload)
+    return np.load(f)
+
+### NOTE: this function cannot use MXNet
+def neo_postprocess(result):
+    import logging
+    import numpy as np
+    import json
+
+    logging.info('Invoking user-defined post-processing function')
+
+    # Softmax (assumes batch size 1)
+    result = np.squeeze(result)
+    result_exp = np.exp(result - np.max(result))
+    result = result_exp / np.sum(result_exp)
+
+    response_body = json.dumps(result.tolist())
+    content_type = 'application/json'
+
+    return response_body, content_type
+
 
 if __name__ == '__main__':
     args = parse_args()
