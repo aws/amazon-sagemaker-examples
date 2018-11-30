@@ -67,7 +67,7 @@ The following examples provide quick examples each demonstating different capabi
 - [Autoscaling](reinforcement_learning/rl_predictive_autoscaling_coach_customEnv) demonstrates how to adjust load depending on demand. This uses coach and a custom environment.
 - [Roboschool](reinforcement_learning/rl_roboschool_ray) is an open source physics simulator that is commonly used to train RL policies for robotic systems. This notebook demonstrates training a few agents using it.
 - [Stable Baselines](reinforcement_learning/rl_roboschool_stable_baselines) In this notebook example, we will make the HalfCheetah agent learn to walk using the stable-baselines a set of improved implementations of Reinforcement Learning (RL) algorithms based on OpenAI Baselines.
-- [Travelling Salesman](rl_traveling_salesman_vehicle_routing_coach) is a classic NP hard problem, which this notebook solves with AWS SageMaker RL.
+- [Travelling Salesman](reinforcement_learning/rl_traveling_salesman_vehicle_routing_coach) is a classic NP hard problem, which this notebook solves with AWS SageMaker RL.
 
 ### Scientific Details of Algorithms
 
