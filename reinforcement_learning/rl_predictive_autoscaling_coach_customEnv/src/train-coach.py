@@ -51,10 +51,9 @@ class MyLauncher(SageMakerCoachPresetLauncher):
                                    export_dir='model',
                                    inputs={"observation": input_nodes},
                                    outputs={"policy": output_nodes.outputs[0]})
-        # Move to the appropriate folder. Don't mind the directory, this just works.
-        # rl-cart-pole is the name of the model. Remember it.
+        # Move to the appropriate folder. 
         shutil.move('model/', model_dir + '/model/tf-model/00000001/')
-        # EASE will pick it up and upload to the right path.
+        # SageMaker will pick it up and upload to the right path.
         print("Success")
 
 
