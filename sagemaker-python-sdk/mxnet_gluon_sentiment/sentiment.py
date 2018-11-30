@@ -1,17 +1,21 @@
 from __future__ import print_function
 
-import logging
-import mxnet as mx
-from mxnet import gluon, autograd, nd
-from mxnet.gluon import nn
-import numpy as np
-import json
-import time
-import re
-from mxnet.io import DataIter, DataBatch, DataDesc
-import bisect, random
+import argparse
+import bisect
 from collections import Counter
 from itertools import chain, islice
+import json
+import logging
+import time
+import random
+import os
+
+import mxnet as mx
+from mxnet import gluon, autograd, nd
+from mxnet.io import DataIter, DataBatch, DataDesc
+import numpy as np
+
+from sagemaker_mxnet_container.training_utils import scheduler_host
 
 
 logging.basicConfig(level=logging.DEBUG)
@@ -20,14 +24,9 @@ logging.basicConfig(level=logging.DEBUG)
 # Training methods                                             #
 # ------------------------------------------------------------ #
 
-def train(current_host, hosts, num_cpus, num_gpus, channel_input_dirs, model_dir, hyperparameters, **kwargs):
-    # retrieve the hyperparameters we set in notebook (with some defaults)
-    batch_size = hyperparameters.get('batch_size', 8)
-    epochs = hyperparameters.get('epochs', 2)
-    learning_rate = hyperparameters.get('learning_rate', 0.01)
-    log_interval = hyperparameters.get('log_interval', 1000)
-    embedding_size = hyperparameters.get('embedding_size', 50)
 
+def train(current_host, hosts, num_cpus, num_gpus, training_dir, model_dir,
+          batch_size, epochs, learning_rate, log_interval, embedding_size):
     if len(hosts) == 1:
         kvstore = 'device' if num_gpus > 0 else 'local'
     else:
@@ -35,7 +34,6 @@ def train(current_host, hosts, num_cpus, num_gpus, channel_input_dirs, model_dir
 
     ctx = mx.gpu() if num_gpus > 0 else mx.cpu()
 
-    training_dir = channel_input_dirs['training']
     train_sentences, train_labels, _ = get_dataset(training_dir + '/train')
     val_sentences, val_labels, _ = get_dataset(training_dir + '/test')
 
@@ -46,7 +44,16 @@ def train(current_host, hosts, num_cpus, num_gpus, channel_input_dirs, model_dir
     train_sentences = [[vocab.get(token, 1) for token in line if len(line)>0] for line in train_sentences]
     val_sentences = [[vocab.get(token, 1) for token in line if len(line)>0] for line in val_sentences]
 
-    train_iterator = BucketSentenceIter(train_sentences, train_labels, batch_size)
+    # Alternatively to splitting in memory, the data could be pre-split in S3 and use ShardedByS3Key
+    # to do parallel training.
+    shard_size = len(train_sentences) // len(hosts)
+    for i, host in enumerate(hosts):
+        if host == current_host:
+            start = shard_size * i
+            end = start + shard_size
+            break
+
+    train_iterator = BucketSentenceIter(train_sentences[start:end], train_labels[start:end], batch_size)
     val_iterator = BucketSentenceIter(val_sentences, val_labels, batch_size)
 
     # define the network
@@ -272,7 +279,7 @@ def create_vocab(sentences, min_count=5, num_words = 100000):
 
 def vocab_to_json(vocab, path):
     with open(path, "w") as out:
-        json.dump(vocab, out, indent=4, ensure_ascii=False)
+        json.dump(vocab, out, indent=4, ensure_ascii=True)
         print('Vocabulary saved to "%s"', path)
 
 
@@ -301,6 +308,37 @@ def test(ctx, net, val_data):
         output = net(data)
         metric.update([label], [output])
     return metric.get()
+
+
+def parse_args():
+    parser = argparse.ArgumentParser()
+
+    # retrieve the hyperparameters we set in notebook (with some defaults)
+    parser.add_argument('--batch-size', type=int, default=8)
+    parser.add_argument('--epochs', type=int, default=2)
+    parser.add_argument('--learning-rate', type=float, default=0.01)
+    parser.add_argument('--log-interval', type=int, default=1000)
+    parser.add_argument('--embedding-size', type=int, default=50)
+
+    parser.add_argument('--model-dir', type=str, default=os.environ['SM_MODEL_DIR'])
+    parser.add_argument('--training_channel', type=str, default=os.environ['SM_CHANNEL_TRAINING'])
+
+    parser.add_argument('--current-host', type=str, default=os.environ['SM_CURRENT_HOST'])
+    parser.add_argument('--hosts', type=list, default=json.loads(os.environ['SM_HOSTS']))
+
+    return parser.parse_args()
+
+
+if __name__ == '__main__':
+    args = parse_args()
+    num_cpus = int(os.environ['SM_NUM_CPUS'])
+    num_gpus = int(os.environ['SM_NUM_GPUS'])
+
+    model = train(args.current_host, args.hosts, num_cpus, num_gpus, args.training_channel, args.model_dir,
+                  args.batch_size, args.epochs, args.learning_rate, args.log_interval, args.embedding_size)
+
+    if args.current_host == scheduler_host(args.hosts):
+        save(model, args.model_dir)
 
 
 # ------------------------------------------------------------ #

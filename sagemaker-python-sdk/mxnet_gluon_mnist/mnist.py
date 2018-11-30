@@ -16,7 +16,7 @@ logging.basicConfig(level=logging.DEBUG)
 # ------------------------------------------------------------ #
 
 
-def train(channel_input_dirs, hyperparameters, hosts, num_gpus, **kwargs):
+def train(current_host, channel_input_dirs, hyperparameters, hosts, num_gpus):
     # SageMaker passes num_cpus, num_gpus and other args we can use to tailor training to
     # the current container environment, but here we just use simple cpu context.
     ctx = mx.cpu()
@@ -53,6 +53,21 @@ def train(channel_input_dirs, hyperparameters, hosts, num_gpus, **kwargs):
     metric = mx.metric.Accuracy()
     loss = gluon.loss.SoftmaxCrossEntropyLoss()
 
+    # shard the training data in case we are doing distributed training. Alternatively to splitting in memory,
+    # the data could be pre-split in S3 and use ShardedByS3Key to do distributed training.
+    if len(hosts) > 1:
+        train_data = [x for x in train_data]
+        shard_size = len(train_data) // len(hosts)
+        for i, host in enumerate(hosts):
+            if host == current_host:
+                start = shard_size * i
+                end = start + shard_size
+                break
+
+        train_data = train_data[start:end]
+    
+    net.hybridize()
+    
     for epoch in range(epochs):
         # reset data iterator and metric at begining of epoch.
         metric.reset()
@@ -90,13 +105,11 @@ def train(channel_input_dirs, hyperparameters, hosts, num_gpus, **kwargs):
 
 def save(net, model_dir):
     # save the model
-    y = net(mx.sym.var('data'))
-    y.save('%s/model.json' % model_dir)
-    net.collect_params().save('%s/model.params' % model_dir)
+    net.export('%s/model'% model_dir)
 
 
 def define_network():
-    net = nn.Sequential()
+    net = nn.HybridSequential()
     with net.name_scope():
         net.add(nn.Dense(128, activation='relu'))
         net.add(nn.Dense(64, activation='relu'))
@@ -105,14 +118,14 @@ def define_network():
 
 
 def input_transformer(data, label):
-    data = data.reshape((-1,)).astype(np.float32) / 255
+    data = data.reshape((-1,)).astype(np.float32) / 255.
     return data, label
 
 
 def get_train_data(data_dir, batch_size):
     return gluon.data.DataLoader(
         gluon.data.vision.MNIST(data_dir, train=True, transform=input_transformer),
-        batch_size=batch_size, shuffle=True, last_batch='discard')
+        batch_size=batch_size, shuffle=True, last_batch='rollover')
 
 
 def get_val_data(data_dir, batch_size):
@@ -142,12 +155,11 @@ def model_fn(model_dir):
     :param: model_dir The directory where model files are stored.
     :return: a model (in this case a Gluon network)
     """
-    symbol = mx.sym.load('%s/model.json' % model_dir)
-    outputs = mx.symbol.softmax(data=symbol, name='softmax_label')
-    inputs = mx.sym.var('data')
-    param_dict = gluon.ParameterDict('model_')
-    net = gluon.SymbolBlock(outputs, inputs, param_dict)
-    net.load_params('%s/model.params' % model_dir, ctx=mx.cpu())
+    net = gluon.SymbolBlock.imports(
+        '%s/model-symbol.json' % model_dir,
+        ['data'],
+        '%s/model-0000.params' % model_dir,        
+    )
     return net
 
 

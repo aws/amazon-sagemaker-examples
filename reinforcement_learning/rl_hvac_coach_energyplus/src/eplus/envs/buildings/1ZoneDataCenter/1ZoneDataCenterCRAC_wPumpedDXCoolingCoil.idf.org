@@ -1,0 +1,1275 @@
+! 1ZoneDataCenterCRAC_wPumpedDXCoolingCoil.idf
+! Basic file description:  This file demonstrates a simple data center model with air-cooled IT equipment (ITE)
+!                          served by a CRAC system.
+!
+! Highlights:              The air-cooled ITE illustrates the user of various schedules and curves to vary server power use.
+!                          The CRAC system has been setup to represent a Lieber DSE 125 with pumped
+!                          refrigerant economizer DX cooling coil system.
+!
+!                          file adapted from example file "1ZoneEvapCooler.idf" which is adpated from
+!                          1zoneuncontrolled
+!
+! Simulation Location/Run: Denver Centennial Golden CO USA WMO=724666, 2 design days, 1 run period,
+!
+!
+! Design Days:             Denver Centennial  Golden CO USA Annual Heating 99%, MaxDB=-15.5°C
+!                          Denver Centennial  Golden CO USA Annual Cooling (DB=>MWB) 1%, MaxDB=32°C MWB=15.5°C
+!
+!
+! Run Period (Weather File): Full Annual Simulation, DENVER_STAPLETON_CO_USA_WMO_724690
+!
+! Run Control:             No zone or system sizing, weather file simulation
+!
+! Building:                Fictional 1 zone building with resistive walls based on 1ZoneUncontrolled example.
+!                          No windows.  Data Center server ITE object for internal gains.  No internal mass.  The building is oriented due north.
+!
+! Floor Area:              232.25 m2
+! Number of Stories:       1
+
+  Version,8.8;
+
+  Timestep,6;
+
+  Building,
+    Bldg,                    !- Name
+    0.0,                     !- North Axis {deg}
+    Suburbs,                 !- Terrain
+    0.05,                    !- Loads Convergence Tolerance Value
+    0.05,                    !- Temperature Convergence Tolerance Value {deltaC}
+    MinimalShadowing,        !- Solar Distribution
+    30,                      !- Maximum Number of Warmup Days
+    6;                       !- Minimum Number of Warmup Days
+
+  HeatBalanceAlgorithm,ConductionTransferFunction;
+
+  SurfaceConvectionAlgorithm:Inside,TARP;
+
+  SurfaceConvectionAlgorithm:Outside,DOE-2;
+
+  SimulationControl,
+    No,                      !- Do Zone Sizing Calculation
+    No,                      !- Do System Sizing Calculation
+    No,                      !- Do Plant Sizing Calculation
+    Yes,                     !- Run Simulation for Sizing Periods
+    No;                      !- Run Simulation for Weather File Run Periods
+
+  RunPeriod,
+    Jan,                     !- Name
+    1,                       !- Begin Month
+    1,                       !- Begin Day of Month
+    1,                       !- End Month
+    31,                      !- End Day of Month
+    Tuesday,                 !- Day of Week for Start Day
+    Yes,                     !- Use Weather File Holidays and Special Days
+    Yes,                     !- Use Weather File Daylight Saving Period
+    No,                      !- Apply Weekend Holiday Rule
+    Yes,                     !- Use Weather File Rain Indicators
+    Yes;                     !- Use Weather File Snow Indicators
+
+  RunPeriod,
+    Jul,                     !- Name
+    7,                       !- Begin Month
+    1,                       !- Begin Day of Month
+    7,                       !- End Month
+    31,                      !- End Day of Month
+    Tuesday,                 !- Day of Week for Start Day
+    Yes,                     !- Use Weather File Holidays and Special Days
+    Yes,                     !- Use Weather File Daylight Saving Period
+    No,                      !- Apply Weekend Holiday Rule
+    Yes,                     !- Use Weather File Rain Indicators
+    Yes;                     !- Use Weather File Snow Indicators
+
+  Site:Location,
+    Denver Centennial CO USA WMO=724666,  !- Name
+    39.74,                   !- Latitude {deg}
+    -105.18,                 !- Longitude {deg}
+    -7.00,                   !- Time Zone {hr}
+    1793.00;                 !- Elevation {m}
+
+ !  WMO=724666 Time Zone=NAM        (GMT-07:00) Mountain Time (US & Canada)
+ !  Data Source=ASHRAE 2009 Annual Design Conditions
+ ! Using Design Conditions from "Climate Design Data 2009 ASHRAE Handbook"
+ ! Denver Centennial CO USA Extreme Annual Wind Speeds, 1%=11.1m/s, 2.5%=9.5m/s, 5%=8.4m/s
+ ! Denver Centennial CO USA Extreme Annual Temperatures, Max Drybulb=-22.9°C Min Drybulb=36.1°C
+ ! Denver Centennial CO USA Annual Heating Design Conditions Wind Speed=3m/s Wind Dir=340
+ ! Coldest Month=December
+ ! Denver Centennial CO USA Annual Heating 99.6%, MaxDB=-18.8°C
+
+  SizingPeriod:DesignDay,
+    Denver Centennial Ann Htg 99.6% Condns DB,  !- Name
+    12,                      !- Month
+    21,                      !- Day of Month
+    WinterDesignDay,         !- Day Type
+    -18.8,                   !- Maximum Dry-Bulb Temperature {C}
+    0.0,                     !- Daily Dry-Bulb Temperature Range {deltaC}
+    ,                        !- Dry-Bulb Temperature Range Modifier Type
+    ,                        !- Dry-Bulb Temperature Range Modifier Day Schedule Name
+    Wetbulb,                 !- Humidity Condition Type
+    -18.8,                   !- Wetbulb or DewPoint at Maximum Dry-Bulb {C}
+    ,                        !- Humidity Condition Day Schedule Name
+    ,                        !- Humidity Ratio at Maximum Dry-Bulb {kgWater/kgDryAir}
+    ,                        !- Enthalpy at Maximum Dry-Bulb {J/kg}
+    ,                        !- Daily Wet-Bulb Temperature Range {deltaC}
+    81560.,                  !- Barometric Pressure {Pa}
+    3,                       !- Wind Speed {m/s}
+    340,                     !- Wind Direction {deg}
+    No,                      !- Rain Indicator
+    No,                      !- Snow Indicator
+    No,                      !- Daylight Saving Time Indicator
+    ASHRAEClearSky,          !- Solar Model Indicator
+    ,                        !- Beam Solar Day Schedule Name
+    ,                        !- Diffuse Solar Day Schedule Name
+    ,                        !- ASHRAE Clear Sky Optical Depth for Beam Irradiance (taub) {dimensionless}
+    ,                        !- ASHRAE Clear Sky Optical Depth for Diffuse Irradiance (taud) {dimensionless}
+    0.00;                    !- Sky Clearness
+
+ ! Denver Centennial Annual Cooling Design Conditions Wind Speed=4.9m/s Wind Dir=0
+ ! Hottest Month=July
+ ! Denver Centennial CO USA Annual Cooling (DB=>MWB) 1%, MaxDB=32°C MWB=15.5°C
+
+  SizingPeriod:DesignDay,
+    Denver Centennial Ann Clg 1% Condns DB=>MWB,  !- Name
+    7,                       !- Month
+    21,                      !- Day of Month
+    SummerDesignDay,         !- Day Type
+    32,                      !- Maximum Dry-Bulb Temperature {C}
+    15.2,                    !- Daily Dry-Bulb Temperature Range {deltaC}
+    ,                        !- Dry-Bulb Temperature Range Modifier Type
+    ,                        !- Dry-Bulb Temperature Range Modifier Day Schedule Name
+    Wetbulb,                 !- Humidity Condition Type
+    15.5,                    !- Wetbulb or DewPoint at Maximum Dry-Bulb {C}
+    ,                        !- Humidity Condition Day Schedule Name
+    ,                        !- Humidity Ratio at Maximum Dry-Bulb {kgWater/kgDryAir}
+    ,                        !- Enthalpy at Maximum Dry-Bulb {J/kg}
+    ,                        !- Daily Wet-Bulb Temperature Range {deltaC}
+    81560.,                  !- Barometric Pressure {Pa}
+    4.9,                     !- Wind Speed {m/s}
+    0,                       !- Wind Direction {deg}
+    No,                      !- Rain Indicator
+    No,                      !- Snow Indicator
+    No,                      !- Daylight Saving Time Indicator
+    ASHRAEClearSky,          !- Solar Model Indicator
+    ,                        !- Beam Solar Day Schedule Name
+    ,                        !- Diffuse Solar Day Schedule Name
+    ,                        !- ASHRAE Clear Sky Optical Depth for Beam Irradiance (taub) {dimensionless}
+    ,                        !- ASHRAE Clear Sky Optical Depth for Diffuse Irradiance (taud) {dimensionless}
+    1.00;                    !- Sky Clearness
+
+  Material:NoMass,
+    R13LAYER,                !- Name
+    Rough,                   !- Roughness
+    2.290965,                !- Thermal Resistance {m2-K/W}
+    0.9000000,               !- Thermal Absorptance
+    0.7500000,               !- Solar Absorptance
+    0.7500000;               !- Visible Absorptance
+
+  Material:NoMass,
+    R31LAYER,                !- Name
+    Rough,                   !- Roughness
+    5.456,                   !- Thermal Resistance {m2-K/W}
+    0.9000000,               !- Thermal Absorptance
+    0.7500000,               !- Solar Absorptance
+    0.7500000;               !- Visible Absorptance
+
+  Material,
+    C5 - 4 IN HW CONCRETE,   !- Name
+    MediumRough,             !- Roughness
+    0.1014984,               !- Thickness {m}
+    1.729577,                !- Conductivity {W/m-K}
+    2242.585,                !- Density {kg/m3}
+    836.8000,                !- Specific Heat {J/kg-K}
+    0.9000000,               !- Thermal Absorptance
+    0.6500000,               !- Solar Absorptance
+    0.6500000;               !- Visible Absorptance
+
+  Construction,
+    R13WALL,                 !- Name
+    R13LAYER;                !- Outside Layer
+
+  Construction,
+    FLOOR,                   !- Name
+    C5 - 4 IN HW CONCRETE;   !- Outside Layer
+
+  Construction,
+    ROOF31,                  !- Name
+    R31LAYER;                !- Outside Layer
+
+  Site:GroundTemperature:BuildingSurface,18.89,18.92,19.02,19.12,19.21,19.23,19.07,19.32,19.09,19.21,19.13,18.96;
+
+  Zone,
+    Main Zone,               !- Name
+    0,                       !- Direction of Relative North {deg}
+    0,                       !- X Origin {m}
+    0,                       !- Y Origin {m}
+    0,                       !- Z Origin {m}
+    1,                       !- Type
+    1,                       !- Multiplier
+    autocalculate,           !- Ceiling Height {m}
+    autocalculate;           !- Volume {m3}
+
+  ScheduleTypeLimits,
+    Fraction,                !- Name
+    0.0,                     !- Lower Limit Value
+    1.0,                     !- Upper Limit Value
+    CONTINUOUS;              !- Numeric Type
+
+  GlobalGeometryRules,
+    UpperLeftCorner,         !- Starting Vertex Position
+    CounterClockWise,        !- Vertex Entry Direction
+    World;                   !- Coordinate System
+
+  BuildingSurface:Detailed,
+    Zn001:Wall001,           !- Name
+    Wall,                    !- Surface Type
+    R13WALL,                 !- Construction Name
+    Main Zone,               !- Zone Name
+    Outdoors,                !- Outside Boundary Condition
+    ,                        !- Outside Boundary Condition Object
+    SunExposed,              !- Sun Exposure
+    WindExposed,             !- Wind Exposure
+    0.5000000,               !- View Factor to Ground
+    4,                       !- Number of Vertices
+    0,0,4.572000,  !- X,Y,Z ==> Vertex 1 {m}
+    0,0,0,  !- X,Y,Z ==> Vertex 2 {m}
+    15.24000,0,0,  !- X,Y,Z ==> Vertex 3 {m}
+    15.24000,0,4.572000;  !- X,Y,Z ==> Vertex 4 {m}
+
+  BuildingSurface:Detailed,
+    Zn001:Wall002,           !- Name
+    Wall,                    !- Surface Type
+    R13WALL,                 !- Construction Name
+    Main Zone,               !- Zone Name
+    Outdoors,                !- Outside Boundary Condition
+    ,                        !- Outside Boundary Condition Object
+    SunExposed,              !- Sun Exposure
+    WindExposed,             !- Wind Exposure
+    0.5000000,               !- View Factor to Ground
+    4,                       !- Number of Vertices
+    15.24000,0,4.572000,  !- X,Y,Z ==> Vertex 1 {m}
+    15.24000,0,0,  !- X,Y,Z ==> Vertex 2 {m}
+    15.24000,15.24000,0,  !- X,Y,Z ==> Vertex 3 {m}
+    15.24000,15.24000,4.572000;  !- X,Y,Z ==> Vertex 4 {m}
+
+  BuildingSurface:Detailed,
+    Zn001:Wall003,           !- Name
+    Wall,                    !- Surface Type
+    R13WALL,                 !- Construction Name
+    Main Zone,               !- Zone Name
+    Outdoors,                !- Outside Boundary Condition
+    ,                        !- Outside Boundary Condition Object
+    SunExposed,              !- Sun Exposure
+    WindExposed,             !- Wind Exposure
+    0.5000000,               !- View Factor to Ground
+    4,                       !- Number of Vertices
+    15.24000,15.24000,4.572000,  !- X,Y,Z ==> Vertex 1 {m}
+    15.24000,15.24000,0,  !- X,Y,Z ==> Vertex 2 {m}
+    0,15.24000,0,  !- X,Y,Z ==> Vertex 3 {m}
+    0,15.24000,4.572000;  !- X,Y,Z ==> Vertex 4 {m}
+
+  BuildingSurface:Detailed,
+    Zn001:Wall004,           !- Name
+    Wall,                    !- Surface Type
+    R13WALL,                 !- Construction Name
+    Main Zone,               !- Zone Name
+    Outdoors,                !- Outside Boundary Condition
+    ,                        !- Outside Boundary Condition Object
+    SunExposed,              !- Sun Exposure
+    WindExposed,             !- Wind Exposure
+    0.5000000,               !- View Factor to Ground
+    4,                       !- Number of Vertices
+    0,15.24000,4.572000,  !- X,Y,Z ==> Vertex 1 {m}
+    0,15.24000,0,  !- X,Y,Z ==> Vertex 2 {m}
+    0,0,0,  !- X,Y,Z ==> Vertex 3 {m}
+    0,0,4.572000;  !- X,Y,Z ==> Vertex 4 {m}
+
+  BuildingSurface:Detailed,
+    Zn001:Flr001,            !- Name
+    Floor,                   !- Surface Type
+    FLOOR,                   !- Construction Name
+    Main Zone,               !- Zone Name
+    Surface,                 !- Outside Boundary Condition
+    Zn001:Flr001,            !- Outside Boundary Condition Object
+    NoSun,                   !- Sun Exposure
+    NoWind,                  !- Wind Exposure
+    1.000000,                !- View Factor to Ground
+    4,                       !- Number of Vertices
+    15.24000,0.000000,0.0,  !- X,Y,Z ==> Vertex 1 {m}
+    0.000000,0.000000,0.0,  !- X,Y,Z ==> Vertex 2 {m}
+    0.000000,15.24000,0.0,  !- X,Y,Z ==> Vertex 3 {m}
+    15.24000,15.24000,0.0;  !- X,Y,Z ==> Vertex 4 {m}
+
+  BuildingSurface:Detailed,
+    Zn001:Roof001,           !- Name
+    Roof,                    !- Surface Type
+    ROOF31,                  !- Construction Name
+    Main Zone,               !- Zone Name
+    Outdoors,                !- Outside Boundary Condition
+    ,                        !- Outside Boundary Condition Object
+    SunExposed,              !- Sun Exposure
+    WindExposed,             !- Wind Exposure
+    0,                       !- View Factor to Ground
+    4,                       !- Number of Vertices
+    0.000000,15.24000,4.572,  !- X,Y,Z ==> Vertex 1 {m}
+    0.000000,0.000000,4.572,  !- X,Y,Z ==> Vertex 2 {m}
+    15.24000,0.000000,4.572,  !- X,Y,Z ==> Vertex 3 {m}
+    15.24000,15.24000,4.572;  !- X,Y,Z ==> Vertex 4 {m}
+
+  ScheduleTypeLimits,
+    Any Number;              !- Name
+
+  Schedule:Compact,
+    System Availability Schedule,  !- Name
+    Any Number,              !- Schedule Type Limits Name
+    THROUGH: 12/31,          !- Field 1
+    FOR: AllDays,            !- Field 2
+    UNTIL: 24:00,1;          !- Field 3
+
+  AirLoopHVAC,
+    CRAC system,             !- Name
+    ,                        !- Controller List Name
+    CRAC 1 Availability List,!- Availability Manager List Name
+    8.5,                     !- Design Supply Air Flow Rate {m3/s}
+    Air Loop Branches,       !- Branch List Name
+    ,                        !- Connector List Name
+    Supply Inlet Node,       !- Supply Side Inlet Node Name
+    Zone Equipment Outlet Node,  !- Demand Side Outlet Node Name
+    Zone Equipment Inlet Node,  !- Demand Side Inlet Node Names
+    Supply Outlet Node;      !- Supply Side Outlet Node Names
+
+  AvailabilityManagerAssignmentList,
+    CRAC 1 Availability List,!- Name
+    AvailabilityManager:Scheduled,  !- Availability Manager 1 Object Type
+    CRAC 1 Avail;            !- Availability Manager 1 Name
+
+  AvailabilityManager:Scheduled,
+    CRAC 1 Avail,            !- Name
+    System Availability Schedule;  !- Schedule Name
+
+  BranchList,
+    Air Loop Branches,       !- Name
+    Air Loop Main Branch;    !- Branch 1 Name
+
+  Branch,
+    Air Loop Main Branch,    !- Name
+    ,                        !- Pressure Drop Curve Name
+    CoilSystem:Cooling:DX,   !- Component 1 Object Type
+    DX Cooling Coil System 1,!- Component 1 Name
+    Supply Inlet Node,       !- Component 1 Inlet Node Name
+    Main Cooling Coil 1 Outlet Node,  !- Component 1 Outlet Node Name
+    Fan:VariableVolume,      !- Component 2 Object Type
+    EC Plug Fan 1,           !- Component 2 Name
+    Main Cooling Coil 1 Outlet Node,  !- Component 2 Inlet Node Name
+    Supply Outlet Node;      !- Component 2 Outlet Node Name
+
+  CoilSystem:Cooling:DX,
+    DX Cooling Coil System 1,!- Name
+    System Availability Schedule,  !- Availability Schedule Name
+    Supply Inlet Node,       !- DX Cooling Coil System Inlet Node Name
+    Main Cooling Coil 1 Outlet Node,  !- DX Cooling Coil System Outlet Node Name
+    Main Cooling Coil 1 Outlet Node,  !- DX Cooling Coil System Sensor Node Name
+    Coil:Cooling:DX:SingleSpeed,  !- Cooling Coil Object Type
+    Main Cooling Coil 1;     !- Cooling Coil Name
+
+  Coil:Cooling:DX:SingleSpeed,
+    Main Cooling Coil 1,     !- Name
+    System Availability Schedule,  !- Availability Schedule Name
+    148300,                  !- Gross Rated Total Cooling Capacity {W}
+    0.83,                    !- Gross Rated Sensible Heat Ratio
+    4.5669,                  !- Gross Rated Cooling COP {W/W}
+    8.5,                     !- Rated Air Flow Rate {m3/s}
+    ,                        !- Rated Evaporator Fan Power Per Volume Flow Rate {W/(m3/s)}
+    Supply Inlet Node,       !- Air Inlet Node Name
+    Main Cooling Coil 1 Outlet Node,  !- Air Outlet Node Name
+    Cool Cap Mod func of Temperature,  !- Total Cooling Capacity Function of Temperature Curve Name
+    HPACCoolCapFFF,          !- Total Cooling Capacity Function of Flow Fraction Curve Name
+    Liebert Econophase EIR Func T,  !- Energy Input Ratio Function of Temperature Curve Name
+    HPACCOOLEIRFFF,          !- Energy Input Ratio Function of Flow Fraction Curve Name
+    HPACCOOLPLFFPLR,         !- Part Load Fraction Correlation Curve Name
+    ,                        !- Minimum Outdoor Dry-Bulb Temperature for Compressor Operation {C}
+    ,                        !- Nominal Time for Condensate Removal to Begin {s}
+    ,                        !- Ratio of Initial Moisture Evaporation Rate and Steady State Latent Capacity {dimensionless}
+    ,                        !- Maximum Cycling Rate {cycles/hr}
+    ,                        !- Latent Capacity Time Constant {s}
+    ,                        !- Condenser Air Inlet Node Name
+    ,                        !- Condenser Type
+    ,                        !- Evaporative Condenser Effectiveness {dimensionless}
+    ,                        !- Evaporative Condenser Air Flow Rate {m3/s}
+    ,                        !- Evaporative Condenser Pump Rated Power Consumption {W}
+    ,                        !- Crankcase Heater Capacity {W}
+    ,                        !- Maximum Outdoor Dry-Bulb Temperature for Crankcase Heater Operation {C}
+    ,                        !- Supply Water Storage Tank Name
+    ,                        !- Condensate Collection Water Storage Tank Name
+    ,                        !- Basin Heater Capacity {W/K}
+    ,                        !- Basin Heater Setpoint Temperature {C}
+    ,                        !- Basin Heater Operating Schedule Name
+    ,                        !- Sensible Heat Ratio Function of Temperature Curve Name
+    ,                        !- Sensible Heat Ratio Function of Flow Fraction Curve Name
+    Yes;                     !- Report ASHRAE Standard 127 Performance Ratings
+
+  Table:TwoIndependentVariables,
+    Cool Cap Mod func of Temperature,  !- Name
+    Biquadratic,             !- Curve Type
+    LinearInterpolationOfTable,  !- Interpolation Method
+    13.0,                    !- Minimum Value of X
+    23.89,                   !- Maximum Value of X
+    -10.0,                   !- Minimum Value of Y
+    46.0,                    !- Maximum Value of Y
+    ,                        !- Minimum Table Output
+    ,                        !- Maximum Table Output
+    Temperature,             !- Input Unit Type for X
+    Temperature,             !- Input Unit Type for Y
+    Dimensionless,           !- Output Unit Type
+    ,                        !- Normalization Reference
+    ,                        !- External File Name
+    13.0,                    !- X Value #1
+    -10.0,                   !- Y Value #1
+    1.00,                    !- Output Value #1
+    13.0,                    !- X Value #2
+    15.0,                    !- Y Value #2
+    1.00,                    !- Output Value #2
+    13.0,                    !- X Value #3
+    18.0,                    !- Y Value #3
+    1.00,                    !- Output Value #3
+    13.0,                    !- X Value #4
+    24.0,                    !- Y Value #4
+    0.924738271,             !- Output Value #4
+    13.0,                    !- <none>
+    30.0,                    !- <none>
+    0.883909339,             !- <none>
+    13.0,                    !- <none>
+    35.0,                    !- <none>
+    0.835522309,             !- <none>
+    13.0,                    !- <none>
+    38.0,                    !- <none>
+    0.800222635,             !- <none>
+    13.0,                    !- <none>
+    46.0,                    !- <none>
+    0.683109499,             !- <none>
+    17.0,                    !- <none>
+    -10.0,                   !- <none>
+    1.00,                    !- <none>
+    17.0,                    !- <none>
+    15.0,                    !- <none>
+    1.00,                    !- <none>
+    17.0,                    !- <none>
+    18.0,                    !- <none>
+    1.00,                    !- <none>
+    17.0,                    !- <none>
+    24.0,                    !- <none>
+    1.00,                    !- <none>
+    17.0,                    !- <none>
+    30.0,                    !- <none>
+    0.976933863,             !- <none>
+    17.0,                    !- <none>
+    35.0,                    !- <none>
+    0.937696593,             !- <none>
+    17.0,                    !- <none>
+    38.0,                    !- <none>
+    0.907886775,             !- <none>
+    17.0,                    !- <none>
+    46.0,                    !- <none>
+    0.805413255,             !- <none>
+    19.4444,                 !- <none>
+    -10.0,                   !- <none>
+    1.00,                    !- <none>
+    19.4444,                 !- <none>
+    15.0,                    !- <none>
+    1.00,                    !- <none>
+    19.4444,                 !- <none>
+    18.0,                    !- <none>
+    1.00,                    !- <none>
+    19.4444,                 !- <none>
+    24.0,                    !- <none>
+    1.00,                    !- <none>
+    19.4444,                 !- <none>
+    30.0,                    !- <none>
+    1.00,                    !- <none>
+    19.4444,                 !- <none>
+    35.0,                    !- <none>
+    1.00,                    !- <none>
+    19.4444,                 !- <none>
+    38.0,                    !- <none>
+    0.9718,                  !- <none>
+    19.4444,                 !- <none>
+    46.0,                    !- <none>
+    0.8782,                  !- <none>
+    21.0,                    !- <none>
+    -10.0,                   !- <none>
+    1.00,                    !- <none>
+    21.0,                    !- <none>
+    15.0,                    !- <none>
+    1.00,                    !- <none>
+    21.0,                    !- <none>
+    18.0,                    !- <none>
+    1.00,                    !- <none>
+    21.0,                    !- <none>
+    24.0,                    !- <none>
+    1.00,                    !- <none>
+    21.0,                    !- <none>
+    30.0,                    !- <none>
+    1.00,                    !- <none>
+    21.0,                    !- <none>
+    35.0,                    !- <none>
+    1.0385,                  !- <none>
+    21.0,                    !- <none>
+    38.0,                    !- <none>
+    1.0142,                  !- <none>
+    21.0,                    !- <none>
+    46.0,                    !- <none>
+    0.9264,                  !- <none>
+    23.9,                    !- <none>
+    -10.0,                   !- <none>
+    1.00,                    !- <none>
+    23.9,                    !- <none>
+    15.0,                    !- <none>
+    1.00,                    !- <none>
+    23.9,                    !- <none>
+    18.0,                    !- <none>
+    1.00,                    !- <none>
+    23.9,                    !- <none>
+    24.0,                    !- <none>
+    1.00,                    !- <none>
+    23.9,                    !- <none>
+    30.0,                    !- <none>
+    1.00,                    !- <none>
+    23.9,                    !- <none>
+    35.0,                    !- <none>
+    1.110828252,             !- <none>
+    23.9,                    !- <none>
+    38.0,                    !- <none>
+    1.090488436,             !- <none>
+    23.9,                    !- <none>
+    46.0,                    !- <none>
+    1.013268253;             !- <none>
+
+  Curve:Quadratic,
+    HPACCoolCapFFF,          !- Name
+    0.8,                     !- Coefficient1 Constant
+    0.2,                     !- Coefficient2 x
+    0.0,                     !- Coefficient3 x**2
+    0.5,                     !- Minimum Value of x
+    1.5;                     !- Maximum Value of x
+
+  Curve:Biquadratic,
+    Liebert Econophase quadratic fit,  !- Name
+    0.1416159,               !- Coefficient1 Constant
+    0.0,                     !- Coefficient2 x
+    0.0,                     !- Coefficient3 x**2
+    0.013828452,             !- Coefficient4 y
+    0.00023872,              !- Coefficient5 y**2
+    0.0,                     !- Coefficient6 x*y
+    12.77778,                !- Minimum Value of x
+    23.88889,                !- Maximum Value of x
+    -10,                     !- Minimum Value of y
+    46.11111,                !- Maximum Value of y
+    0.04,                    !- Minimum Curve Output
+    1.4,                     !- Maximum Curve Output
+    Temperature,             !- Input Unit Type for X
+    Temperature,             !- Input Unit Type for Y
+    Dimensionless;           !- Output Unit Type
+
+  Table:TwoIndependentVariables,
+    Liebert Econophase EIR Func T,  !- Name
+    Biquadratic,             !- Curve Type
+    LinearInterpolationOfTable,  !- Interpolation Method
+    12.7,                    !- Minimum Value of X
+    23.8,                    !- Maximum Value of X
+    -50,                     !- Minimum Value of Y
+    50,                      !- Maximum Value of Y
+    0.03,                    !- Minimum Table Output
+    1.5,                     !- Maximum Table Output
+    Temperature,             !- Input Unit Type for X
+    Temperature,             !- Input Unit Type for Y
+    Dimensionless,           !- Output Unit Type
+    ,                        !- Normalization Reference
+    ,                        !- External File Name
+    12.7,                    !- X Value #1
+    -50,                     !- Y Value #1
+    0.042,                   !- Output Value #1
+    12.7,                    !- X Value #2
+    -4.0,                    !- Y Value #2
+    0.042,                   !- Output Value #2
+    12.7,                    !- X Value #3
+    -1.2222,                 !- Y Value #3
+    0.084,                   !- Output Value #3
+    12.7,                    !- X Value #4
+    1.5555,                  !- Y Value #4
+    0.084,                   !- Output Value #4
+    12.7,                    !- <none>
+    4.3333,                  !- <none>
+    0.2269,                  !- <none>
+    12.7,                    !- <none>
+    7.1111,                  !- <none>
+    0.2395,                  !- <none>
+    12.7,                    !- <none>
+    9.8888,                  !- <none>
+    0.311,                   !- <none>
+    12.7,                    !- <none>
+    12.6667,                 !- <none>
+    0.3697,                  !- <none>
+    12.7,                    !- <none>
+    15.4444,                 !- <none>
+    0.4454,                  !- <none>
+    12.7,                    !- <none>
+    18.222,                  !- <none>
+    0.5462,                  !- <none>
+    12.7,                    !- <none>
+    21.0,                    !- <none>
+    0.6723,                  !- <none>
+    12.7,                    !- <none>
+    23.777778,               !- <none>
+    0.7227,                  !- <none>
+    12.7,                    !- <none>
+    26.55556,                !- <none>
+    0.7773,                  !- <none>
+    12.7,                    !- <none>
+    29.33333,                !- <none>
+    0.8193,                  !- <none>
+    12.7,                    !- <none>
+    32.11111,                !- <none>
+    0.895,                   !- <none>
+    12.7,                    !- <none>
+    34.88889,                !- <none>
+    1.0,                     !- <none>
+    12.7,                    !- <none>
+    50.0,                    !- <none>
+    1.5,                     !- <none>
+    23.8,                    !- <none>
+    -50,                     !- <none>
+    0.042,                   !- <none>
+    23.8,                    !- <none>
+    -4.0,                    !- <none>
+    0.042,                   !- <none>
+    23.8,                    !- <none>
+    -1.2222,                 !- <none>
+    0.084,                   !- <none>
+    23.8,                    !- <none>
+    1.5555,                  !- <none>
+    0.084,                   !- <none>
+    23.8,                    !- <none>
+    4.3333,                  !- <none>
+    0.2269,                  !- <none>
+    23.8,                    !- <none>
+    7.1111,                  !- <none>
+    0.2395,                  !- <none>
+    23.8,                    !- <none>
+    9.8888,                  !- <none>
+    0.311,                   !- <none>
+    23.8,                    !- <none>
+    12.6667,                 !- <none>
+    0.3697,                  !- <none>
+    23.8,                    !- <none>
+    15.4444,                 !- <none>
+    0.4454,                  !- <none>
+    23.8,                    !- <none>
+    18.222,                  !- <none>
+    0.5462,                  !- <none>
+    23.8,                    !- <none>
+    21.0,                    !- <none>
+    0.6723,                  !- <none>
+    23.8,                    !- <none>
+    23.777778,               !- <none>
+    0.7227,                  !- <none>
+    23.8,                    !- <none>
+    26.55556,                !- <none>
+    0.7773,                  !- <none>
+    23.8,                    !- <none>
+    29.33333,                !- <none>
+    0.8193,                  !- <none>
+    23.8,                    !- <none>
+    32.11111,                !- <none>
+    0.895,                   !- <none>
+    23.8,                    !- <none>
+    34.88889,                !- <none>
+    1.0,                     !- <none>
+    23.8,                    !- <none>
+    50.0,                    !- <none>
+    1.5;                     !- <none>
+
+  Curve:Quadratic,
+    HPACCOOLEIRFFF,          !- Name
+    1.156,                   !- Coefficient1 Constant
+    -0.1816,                 !- Coefficient2 x
+    0.0256,                  !- Coefficient3 x**2
+    0.5,                     !- Minimum Value of x
+    1.5;                     !- Maximum Value of x
+
+  Curve:Quadratic,
+    HPACCOOLPLFFPLR,         !- Name
+    0.85,                    !- Coefficient1 Constant
+    0.15,                    !- Coefficient2 x
+    0.0,                     !- Coefficient3 x**2
+    0.0,                     !- Minimum Value of x
+    1.0;                     !- Maximum Value of x
+
+  SetpointManager:Warmest,
+    Supply air control,      !- Name
+    Temperature,             !- Control Variable
+    CRAC system,             !- HVAC Air Loop Name
+    10.0,                    !- Minimum Setpoint Temperature {C}
+    25.0,                    !- Maximum Setpoint Temperature {C}
+    MAximumTemperature,      !- Strategy
+    Supply Outlet Node;      !- Setpoint Node or NodeList Name
+
+  SetpointManager:MixedAir,
+    Coil Exit Temp Manager 1,!- Name
+    Temperature,             !- Control Variable
+    Supply Outlet Node,      !- Reference Setpoint Node Name
+    Main Cooling Coil 1 Outlet Node,  !- Fan Inlet Node Name
+    Supply Outlet Node,      !- Fan Outlet Node Name
+    Main Cooling Coil 1 Outlet Node;  !- Setpoint Node or NodeList Name
+
+  Fan:VariableVolume,
+    EC Plug Fan 1,           !- Name
+    System Availability Schedule,  !- Availability Schedule Name
+    0.7,                     !- Fan Total Efficiency
+    486.0,                   !- Pressure Rise {Pa}
+    8.5,                     !- Maximum Flow Rate {m3/s}
+    Fraction,                !- Fan Power Minimum Flow Rate Input Method
+    0.05,                    !- Fan Power Minimum Flow Fraction
+    ,                        !- Fan Power Minimum Air Flow Rate {m3/s}
+    0.9,                     !- Motor Efficiency
+    1.0,                     !- Motor In Airstream Fraction
+    0.06990146,              !- Fan Power Coefficient 1
+    1.39500612,              !- Fan Power Coefficient 2
+    -3.35487336,             !- Fan Power Coefficient 3
+    2.89232315,              !- Fan Power Coefficient 4
+    0.000,                   !- Fan Power Coefficient 5
+    Main Cooling Coil 1 Outlet Node,  !- Air Inlet Node Name
+    Supply Outlet Node;      !- Air Outlet Node Name
+
+  AirLoopHVAC:SupplyPath,
+    Zone Supply Air Path,    !- Name
+    Zone Equipment Inlet Node,  !- Supply Air Path Inlet Node Name
+    AirLoopHVAC:ZoneSplitter,!- Component 1 Object Type
+    Zone Supply Air Splitter;!- Component 1 Name
+
+  AirLoopHVAC:ZoneSplitter,
+    Zone Supply Air Splitter,!- Name
+    Zone Equipment Inlet Node,  !- Inlet Node Name
+    Main Zone ATU In Node;   !- Outlet 1 Node Name
+
+  AirLoopHVAC:ReturnPath,
+    Zone Return Air Path,    !- Name
+    Zone Equipment Outlet Node,  !- Return Air Path Outlet Node Name
+    AirLoopHVAC:ZoneMixer,   !- Component 1 Object Type
+    Zone Return Air Mixer;   !- Component 1 Name
+
+  AirLoopHVAC:ZoneMixer,
+    Zone Return Air Mixer,   !- Name
+    Zone Equipment Outlet Node,  !- Outlet Node Name
+    Main Zone Outlet Node;   !- Inlet 1 Node Name
+
+  ZoneHVAC:EquipmentConnections,
+    Main Zone,               !- Zone Name
+    Main Zone Equipment,     !- Zone Conditioning Equipment List Name
+    Main Zone Inlet Node,    !- Zone Air Inlet Node or NodeList Name
+    ,                        !- Zone Air Exhaust Node or NodeList Name
+    Main Zone Node,          !- Zone Air Node Name
+    Main Zone Outlet Node;   !- Zone Return Air Node Name
+
+  ZoneHVAC:EquipmentList,
+    Main Zone Equipment,     !- Name
+    ZoneHVAC:AirDistributionUnit,  !- Zone Equipment 1 Object Type
+    Main Zone ATU,           !- Zone Equipment 1 Name
+    1,                       !- Zone Equipment 1 Cooling Sequence
+    2,                       !- Zone Equipment 1 Heating or No-Load Sequence
+    ZoneHVAC:Baseboard:Convective:Electric,  !- Zone Equipment 2 Object Type
+    Main Zone Baseboard,     !- Zone Equipment 2 Name
+    2,                       !- Zone Equipment 2 Cooling Sequence
+    1;                       !- Zone Equipment 2 Heating or No-Load Sequence
+
+  ZoneHVAC:AirDistributionUnit,
+    Main Zone ATU,           !- Name
+    Main Zone Inlet Node,    !- Air Distribution Unit Outlet Node Name
+    AirTerminal:SingleDuct:VAV:NoReheat,  !- Air Terminal Object Type
+    Main Zone VAV Air;       !- Air Terminal Name
+
+  AirTerminal:SingleDuct:VAV:NoReheat,
+    Main Zone VAV Air,       !- Name
+    System Availability Schedule,  !- Availability Schedule Name
+    Main Zone Inlet Node,    !- Air Outlet Node Name
+    Main Zone ATU In Node,   !- Air Inlet Node Name
+    8.5,                     !- Maximum Air Flow Rate {m3/s}
+    Constant,                !- Zone Minimum Air Flow Input Method
+    0.05;                    !- Constant Minimum Air Flow Fraction
+
+  ZoneHVAC:Baseboard:Convective:Electric,
+    Main Zone Baseboard,     !- Name
+    System Availability Schedule,  !- Availability Schedule Name
+    HeatingDesignCapacity,   !- Heating Design Capacity Method
+    8000,                    !- Heating Design Capacity {W}
+    ,                        !- Heating Design Capacity Per Floor Area {W/m2}
+    ,                        !- Fraction of Autosized Heating Design Capacity
+    0.97;                    !- Efficiency
+
+  ZoneControl:Thermostat,
+    Main Zone Thermostat,    !- Name
+    Main Zone,               !- Zone or ZoneList Name
+    Zone Control Type Sched, !- Control Type Schedule Name
+    ThermostatSetpoint:DualSetpoint,  !- Control 1 Object Type
+    DualSetPoint;            !- Control 1 Name
+
+  Schedule:Compact,
+    Zone Control Type Sched, !- Name
+    Any Number,              !- Schedule Type Limits Name
+    Through: 12/31,          !- Field 1
+    For: AllDays,            !- Field 2
+    Until: 24:00,4;          !- Field 3
+
+  ThermostatSetpoint:DualSetpoint,
+    DualSetPoint,            !- Name
+    Heating Setpoint Schedule,  !- Heating Setpoint Temperature Schedule Name
+    Cooling Return Air Setpoint Schedule;  !- Cooling Setpoint Temperature Schedule Name
+
+  Schedule:Compact,
+    Heating Setpoint Schedule,  !- Name
+    Any Number,              !- Schedule Type Limits Name
+    Through: 12/31,          !- Field 1
+    For: AllDays,            !- Field 2
+    Until: 24:00,15.0;       !- Field 3
+
+  Schedule:Compact,
+    Supply Air Setpoint Schedule,  !- Name
+    Any Number,              !- Schedule Type Limits Name
+    Through: 12/31,          !- Field 1
+    For: AllDays,            !- Field 2
+    Until: 24:00,10.0;       !- Field 3
+
+  Schedule:Compact,
+    Cooling Return Air Setpoint Schedule,  !- Name
+    Any Number,              !- Schedule Type Limits Name
+    Through: 12/31,          !- Field 1
+    For: AllDays,            !- Field 2
+    Until: 24:00,29.3;       !- Field 3
+
+  ElectricEquipment:ITE:AirCooled,
+    Data Center Servers,     !- Name
+    Main Zone,               !- Zone Name
+    Watts/Unit,              !- Design Power Input Calculation Method
+    500,                     !- Watts per Unit {W}
+    100,                     !- Number of Units
+    ,                        !- Watts per Zone Floor Area {W/m2}
+    Data Center Operation Schedule,  !- Design Power Input Schedule Name
+    Data Center CPU Loading Schedule,  !- CPU Loading  Schedule Name
+    Data Center Servers Power fLoadTemp,  !- CPU Power Input Function of Loading and Air Temperature Curve Name
+    0.4,                     !- Design Fan Power Input Fraction
+    0.0001,                  !- Design Fan Air Flow Rate per Power Input {m3/s-W}
+    Data Center Servers Airflow fLoadTemp,  !- Air Flow Function of Loading and Air Temperature Curve Name
+    ECM FanPower fFlow,      !- Fan Power Input Function of Flow Curve Name
+    15,                      !- Design Entering Air Temperature {C}
+    A3,                      !- Environmental Class
+    AdjustedSupply,          !- Air Inlet Connection Type
+    ,                        !- Air Inlet Room Air Model Node Name
+    ,                        !- Air Outlet Room Air Model Node Name
+    Main Zone Inlet Node,    !- Supply Air Node Name
+    0.1,                     !- Design Recirculation Fraction
+    Data Center Recirculation fLoadTemp,  !- Recirculation Function of Loading and Supply Temperature Curve Name
+    0.9,                     !- Design Electric Power Supply Efficiency
+    UPS Efficiency fPLR,     !- Electric Power Supply Efficiency Function of Part Load Ratio Curve Name
+    1,                       !- Fraction of Electric Power Supply Losses to Zone
+    ITE-CPU,                 !- CPU End-Use Subcategory
+    ITE-Fans,                !- Fan End-Use Subcategory
+    ITE-UPS;                 !- Electric Power Supply End-Use Subcategory
+
+  Curve:Quadratic,
+    ECM FanPower fFlow,      !- Name
+    0.0,                     !- Coefficient1 Constant
+    1.0,                     !- Coefficient2 x
+    0.0,                     !- Coefficient3 x**2
+    0.0,                     !- Minimum Value of x
+    99.0;                    !- Maximum Value of x
+
+  Curve:Quadratic,
+    UPS Efficiency fPLR,     !- Name
+    1.0,                     !- Coefficient1 Constant
+    0.0,                     !- Coefficient2 x
+    0.0,                     !- Coefficient3 x**2
+    0.0,                     !- Minimum Value of x
+    99.0;                    !- Maximum Value of x
+
+  Curve:Biquadratic,
+    Data Center Servers Power fLoadTemp,  !- Name
+    -1.0,                    !- Coefficient1 Constant
+    1.0,                     !- Coefficient2 x
+    0.0,                     !- Coefficient3 x**2
+    0.06667,                 !- Coefficient4 y
+    0.0,                     !- Coefficient5 y**2
+    0.0,                     !- Coefficient6 x*y
+    0.0,                     !- Minimum Value of x
+    1.5,                     !- Maximum Value of x
+    -10,                     !- Minimum Value of y
+    99.0,                    !- Maximum Value of y
+    0.0,                     !- Minimum Curve Output
+    99.0,                    !- Maximum Curve Output
+    Dimensionless,           !- Input Unit Type for X
+    Temperature,             !- Input Unit Type for Y
+    Dimensionless;           !- Output Unit Type
+
+  Curve:Biquadratic,
+    Data Center Servers Airflow fLoadTemp,  !- Name
+    -1.4,                    !- Coefficient1 Constant
+    0.9,                     !- Coefficient2 x
+    0.0,                     !- Coefficient3 x**2
+    0.1,                     !- Coefficient4 y
+    0.0,                     !- Coefficient5 y**2
+    0.0,                     !- Coefficient6 x*y
+    0.0,                     !- Minimum Value of x
+    1.5,                     !- Maximum Value of x
+    -10,                     !- Minimum Value of y
+    99.0,                    !- Maximum Value of y
+    0.0,                     !- Minimum Curve Output
+    99.0,                    !- Maximum Curve Output
+    Dimensionless,           !- Input Unit Type for X
+    Temperature,             !- Input Unit Type for Y
+    Dimensionless;           !- Output Unit Type
+
+  Curve:Biquadratic,
+    Data Center Recirculation fLoadTemp,  !- Name
+    1.0,                     !- Coefficient1 Constant
+    0.0,                     !- Coefficient2 x
+    0.0,                     !- Coefficient3 x**2
+    0.0,                     !- Coefficient4 y
+    0.0,                     !- Coefficient5 y**2
+    0.0,                     !- Coefficient6 x*y
+    0.0,                     !- Minimum Value of x
+    1.5,                     !- Maximum Value of x
+    -10,                     !- Minimum Value of y
+    99.0,                    !- Maximum Value of y
+    0.0,                     !- Minimum Curve Output
+    99.0,                    !- Maximum Curve Output
+    Dimensionless,           !- Input Unit Type for X
+    Temperature,             !- Input Unit Type for Y
+    Dimensionless;           !- Output Unit Type
+
+  Schedule:Constant,Data Center Operation Schedule,Any Number,1.0;
+
+  Schedule:Compact,
+    Data Center CPU Loading Schedule,  !- Name
+    Any Number,              !- Schedule Type Limits Name
+    Through: 1/31,           !- Field 1
+    For: AllDays,            !- Field 2
+    Until: 24:00,1.0,        !- Field 3
+    Through: 2/29,           !- Field 5
+    For: AllDays,            !- Field 6
+    Until: 24:00,0.50,       !- Field 7
+    Through: 3/31,           !- Field 9
+    For: AllDays,            !- Field 10
+    Until: 24:00,0.75,       !- Field 11
+    Through: 4/30,           !- Field 13
+    For: AllDays,            !- Field 14
+    Until: 24:00,1.0,        !- Field 15
+    Through: 5/31,           !- Field 17
+    For: AllDays,            !- Field 18
+    Until: 24:00,0.25,       !- Field 19
+    Through: 6/30,           !- Field 21
+    For: AllDays,            !- Field 22
+    Until: 24:00,0.50,       !- Field 23
+    Through: 7/31,           !- Field 25
+    For: AllDays,            !- Field 26
+    Until: 24:00,0.1,        !- Field 27
+    Through: 8/31,           !- Field 29
+    For: AllDays,            !- Field 30
+    Until: 24:00,1.0,        !- Field 31
+    Through: 9/30,           !- Field 33
+    For: AllDays,            !- Field 34
+    Until: 24:00,0.25,       !- Field 35
+    Through: 10/31,          !- Field 37
+    For: AllDays,            !- Field 38
+    Until: 24:00,0.50,       !- Field 39
+    Through: 11/30,          !- Field 41
+    For: AllDays,            !- Field 42
+    Until: 24:00,0.75,       !- Field 43
+    Through: 12/31,          !- Field 45
+    For: AllDays,            !- Field 46
+    Until: 24:00,1.00;       !- Field 47
+
+  Output:VariableDictionary,IDF;
+
+  Output:Surfaces:Drawing,DXF;
+
+  Output:Constructions,Constructions;
+
+  Output:Variable,*,Site Outdoor Air Drybulb Temperature,Hourly;
+
+  Output:Variable,*,Site Outdoor Air Wetbulb Temperature,Hourly;
+
+  Output:Variable,*,Site Outdoor Air Humidity Ratio,Hourly;
+
+  Output:Variable,*,Site Outdoor Air Relative Humidity,Hourly;
+
+  Output:Variable,*,Zone Mean Air Temperature,Hourly;
+
+  Output:Variable,*,Baseboard Electric Power,Hourly;
+
+  Output:Meter:MeterFileOnly,Electricity:Facility,monthly;
+
+  Output:Meter:MeterFileOnly,Electricity:HVAC,monthly;
+
+  Output:Meter:MeterFileOnly,Electricity:Facility,runperiod;
+
+  Output:Meter:MeterFileOnly,Electricity:HVAC,runperiod;
+
+  OutputControl:Table:Style,
+    HTML;                    !- Column Separator
+
+  Output:Table:SummaryReports,
+    AllSummary;              !- Report 1 Name
+
+  Output:SQLite,
+    Simple;                  !- Option Type
+
+  Output:Variable,*,Performance Curve Input Variable 1 Value,Hourly;
+
+  Output:Variable,*,Performance Curve Input Variable 2 Value,Hourly;
+
+  Output:Variable,*,Performance Curve Output Value,Hourly;
+
+  Output:Variable,*,System Node Temperature,Hourly;
+
+  Output:Variable,*,System Node Mass Flow Rate,Hourly;
+
+  Output:Variable,*,System Node Setpoint Temperature,Hourly;
+
+  Output:Variable,*,System Node Standard Density Volume Flow Rate,Hourly;
+
+  Output:Variable,*,System Node Humidity Ratio,Hourly;
+
+  Output:Variable,Supply Inlet Node,System Node Dewpoint Temperature,Hourly;
+
+  Output:Variable,Main Cooling Coil 1 Outlet Node,System Node Dewpoint Temperature,Hourly;
+
+  Output:Variable,Supply Inlet Node,System Node Relative Humidity,Hourly;
+
+  Output:Variable,*,Zone Predicted Sensible Load to Cooling Setpoint Heat Transfer Rate,Hourly;
+
+  Output:Variable,*,Cooling Coil Total Cooling Rate,Hourly;
+
+  Output:Variable,*,Cooling Coil Sensible Cooling Rate,Hourly;
+
+  Output:Variable,*,Cooling Coil Latent Cooling Rate,Hourly;
+
+  Output:Variable,*,Cooling Coil Electric Power,Hourly;
+
+  Output:Variable,*,Cooling Coil Runtime Fraction,Hourly;
+
+  Output:Variable,*,Coil System Part Load Ratio,Hourly;
+
+  Output:Variable,*,Coil System Frost Control Status,Hourly;
+
+  Output:Variable,*,Facility Total Building Electric Demand Power,Hourly;
+
+  Output:Variable,*,Facility Total HVAC Electric Demand Power,Hourly;
+
+  Output:Variable,*,Facility Total Electric Demand Power,Hourly;
+
+  Output:Variable,*,Site Outdoor Air Drybulb Temperature,Hourly;
+
+  Output:Variable,*,Site Outdoor Air Dewpoint Temperature,Hourly;
+
+  Output:Variable,*,Site Outdoor Air Wetbulb Temperature,Hourly;
+
+  Output:Variable,*,Fan Electric Power,Hourly;
+
+  Output:Variable,*,Fan Rise in Air Temperature,Hourly;
+
+  Output:Variable,*,Schedule Value,Hourly;
+
+  Output:Variable,*,ITE CPU Electric Power,Hourly;
+
+  Output:Variable,*,ITE Fan Electric Power,Hourly;
+
+  Output:Variable,*,ITE UPS Electric Power,Hourly;
+
+  Output:Variable,*,ITE CPU Electric Power at Design Inlet Conditions,Hourly;
+
+  Output:Variable,*,ITE Fan Electric Power at Design Inlet Conditions,Hourly;
+
+  Output:Variable,*,ITE UPS Heat Gain to Zone Rate,Hourly;
+
+  Output:Variable,*,ITE Total Heat Gain to Zone Rate,Hourly;
+
+  Output:Variable,*,ITE Standard Density Air Volume Flow Rate,Hourly;
+
+  Output:Variable,*,ITE Air Mass Flow Rate,Hourly;
+
+  Output:Variable,*,ITE Air Inlet Dry-Bulb Temperature,Hourly;
+
+  Output:Variable,*,ITE Air Inlet Dewpoint Temperature,Hourly;
+
+  Output:Variable,*,ITE Air Inlet Relative Humidity,Hourly;
+
+  Output:Variable,*,ITE Air Outlet Dry-Bulb Temperature,Hourly;
+
+  Output:Variable,*,ITE Supply Heat Index,Hourly;
+
+  Output:Variable,*,ITE Air Inlet Operating Range Exceeded Time,Hourly;
+
+  Output:Variable,*,ITE Air Inlet Dry-Bulb Temperature Above Operating Range Time,Hourly;
+
+  Output:Variable,*,ITE Air Inlet Dry-Bulb Temperature Below Operating Range Time,Hourly;
+
+  Output:Variable,*,ITE Air Inlet Dewpoint Temperature Above Operating Range Time,Hourly;
+
+  Output:Variable,*,ITE Air Inlet Dewpoint Temperature Below Operating Range Time,Hourly;
+
+  Output:Variable,*,ITE Air Inlet Relative Humidity Above Operating Range Time,Hourly;
+
+  Output:Variable,*,ITE Air Inlet Relative Humidity Below Operating Range Time,Hourly;
+
+  Output:Variable,*,ITE Air Inlet Dry-Bulb Temperature Difference Above Operating Range,Hourly;
+
+  Output:Variable,*,ITE Air Inlet Dry-Bulb Temperature Difference Below Operating Range,Hourly;
+
+  Output:Variable,*,ITE Air Inlet Dewpoint Temperature Difference Above Operating Range,Hourly;
+
+  Output:Variable,*,ITE Air Inlet Dewpoint Temperature Difference Below Operating Range,Hourly;
+
+  Output:Variable,*,ITE Air Inlet Relative Humidity Difference Above Operating Range,Hourly;
+
+  Output:Variable,*,ITE Air Inlet Relative Humidity Difference Below Operating Range,Hourly;
+
+  Output:Variable,*,Zone Air Temperature,Hourly;
+
+  Output:Variable,*,Zone Air Heat Balance Internal Convective Heat Gain Rate,Hourly;
+
+  Output:Variable,*,Zone Air Heat Balance Surface Convection Rate,Hourly;
+
+  Output:Variable,*,Zone Air Heat Balance Interzone Air Transfer Rate,Hourly;
+
+  Output:Variable,*,Zone Air Heat Balance Outdoor Air Transfer Rate,Hourly;
+
+  Output:Variable,*,Zone Air Heat Balance System Air Transfer Rate,Hourly;
+
+  Output:Variable,*,Zone Air Heat Balance System Convective Heat Gain Rate,Hourly;
+
+  Output:Variable,*,Zone Air Heat Balance Air Energy Storage Rate,Hourly;
+
+! custom EMS output variables
+! SCOP
+
+  EnergyManagementSystem:Sensor,
+    Qdot_DXCoil_Sens,        !- Name
+    Main Cooling Coil 1,     !- Output:Variable or Output:Meter Index Key Name
+    Cooling Coil Sensible Cooling Rate;  !- Output:Variable or Output:Meter Name
+
+  EnergyManagementSystem:Sensor,
+    Power_DX_Coil_Elec,      !- Name
+    Main Cooling Coil 1,     !- Output:Variable or Output:Meter Index Key Name
+    Cooling Coil Electric Power;  !- Output:Variable or Output:Meter Name
+
+  EnergyManagementSystem:Sensor,
+    Power_SupplyFan_Elec,    !- Name
+    EC Plug Fan 1,           !- Output:Variable or Output:Meter Index Key Name
+    Fan Electric Power;      !- Output:Variable or Output:Meter Name
+
+  EnergyManagementSystem:Sensor,
+    DeltaT_SupplyFan,        !- Name
+    EC Plug Fan 1,           !- Output:Variable or Output:Meter Index Key Name
+    Fan Rise in Air Temperature;  !- Output:Variable or Output:Meter Name
+
+  EnergyManagementSystem:Sensor,
+    Mdot_SupplyFan,          !- Name
+    Supply Outlet Node,      !- Output:Variable or Output:Meter Index Key Name
+    System Node Mass Flow Rate;  !- Output:Variable or Output:Meter Name
+
+  EnergyManagementSystem:Sensor,
+    Tout_SupplyFan,          !- Name
+    Supply Outlet Node,      !- Output:Variable or Output:Meter Index Key Name
+    System Node Temperature; !- Output:Variable or Output:Meter Name
+
+  EnergyManagementSystem:Sensor,
+    Wout_SupplyFan,          !- Name
+    Supply Outlet Node,      !- Output:Variable or Output:Meter Index Key Name
+    System Node Humidity Ratio;  !- Output:Variable or Output:Meter Name
+
+  EnergyManagementSystem:OutputVariable,
+    CRAC total system Power, !- Name
+    PowerCRAC,               !- EMS Variable Name
+    Averaged,                !- Type of Data in Variable
+    SystemTimeStep,          !- Update Frequency
+    ,                        !- EMS Program or Subroutine Name
+    W;                       !- Units
+
+  EnergyManagementSystem:OutputVariable,
+    CRAC Net Sensible Capacity,  !- Name
+    QdotNetSens,             !- EMS Variable Name
+    Averaged,                !- Type of Data in Variable
+    SystemTimeStep,          !- Update Frequency
+    ,                        !- EMS Program or Subroutine Name
+    W;                       !- Units
+
+  EnergyManagementSystem:OutputVariable,
+    CRAC SCOP,               !- Name
+    SCOP,                    !- EMS Variable Name
+    Averaged,                !- Type of Data in Variable
+    SystemTimeStep,          !- Update Frequency
+    ,                        !- EMS Program or Subroutine Name
+    ;                        !- Units
+
+  EnergyManagementSystem:GlobalVariable,
+    SCOP,                    !- Erl Variable 1 Name
+    QdotNetSens,             !- Erl Variable 2 Name
+    PowerCRAC;               !- Erl Variable 3 Name
+
+  EnergyManagementSystem:ProgramCallingManager,
+    Calculate Sensible Coefficient of Performance,  !- Name
+    EndOfZoneTimestepBeforeZoneReporting,  !- EnergyPlus Model Calling Point
+    CalcSCOP,                !- Program Name 1
+    CalcPUE;                 !- Program Name 2
+
+  EnergyManagementSystem:Program,
+    CalcSCOP,                !- Name
+    set cpair = @CpAirFnWTdb Wout_SupplyFan  Tout_SupplyFan,  !- Program Line 1
+    set FanSensHeat = (Mdot_SupplyFan * cpair ) * DeltaT_SupplyFan,  !- Program Line 2
+    set numerator = Qdot_DXCoil_Sens - FanSensHeat,  !- <none>
+    set denominator = Power_DX_Coil_Elec + Power_SupplyFan_Elec,  !- <none>
+    Set SCOP = numerator / denominator,  !- <none>
+    Set QdotNetSens = numerator,  !- <none>
+    Set PowerCRAC = denominator;  !- <none>
+
+  Output:EnergyManagementSystem,
+    Verbose,                 !- Actuator Availability Dictionary Reporting
+    Verbose,                 !- Internal Variable Availability Dictionary Reporting
+    Verbose;                 !- EMS Runtime Language Debug Output Level
+
+  Output:Variable,*,CRAC SCOP,Hourly;
+
+  Output:Variable,*,CRAC total system Power,Hourly;
+
+  Output:Variable,*,CRAC Net Sensible Capacity,Hourly;
+
+  !PUE
+  ! this is a very simple file with only one air loop and model is entirely a simple data center
+
+  EnergyManagementSystem:Sensor,
+    IT_Equip_power,          !- Name
+    Whole Building,          !- Output:Variable or Output:Meter Index Key Name
+    Facility Total Building Electric Demand Power;  !- Output:Variable or Output:Meter Name
+
+  EnergyManagementSystem:Sensor,
+    whole_building_power,    !- Name
+    Whole Building,          !- Output:Variable or Output:Meter Index Key Name
+    Facility Total Electric Demand Power;  !- Output:Variable or Output:Meter Name
+
+  EnergyManagementSystem:OutputVariable,
+    PUE,                     !- Name
+    PUE,                     !- EMS Variable Name
+    Averaged,                !- Type of Data in Variable
+    SystemTimeStep,          !- Update Frequency
+    ,                        !- EMS Program or Subroutine Name
+    ;                        !- Units
+
+  EnergyManagementSystem:GlobalVariable,
+    PUE;                     !- Erl Variable 1 Name
+
+  EnergyManagementSystem:Program,
+    CalcPUE,                 !- Name
+    IF IT_Equip_power > 0.0, !- Program Line 1
+    set PUE = whole_building_power / IT_Equip_power,  !- Program Line 2
+    ELSE,                    !- Program Line 3
+    set PUE = 0.0,           !- Program Line 4
+    ENDIF;                   !- Program Line 5
+
+  Output:Variable,*,PUE,Hourly;
+
