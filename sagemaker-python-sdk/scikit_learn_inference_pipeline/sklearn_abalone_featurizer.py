@@ -154,9 +154,9 @@ def output_fn(prediction, accept):
 
         json_output = {"instances": instances}
 
-        return worker.Response(json.dumps(json_output), accept, mimetype=accept)
+        return worker.Response(json.dumps(json_output), mimetype=accept)
     elif accept == 'text/csv':
-        return worker.Response(encoders.encode(prediction, accept), accept, mimetype=accept)
+        return worker.Response(encoders.encode(prediction, accept), mimetype=accept)
     else:
         raise RuntimeException("{} accept type is not supported by this script.".format(accept))
 
