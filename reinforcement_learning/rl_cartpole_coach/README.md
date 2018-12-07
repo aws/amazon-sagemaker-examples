@@ -6,8 +6,8 @@ This is a classic example of a problem that reinforcement learning can solve.  I
 
 ## This Example
 
-Sample Cart Pole Example using SageMaker with base docker image containing Coach, TF and OpenAI Gym. This is a toy example taken from 
-[Coach Quick Start Guide](https://github.com/NervanaSystems/coach/blob/master/tutorials/4.%20Quick%20Start%20Guide.ipynb). It demonstrates how you can use the SageMaker Python SDK script mode with a Tensorflow+Coach container. 
+Sample Cart Pole Example using SageMaker RL with base docker image containing Coach, MxNet and OpenAI Gym. This is a toy example taken from 
+[Coach Quick Start Guide](https://github.com/NervanaSystems/coach/blob/master/tutorials/0.%20Quick%20Start%20Guide.ipynb). It demonstrates how you can use the `RLEstimator` from the SageMaker Python SDK in `script` mode.
 
 ## Summary
 
