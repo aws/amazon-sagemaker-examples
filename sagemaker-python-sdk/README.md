@@ -13,7 +13,7 @@ These examples focus on the Amazon SageMaker Python SDK which allows you to writ
 - [Sentiment Analysis with Chainer](chainer_sentiment_analysis)
 - [MNIST with Chainer](chainer_mnist)
 - [Sentiment Analysis with MXNet Gluon](mxnet_gluon_sentiment)
-- [IRIS with Scikit-learn](scikit-learn-iris)
+- [IRIS with Scikit-learn](scikit_learn_iris)
 - [TensorFlow Neural Networks with Layers](tensorflow_abalone_age_predictor_using_layers)
 - [TensorFlow Networks with Keras](tensorflow_abalone_age_predictor_using_keras)
 - [Introduction to Estimators in TensorFlow](tensorflow_iris_dnn_classifier_using_estimators)
