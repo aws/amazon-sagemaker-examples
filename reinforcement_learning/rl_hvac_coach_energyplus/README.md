@@ -32,7 +32,7 @@ EnergyPlus: 8.8.0 (https://github.com/NREL/EnergyPlus/releases/tag/v8.8.0)
 4. Afram, Abdul, and Farrokh Janabi-Sharifi. "Theory and applications of HVAC control systems–A review of model predictive control (MPC)." Building and Environment 72 (2014): 343-355.
 5. Fong, Kwong Fai, Victor Ian Hanby, and Tin-Tai Chow. "System optimization for HVAC energy management using the robust evolutionary algorithm." Applied Thermal Engineering 29, no. 11-12 (2009): 2327-2334.
 6. Balaji, Bharathan, Jian Xu, Anthony Nwokafor, Rajesh Gupta, and Yuvraj Agarwal. "Sentinel: Occupancy based HVAC actuation using existing WiFi infrastructure within commercial buildings." In Proceedings of the 11th ACM Conference on Embedded Networked Sensor Systems, p. 17. ACM, 2013.
-7. Wei, Tianshu, Yanzhi Wang, and Qi Zhu. "Deep reinforcement learning for building hvac control." In Proceedings of the 54th Annual Design Automation Conference 2017, p. 22. ACM, 2017.
+7. Wei, Tianshu, Yanzhi Wang, and Qi Zhu. "Deep reinforcement learning for building HVAC control." In Proceedings of the 54th Annual Design Automation Conference 2017, p. 22. ACM, 2017.
 8. Zhang, Zhiang, and Khee Poh Lam. "Practical implementation and evaluation of deep reinforcement learning control for a radiant heating system." In Proceedings of the 5th Conference on Systems for Built Environments, pp. 148-157. ACM, 2018.
 
 
