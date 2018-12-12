@@ -6,7 +6,7 @@ HVAC stands for Heating, Ventilation and Air Conditioning and is responsible for
 
 In a modern building, data such as weather, occupancy and equipment use are collected routinely and can be used to optimize HVAC energy use. Reinforcement Learning (RL) is a good fit as it can learn patterns in the data and identify strategies to control the system so as to reduce energy. Several recent research efforts have shown that RL can reduce HVAC energy consumption by 15-20% [7, 8].
 
-As training an RL algorithm in a real HVAC system can take time to converge as well as potentially lead to hazardous settings as the agent explores its state space, we turn to a simulator to train the agent. EnergyPlus (https://energyplus.net/) is an open source, state of the art HVAC simulator from the US Department of Energy. We use a simple example with this simulator to showcase how we can train an RL model easily with Amazon SageMaker.
+As training an RL algorithm in a real HVAC system can take time to converge as well as potentially lead to hazardous settings as the agent explores its state space, we turn to a simulator to train the agent. [EnergyPlus](https://energyplus.net/) is an open source, state of the art HVAC simulator from the US Department of Energy. We use a simple example with this simulator to showcase how we can train an RL model easily with Amazon SageMaker.
 
 ## Contents
 
