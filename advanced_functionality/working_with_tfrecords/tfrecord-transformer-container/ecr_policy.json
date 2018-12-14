@@ -1,0 +1,17 @@
+{
+    "Version": "2008-10-17",
+    "Statement": [
+        {
+            "Sid": "allowSageMakerToPull",
+            "Effect": "Allow",
+            "Principal": {
+                "Service": "sagemaker.amazonaws.com"
+            },
+            "Action": [
+                "ecr:GetDownloadUrlForLayer",
+                "ecr:BatchGetImage",
+                "ecr:BatchCheckLayerAvailability"
+            ]
+        }
+    ]
+}
