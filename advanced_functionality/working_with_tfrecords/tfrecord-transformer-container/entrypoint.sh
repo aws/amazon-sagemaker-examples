@@ -4,5 +4,8 @@ set -e
 # Get the listen port from the SM env variable, otherwise default to 8080
 LISTEN_PORT=${SAGEMAKER_BIND_TO_PORT:-8080}
 
+# Set the number of gunicorn worker processes
+GUNICORN_WORKER_COUNT=16
+
 # Start flask app
-exec flask run --host=0.0.0.0 --port=$LISTEN_PORT
+exec gunicorn -w $GUNICORN_WORKER_COUNT -b 0.0.0.0:$LISTEN_PORT main:app
