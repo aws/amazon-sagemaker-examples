@@ -11,6 +11,7 @@ from rl_coach.filters.filter import NoInputFilter, NoOutputFilter, InputFilter
 from rl_coach.filters.observation.observation_stacking_filter import ObservationStackingFilter
 from rl_coach.filters.observation.observation_rgb_to_y_filter import ObservationRGBToYFilter
 from rl_coach.filters.observation.observation_to_uint8_filter import ObservationToUInt8Filter
+from rl_coach.memories.memory import MemoryGranularity
 
 ####################
 # Graph Scheduling #
@@ -26,6 +27,8 @@ schedule_params.heatup_steps = EnvironmentSteps(0)
 # Agent #
 #########
 agent_params = ClippedPPOAgentParameters()
+
+agent_params.memory.max_size = (MemoryGranularity.Transitions, 10**5)
 
 agent_params.network_wrappers['main'].learning_rate = 0.0003
 agent_params.network_wrappers['main'].input_embedders_parameters['observation'].activation_function = 'relu'
