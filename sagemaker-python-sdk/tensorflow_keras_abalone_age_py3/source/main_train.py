@@ -91,11 +91,11 @@ if '__main__' == __name__:
                         default=os.environ.get('SM_OUTPUT_DATA_DIR', "result_data")
                         )
 
-    parser.add_argument("--model_dir", help="Do not use this.. required by sagemaker", default=None)
+    parser.add_argument("--model_dir", help="Do not use this.. required by SageMaker", default=None)
 
     # This is where the model needs to be saved to
     parser.add_argument("--snapshot_dir", help="The directory to save the snapshot to..",
-                        default=os.environ.get('SM_MODEL_DIR', None))
+                        default=os.environ.get('SM_MODEL_DIR', "."))
 
     # Additional parameters for your code
     parser.add_argument("--epochs", help="The number of epochs", default=10, type=int)
@@ -107,5 +107,5 @@ if '__main__' == __name__:
     if not os.path.isdir(args.outputdir):
         os.makedirs(args.outputdir)
 
-    train(args.traindata_dir, args.traindata, args.validationdata_dir.args.validationdata, args.snapshot_dir,
+    train(args.traindata_dir, args.traindata, args.validationdata_dir, args.validationdata, args.snapshot_dir,
           args.epochs, args.batch_size)
