@@ -14,9 +14,13 @@ from model_exporter_keras_to_pb import ModelExporterKerasToProtobuf
 
 
 def input_transformer_load(filename):
+    logger = logging.getLogger(__name__)
+
     data = numpy.loadtxt(filename, delimiter=",")
-    x = data[:, 1:8]
-    y = data[:, 0]
+    x = data[:, 0:7]
+    y = data[:, 7]
+
+    logger.info("Feature shape is {}, target shape is {}".format(x.shape, y.shape))
     return x, y
 
 
@@ -62,7 +66,7 @@ def train(training_dir, training_filename, val_dir, val_filename, model_snapshot
 
     # Step 3: Save your model in pb format so that SageMaker TensorFlow container can serve this
     model_pb_exporter = ModelExporterKerasToProtobuf()
-    # SageMaker Tensorflow serving container is capable of serving more than one model.
+    # SageMaker TensorFlow serving container is capable of serving more than one model.
     # The container expects the model.pb to be within a directory structure <model_name>/<model_version>
     model_name = "abalone_age_predictor"
     # Note: the name of the version directory should match the regex re.match('^\d+$', dir)
