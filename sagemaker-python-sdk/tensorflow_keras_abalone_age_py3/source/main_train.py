@@ -2,6 +2,9 @@
 This sample shows how to use python 3 with TensorFlow and SageMaker
 """
 import argparse
+import logging
+
+import sys
 from keras.models import Sequential
 from keras.layers import Dense
 import numpy
@@ -101,7 +104,15 @@ if '__main__' == __name__:
     parser.add_argument("--epochs", help="The number of epochs", default=10, type=int)
     parser.add_argument("--batch-size", help="The mini batch size", default=30, type=int)
 
+    parser.add_argument("--log-level", help="Log level", default="INFO", choices={"INFO", "WARN", "DEBUG", "ERROR"})
+
     args = parser.parse_args()
+
+    print("Arguments passed", args.__dict__)
+
+    # Set up logging
+    logging.basicConfig(level=logging.getLevelName(args.log_level), handlers=[logging.StreamHandler(sys.stdout)],
+                        format='%(asctime)s %(name)s %(levelname)s %(process)d/%(threadName)s - %(message)s')
 
     # set up dir
     if not os.path.isdir(args.outputdir):
