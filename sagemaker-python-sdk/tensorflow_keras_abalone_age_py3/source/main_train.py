@@ -79,12 +79,12 @@ if '__main__' == __name__:
     # The environment variable SM_CHANNEL_TRAIN is defined
     parser.add_argument('--traindata-dir',
                         help='The directory containing training artifacts such as training data',
-                        default=os.environ.get('SM_CHANNEL_TRAIN', "."))
+                        default=os.environ.get('SM_INPUT_DIR', "."))
     # val dir files
     parser.add_argument("--validationdata", help="The validation input file wrt to the val directory", required=True)
     parser.add_argument('--validationdata-dir',
                         help='The directory containing validation artifacts such as validation data',
-                        default=os.environ.get('SM_CHANNEL_VALIDATION', "."))
+                        default=os.environ.get('SM_INPUT_DIR', "."))
 
     # output dir to save any files such as predictions, logs, etc
     parser.add_argument("--outputdir", help="The output dir to save results",
