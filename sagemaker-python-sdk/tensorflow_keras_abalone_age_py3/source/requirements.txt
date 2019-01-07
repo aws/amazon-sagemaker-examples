@@ -1,0 +1,4 @@
+numpy==1.15.4
+pandas==0.23.4
+keras==2.2.4
+tensorflow==1.11.0
