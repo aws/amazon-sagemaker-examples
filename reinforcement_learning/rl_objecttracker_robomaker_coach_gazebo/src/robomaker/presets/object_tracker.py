@@ -5,6 +5,7 @@ from rl_coach.environments.gym_environment import GymVectorEnvironment
 from rl_coach.graph_managers.basic_rl_graph_manager import BasicRLGraphManager
 from rl_coach.graph_managers.graph_manager import ScheduleParameters
 from rl_coach.schedules import LinearSchedule
+from rl_coach.memories.memory import MemoryGranularity
 
 from rl_coach.exploration_policies.categorical import CategoricalParameters
 from rl_coach.filters.filter import NoInputFilter, NoOutputFilter, InputFilter
@@ -26,6 +27,8 @@ schedule_params.heatup_steps = EnvironmentSteps(0)
 # Agent #
 #########
 agent_params = ClippedPPOAgentParameters()
+
+agent_params.memory.max_size = (MemoryGranularity.Transitions, 10**5)
 
 agent_params.network_wrappers['main'].learning_rate = 0.0003
 agent_params.network_wrappers['main'].input_embedders_parameters['observation'].activation_function = 'relu'
