@@ -45,8 +45,9 @@ def train(training_dir, training_filename, val_dir, val_filename, model_snapshot
 
     # For a mean squared error regression problem
     # Using RMSProp optimiser with mean squared error 
+    metrics = ['mse', 'mae', 'mape']
     model.compile(optimizer='rmsprop',
-                  loss='mse', metrics=['mse'])
+                  loss='mse', metrics=metrics)
 
     # load train & test data
     train_x, train_y = input_transformer_load(os.path.join(training_dir, training_filename))
@@ -62,7 +63,8 @@ def train(training_dir, training_filename, val_dir, val_filename, model_snapshot
     # Step 2: Log your metrics in a special format so that it can be extracted using a regular expression.
     # This allows SageMaker to report this metrics and allows hyper parameter tuning
     # Note: Use a special marker for SageMaker to extract the metrics, say ## Metric ##
-    print("## metric_mean_squared_error ##: {}".format(scores[1]))
+    for i, m in enumerate(metrics):
+        print("## validation_metric_{} ##: {}".format(m, scores[1+i]))
 
     # Step 3: Save your model in pb format so that SageMaker TensorFlow container can serve this
     model_pb_exporter = ModelExporterKerasToProtobuf()
