@@ -12,7 +12,7 @@ import ray
 from ray.tune import run_experiments
 from ray.rllib.agents.agent import get_agent_class
 
-from .tf_serving_utils import export_tf_serving, natural_keys
+from .tf_serving_utils import export_tf_serving, natural_keys, change_permissions_recursive
 from .configuration_list import ConfigurationList
 from .sage_cluster_communicator import SageClusterCommunicator
 from .docker_utils import get_ip_from_host
@@ -207,6 +207,10 @@ class SageMakerRayLauncher(object):
         self.save_experiment_config(config)
         self.copy_checkpoints_to_model_output()
         self.create_tf_serving_model(algorithm, env_string, config)
+
+        # To ensure SageMaker local mode works fine
+        change_permissions_recursive(INTERMEDIATE_DIR, 0o777)
+        change_permissions_recursive(MODEL_OUTPUT_DIR, 0o777)
 
     def launch(self):
         """Actual entry point into the class instance where everything happens.
