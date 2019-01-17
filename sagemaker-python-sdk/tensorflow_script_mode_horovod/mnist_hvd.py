@@ -1,3 +1,16 @@
+#     Copyright 2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+#
+#     Licensed under the Apache License, Version 2.0 (the "License").
+#     You may not use this file except in compliance with the License.
+#     A copy of the License is located at
+#
+#         https://aws.amazon.com/apache-2-0/
+#
+#     or in the "license" file accompanying this file. This file is distributed
+#     on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+#     express or implied. See the License for the specific language governing
+#     permissions and limitations under the License.
+
 from __future__ import print_function
 
 import argparse
@@ -5,15 +18,15 @@ import os
 
 import numpy as np
 
-import keras
-from keras.datasets import mnist
-from keras.models import Sequential
-from keras.layers import Dense, Dropout, Flatten
-from keras.layers import Conv2D, MaxPooling2D
-from keras import backend as K
+# import tensorflow.keras as keras
+from tensorflow.keras.datasets import mnist
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense, Dropout, Flatten
+from tensorflow.keras.layers import Conv2D, MaxPooling2D
+from tensorflow.keras import backend as K
 import math
 import tensorflow as tf
-import horovod.keras as hvd
+import horovod.tensorflow.keras as hvd
 
 if __name__ == '__main__':
     
@@ -23,7 +36,7 @@ if __name__ == '__main__':
 
     # Data, model, and output directories. These are required.
     parser.add_argument('--output-dir', type=str, default=os.environ['SM_OUTPUT_DIR'])
-    parser.add_argument('--model-dir', type=str, default=os.environ['SM_MODEL_DIR'])
+    parser.add_argument('--model_dir', type=str)
     parser.add_argument('--train', type=str, default=os.environ['SM_CHANNEL_TRAIN'])
     parser.add_argument('--test', type=str, default=os.environ['SM_CHANNEL_TEST'])
 
@@ -48,7 +61,6 @@ if __name__ == '__main__':
     img_rows, img_cols = 28, 28
 
     # The data, shuffled and split between train and test sets
-    # (x_train, y_train), (x_test, y_test) = mnist.load_data()
 
     x_train = np.load(os.path.join(args.train, 'train.npz'))['data']
     y_train = np.load(os.path.join(args.train, 'train.npz'))['labels']
@@ -77,8 +89,8 @@ if __name__ == '__main__':
     print(x_test.shape[0], 'test samples')
 
     # Convert class vectors to binary class matrices
-    y_train = keras.utils.to_categorical(y_train, num_classes)
-    y_test = keras.utils.to_categorical(y_test, num_classes)
+    y_train = tf.keras.utils.to_categorical(y_train, num_classes)
+    y_test = tf.keras.utils.to_categorical(y_test, num_classes)
 
     model = Sequential()
     model.add(Conv2D(32, kernel_size=(3, 3),
@@ -93,12 +105,12 @@ if __name__ == '__main__':
     model.add(Dense(num_classes, activation='softmax'))
 
     # Horovod: adjust learning rate based on number of GPUs.
-    opt = keras.optimizers.Adadelta(1.0 * hvd.size())
+    opt = tf.keras.optimizers.Adadelta(1.0 * hvd.size())
 
     # Horovod: add Horovod Distributed Optimizer.
     opt = hvd.DistributedOptimizer(opt)
 
-    model.compile(loss=keras.losses.categorical_crossentropy,
+    model.compile(loss=tf.keras.losses.categorical_crossentropy,
                   optimizer=opt,
                   metrics=['accuracy'])
 
@@ -111,7 +123,7 @@ if __name__ == '__main__':
 
     # Horovod: save checkpoints only on worker 0 to prevent other workers from corrupting them.
     if hvd.rank() == 0:
-        callbacks.append(keras.callbacks.ModelCheckpoint('./checkpoint-{epoch}.h5'))
+        callbacks.append(tf.keras.callbacks.ModelCheckpoint('./checkpoint-{epoch}.h5'))
 
     model.fit(x_train, y_train,
               batch_size=batch_size,
@@ -123,3 +135,8 @@ if __name__ == '__main__':
 
     print('Test loss:', score[0])
     print('Test accuracy:', score[1])
+
+    # Horovod: Save model only on worker 0 (i.e. master)
+    if hvd.rank() == 0:
+        saved_model_path = tf.contrib.saved_model.save_keras_model(model, args.model_dir)
+        print("Model successfully saved at: {}".format(saved_model_path))

@@ -2,16 +2,6 @@
   "AWSTemplateFormatVersion" : "2010-09-09",
   "Description" : "Infrastructure resources for VPC env for horovod training",
   "Parameters": {
-    "Stage": {
-      "Type": "String",
-      "Default": "alpha",
-      "AllowedValues" : ["desktop", "alpha", "beta", "gamma", "preprod", "prod"],
-      "ConstraintDescription" : "Must provide a valid stage for customer VPC integration test infrastructure"
-    },
-    "Suffix": {
-      "Type": "String",
-      "Default": "us-west-2"
-    },
     "SubnetCidrBlock1": {
       "Description": "CidrBlock for subnet 1. CidrBlock has 256 IPs total",
       "Type": "String",
@@ -43,7 +33,7 @@
   "Resources" : {
     "VPC": {
       "Metadata": {
-        "Comment": "VPC for customer VPC integration tests"
+        "Comment": "VPC for sagemaker horovod training job."
       },
       "Type": "AWS::EC2::VPC",
       "Properties": {
@@ -54,7 +44,7 @@
     },
     "Subnet1": {
       "Metadata": {
-        "Comment": "Subnet 1 for customer VPC integration tests"
+        "Comment": "Subnet 1 for sagemaker horovod training job."
       },
       "Type": "AWS::EC2::Subnet",
       "Properties": {
@@ -78,7 +68,7 @@
     },
     "Subnet2": {
       "Metadata": {
-        "Comment": "Subnet 2 for customer VPC integration tests"
+        "Comment": "Subnet 2 for sagemaker horovod training job."
       },
       "Type": "AWS::EC2::Subnet",
       "Properties": {
