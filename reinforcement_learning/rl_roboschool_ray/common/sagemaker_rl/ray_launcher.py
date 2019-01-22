@@ -98,6 +98,8 @@ class SageMakerRayLauncher(object):
         # Set output dir to intermediate
         # TODO: move this to before customer-specified so they can override
         hyperparams_dict["rl.training.local_dir"] = INTERMEDIATE_DIR
+        hyperparams_dict["rl.training.checkpoint_at_end"] = True
+        hyperparams_dict["rl.training.checkpoint_freq"] = 10
         self.hyperparameters = ConfigurationList()  # TODO: move to shared
         for name, value in hyperparams_dict.items():
             # self.map_hyperparameter(name, val) #TODO
@@ -106,10 +108,7 @@ class SageMakerRayLauncher(object):
                 self.hyperparameters.store(name, value)
                 #             else:
                 #                 raise ValueError("Unknown hyperparameter %s" % name)
-
         self.hyperparameters.apply_subset(config, "rl.")
-        hyperparams_dict["rl.training.checkpoint_at_end"] = True
-        hyperparams_dict["rl.training.checkpoint_freq"] = 10
         return config
 
     def get_all_host_names(self):
