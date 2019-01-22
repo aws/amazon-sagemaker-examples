@@ -2,7 +2,7 @@ import logging
 
 
 class ConfigurationList(object):
-    """Helper Object for converting CLI arguments (or SageMaker hyperparameters) 
+    """Helper Object for converting CLI arguments (or SageMaker hyperparameters)
     into Coach configuration.
     """
 
@@ -65,6 +65,8 @@ class ConfigurationList(object):
     def _autotype(self, val):
         """Converts string to an int or float as possible.
         """
+        if type(val) == bool:
+            return val
         try:
             return int(val)
         except ValueError:
@@ -83,7 +85,7 @@ class ConfigurationList(object):
         Automatically detects ints and floats when possible.
         If the key takes the form "foo:bar" then it looks in ALLOWED_TYPES
         for an entry of bar, and instantiates one of those objects, passing
-        val to the constructor.  So if key="foo:EnvironmentSteps" then 
+        val to the constructor.  So if key="foo:EnvironmentSteps" then
         """
         val = self._autotype(val)
         if key.find(":") > 0:
@@ -93,5 +95,3 @@ class ConfigurationList(object):
                 raise ValueError("Unrecognized object type %s.  Allowed values are %s" % (obj_type, self.ALLOWED_TYPES.keys()))
             val = cls(val)
         return key, val
-
-
