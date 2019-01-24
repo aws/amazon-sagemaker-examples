@@ -181,3 +181,29 @@ def transform_fn(net, data, input_content_type, output_content_type):
     prediction = mx.nd.argmax(output, axis=1)
     response_body = json.dumps(prediction.asnumpy().tolist()[0])
     return response_body, output_content_type
+
+
+if __name__ == '__main__':
+    # mxnet-1.3 requirements on https://github.com/aws/sagemaker-python-sdk/blob/master/src/sagemaker/mxnet/README.rst
+    parser = argparse.ArgumentParser()
+
+    # hyperparameters
+    parser.add_argument('--sm-hps', type=json.loads, default=os.environ['SM_HPS'])
+
+    # input data and model directories
+    parser.add_argument('--model-dir', type=str, default=os.environ['SM_MODEL_DIR'])
+    parser.add_argument('--training', type=str, default=os.environ['SM_CHANNEL_TRAINING'])
+
+    # other stuff
+    parser.add_argument('--sm-current-host', type=str, default=os.environ['SM_CURRENT_HOST'])
+    parser.add_argument('--sm-hosts', type=json.loads, default=os.environ['SM_HOSTS'])
+    parser.add_argument('--sm-num-gpus', type=int, default=os.environ['SM_NUM_GPUS'])
+
+    args, _ = parser.parse_known_args()
+
+    print(args)
+
+    channel_input_dirs = {'training': args.training}
+
+    train_ret = train(args.sm_current_host, channel_input_dirs, args.sm_hps, args.sm_hosts, args.sm_num_gpus)
+    save(train_ret, args.model_dir)
