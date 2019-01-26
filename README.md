@@ -65,7 +65,7 @@ These examples provide quick walkthroughs to get you up and running with Amazon 
 
 The following provide examples demonstrating different capabilities of Amazon SageMaker RL.
 
-- [Carpole using Coach](reinforcement_learning/rl_cartpole_coach) demonstrates the simplest usecase of Amazon SageMaker RL using Intel's RL Coach.
+- [Cartpole using Coach](reinforcement_learning/rl_cartpole_coach) demonstrates the simplest usecase of Amazon SageMaker RL using Intel's RL Coach.
 - [AWS DeepRacer](reinforcement_learning/rl_deepracer_robomaker_coach_gazebo) demonstrates AWS DeepRacer trainig using RL Coach in the Gazebo environment.
 - [HVAC using EnergyPlus](reinforcement_learning/rl_hvac_coach_energyplus) demonstrates the training of HVAC systems using the EnergyPlus environment.
 - [Knapsack Problem](reinforcement_learning/rl_knapsack_coach_custom) demonstrates how to solve the knapsack problem using a custom environment. 
