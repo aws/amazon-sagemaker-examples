@@ -50,6 +50,8 @@ RUN pip install --upgrade \
 
 RUN pip install -e ${ROBOSCHOOL_PATH} \
     && ldconfig
+    
+RUN pip install sagemaker-containers --upgrade
 
 ENV PYTHONUNBUFFERED 1
 
