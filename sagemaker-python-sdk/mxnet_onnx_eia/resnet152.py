@@ -37,8 +37,6 @@ def transform_fn(mod, data, input_content_type, output_content_type):
     :return: response payload and content type.
     """
     input_data = json.loads(data)
-#    batch = namedtuple('Batch', ['data'])
-#    mod.forward(batch([mx.nd.array(input_data)]))
     mod.predict(mx.nd.array(input_data))
     scores = mx.ndarray.softmax(mod.get_outputs()[0]).asnumpy()
     scores = np.squeeze(scores)
