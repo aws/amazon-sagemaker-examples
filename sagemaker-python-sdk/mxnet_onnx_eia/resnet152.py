@@ -3,13 +3,11 @@ from __future__ import print_function
 import json
 import logging
 from collections import namedtuple
-
 import mxnet as mx
 import mxnet.contrib.onnx as onnx_mxnet
 import numpy as np
 
 logging.basicConfig(level=logging.DEBUG)
-
 
 def model_fn(model_dir):
     """
@@ -24,7 +22,6 @@ def model_fn(model_dir):
     mod.bind(for_training=False, data_shapes=[('data', [1, 3, 224, 224])], label_shapes=mod._label_shapes)
     mod.set_params(arg_params=arg_params, aux_params=aux_params, allow_missing=True, allow_extra=True)
     return mod
-
 
 def transform_fn(mod, data, input_content_type, output_content_type):
     """
