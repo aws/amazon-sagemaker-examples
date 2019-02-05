@@ -1,6 +1,6 @@
 # Fairseq on Amazon SageMaker
 
-Fairseq is a sequence modeling toolkit created by Facebook AI Research. It allows to train and serve custom models for translation, summarization, language modeling and other text generation tasks. It also provides [reference implementations](https://github.com/pytorch/fairseq#introduction-) of various sequence-to-sequence models. 
+[Fairseq](https://github.com/pytorch/fairseq) is a sequence modeling toolkit created by Facebook AI Research. It allows to train and serve custom models for translation, summarization, language modeling and other text generation tasks. It also provides [reference implementations](https://github.com/pytorch/fairseq#introduction-) of various sequence-to-sequence models. 
 
 In the following examples, we will show how to integrate Fairseq into Amazon SageMaker by creating your own container and using it to train and serve predictions. 
 
