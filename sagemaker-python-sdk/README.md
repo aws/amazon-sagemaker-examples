@@ -20,6 +20,12 @@ These examples focus on the Amazon SageMaker Python SDK which allows you to writ
 - [TensorFlow and TensorBoard](tensorflow_resnet_cifar10_with_tensorboard)
 - [Distributed TensorFlow](tensorflow_distributed_mnist)
 
+#### Using pre-trained ONNX models with Amazon SageMaker
+
+- [Importing and hosting Super Resolution ONNX model in MXNet](mxnet_onnx_superresolution)
+- [Hosting ONNX models with Amazon Elastic Inference](mxnet_onnx_eia)
+- [Exporting ONNX Models with MXNet](mxnet_onnx_export)
+
 #### Pre-Built Machine Learning Framework Containers
 
 These examples focus on building standard Machine Learning models powered by frameworks like Apache Spark or Scikit-learn using SageMaker Python SDK.
