@@ -1,0 +1,14 @@
+<script type="text/Javascript">
+    function start(){
+        var var_value = document.getElementById('imageURL').value;
+        var command = "data = '" + var_value + "'";
+        console.log("Executing Command: " + command);
+        
+        var kernel = IPython.notebook.kernel;
+        kernel.execute(command);
+    }
+</script>
+<div style="background-color:gainsboro; border:solid black; width:300px; padding:20px;">
+Image URL: <input type="text" id="imageURL" value='https://s3.amazonaws.com/onnx-model-zoo/duc/city1.png'><br>
+<button onclick="start()">Run</button>
+</div>
