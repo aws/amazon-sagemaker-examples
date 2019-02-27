@@ -20,6 +20,6 @@ def cifar10_download(data_dir='/tmp/cifar10_data', print_progress=True):
 
     if not os.path.exists(filepath):
         region = boto3.Session().region_name
-        boto3.Session().resource('s3').Bucket('sagemaker-sample-data-{}'.format(region)).download_file('tensorflow/cifar10/cifar-10-binary.tar.gz', '/tmp/cifar10_data/cifar-10-binary.tar.gz')
+        boto3.Session().resource('s3', region_name=region).Bucket('sagemaker-sample-data-{}'.format(region)).download_file('tensorflow/cifar10/cifar-10-binary.tar.gz', '/tmp/cifar10_data/cifar-10-binary.tar.gz')
 
     tarfile.open(filepath, 'r:gz').extractall(data_dir)
