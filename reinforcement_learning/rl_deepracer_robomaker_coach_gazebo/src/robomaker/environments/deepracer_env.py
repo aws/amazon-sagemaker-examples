@@ -420,8 +420,7 @@ class DeepRacerDiscreteEnv(DeepRacerEnv):
     def __init__(self):
         DeepRacerEnv.__init__(self)
 
-        # actions -> straight, left, right
-        self.action_space = spaces.Discrete(10)
+        self.action_space = spaces.Discrete(6)
 
     def step(self, action):
 
@@ -446,11 +445,11 @@ class DeepRacerDiscreteEnv(DeepRacerEnv):
             steering_angle = -0.8 
         elif action == 2:  # straight
             steering_angle = 0
-        elif action == 3:  # move left
+        elif action == 3:  # move slight left
             steering_angle = 0.2
-        elif action == 4:  # move right
+        elif action == 4:  # move slight right
             steering_angle = -0.2 
-        elif action == 5:  
+        elif action == 5:  # slow straight
             steering_angle = 0  
             throttle = throttle/2
         else:  # should not be here
