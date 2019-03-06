@@ -427,11 +427,11 @@ class DeepRacerDiscreteEnv(DeepRacerEnv):
 
         # Convert discrete to continuous
         throttle = 1.0
-        throttle_multiplier = 2.0
+        throttle_multiplier = 0.8
         throttle = throttle*throttle_multiplier
         steering_angle = 0.8
         
-        self.throttle, self.steering_angle = self.two_steering_two_throttle_10_states(throttle, steering_angle, action)
+        self.throttle, self.steering_angle = self.default_6_actions(throttle, steering_angle, action)
         
         self.action_taken = action
         
