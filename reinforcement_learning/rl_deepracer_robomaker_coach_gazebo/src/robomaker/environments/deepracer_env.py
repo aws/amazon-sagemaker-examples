@@ -63,7 +63,10 @@ class DeepRacerEnv(gym.Env):
         self.distance_from_border_1 = 0
         self.distance_from_border_2 = 0
         self.steps = 0
+        self.episodes = 0
         self.progress_at_beginning_of_race = 0
+        self.prev_closest_waypoint_index = 0
+        self.closest_waypoint_index = 0
 
         # actions -> steering angle, throttle
         self.action_space = spaces.Box(low=np.array([-1, 0]), high=np.array([+1, +1]), dtype=np.float32)
@@ -84,11 +87,12 @@ class DeepRacerEnv(gym.Env):
             rospy.Subscriber('/camera/zed/rgb/image_rect_color', sensor_image, self.callback_image)
             self.world_name = rospy.get_param('WORLD_NAME')
             self.set_waypoints()
+            self.track_length = self.calculate_track_length()
+            
             self.aws_region = rospy.get_param('ROS_AWS_REGION')
 
         self.reward_in_episode = 0
         self.prev_progress = 0
-        self.steps = 0
 
     def reset(self):
         if node_type == SAGEMAKER_TRAINING_WORKER:
@@ -103,11 +107,20 @@ class DeepRacerEnv(gym.Env):
         self.next_state = None
         self.image = None
         self.steps = 0
+        self.episodes += 1
         self.prev_progress = 0
+        self.total_progress = 0
+        self.action_taken = 2 #straight
+        self.prev_action = 2 #straight
+        self.prev_closest_waypoint_index = 0 #always starts from first waypoint
+        self.closest_waypoint_index = 0
 
         # Reset car in Gazebo
         self.send_action(0, 0)  # set the throttle to 0
         self.racecar_reset()
+        self.steering_angle = 0.0
+        self.throttle = 0.0
+        self.action_taken = 2.0
 
         self.infer_reward_state(0, 0)
         return self.next_state
@@ -138,6 +151,30 @@ class DeepRacerEnv(gym.Env):
         elif self.world_name.startswith(HARD_TRACK_WORLD):
             modelState.pose.position.x = 1.75
             modelState.pose.position.y = 0.6
+            
+            def toQuaternion(pitch, roll, yaw):
+                cy = np.cos(yaw * 0.5)
+                sy = np.sin(yaw * 0.5)
+                cr = np.cos(roll * 0.5)
+                sr = np.sin(roll * 0.5)
+                cp = np.cos(pitch * 0.5)
+                sp = np.sin(pitch * 0.5)
+
+                w = cy * cr * cp + sy * sr * sp
+                x = cy * sr * cp - sy * cr * sp
+                y = cy * cr * sp + sy * sr * cp
+                z = sy * cr * cp - cy * sr * sp
+                return [x, y, z, w]
+
+            #clockwise
+            quaternion = toQuaternion(roll=0.0, pitch=0.0, yaw=np.pi)
+            #anti-clockwise
+            quaternion = toQuaternion(roll=0.0, pitch=0.0, yaw=0.0)
+            modelState.pose.orientation.x = quaternion[0]
+            modelState.pose.orientation.y = quaternion[1]
+            modelState.pose.orientation.z = quaternion[2]
+            modelState.pose.orientation.w = quaternion[3]
+            
         else:
             raise ValueError("Unknown simulation world: {}".format(self.world_name))
 
@@ -203,32 +240,48 @@ class DeepRacerEnv(gym.Env):
         # Car environment spits out BGR images by default. Converting to the
         # image to RGB.
         image = Image.frombytes('RGB', (self.image.width, self.image.height),
-                                self.image.data, 'raw', 'BGR', 0, 1)
+                                self.image.data, 'raw', 'RGB', 0, 1)
         # resize image ans perform anti-aliasing
         image = image.resize(TRAINING_IMAGE_SIZE, resample=2).convert("RGB")
         state = np.array(image)
 
-        on_track = self.on_track
-        total_progress = self.progress - self.progress_at_beginning_of_race
+       
+        #total_progress = self.progress - self.progress_at_beginning_of_race
+        #self.prev_progress = total_progress
+        
+        # calculate the closest way point 
+        self.closest_waypoint_index = self.get_closest_waypoint()
+        # calculate the current progress with respect to the way points
+        current_progress = self.calculate_current_progress(self.closest_waypoint_index, self.prev_closest_waypoint_index)
+        self.total_progress = current_progress + self.prev_progress
+        # re-assign the prev progress and way point variables
+        self.prev_progress = self.total_progress
+        self.prev_closest_waypoint_index = self.closest_waypoint_index
+
         done = False
-
-        self.prev_progress = total_progress
-
+        on_track = self.on_track
         if on_track != 1:
             reward = CRASHED
             done = True
-        elif total_progress >= FINISH_LINE:  # reached max waypoints
-            print("Congratulations! You finished the race!")
-            if self.steps == 0:
-                reward = 0.0
-                done = False
-            else:
-                reward = FINISHED / self.steps
-                done = True
+        #elif total_progress >= FINISH_LINE:  # reached max waypoints
+        #    print("Congratulations! You finished the race!")
+        #    if self.steps == 0:
+        #        reward = 0.0
+        #        done = False
+        #    else:
+        #        reward = FINISHED / self.steps
+        #        done = True
         else:
             reward = self.reward_function(on_track, self.x, self.y, self.distance_from_center, self.yaw,
-                                          total_progress, self.steps, throttle, steering_angle, self.road_width,
+                                          self.total_progress, self.steps, throttle, steering_angle, self.road_width,
                                           list(self.waypoints), self.get_closest_waypoint())
+            
+            reward += 0.5 #reward bonus for surviving
+            
+            #smooth
+            #if self.action_taken == self.prev_action:
+            #    reward += 0.5
+            self.prev_action = self.action_taken
 
         print('Step No=%.2f' % self.steps,
               'Step Reward=%.2f' % reward)
@@ -237,6 +290,25 @@ class DeepRacerEnv(gym.Env):
         self.reward = reward
         self.done = done
         self.next_state = state
+        
+        # Trace logs to help us debug and visualize the training runs
+        stdout_ = 'SIM_TRACE_LOG:%d,%d,%.4f,%.4f,%.4f,%.2f,%.2f,%d,%.4f,%.4f,%d,%s,%s,%.4f,%d,%d,%.2f,%s\n' % (
+        self.episodes, self.steps, self.x, self.y,
+        self.yaw,
+        self.steering_angle,
+        self.throttle,
+        self.action_taken,
+        self.reward,
+        self.total_progress,
+        0, #self.get_waypoint_action(), #the expert action at the next waypoint
+        self.done,
+        self.on_track,
+        current_progress,
+        0, #self.initidxWayPoint, #starting waypoint for an episode
+        self.closest_waypoint_index,
+        self.track_length,
+        time.time())
+        print(stdout_)
 
     def send_reward_to_cloudwatch(self, reward):
         session = boto3.session.Session()
@@ -317,34 +389,188 @@ class DeepRacerEnv(gym.Env):
             index = index + 1
         return res
 
+    def calculate_current_progress(self, closest_waypoint_index, prev_closest_waypoint_index):
+        current_progress = 0.0
+        
+        # calculate distance in meters
+        coor1 = self.waypoints[closest_waypoint_index]
+        coor2 = self.waypoints[prev_closest_waypoint_index]
+        current_progress = math.sqrt((coor1[0] - coor2[0]) *(coor1[0] - coor2[0]) + (coor1[1] - coor2[1]) * (coor1[1] - coor2[1]))
+        
+        # convert to ratio and then percentage
+        current_progress /= self.track_length
+        current_progress *= 100.0
+        
+        return current_progress
+    
+    def calculate_track_length(self):
+        track_length = 0.0
+        prev_row = self.waypoints[0]
+        for row in self.waypoints[1:]:
+            track_length += math.sqrt((row[0] - prev_row[0]) * (row[0] - prev_row[0]) + (row[1] - prev_row[1]) * (row[1] - prev_row[1]))
+            prev_row = row
+            
+        if track_length == 0.0:
+            print('ERROR: Track length is zero.')
+            raise
+            
+        return track_length
+    
 class DeepRacerDiscreteEnv(DeepRacerEnv):
     def __init__(self):
         DeepRacerEnv.__init__(self)
 
-        # actions -> straight, left, right
-        self.action_space = spaces.Discrete(5)
+        self.action_space = spaces.Discrete(6)
 
     def step(self, action):
 
         # Convert discrete to continuous
-        if action == 0:  # move left
-            steering_angle = 0.8
-            throttle = 0.3
-        elif action == 1:  # move right
-            steering_angle = -0.8  # -1 #-0.5 #-1
-            throttle = 0.3
-        elif action == 2:  # straight
-            steering_angle = 0
-            throttle = 0.3
-        elif action == 3:  # move left
-            steering_angle = 0.4
-            throttle = 0.3
-        elif action == 4:  # move right
-            steering_angle = -0.4  # -1 #-0.5 #-1
-            throttle = 0.3
-        else:  # should not be here
-            raise ValueError("Invalid action")
-
-        continous_action = [steering_angle, throttle]
+        throttle = 1.0
+        throttle_multiplier = 0.8
+        throttle = throttle*throttle_multiplier
+        steering_angle = 0.8
+        
+        self.throttle, self.steering_angle = self.default_6_actions(throttle, steering_angle, action)
+        
+        self.action_taken = action
+        
+        continous_action = [self.steering_angle, self.throttle]
 
         return super().step(continous_action)
+    
+    def default_6_actions(self, throttle, steering_angle, action):
+        if action == 0:  # move left
+            steering_angle = 0.8
+        elif action == 1:  # move right
+            steering_angle = -0.8 
+        elif action == 2:  # straight
+            steering_angle = 0
+        elif action == 3:  # move slight left
+            steering_angle = 0.2
+        elif action == 4:  # move slight right
+            steering_angle = -0.2 
+        elif action == 5:  # slow straight
+            steering_angle = 0  
+            throttle = throttle/2
+        else:  # should not be here
+            raise ValueError("Invalid action")
+            
+        return throttle, steering_angle
+    
+    def two_steering_one_throttle_5_states(self,throttle_, steering_angle_, action):
+        if action == 0:  # move left
+            steering_angle = 1 * steering_angle_
+            throttle = throttle_
+        elif action == 1:  # move right
+            steering_angle = -1 * steering_angle_
+            throttle = throttle_            
+        elif action == 2:  # move left
+            steering_angle = 0.5 * steering_angle_
+            throttle = throttle_
+        elif action == 3:  # move right
+            steering_angle = -0.5 * steering_angle_
+            throttle = throttle_
+        elif action == 4:  # straight
+            steering_angle = 0
+            throttle = throttle_
+     
+        else:  # should not be here
+            raise ValueError("Invalid action")
+            
+        return throttle, steering_angle
+            
+    
+    def two_steering_two_throttle_10_states(self,throttle_, steering_angle_, action):
+        if action == 0:  # move left
+            steering_angle = 1 * steering_angle_
+            throttle = throttle_
+        elif action == 1:  # move right
+            steering_angle = -1 * steering_angle_
+            throttle = throttle_            
+        elif action == 2:  # move left
+            steering_angle = 0.5 * steering_angle_
+            throttle = throttle_
+        elif action == 3:  # move right
+            steering_angle = -0.5 * steering_angle_
+            throttle = throttle_
+        elif action == 4:  # straight
+            steering_angle = 0
+            throttle = throttle_
+        elif action == 5:  # move left
+            steering_angle = 1 * steering_angle_
+            throttle = throttle_ * 0.5
+        elif action == 6:  # move right
+            steering_angle = -1 * steering_angle_
+            throttle = throttle_ * 0.5           
+        elif action == 7:  # move left
+            steering_angle = 0.5 * steering_angle_
+            throttle = throttle_ * 0.5
+        elif action == 8:  # move right
+            steering_angle = -0.5 * steering_angle_
+            throttle = throttle_ * 0.5
+        elif action == 9:  # straight
+            steering_angle = 0
+            throttle = throttle_ * 0.5
+ 
+        else:  # should not be here
+            raise ValueError("Invalid action")
+            
+        return throttle, steering_angle
+    
+    
+    def two_steering_three_throttle_15_states(self,throttle_, steering_angle_, action):
+        
+        # Convert discrete to continuous
+        if action == 0:  # move left
+            steering_angle = steering_angle_
+            throttle = throttle_
+        elif action == 1:  # move right
+            steering_angle = -1 * steering_angle_
+            throttle = throttle_            
+        elif action == 2:  # move left
+            steering_angle = 0.5 * steering_angle_
+            throttle = throttle_
+        elif action == 3:  # move right
+            steering_angle = -0.5 * steering_angle_
+            throttle = throttle_
+        elif action == 4:  # straight
+            steering_angle = 0
+            throttle = throttle_
+            
+            
+        elif action == 5:  # move left
+            steering_angle = steering_angle_
+            throttle = 0.5 * throttle_
+        elif action == 6:  # move right
+            steering_angle = -1 * steering_angle_
+            throttle = 0.5 * throttle_      
+        elif action == 7:  # move left
+            steering_angle = 0.5 * steering_angle_
+            throttle = 0.5 * throttle_
+        elif action == 8:  # move right
+            steering_angle = -0.5 * steering_angle_
+            throttle = 0.5 * throttle_          
+        elif action == 9:  # slow straight
+            steering_angle = 0
+            throttle = throttle_ *0.5
+            
+        elif action == 10:  # move left
+            steering_angle = 1 * steering_angle_
+            throttle = throttle_ * 2.0
+        elif action == 11:  # move right
+            steering_angle = -1 * steering_angle_
+            throttle = throttle_ * 2.0
+        elif action == 12:  # move left
+            steering_angle = 0.5 * steering_angle_
+            throttle = throttle_ * 2.0
+        elif action == 13:  # move right
+            steering_angle = -0.5 * steering_angle_
+            throttle = throttle_ * 2.0
+        elif action == 14:  # fast straight
+            steering_angle = 0
+            throttle = throttle_ * 2.0
+            
+        else:  # should not be here
+            raise ValueError("Invalid action")
+            
+        return throttle, steering_angle
