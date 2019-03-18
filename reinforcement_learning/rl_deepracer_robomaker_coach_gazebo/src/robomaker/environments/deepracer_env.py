@@ -342,38 +342,39 @@ class DeepRacerEnv(gym.Env):
             vertices[0][0] = -1.08;   vertices[0][1] = -0.05;
             vertices[1][0] =  1.08;   vertices[1][1] = -0.05;
         else:
-            self.waypoints = vertices = np.zeros((30, 2))
+            self.waypoints = vertices = np.zeros((31, 2))
             self.road_width = 0.44
             vertices[0][0] = 1.5;     vertices[0][1] = 0.58;
-            vertices[1][0] = 5.5;     vertices[1][1] = 0.58;
-            vertices[2][0] = 5.6;     vertices[2][1] = 0.6;
-            vertices[3][0] = 5.7;     vertices[3][1] = 0.65;
-            vertices[4][0] = 5.8;     vertices[4][1] = 0.7;
-            vertices[5][0] = 5.9;     vertices[5][1] = 0.8;
-            vertices[6][0] = 6.0;     vertices[6][1] = 0.9;
-            vertices[7][0] = 6.08;    vertices[7][1] = 1.1;
-            vertices[8][0] = 6.1;     vertices[8][1] = 1.2;
-            vertices[9][0] = 6.1;     vertices[9][1] = 1.3;
-            vertices[10][0] = 6.1;    vertices[10][1] = 1.4;
-            vertices[11][0] = 6.07;   vertices[11][1] = 1.5;
-            vertices[12][0] = 6.05;   vertices[12][1] = 1.6;
-            vertices[13][0] = 6;      vertices[13][1] = 1.7;
-            vertices[14][0] = 5.9;    vertices[14][1] = 1.8;
-            vertices[15][0] = 5.75;   vertices[15][1] = 1.9;
-            vertices[16][0] = 5.6;    vertices[16][1] = 2.0;
-            vertices[17][0] = 4.2;    vertices[17][1] = 2.02;
-            vertices[18][0] = 4;      vertices[18][1] = 2.1;
-            vertices[19][0] = 2.6;    vertices[19][1] = 3.92;
-            vertices[20][0] = 2.4;    vertices[20][1] = 4;
-            vertices[21][0] = 1.2;    vertices[21][1] = 3.95;
-            vertices[22][0] = 1.1;    vertices[22][1] = 3.92;
-            vertices[23][0] = 1;      vertices[23][1] = 3.88;
-            vertices[24][0] = 0.8;    vertices[24][1] = 3.72;
-            vertices[25][0] = 0.6;    vertices[25][1] = 3.4;
-            vertices[26][0] = 0.58;   vertices[26][1] = 3.3;
-            vertices[27][0] = 0.57;   vertices[27][1] = 3.2;
-            vertices[28][0] = 1;      vertices[28][1] = 1;
-            vertices[29][0] = 1.25;   vertices[29][1] = 0.7;
+            vertices[1][0] = 4.0;     vertices[1][1] = 0.58;
+            vertices[2][0] = 5.5;     vertices[2][1] = 0.58;
+            vertices[3][0] = 5.6;     vertices[3][1] = 0.6;
+            vertices[4][0] = 5.7;     vertices[4][1] = 0.65;
+            vertices[5][0] = 5.8;     vertices[5][1] = 0.7;
+            vertices[6][0] = 5.9;     vertices[6][1] = 0.8;
+            vertices[7][0] = 6.0;     vertices[7][1] = 0.9;
+            vertices[8][0] = 6.08;    vertices[8][1] = 1.1;
+            vertices[9][0] = 6.1;     vertices[9][1] = 1.2;
+            vertices[10][0] = 6.1;    vertices[10][1] = 1.3;
+            vertices[11][0] = 6.1;    vertices[11][1] = 1.4;
+            vertices[12][0] = 6.07;   vertices[12][1] = 1.5;
+            vertices[13][0] = 6.05;   vertices[13][1] = 1.6;
+            vertices[14][0] = 6;      vertices[14][1] = 1.7;
+            vertices[15][0] = 5.9;    vertices[15][1] = 1.8;
+            vertices[16][0] = 5.75;   vertices[16][1] = 1.9;
+            vertices[17][0] = 5.6;    vertices[17][1] = 2.0;
+            vertices[18][0] = 4.2;    vertices[18][1] = 2.02;
+            vertices[19][0] = 4;      vertices[19][1] = 2.1;
+            vertices[20][0] = 2.6;    vertices[20][1] = 3.92;
+            vertices[21][0] = 2.4;    vertices[21][1] = 4;
+            vertices[22][0] = 1.2;    vertices[22][1] = 3.95;
+            vertices[23][0] = 1.1;    vertices[23][1] = 3.92;
+            vertices[24][0] = 1;      vertices[24][1] = 3.88;
+            vertices[25][0] = 0.8;    vertices[25][1] = 3.72;
+            vertices[26][0] = 0.6;    vertices[26][1] = 3.4;
+            vertices[27][0] = 0.58;   vertices[27][1] = 3.3;
+            vertices[28][0] = 0.57;   vertices[28][1] = 3.2;
+            vertices[29][0] = 1;      vertices[29][1] = 1;
+            vertices[30][0] = 1.25;   vertices[30][1] = 0.7;
 
     def get_closest_waypoint(self):
         res = 0
