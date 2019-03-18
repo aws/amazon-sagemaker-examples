@@ -88,7 +88,7 @@ class DeepRacerEnv(gym.Env):
             self.world_name = rospy.get_param('WORLD_NAME')
             self.set_waypoints()
             self.track_length = self.calculate_track_length()
-            
+
             self.aws_region = rospy.get_param('ROS_AWS_REGION')
 
         self.reward_in_episode = 0
@@ -151,7 +151,7 @@ class DeepRacerEnv(gym.Env):
         elif self.world_name.startswith(HARD_TRACK_WORLD):
             modelState.pose.position.x = 1.75
             modelState.pose.position.y = 0.6
-            
+
             def toQuaternion(pitch, roll, yaw):
                 cy = np.cos(yaw * 0.5)
                 sy = np.sin(yaw * 0.5)
@@ -174,7 +174,7 @@ class DeepRacerEnv(gym.Env):
             modelState.pose.orientation.y = quaternion[1]
             modelState.pose.orientation.z = quaternion[2]
             modelState.pose.orientation.w = quaternion[3]
-            
+
         else:
             raise ValueError("Unknown simulation world: {}".format(self.world_name))
 
@@ -245,11 +245,10 @@ class DeepRacerEnv(gym.Env):
         image = image.resize(TRAINING_IMAGE_SIZE, resample=2).convert("RGB")
         state = np.array(image)
 
-       
         #total_progress = self.progress - self.progress_at_beginning_of_race
         #self.prev_progress = total_progress
-        
-        # calculate the closest way point 
+
+        # calculate the closest way point
         self.closest_waypoint_index = self.get_closest_waypoint()
         # calculate the current progress with respect to the way points
         current_progress = self.calculate_current_progress(self.closest_waypoint_index, self.prev_closest_waypoint_index)
@@ -275,9 +274,9 @@ class DeepRacerEnv(gym.Env):
             reward = self.reward_function(on_track, self.x, self.y, self.distance_from_center, self.yaw,
                                           self.total_progress, self.steps, throttle, steering_angle, self.road_width,
                                           list(self.waypoints), self.get_closest_waypoint())
-            
+
             reward += 0.5 #reward bonus for surviving
-            
+
             #smooth
             #if self.action_taken == self.prev_action:
             #    reward += 0.5
@@ -290,7 +289,7 @@ class DeepRacerEnv(gym.Env):
         self.reward = reward
         self.done = done
         self.next_state = state
-        
+
         # Trace logs to help us debug and visualize the training runs
         stdout_ = 'SIM_TRACE_LOG:%d,%d,%.4f,%.4f,%.4f,%.2f,%.2f,%d,%.4f,%.4f,%d,%s,%s,%.4f,%d,%d,%.2f,%s\n' % (
         self.episodes, self.steps, self.x, self.y,
@@ -342,38 +341,39 @@ class DeepRacerEnv(gym.Env):
             vertices[0][0] = -1.08;   vertices[0][1] = -0.05;
             vertices[1][0] =  1.08;   vertices[1][1] = -0.05;
         else:
-            self.waypoints = vertices = np.zeros((30, 2))
+            self.waypoints = vertices = np.zeros((31, 2))
             self.road_width = 0.44
             vertices[0][0] = 1.5;     vertices[0][1] = 0.58;
-            vertices[1][0] = 5.5;     vertices[1][1] = 0.58;
-            vertices[2][0] = 5.6;     vertices[2][1] = 0.6;
-            vertices[3][0] = 5.7;     vertices[3][1] = 0.65;
-            vertices[4][0] = 5.8;     vertices[4][1] = 0.7;
-            vertices[5][0] = 5.9;     vertices[5][1] = 0.8;
-            vertices[6][0] = 6.0;     vertices[6][1] = 0.9;
-            vertices[7][0] = 6.08;    vertices[7][1] = 1.1;
-            vertices[8][0] = 6.1;     vertices[8][1] = 1.2;
-            vertices[9][0] = 6.1;     vertices[9][1] = 1.3;
-            vertices[10][0] = 6.1;    vertices[10][1] = 1.4;
-            vertices[11][0] = 6.07;   vertices[11][1] = 1.5;
-            vertices[12][0] = 6.05;   vertices[12][1] = 1.6;
-            vertices[13][0] = 6;      vertices[13][1] = 1.7;
-            vertices[14][0] = 5.9;    vertices[14][1] = 1.8;
-            vertices[15][0] = 5.75;   vertices[15][1] = 1.9;
-            vertices[16][0] = 5.6;    vertices[16][1] = 2.0;
-            vertices[17][0] = 4.2;    vertices[17][1] = 2.02;
-            vertices[18][0] = 4;      vertices[18][1] = 2.1;
-            vertices[19][0] = 2.6;    vertices[19][1] = 3.92;
-            vertices[20][0] = 2.4;    vertices[20][1] = 4;
-            vertices[21][0] = 1.2;    vertices[21][1] = 3.95;
-            vertices[22][0] = 1.1;    vertices[22][1] = 3.92;
-            vertices[23][0] = 1;      vertices[23][1] = 3.88;
-            vertices[24][0] = 0.8;    vertices[24][1] = 3.72;
-            vertices[25][0] = 0.6;    vertices[25][1] = 3.4;
-            vertices[26][0] = 0.58;   vertices[26][1] = 3.3;
-            vertices[27][0] = 0.57;   vertices[27][1] = 3.2;
-            vertices[28][0] = 1;      vertices[28][1] = 1;
-            vertices[29][0] = 1.25;   vertices[29][1] = 0.7;
+            vertices[1][0] = 4.0;     vertices[1][1] = 0.58;
+            vertices[2][0] = 5.5;     vertices[2][1] = 0.58;
+            vertices[3][0] = 5.6;     vertices[3][1] = 0.6;
+            vertices[4][0] = 5.7;     vertices[4][1] = 0.65;
+            vertices[5][0] = 5.8;     vertices[5][1] = 0.7;
+            vertices[6][0] = 5.9;     vertices[6][1] = 0.8;
+            vertices[7][0] = 6.0;     vertices[7][1] = 0.9;
+            vertices[8][0] = 6.08;    vertices[8][1] = 1.1;
+            vertices[9][0] = 6.1;     vertices[9][1] = 1.2;
+            vertices[10][0] = 6.1;    vertices[10][1] = 1.3;
+            vertices[11][0] = 6.1;    vertices[11][1] = 1.4;
+            vertices[12][0] = 6.07;   vertices[12][1] = 1.5;
+            vertices[13][0] = 6.05;   vertices[13][1] = 1.6;
+            vertices[14][0] = 6;      vertices[14][1] = 1.7;
+            vertices[15][0] = 5.9;    vertices[15][1] = 1.8;
+            vertices[16][0] = 5.75;   vertices[16][1] = 1.9;
+            vertices[17][0] = 5.6;    vertices[17][1] = 2.0;
+            vertices[18][0] = 4.2;    vertices[18][1] = 2.02;
+            vertices[19][0] = 4;      vertices[19][1] = 2.1;
+            vertices[20][0] = 2.6;    vertices[20][1] = 3.92;
+            vertices[21][0] = 2.4;    vertices[21][1] = 4;
+            vertices[22][0] = 1.2;    vertices[22][1] = 3.95;
+            vertices[23][0] = 1.1;    vertices[23][1] = 3.92;
+            vertices[24][0] = 1;      vertices[24][1] = 3.88;
+            vertices[25][0] = 0.8;    vertices[25][1] = 3.72;
+            vertices[26][0] = 0.6;    vertices[26][1] = 3.4;
+            vertices[27][0] = 0.58;   vertices[27][1] = 3.3;
+            vertices[28][0] = 0.57;   vertices[28][1] = 3.2;
+            vertices[29][0] = 1;      vertices[29][1] = 1;
+            vertices[30][0] = 1.25;   vertices[30][1] = 0.7;
 
     def get_closest_waypoint(self):
         res = 0
@@ -391,31 +391,31 @@ class DeepRacerEnv(gym.Env):
 
     def calculate_current_progress(self, closest_waypoint_index, prev_closest_waypoint_index):
         current_progress = 0.0
-        
+
         # calculate distance in meters
         coor1 = self.waypoints[closest_waypoint_index]
         coor2 = self.waypoints[prev_closest_waypoint_index]
         current_progress = math.sqrt((coor1[0] - coor2[0]) *(coor1[0] - coor2[0]) + (coor1[1] - coor2[1]) * (coor1[1] - coor2[1]))
-        
+
         # convert to ratio and then percentage
         current_progress /= self.track_length
         current_progress *= 100.0
-        
+
         return current_progress
-    
+
     def calculate_track_length(self):
         track_length = 0.0
         prev_row = self.waypoints[0]
         for row in self.waypoints[1:]:
             track_length += math.sqrt((row[0] - prev_row[0]) * (row[0] - prev_row[0]) + (row[1] - prev_row[1]) * (row[1] - prev_row[1]))
             prev_row = row
-            
+
         if track_length == 0.0:
             print('ERROR: Track length is zero.')
             raise
-            
+
         return track_length
-    
+
 class DeepRacerDiscreteEnv(DeepRacerEnv):
     def __init__(self):
         DeepRacerEnv.__init__(self)
@@ -429,41 +429,41 @@ class DeepRacerDiscreteEnv(DeepRacerEnv):
         throttle_multiplier = 0.8
         throttle = throttle*throttle_multiplier
         steering_angle = 0.8
-        
+
         self.throttle, self.steering_angle = self.default_6_actions(throttle, steering_angle, action)
-        
+
         self.action_taken = action
-        
+
         continous_action = [self.steering_angle, self.throttle]
 
         return super().step(continous_action)
-    
+
     def default_6_actions(self, throttle, steering_angle, action):
         if action == 0:  # move left
             steering_angle = 0.8
         elif action == 1:  # move right
-            steering_angle = -0.8 
+            steering_angle = -0.8
         elif action == 2:  # straight
             steering_angle = 0
         elif action == 3:  # move slight left
             steering_angle = 0.2
         elif action == 4:  # move slight right
-            steering_angle = -0.2 
+            steering_angle = -0.2
         elif action == 5:  # slow straight
-            steering_angle = 0  
+            steering_angle = 0
             throttle = throttle/2
         else:  # should not be here
             raise ValueError("Invalid action")
-            
+
         return throttle, steering_angle
-    
+
     def two_steering_one_throttle_5_states(self,throttle_, steering_angle_, action):
         if action == 0:  # move left
             steering_angle = 1 * steering_angle_
             throttle = throttle_
         elif action == 1:  # move right
             steering_angle = -1 * steering_angle_
-            throttle = throttle_            
+            throttle = throttle_
         elif action == 2:  # move left
             steering_angle = 0.5 * steering_angle_
             throttle = throttle_
@@ -473,20 +473,20 @@ class DeepRacerDiscreteEnv(DeepRacerEnv):
         elif action == 4:  # straight
             steering_angle = 0
             throttle = throttle_
-     
+
         else:  # should not be here
             raise ValueError("Invalid action")
-            
+
         return throttle, steering_angle
-            
-    
+
+
     def two_steering_two_throttle_10_states(self,throttle_, steering_angle_, action):
         if action == 0:  # move left
             steering_angle = 1 * steering_angle_
             throttle = throttle_
         elif action == 1:  # move right
             steering_angle = -1 * steering_angle_
-            throttle = throttle_            
+            throttle = throttle_
         elif action == 2:  # move left
             steering_angle = 0.5 * steering_angle_
             throttle = throttle_
@@ -496,12 +496,13 @@ class DeepRacerDiscreteEnv(DeepRacerEnv):
         elif action == 4:  # straight
             steering_angle = 0
             throttle = throttle_
+
         elif action == 5:  # move left
             steering_angle = 1 * steering_angle_
             throttle = throttle_ * 0.5
         elif action == 6:  # move right
             steering_angle = -1 * steering_angle_
-            throttle = throttle_ * 0.5           
+            throttle = throttle_ * 0.5
         elif action == 7:  # move left
             steering_angle = 0.5 * steering_angle_
             throttle = throttle_ * 0.5
@@ -511,22 +512,21 @@ class DeepRacerDiscreteEnv(DeepRacerEnv):
         elif action == 9:  # straight
             steering_angle = 0
             throttle = throttle_ * 0.5
- 
+
         else:  # should not be here
             raise ValueError("Invalid action")
-            
+
         return throttle, steering_angle
-    
-    
+
     def two_steering_three_throttle_15_states(self,throttle_, steering_angle_, action):
-        
+
         # Convert discrete to continuous
         if action == 0:  # move left
             steering_angle = steering_angle_
             throttle = throttle_
         elif action == 1:  # move right
             steering_angle = -1 * steering_angle_
-            throttle = throttle_            
+            throttle = throttle_
         elif action == 2:  # move left
             steering_angle = 0.5 * steering_angle_
             throttle = throttle_
@@ -536,24 +536,23 @@ class DeepRacerDiscreteEnv(DeepRacerEnv):
         elif action == 4:  # straight
             steering_angle = 0
             throttle = throttle_
-            
-            
+
         elif action == 5:  # move left
             steering_angle = steering_angle_
             throttle = 0.5 * throttle_
         elif action == 6:  # move right
             steering_angle = -1 * steering_angle_
-            throttle = 0.5 * throttle_      
+            throttle = 0.5 * throttle_
         elif action == 7:  # move left
             steering_angle = 0.5 * steering_angle_
             throttle = 0.5 * throttle_
         elif action == 8:  # move right
             steering_angle = -0.5 * steering_angle_
-            throttle = 0.5 * throttle_          
+            throttle = 0.5 * throttle_
         elif action == 9:  # slow straight
             steering_angle = 0
             throttle = throttle_ *0.5
-            
+
         elif action == 10:  # move left
             steering_angle = 1 * steering_angle_
             throttle = throttle_ * 2.0
@@ -569,8 +568,8 @@ class DeepRacerDiscreteEnv(DeepRacerEnv):
         elif action == 14:  # fast straight
             steering_angle = 0
             throttle = throttle_ * 2.0
-            
+
         else:  # should not be here
             raise ValueError("Invalid action")
-            
+
         return throttle, steering_angle
