@@ -376,20 +376,7 @@ class DeepRacerEnv(gym.Env):
             vertices[30][0] = 1.25;   vertices[30][1] = 0.7;
 
     def calculate_distance(self, x1, x2, y1, y2):
-        x = 0
-        y = 0
-
-        if x1 > x2:
-            x = (x1 - x2) * (x1 - x2)
-        else:
-            x = (x2 - x1) * (x2 - x1)
-
-        if y1 > y2:
-            y = (y1 - y2) * (y1 - y2)
-        else:
-            y = (y2 - y1) * (y2 - y1)
-
-        return math.sqrt(x + y)
+        return math.sqrt(math.pow(x1 - x2) + math.pow(y1 - y2))
 
     def get_closest_waypoint(self):
         res = 0
@@ -494,7 +481,6 @@ class DeepRacerDiscreteEnv(DeepRacerEnv):
             raise ValueError("Invalid action")
 
         return throttle, steering_angle
-
 
     def two_steering_two_throttle_10_states(self,throttle_, steering_angle_, action):
         if action == 0:  # move left
