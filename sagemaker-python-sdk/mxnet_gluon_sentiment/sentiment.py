@@ -252,7 +252,7 @@ def get_dataset(filename):
     with open(filename) as f:
         for line in f:
             tokens = line.split()
-            label = int(tokens[0])
+            label = int(tokens[0].replace(':', '').replace(',', '').strip())
             words = tokens[1:]
             max_length = max(max_length, len(words))
             labels.append(label)
