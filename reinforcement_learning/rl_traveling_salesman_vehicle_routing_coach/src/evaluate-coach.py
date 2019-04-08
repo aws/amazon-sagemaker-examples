@@ -1,68 +1,91 @@
-from rl_coach.agents.clipped_ppo_agent import ClippedPPOAgentParameters
-from rl_coach.environments.gym_environment import GymVectorEnvironment
-from rl_coach.graph_managers.basic_rl_graph_manager import BasicRLGraphManager
-from rl_coach.graph_managers.graph_manager import ScheduleParameters
-from rl_coach.base_parameters import VisualizationParameters, TaskParameters
-from rl_coach.core_types import TrainingSteps, EnvironmentEpisodes, EnvironmentSteps, RunPhase
-from rl_coach import logger
-import os
+from sagemaker_rl.coach_launcher import SageMakerCoachPresetLauncher, CoachConfigurationList
 import argparse
-import copy
+import os
+import rl_coach
+from rl_coach.base_parameters import Frameworks, TaskParameters
+from rl_coach.core_types import EnvironmentSteps
 
 
-def add_items_to_dict(target_dict, source_dict):
-    updated_task_parameters = copy.copy(source_dict)
-    updated_task_parameters.update(target_dict)
-    return updated_task_parameters
+def inplace_replace_in_file(filepath, old, new):
+    with open(filepath, 'r') as f:
+        contents = f.read()
+    with open(filepath, 'w') as f:
+        contents = contents.replace(old, new)
+        f.write(contents)    
+        
 
+class MyLauncher(SageMakerCoachPresetLauncher):
 
-def inplace_change(filename, old_string, new_string):
-    # Safely read the input filename using 'with'
-    with open(filename) as f:
-        s = f.read()
-        if old_string not in s:
-            print('"{old_string}" not found in {filename}.'.format(**locals()))
-            return
+    def default_preset_name(self):
+        """This points to a .py file that configures everything about the RL job.
+        It can be overridden at runtime by specifying the RLCOACH_PRESET hyperparameter.
+        """
+        return 'preset-tsp-easy'
+    
+    def start_single_threaded(self, task_parameters, graph_manager, args):
+        """Override to use custom evaluate_steps, instead of infinite steps. Just evaluate.
+        """
+        graph_manager.agent_params.visualization.dump_csv = False # issues with CSV export in evaluation only
+        graph_manager.create_graph(task_parameters)
+        graph_manager.evaluate(EnvironmentSteps(args.evaluate_steps))
+        graph_manager.close()
+    
+    def get_config_args(self, parser):
+        """Overrides the default CLI parsing.
+        Sets the configuration parameters for what a SageMaker run should do.
+        Note, this does not support the "play" mode.
+        """
+        ### Parse Arguments
+        # first, convert the parser to a Namespace object with all default values.
+        empty_arg_list = []
+        args, _ = parser.parse_known_args(args=empty_arg_list)
+        parser = self.sagemaker_argparser()
+        sage_args, unknown = parser.parse_known_args()
 
-    # Safely write the changed content, if found in the file
-    with open(filename, 'w') as f:
-        print('Changing "{old_string}" to "{new_string}" in {filename}'.format(**locals()))
-        s = s.replace(old_string, new_string)
-        f.write(s)
+        ### Set Arguments
+        args.preset = sage_args.RLCOACH_PRESET
+        backend = os.getenv('COACH_BACKEND', 'tensorflow')
+        args.framework = args.framework = Frameworks[backend]
+        args.checkpoint_save_dir = None
+        args.checkpoint_restore_dir = "/opt/ml/input/data/checkpoint"
+        # Correct TensorFlow checkpoint file (https://github.com/tensorflow/tensorflow/issues/9146)
+        if backend == "tensorflow":
+            checkpoint_filepath = os.path.join(args.checkpoint_restore_dir, 'checkpoint')
+            inplace_replace_in_file(checkpoint_filepath, "/opt/ml/output/data/checkpoint", ".")            
+        # Override experiment_path used for outputs (note CSV not stored, see `start_single_threaded`).
+        args.experiment_path = '/opt/ml/output/intermediate'
+        rl_coach.logger.experiment_path = '/opt/ml/output/intermediate' # for gifs
+        args.evaluate = True # not actually used, but must be set (see `evaluate_steps`)
+        args.evaluate_steps = sage_args.evaluate_steps
+        args.no_summary = True # so process doesn't hang at end
+        # must be set
+        self.hyperparameters = CoachConfigurationList()
+        
+        return args
+    
+    def sagemaker_argparser(self):
+        """
+        Expose only the CLI arguments that make sense in the SageMaker context.
+        """
+        parser = argparse.ArgumentParser()
+        parser.add_argument('-p', '--RLCOACH_PRESET',
+                            help="(string) Name of the file with the RLCoach preset",
+                            default=self.default_preset_name(),
+                            type=str)
+        parser.add_argument('--evaluate_steps',
+                            help="(int) Number of evaluation steps to takr",
+                            default=1000,
+                            type=int)
+        return parser    
+    
+    @classmethod
+    def evaluate_main(cls):
+        """Entrypoint for training.  
+        Parses command-line arguments and starts training.
+        """
+        evaluator = cls()
+        evaluator.launch()
 
-
-def evaluate(params):
-    # file params
-    experiment_path = os.path.join(params.output_data_dir)
-    logger.experiment_path = os.path.join(experiment_path, 'evaluation')
-    params.checkpoint_restore_dir = os.path.join(params.input_data_dir, 'checkpoint')
-    checkpoint_file = os.path.join(params.checkpoint_restore_dir, 'checkpoint')
-
-    inplace_change(checkpoint_file, "/opt/ml/output/data/checkpoint", ".")
-    # Note that due to a tensorflow issue (https://github.com/tensorflow/tensorflow/issues/9146) we need to replace
-    # the absolute path for the evaluation-from-a-checkpointed-model to work
-
-    vis_params = VisualizationParameters()
-    vis_params.dump_gifs = True
-
-    task_params = TaskParameters(evaluate_only=True, experiment_path=logger.experiment_path)
-    task_params.__dict__ = add_items_to_dict(task_params.__dict__, params.__dict__)
-
-    graph_manager = BasicRLGraphManager(
-        agent_params=ClippedPPOAgentParameters(),
-        env_params=GymVectorEnvironment(level='TSP_env:TSPEasyEnv'),
-        schedule_params=ScheduleParameters(),
-        vis_params=vis_params
-    )
-    graph_manager = graph_manager.create_graph(task_parameters=task_params)
-    graph_manager.evaluate(EnvironmentSteps(5))
-
-
+    
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    # consumes the hyper-parameters
-    parser.add_argument('--bucket_name', type=str)
-    parser.add_argument('--input_data_dir', type=str, default='/opt/ml/input/data/')
-    parser.add_argument('--output_data_dir', type=str, default='/opt/ml/output/data/')
-    params, unknown = parser.parse_known_args()
-    evaluate(params)
+    MyLauncher.evaluate_main()
