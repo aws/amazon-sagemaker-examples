@@ -108,6 +108,7 @@ These examples that showcase unique functionality available in Amazon SageMaker.
 - [Experiment Management Capabilities with Search](advanced_functionality/search) shows how to organize Training Jobs into projects, and track relationships between Models, Endpoints, and Training Jobs.
 - [Creating Algorithm and Model Package - Listing on AWS Marketplace](advanced_functionality/creating_marketplace_products) provides a detailed walkthrough on how to package a scikit learn algorithm to create SageMaker Algorithm and SageMaker Model Package entities that can be used with the enhanced SageMaker Train/Transform/Hosting/Tuning APIs and listed on AWS Marketplace.
 - [Using Algorithm and Model Packages - From AWS Marketplace](advanced_functionality/using_marketplace_products) provides a detailed walkthrough on how to use Algorithm and Model Package entities with the enhanced SageMaker Train/Transform/Hosting/Tuning APIs by choosing a canonical product listed on AWS Marketplace.
+- [Bring Your Own fastai script](advanced_functionality/fastai_oxford_pets) provides a walkthrough of how to bring your own script to train and deploy your model based on the [fastai](https://docs.fast.ai/) Deep Learning library.
 
 ### Amazon SageMaker Pre-Built Framework Containers and the Python SDK
 
