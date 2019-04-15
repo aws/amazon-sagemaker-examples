@@ -1,0 +1,11 @@
+
+{
+	"default-runtime": "nvidia",
+    "runtimes": {
+        "nvidia": {
+            "path": "/usr/bin/nvidia-container-runtime",
+            "runtimeArgs": []
+        }
+    },
+    "default-shm-size": "2g"
+}
