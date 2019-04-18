@@ -20,7 +20,7 @@ schedule_params = ScheduleParameters()
 # schedule_params.evaluation_steps = EnvironmentEpisodes(5)
 # schedule_params.heatup_steps = EnvironmentSteps(0)
 
-schedule_params.improve_steps = TrainingSteps(10000)
+schedule_params.improve_steps = TrainingSteps(100000)
 schedule_params.steps_between_evaluation_periods = EnvironmentSteps(2000)
 schedule_params.evaluation_steps = EnvironmentEpisodes(5)
 schedule_params.heatup_steps = EnvironmentSteps(0)
