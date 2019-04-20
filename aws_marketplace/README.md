@@ -4,7 +4,7 @@
 
 This repository contains example notebooks that show how to use [algorithms and model packages from AWS Marketplace for machine learning](https://aws.amazon.com/marketplace/search/results?page=1&filters=fulfillment_options&fulfillment_options=SAGEMAKER)
 
-To know more about Machine Learning products, see [documentation](https://docs.aws.amazon.com/marketplace/latest/userguide/machine-learning-products.html)
+To know more about algorithms and model packages from AWS Marketplace, see [documentation](https://docs.aws.amazon.com/marketplace/latest/userguide/machine-learning-products.html)
 
 ### Using algorithms 
 These sample notebooks demonstrate how to use algorithms from AWS Marketplace.
