@@ -4,32 +4,15 @@ FROM 520713654638.dkr.ecr.${AWS_REGION}.amazonaws.com/sagemaker-rl-tensorflow:ra
 
 WORKDIR /opt/ml
 
-############################################
-# Roboschool
-############################################
+# Roboschool dependencies
 
 RUN apt-get update && apt-get install -y \
       git cmake ffmpeg pkg-config \
       qtbase5-dev libqt5opengl5-dev libassimp-dev \
-      libpython3.5-dev libtinyxml-dev \
+      libtinyxml-dev \
+      libgl1-mesa-dev \
     && cd /opt \
-    && git clone --depth 1 https://github.com/olegklimov/bullet3 -b roboschool_self_collision \
-    && git clone --depth 1 https://github.com/openai/roboschool \
     && apt-get clean && rm -rf /var/cache/apt/archives/* /var/lib/apt/lists/*
-
-ENV ROBOSCHOOL_PATH /opt/roboschool/
-
-RUN mkdir -p /opt/bullet3/build \
-    && cd /opt/bullet3/build \
-    && cmake -DBUILD_SHARED_LIBS=ON -DUSE_DOUBLE_PRECISION=1 \
-       -DCMAKE_INSTALL_PREFIX:PATH=${ROBOSCHOOL_PATH}/roboschool/cpp-household/bullet_local_install \
-       -DBUILD_CPU_DEMOS=OFF -DBUILD_BULLET2_DEMOS=OFF \
-       -DBUILD_EXTRAS=OFF  -DBUILD_UNIT_TESTS=OFF \
-       -DBUILD_CLSOCKET=OFF -DBUILD_ENET=OFF \
-       -DBUILD_OPENGL3_DEMOS=OFF .. \
-    && make -j4\
-    && make install \
-    && cd ../..
 
 RUN apt-get update && \
     apt-get install -y libboost-python-dev
@@ -48,10 +31,9 @@ RUN pip install --upgrade \
     pip \
     setuptools
 
-RUN pip install -e ${ROBOSCHOOL_PATH} \
-    && ldconfig
-    
 RUN pip install sagemaker-containers --upgrade
+
+RUN pip install roboschool==1.0.46
 
 ENV PYTHONUNBUFFERED 1
 
@@ -59,7 +41,7 @@ ENV PYTHONUNBUFFERED 1
 # Test Installation
 ############################################
 # Test to verify if all required dependencies installed successfully or not.
-RUN python -c "import gym;import sagemaker_containers.cli.train; import roboschool; import ray; from sagemaker_containers.cli.train import main"
+RUN python -c "import gym;import sagemaker_containers.cli.train;import roboschool; import ray; from sagemaker_containers.cli.train import main"
 
 # Make things a bit easier to debug
 WORKDIR /opt/ml/code
