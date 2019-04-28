@@ -142,13 +142,18 @@ These examples show how to use Amazon SageMaker for model training, hosting, and
 
 ### AWS Marketplace
 
-These examples show you how to:
- 1. Use algorithms and model packages from AWS Marketplace for machine learning.
- 2. Create algorithms/model packages for listing in AWS Marketplace for machine learning.
+####Create algorithms/model packages for listing in AWS Marketplace for machine learning.
+
+This examples shows you how to package a model-package/algorithm for listing in AWS Markteplace for machine learning.
 
 - [Creating Algorithm and Model Package - Listing on AWS Marketplace](aws_marketplace/creating_marketplace_products) provides a detailed walkthrough on how to package a scikit learn algorithm to create SageMaker Algorithm and SageMaker Model Package entities that can be used with the enhanced SageMaker Train/Transform/Hosting/Tuning APIs and listed on AWS Marketplace.
+
+####Use algorithms and model packages from AWS Marketplace for machine learning.
+
+These examples show you how to use model-packages and algorithms from AWS Markteplace for machine learning.
+
 - [Using Algorithm From AWS Marketplace](aws_marketplace/using_algorithms/amazon_demo_product) provides a detailed walkthrough on how to use Algorithm with the enhanced SageMaker Train/Transform/Hosting/Tuning APIs by choosing a canonical product listed on AWS Marketplace.
-- [Using  Model Packages From AWS Marketplace](aws_marketplace/using_model_packages/amazon_demo_product) provides a detailed walkthrough on how to use Model Package entities with the enhanced SageMaker Transform/Hosting APIs by choosing a canonical product listed on AWS Marketplace.
+- [Using Model Package From AWS Marketplace](aws_marketplace/using_model_packages/amazon_demo_product) provides a detailed walkthrough on how to use Model Package entities with the enhanced SageMaker Transform/Hosting APIs by choosing a canonical product listed on AWS Marketplace.
 
 
 ### Under Development
