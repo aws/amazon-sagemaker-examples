@@ -108,9 +108,7 @@ These examples that showcase unique functionality available in Amazon SageMaker.
 - [Inference Pipeline with SparkML and XGBoost](advanced_functionality/inference_pipeline_sparkml_xgboost_abalone) shows how to deploy an Inference Pipeline with SparkML for data pre-processing and XGBoost for training on the Abalone dataset. The pre-processing code is written once and used between training and inference.
 - [Inference Pipeline with SparkML and BlazingText](advanced_functionality/inference_pipeline_sparkml_blazingtext_dbpedia) shows how to deploy an Inference Pipeline with SparkML for data pre-processing and BlazingText for training on the DBPedia dataset. The pre-processing code is written once and used between training and inference.
 - [Experiment Management Capabilities with Search](advanced_functionality/search) shows how to organize Training Jobs into projects, and track relationships between Models, Endpoints, and Training Jobs.
-- [Creating Algorithm and Model Package - Listing on AWS Marketplace](advanced_functionality/creating_marketplace_products) provides a detailed walkthrough on how to package a scikit learn algorithm to create SageMaker Algorithm and SageMaker Model Package entities that can be used with the enhanced SageMaker Train/Transform/Hosting/Tuning APIs and listed on AWS Marketplace.
-- [Using Algorithm and Model Packages - From AWS Marketplace](advanced_functionality/using_marketplace_products) provides a detailed walkthrough on how to use Algorithm and Model Package entities with the enhanced SageMaker Train/Transform/Hosting/Tuning APIs by choosing a canonical product listed on AWS Marketplace.
-- [Bring Your Own fastai script](advanced_functionality/fastai_oxford_pets) provides a walkthrough of how to bring your own script to train and deploy your model based on the [fastai](https://docs.fast.ai/) Deep Learning library.
+
 
 ### Amazon SageMaker Pre-Built Framework Containers and the Python SDK
 
@@ -143,6 +141,22 @@ These examples show you how to build Machine Learning models with frameworks lik
 These examples show how to use Amazon SageMaker for model training, hosting, and inference through Apache Spark using [SageMaker Spark](https://github.com/aws/sagemaker-spark). SageMaker Spark allows you to interleave Spark Pipeline stages with Pipeline stages that interact with Amazon SageMaker.
 
 - [MNIST with SageMaker PySpark](sagemaker-spark/pyspark_mnist)
+
+### AWS Marketplace
+
+####Create algorithms/model packages for listing in AWS Marketplace for machine learning.
+
+This examples shows you how to package a model-package/algorithm for listing in AWS Markteplace for machine learning.
+
+- [Creating Algorithm and Model Package - Listing on AWS Marketplace](aws_marketplace/creating_marketplace_products) provides a detailed walkthrough on how to package a scikit learn algorithm to create SageMaker Algorithm and SageMaker Model Package entities that can be used with the enhanced SageMaker Train/Transform/Hosting/Tuning APIs and listed on AWS Marketplace.
+
+####Use algorithms and model packages from AWS Marketplace for machine learning.
+
+These examples show you how to use model-packages and algorithms from AWS Markteplace for machine learning.
+
+- [Using Algorithm From AWS Marketplace](aws_marketplace/using_algorithms/amazon_demo_product) provides a detailed walkthrough on how to use Algorithm with the enhanced SageMaker Train/Transform/Hosting/Tuning APIs by choosing a canonical product listed on AWS Marketplace.
+- [Using Model Package From AWS Marketplace](aws_marketplace/using_model_packages/amazon_demo_product) provides a detailed walkthrough on how to use Model Package entities with the enhanced SageMaker Transform/Hosting APIs by choosing a canonical product listed on AWS Marketplace.
+
 
 ### Under Development
 
