@@ -42,7 +42,7 @@ RUN curl -o ~/miniconda.sh -O  https://repo.continuum.io/miniconda/Miniconda3-la
 
 ENV PATH /opt/conda/bin:$PATH
 
-RUN pip install sagemaker flask gevent gunicorn
+RUN pip install sagemaker flask gevent gunicorn --ignore-installed PyYAML
 
 RUN git clone https://github.com/pytorch/fairseq.git && \
     cd fairseq && \
