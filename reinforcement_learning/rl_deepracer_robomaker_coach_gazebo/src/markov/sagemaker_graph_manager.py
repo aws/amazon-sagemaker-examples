@@ -85,15 +85,15 @@ def get_graph_manager(**hp_dict):
     ###############
     # Environment #
     ###############
-    SilverstoneInputFilter = InputFilter(is_a_reference_filter=True)
-    SilverstoneInputFilter.add_observation_filter('observation', 'to_grayscale', ObservationRGBToYFilter())
-    SilverstoneInputFilter.add_observation_filter('observation', 'to_uint8', ObservationToUInt8Filter(0, 255))
-    SilverstoneInputFilter.add_observation_filter('observation', 'stacking',
+    DeepRacerInputFilter = InputFilter(is_a_reference_filter=True)
+    DeepRacerInputFilter.add_observation_filter('observation', 'to_grayscale', ObservationRGBToYFilter())
+    DeepRacerInputFilter.add_observation_filter('observation', 'to_uint8', ObservationToUInt8Filter(0, 255))
+    DeepRacerInputFilter.add_observation_filter('observation', 'stacking',
                                                   ObservationStackingFilter(params["stack_size"]))
 
     env_params = GymVectorEnvironment()
-    env_params.default_input_filter = SilverstoneInputFilter
-    env_params.level = 'SilverstoneRacetrack-Discrete-v0'
+    env_params.default_input_filter = DeepRacerInputFilter
+    env_params.level = 'DeepRacerRacetrackCustomActionSpaceEnv-v0'
 
     vis_params = VisualizationParameters()
     vis_params.dump_mp4 = False

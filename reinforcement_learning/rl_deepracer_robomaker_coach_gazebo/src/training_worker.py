@@ -4,9 +4,10 @@ import logging
 import os
 import time
 import subprocess
+import shutil
 
 from markov.s3_client import SageS3Client
-from markov.utils import get_ip_from_host, DoorMan
+from markov.utils import get_ip_from_host, DoorMan, load_model_metadata
 from markov.s3_boto_data_store import S3BotoDataStore, S3BotoDataStoreParameters
 from rl_coach import core_types
 from rl_coach.base_parameters import TaskParameters, DistributedCoachSynchronizationType, Frameworks
@@ -21,6 +22,16 @@ logger = logging.getLogger(__name__)
 
 PRETRAINED_MODEL_DIR = "./pretrained_checkpoint"
 INTERMEDIATE_FOLDER = "/opt/ml/output/intermediate/"
+CUSTOM_FILES_PATH = "./custom_files"
+SM_MODEL_OUTPUT_DIR = os.environ.get("ALGO_MODEL_DIR", "/opt/ml/model")
+
+if not os.path.exists(CUSTOM_FILES_PATH):
+    os.makedirs(CUSTOM_FILES_PATH)
+
+def data_store_ckpt_save(data_store):
+    while True:
+        data_store.save_to_store()
+        time.sleep(10)
 
 
 def training_worker(graph_manager, checkpoint_dir, use_pretrained_model, framework):
@@ -92,6 +103,18 @@ def main():
     screen.set_use_colors(False)
 
     parser = argparse.ArgumentParser()
+    parser.add_argument('-pk', '--preset_s3_key',
+                        help="(string) Name of a preset to download from S3",
+                        type=str,
+                        required=False)
+    parser.add_argument('-ek', '--environment_s3_key',
+                        help="(string) Name of an environment file to download from S3",
+                        type=str,
+                        required=False)
+    parser.add_argument('--model_metadata_s3_key',
+                        help="(string) Model Metadata File S3 Key",
+                        type=str,
+                        required=False)
     parser.add_argument('-c', '--checkpoint-dir',
                         help='(string) Path to a local folder containing a checkpoint to write the model to.',
                         type=str,
@@ -119,10 +142,6 @@ def main():
                         help='(string) S3 prefix for pre-trained model',
                         type=str,
                         default='sagemaker')
-    parser.add_argument('--RLCOACH_PRESET',
-                        help='(string) Default preset to use',
-                        type=str,
-                        default='deepracer')
     parser.add_argument('--aws_region',
                         help='(string) AWS region',
                         type=str,
@@ -132,11 +151,30 @@ def main():
 
     s3_client = SageS3Client(bucket=args.s3_bucket, s3_prefix=args.s3_prefix, aws_region=args.aws_region)
 
+    model_metadata_local_path = os.path.join(CUSTOM_FILES_PATH, 'model_metadata.json')
+    load_model_metadata(s3_client, args.model_metadata_s3_key, model_metadata_local_path)
+    s3_client.upload_file(os.path.normpath("%s/model/model_metadata.json" % args.s3_prefix), model_metadata_local_path)
+    shutil.copy2(model_metadata_local_path, SM_MODEL_OUTPUT_DIR)
+    
     # Import to register the environment with Gym
-    import robomaker.environments
-
-    preset_location = "robomaker.presets.%s:graph_manager" % args.RLCOACH_PRESET
+    import markov.environments
+    
+    preset_location = "markov.presets.default:graph_manager"
     graph_manager = short_dynamic_import(preset_location, ignore_module_case=True)
+    success_custom_preset = True
+    
+    if not success_custom_preset:
+        from markov.sagemaker_graph_manager import get_graph_manager
+        params_blob = os.environ.get('SM_TRAINING_ENV', '')
+        if params_blob:
+            params = json.loads(params_blob)
+            sm_hyperparams_dict = params["hyperparameters"]
+        else:
+            sm_hyperparams_dict = {}
+        graph_manager, robomaker_hyperparams_json = get_graph_manager(**sm_hyperparams_dict)
+        s3_client.upload_hyperparameters(robomaker_hyperparams_json)
+        print("Uploaded hyperparameters.json to S3")
+
 
     host_ip_address = get_ip_from_host()
     s3_client.write_ip_config(host_ip_address)

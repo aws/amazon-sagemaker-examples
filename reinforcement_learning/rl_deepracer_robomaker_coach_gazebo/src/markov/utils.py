@@ -39,22 +39,15 @@ def register_custom_environments():
     MAX_STEPS = 1000
 
     register(
-        id='SilverstoneRacetrack-v0',
-        entry_point='custom_files.silverstone_racetrack_env:SilverstoneRacetrackEnv',
+        id='DeepRacerRacetrack-v0',
+        entry_point='custom_files.deepracer_racetrack_env:DeepRacerRacetrackEnv',
         max_episode_steps=MAX_STEPS,
         reward_threshold=200
     )
 
     register(
-        id='SilverstoneRacetrack-Discrete-v0',
-        entry_point='custom_files.silverstone_racetrack_env:SilverstoneRacetrackDiscreteEnv',
-        max_episode_steps=MAX_STEPS,
-        reward_threshold=200
-    )
-
-    register(
-        id='SilverstoneRacetrack-MultiDiscrete-v0',
-        entry_point='custom_files.silverstone_racetrack_env:SilverstoneRacetrackMultiDiscreteEnv',
+        id='DeepRacerRacetrackCustomActionSpaceEnv-v0',
+        entry_point='markov.environments.deepracer_racetrack_env:DeepRacerRacetrackCustomActionSpaceEnv',
         max_episode_steps=MAX_STEPS,
         reward_threshold=200
     )
@@ -66,8 +59,50 @@ def write_frozen_graph(graph_manager):
     output_head = ['main_level/agent/main/online/network_1/ppo_head_0/policy']
     frozen = tf.graph_util.convert_variables_to_constants(graph_manager.sess, graph_manager.sess.graph_def, output_head)
     tf.train.write_graph(frozen, SM_MODEL_OUTPUT_DIR, 'model.pb', as_text=False)
-    print("Saved TF frozen graph!")
+    logger.info("Saved TF frozen graph!")
 
+def load_model_metadata(s3_client, model_metadata_s3_key, model_metadata_local_path):
+    """Loads the model metadata.
+    """
+
+    # Strip the s3://<bucket> prefix if it exists
+    logger.info('s3_client: {} \n \ 
+           model_metadata_s3_key: {} \n \ 
+           model_metadata_local_path: {}'.format(
+           s3_client,model_metadata_s3_key,model_metadata_local_path)) 
+    
+    # Try to download the custom model metadata from s3 first
+    download_success = False;
+    if not model_metadata_s3_key:
+        logger.info("Custom model metadata key not provided, using defaults.")
+    else:
+        # Strip the s3://<bucket> prefix if it exists
+        model_metadata_s3_key = model_metadata_s3_key.replace('s3://{}/'.format(s3_client.bucket), '')
+
+        download_success = s3_client.download_file(s3_key=model_metadata_s3_key,
+                                                   local_path=model_metadata_local_path)
+        if download_success:
+            logger.info("Successfully downloaded model metadata from {}.".format(model_metadata_s3_key))
+        else:
+            logger.warning("Could not download custom model metadata from {}, using defaults.".format(model_metadata_s3_key))
+
+    # If the download was successful, validate the contents
+    if download_success:
+        try:
+            with open(model_metadata_local_path, 'r') as f:
+                model_metadata = json.load(f)
+                if 'action_space' not in model_metadata:
+                    logger.error("Custom model metadata does not define an action space.")
+                    download_success = False
+        except:
+            logger.error("Could not download custom model metadata, using defaults.")
+
+    # If the download was unsuccessful, load the default model metadata instead
+    if not download_success:
+        from markov.defaults import model_metadata
+        with open(model_metadata_local_path, 'w') as f:
+            json.dump(model_metadata, f, indent=4)
+        logger.info("Loaded default action space.")
 
 class DoorMan:
     def __init__(self):
