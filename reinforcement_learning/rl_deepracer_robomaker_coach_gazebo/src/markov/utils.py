@@ -66,9 +66,9 @@ def load_model_metadata(s3_client, model_metadata_s3_key, model_metadata_local_p
     """
 
     # Strip the s3://<bucket> prefix if it exists
-    logger.info('s3_client: {} \n \ 
-           model_metadata_s3_key: {} \n \ 
-           model_metadata_local_path: {}'.format(
+    logger.info('s3_client: {} \n' +
+           'model_metadata_s3_key: {} \n' + 
+           'model_metadata_local_path: {}'.format(
            s3_client,model_metadata_s3_key,model_metadata_local_path)) 
     
     # Try to download the custom model metadata from s3 first
