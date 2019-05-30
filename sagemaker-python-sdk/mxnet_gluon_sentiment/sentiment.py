@@ -15,8 +15,6 @@ from mxnet import gluon, autograd, nd
 from mxnet.io import DataIter, DataBatch, DataDesc
 import numpy as np
 
-from sagemaker_mxnet_container.training_utils import scheduler_host
-
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -337,7 +335,7 @@ if __name__ == '__main__':
     model = train(args.current_host, args.hosts, num_cpus, num_gpus, args.training_channel, args.model_dir,
                   args.batch_size, args.epochs, args.learning_rate, args.log_interval, args.embedding_size)
 
-    if args.current_host == scheduler_host(args.hosts):
+    if args.current_host == args.hosts[0]:
         save(model, args.model_dir)
 
 
