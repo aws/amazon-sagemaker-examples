@@ -29,7 +29,7 @@ import datetime
 logging.getLogger().setLevel(logging.INFO)
 tf.logging.set_verbosity(tf.logging.ERROR)
 
-NUM_FEATURES = 50 #50 #50 #50 #50 #50 #50 #7
+NUM_FEATURES = 50 
 INPUT_TENSOR_NAME = 'inputs_input'  # needs to match the name of the first layer + "_input"
 
 def list_files_in_dir(which_dir):
@@ -42,21 +42,10 @@ def _time():
     return datetime.datetime.now().time()
 
 class PipeDebugCallback(tf.keras.callbacks.Callback): # is not called for some reason
-  def on_train_batch_begin(self, batch, logs=None):
-    logging.info('Training: batch {} BEGINS at {}'.format(batch, _time()))
+  def on_epoch_begin(self, epoch, logs=None):
+    logging.info('Training: epoch {} BEGINS at {}'.format(epoch, _time()))
     list_files_in_dir('/opt/ml/input/data')
 
-  def on_train_batch_end(self, batch, logs=None):
-    logging.info('Training: batch {} ENDS at {}'.format(batch, _time()))
-    list_files_in_dir('/opt/ml/input/data')
-
-  def on_test_batch_begin(self, batch, logs=None):
-    logging.info('Evaluating: batch {} BEGINS at {}'.format(batch, _time()))
-    list_files_in_dir('/opt/ml/input/data')
-
-  def on_test_batch_end(self, batch, logs=None):
-    logging.info('Evaluating: batch {} ENDS at {}'.format(batch, _time()))
-    list_files_in_dir('/opt/ml/input/data')
     
 def get_filenames(channel_name, channel):
     list_files_in_dir('/opt/ml/input/data')
@@ -213,12 +202,15 @@ if __name__=='__main__':
     test_steps  = args.num_test_samples  // args.batch_size // num_hosts
     print('Train Steps: {}, Val Steps: {}, Test Steps: {}'.format(train_steps, val_steps, test_steps))
     
-    fitCallbacks = [ModelCheckpoint(os.environ.get('SM_OUTPUT_DATA_DIR') + '/checkpoint-{epoch}.h5'),
-                    PipeDebugCallback()]
+    callback_fname = os.environ.get('SM_OUTPUT_DATA_DIR') + '/checkpoint-{epoch}.h5'
+    logging.info('\nSaving checkpoints as: {}'.format(callback_fname))
+    fit_callbacks  = [ModelCheckpoint(callback_fname, monitor='val_acc', verbose=1, save_best_only=True, mode='max'),
+                      PipeDebugCallback()]
+    
     network.fit(x=train_dataset[0], y=train_dataset[1],
                 steps_per_epoch=train_steps, epochs=args.epochs, 
                 validation_data=val_dataset, validation_steps=val_steps,
-                callbacks=fitCallbacks)
+                callbacks=fit_callbacks)
 
     logging.info('\nTraining completed at {}'.format(_time()))
 
