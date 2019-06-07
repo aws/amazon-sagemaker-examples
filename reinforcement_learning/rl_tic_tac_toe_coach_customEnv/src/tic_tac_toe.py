@@ -3,30 +3,19 @@ from gym import spaces
 import numpy as np
 import os
 import time
-from tic_tac_toe_view import TicTacToeView
 
 
 class TicTacToeEnv(gym.Env):
 
 
-    def __init__(self, opponent='moderate', verbose=False):
-        self.board = np.zeros((3, 3))
+    def __init__(self, opponent='moderate'):
         self.opponent = opponent
         self.episode = 0
         self.observation_space = spaces.Box(low=-1, high=1, shape=(9, ), dtype=np.int)
         self.action_space = spaces.Discrete(9)
-        self.tic_tac_toe_view = None
-        self.verbose = verbose
-
-
-    def render(self, mode='human'):
-        if self.tic_tac_toe_view is None:
-            self.tic_tac_toe_view = TicTacToeView()
-        return self.tic_tac_toe_view.update(mode=mode, board=self.board)
 
 
     def reset(self):
-        print('episode:', self.episode, '\ttime:', time.time())
         self.episode += 1
         self.total_reward = 0
         self.occupied = 0
