@@ -1,5 +1,6 @@
 from __future__ import print_function
 
+import argparse
 import json
 import logging
 import os
@@ -15,14 +16,9 @@ from mxnet.gluon.model_zoo import vision as models
 # Training methods                                             #
 # ------------------------------------------------------------ #
 
-def train(current_host, hosts, num_cpus, num_gpus, channel_input_dirs, model_dir, hyperparameters, **kwargs):
-    # retrieve the hyperparameters we set in notebook (with some defaults)
-    batch_size = hyperparameters.get('batch_size', 128)
-    epochs = hyperparameters.get('epochs', 100)
-    learning_rate = hyperparameters.get('learning_rate', 0.1)
-    momentum = hyperparameters.get('momentum', 0.9)
-    log_interval = hyperparameters.get('log_interval', 1)
-    wd = hyperparameters.get('wd', 0.0001)
+def train(batch_size, epochs, learning_rate, momentum, log_interval, wd,
+          current_host, hosts, num_cpus, num_gpus, data_dir, model_dir):
+    logging.basicConfig(level=logging.INFO)
 
     if len(hosts) == 1:
         kvstore = 'device' if num_gpus > 0 else 'local'
@@ -43,8 +39,6 @@ def train(current_host, hosts, num_cpus, num_gpus, channel_input_dirs, model_dir
             part_index = i
             break
 
-
-    data_dir = channel_input_dirs['training']
     train_data = get_train_data(num_cpus, data_dir, batch_size, (3, 32, 32),
                                 num_parts=len(hosts), part_index=part_index)
     test_data = get_test_data(num_cpus, data_dir, batch_size, (3, 32, 32))
@@ -147,6 +141,35 @@ def test(ctx, net, test_data):
             outputs.append(net(x))
         metric.update(label, outputs)
     return metric.get()
+
+
+def parse_args():
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument('--batch_size', type=int, default=128)
+    parser.add_argument('--epochs', type=int, default=100)
+    parser.add_argument('--learning_rate', type=float, default=0.1)
+    parser.add_argument('--momentum', type=float, default=0.9)
+    parser.add_argument('--log_interval', type=int, default=1)
+    parser.add_argument('--wd', type=float, default=0.0001)
+
+    parser.add_argument('--model_dir', type=str, default=os.environ['SM_MODEL_DIR'])
+    parser.add_argument('--training_dir', type=str, default=os.environ['SM_CHANNEL_TRAINING'])
+
+    parser.add_argument('--current_host', type=str, default=os.environ['SM_CURRENT_HOST'])
+    parser.add_argument('--hosts', type=list, default=json.loads(os.environ['SM_HOSTS']))
+
+    return parser.parse_args()
+
+
+if __name__ == '__main__':
+    args = parse_args()
+
+    num_cpus = int(os.environ['SM_NUM_CPUS'])
+    num_gpus = int(os.environ['SM_NUM_GPUS'])
+
+    train(args.batch_size, args.epochs, args.learning_rate, args.momentum, args.log_interval, args.wd,
+          args.current_host, args.hosts, num_cpus, num_gpus, args.training_dir, args.model_dir)
 
 
 # ------------------------------------------------------------ #
