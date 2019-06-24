@@ -57,8 +57,8 @@ def _get_random_hyperparameter_values(hyperparameters):
     '''
     hps = {}
     for hp, definition in hyperparameters.items():
-        if isinstance(definition, (CategoricalParameter, IntegerParameter, 
-                                   ContinuousParameter, StaticParameter)):
+        if isinstance(definition, (CategoricalParameter, IntegerParameter,
+                                   ContinuousParameter)):
             hps[hp] = definition.get_value()
         else:
             hps[hp] = definition
@@ -73,7 +73,7 @@ def random_search(train_fn,
     '''
     Runs random search for hyperparameters.
     Takes in:
-        train_fn: A function that kicks off a training job based on two positional arguments- 
+        train_fn: A function that kicks off a training job based on two positional arguments-
             job name and hyperparameter dictionary.  Note, wait must be set to False if using .fit()
         hyperparameters: A dictonary of hyperparameters defined with hyperparameter classes.
         base_name: Base name for training jobs.  Defaults to 'random-hp-<timestamp>'.
@@ -115,7 +115,7 @@ def get_metrics(jobs, regex):
     Takes in:
         jobs: A dictionary where training job names are keys.
         regex: a regular expression string to parse the objective metric value.
-    Returns a dictionary of training job names as keys and corresponding list 
+    Returns a dictionary of training job names as keys and corresponding list
         which contains the objective metric from each log stream.
     '''
     job_metrics = {}
@@ -126,7 +126,7 @@ def get_metrics(jobs, regex):
         streams = [s['logStreamName'] for s in streams['logStreams']]
         stream_metrics = []
         for stream in streams:
-            events = client.get_log_events(logGroupName='/aws/sagemaker/TrainingJobs', 
+            events = client.get_log_events(logGroupName='/aws/sagemaker/TrainingJobs',
                                            logStreamName=stream)['events']
             message = [e['message'] for e in events]
             metrics = []
