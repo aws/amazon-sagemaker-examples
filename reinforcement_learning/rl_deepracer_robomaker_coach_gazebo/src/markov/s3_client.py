@@ -1,4 +1,5 @@
 import boto3
+import botocore
 import os
 import io
 import json
@@ -7,6 +8,10 @@ import time
 from google.protobuf import text_format
 from tensorflow.python.training.checkpoint_state_pb2 import CheckpointState
 
+import logging
+from markov import utils
+
+logger = utils.Logger(__name__, logging.INFO).get_logger()
 
 class SageS3Client():
     def __init__(self, bucket=None, s3_prefix=None, aws_region=None):
@@ -18,6 +23,7 @@ class SageS3Client():
         self.done_file_key = os.path.normpath(s3_prefix + "/ip/done")
         self.model_checkpoints_prefix = os.path.normpath(s3_prefix + "/model/") + "/"
         self.lock_file = ".lock"
+        logger.info("Initializing SageS3Client...")
 
     def get_client(self):
         session = boto3.session.Session()
@@ -50,10 +56,10 @@ class SageS3Client():
                                       self.bucket,
                                       "%s/%s/%s" % (self.s3_prefix, checkpoint_dir, filename))
                 num_files += 1
-        print("Uploaded %s model files to S3" % num_files)
 
     def download_model(self, checkpoint_dir):
         s3_client = self.get_client()
+        filename = "None"
         try:
             filename = os.path.abspath(os.path.join(checkpoint_dir, "checkpoint"))
             if not os.path.exists(checkpoint_dir):
@@ -70,7 +76,6 @@ class SageS3Client():
                                                 Key=self._get_s3_key("checkpoint"),
                                                 Filename=filename)
                     except Exception as e:
-                        print("Checkpoint not found. Waiting...")
                         time.sleep(2)
                         continue
                 else:
@@ -96,11 +101,12 @@ class SageS3Client():
                                                     Key=obj["Key"],
                                                     Filename=filename)
                             num_files += 1
-                        print("Downloaded %s model files from S3" % num_files)
                         return True
 
         except Exception as e:
-            raise ValueError("Got exception: %s\n while downloading checkpoint from S3" % e)
+            util.json_format_logger ("{} while downloading the model {} from S3".format(e, filename),
+                     **util.build_system_error_dict(utils.SIMAPP_S3_DATA_STORE_EXCEPTION, utils.SIMAPP_EVENT_ERROR_CODE_500))
+            return False
 
     def get_ip(self):
         s3_client = self.get_client()
@@ -111,7 +117,9 @@ class SageS3Client():
                 ip = json.load(f)["IP"]
             return ip
         except Exception as e:
-            raise RuntimeError("Cannot fetch IP of redis server running in SageMaker:", e)
+            utils.json_format_logger("Exception [{}] occured, Cannot fetch IP of redis server running in SageMaker. Job failed!".format(e),
+                        **utils.build_system_error_dict(utils.SIMAPP_S3_DATA_STORE_EXCEPTION, utils.SIMAPP_EVENT_ERROR_CODE_503))
+            sys.exit(1)
 
     def _wait_for_ip_upload(self, timeout=600):
         s3_client = self.get_client()
@@ -122,9 +130,12 @@ class SageS3Client():
                 time.sleep(1)
                 time_elapsed += 1
                 if time_elapsed % 5 == 0:
-                    print("Waiting for SageMaker Redis server IP... Time elapsed: %s seconds" % time_elapsed)
+                    logger.info ("Waiting for SageMaker Redis server IP... Time elapsed: %s seconds" % time_elapsed)
                 if time_elapsed >= timeout:
-                    raise RuntimeError("Cannot retrieve IP of redis server running in SageMaker")
+                    #raise RuntimeError("Cannot retrieve IP of redis server running in SageMaker")
+                    utils.json_format_logger("Cannot retrieve IP of redis server running in SageMaker. Job failed!",
+                        **utils.build_system_error_dict(utils.SIMAPP_S3_DATA_STORE_EXCEPTION, utils.SIMAPP_EVENT_ERROR_CODE_503))
+                    sys.exit(1)
             else:
                 return
 
@@ -133,7 +144,18 @@ class SageS3Client():
         try:
             s3_client.download_file(self.bucket, s3_key, local_path)
             return True
+        except botocore.exceptions.ClientError as e:
+            if e.response['Error']['Code'] == "404":
+                logger.info("Exception [{}] occured on download file-{} from s3 bucket-{} key-{}".format(e.response['Error'], local_path, self.bucket, s3_key))
+                return False
+            else:
+                utils.json_format_logger("boto client exception error [{}] occured on download file-{} from s3 bucket-{} key-{}"
+                            .format(e.response['Error'], local_path, self.bucket, s3_key),
+                            **utils.build_user_error_dict(utils.SIMAPP_S3_DATA_STORE_EXCEPTION, utils.SIMAPP_EVENT_ERROR_CODE_401))
+                return False
         except Exception as e:
+            utils.json_format_logger("Exception [{}] occcured on download file-{} from s3 bucket-{} key-{}".format(e, local_path, self.bucket, s3_key),
+                        **utils.build_user_error_dict(utils.SIMAPP_S3_DATA_STORE_EXCEPTION, utils.SIMAPP_EVENT_ERROR_CODE_401))
             return False
 
     def upload_file(self, s3_key, local_path):
@@ -144,4 +166,6 @@ class SageS3Client():
                                   Key=s3_key)
             return True
         except Exception as e:
+            utils.json_format_logger("{} on upload file-{} to s3 bucket-{} key-{}".format(e, local_path, self.bucket, s3_key),
+                        **utils.build_system_error_dict(utils.SIMAPP_S3_DATA_STORE_EXCEPTION, utils.SIMAPP_EVENT_ERROR_CODE_500))
             return False
