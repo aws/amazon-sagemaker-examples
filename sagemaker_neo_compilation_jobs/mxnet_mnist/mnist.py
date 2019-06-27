@@ -8,8 +8,6 @@ import struct
 import mxnet as mx
 import numpy as np
 
-from sagemaker_mxnet_container.training_utils import scheduler_host
-
 
 def load_data(path):
     with gzip.open(find_file(path, "labels.gz")) as flbl:
@@ -79,7 +77,7 @@ def train(batch_size, epochs, learning_rate, num_gpus, training_channel, testing
                   batch_end_callback=mx.callback.Speedometer(batch_size, 100),
                   num_epoch=epochs)
 
-    if current_host == scheduler_host(hosts):
+    if current_host == hosts[0]:
         save(model_dir, mlp_model)
 
 
