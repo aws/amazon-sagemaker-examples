@@ -1,4 +1,4 @@
-class ScikitArnProvider:
+class AlgorithmArnProvider:
     
     @staticmethod
     def get_algorithm_arn(current_region):

@@ -1,5 +1,5 @@
 
-class ScikitArnProvider:
+class ModelPackageArnProvider:
     
     @staticmethod
     def get_vehicle_damage_detection_model_package_arn(current_region):
