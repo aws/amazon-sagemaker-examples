@@ -76,15 +76,7 @@ COPY src/lib/ppo_head.py /usr/local/lib/python3.5/dist-packages/rl_coach/archite
 # Get the sagemaker-containers library.  At some point it'll be as easy as...
 RUN pip install sagemaker-containers
 
-# But for now we need a custom one so...
-#COPY lib/custom-sagemaker-containers.sh /tmp/custom-sagemaker-containers.sh
-#RUN /tmp/custom-sagemaker-containers.sh
-# This (SAGEMAKER_TRAINING_MODULE bootstrap) will go away with future version of sagemaker-containers
-#ENV SAGEMAKER_TRAINING_MODULE sagemaker_bootstrap:train
-
 # Copy in all the code and make it available on the path
-#COPY lib/sagemaker_bootstrap.py /opt/ml/code/sagemaker_bootstrap.py
-#COPY lib/sage-train.sh /opt/ml/code/sage-train.sh
 COPY src/lib/redis.conf /etc/redis/redis.conf
 ENV PYTHONPATH /opt/amazon/:$PYTHONPATH
 ENV PATH /opt/ml/code/:$PATH

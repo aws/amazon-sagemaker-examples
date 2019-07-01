@@ -11,6 +11,13 @@
 # ANY KIND, either express or implied. See the License for the specific
 # language governing permissions and limitations under the License.
 
+def generate_s3_write_permission_for_sagemaker_role(role):
+    role_name = role.split("/")[-1]
+    url = "https://console.aws.amazon.com/iam/home#/roles/%s" % role_name
+    text = "1. Go to IAM console to edit current SageMaker role: [%s](%s).\n" % (role_name, url)
+    text += "2. Next, go to the `Permissions tab` and click on `Attach Policy.` \n"
+    text += "3. Search and select `AmazonS3FullAccess` policy\n"
+    return text
 
 def generate_help_for_s3_endpoint_permissions(role):
     role_name = role.split("/")[-1]
