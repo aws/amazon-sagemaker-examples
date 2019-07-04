@@ -146,7 +146,7 @@ These examples show how to use Amazon SageMaker for model training, hosting, and
 
 #### Create algorithms/model packages for listing in AWS Marketplace for machine learning.
 
-This examples shows you how to package a model-package/algorithm for listing in AWS Markteplace for machine learning.
+This example shows you how to package a model-package/algorithm for listing in AWS Markteplace for machine learning.
 
 - [Creating Algorithm and Model Package - Listing on AWS Marketplace](aws_marketplace/creating_marketplace_products) provides a detailed walkthrough on how to package a scikit learn algorithm to create SageMaker Algorithm and SageMaker Model Package entities that can be used with the enhanced SageMaker Train/Transform/Hosting/Tuning APIs and listed on AWS Marketplace.
 
@@ -154,8 +154,13 @@ This examples shows you how to package a model-package/algorithm for listing in 
 
 These examples show you how to use model-packages and algorithms from AWS Markteplace for machine learning.
 
-- [Using Algorithm From AWS Marketplace](aws_marketplace/using_algorithms/amazon_demo_product) provides a detailed walkthrough on how to use Algorithm with the enhanced SageMaker Train/Transform/Hosting/Tuning APIs by choosing a canonical product listed on AWS Marketplace.
-- [Using Model Package From AWS Marketplace](aws_marketplace/using_model_packages/amazon_demo_product) provides a detailed walkthrough on how to use Model Package entities with the enhanced SageMaker Transform/Hosting APIs by choosing a canonical product listed on AWS Marketplace.
+- [Using Algorithms](aws_marketplace/using_algorithms)
+	- [Using Algorithm From AWS Marketplace](aws_marketplace/using_algorithms/amazon_demo_product) provides a detailed walkthrough on how to use Algorithm with the enhanced SageMaker Train/Transform/Hosting/Tuning APIs by choosing a canonical product listed on AWS Marketplace.
+	- [Using AutoML algorithm](aws_marketplace/using_algorithms/automl) provides a detailed walkthrough on how to use AutoML algorithm from AWS Marketplace.
+
+- [Using Model Packages](aws_marketplace/using_model_packages)
+	- [Using Model Packages From AWS Marketplace](aws_marketplace/using_model_packages/amazon_demo_product) provides a detailed walkthrough on how to use Model Package entities with the enhanced SageMaker Transform/Hosting APIs by choosing a canonical product listed on AWS Marketplace.
+	- [Using models for extracting vehicle metadata](aws_marketplace/using_model_packages/auto_insurance) provides a detailed walkthrough on how to use pre-trained models from AWS Marketplace for extracting metadata for a sample use-case of auto-insurance claim processing.
 
 
 ### Under Development
