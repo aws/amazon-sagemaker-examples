@@ -42,6 +42,6 @@ for job in running_jobs['TrainingJobSummaries']:
             logdir = logdir + ","+name+":" + tensorboardDir
             
 if logdir:
-    print("tensorboard --logdir " + logdir)
+    print("AWS_REGION="+boto3.session.Session().region_name+" tensorboard --logdir " + logdir)
 else:
     print("No jobs are in progress")
