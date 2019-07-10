@@ -105,11 +105,6 @@ def keras_model_fn(learning_rate, weight_decay, optimizer, momentum, mpi=False, 
     return model
 
 
-class CustomTensorBoardCallback(TensorBoard):
-    def on_batch_end(self, batch, logs=None):
-        pass
-
-
 def get_filenames(channel_name, channel):
     if channel_name in ['train', 'validation', 'eval']:
         return [os.path.join(channel, channel_name + '.tfrecords')]
@@ -202,7 +197,18 @@ def _dataset_parser(value):
 
 
 def save_model(model, output):
-    model.save(output+'/model.h5')
+    signature = tf.saved_model.signature_def_utils.predict_signature_def(
+        inputs={'image': model.input}, outputs={'scores': model.output})
+
+    builder = tf.saved_model.builder.SavedModelBuilder(output+'/1/')
+    builder.add_meta_graph_and_variables(
+        sess=K.get_session(),
+        tags=[tf.saved_model.tag_constants.SERVING],
+        signature_def_map={
+            tf.saved_model.signature_constants.DEFAULT_SERVING_SIGNATURE_DEF_KEY:
+                signature
+        })
+    builder.save()
     logging.info("Model successfully saved at: {}".format(output))
     return
 
@@ -245,10 +251,11 @@ def main(args):
         callbacks.append(keras.callbacks.ReduceLROnPlateau(patience=10, verbose=1))
         if hvd.rank() == 0:
             callbacks.append(ModelCheckpoint(args.output_dir + '/checkpoint-{epoch}.h5'))
-            callbacks.append(CustomTensorBoardCallback(log_dir=tensorboard_dir))
+            callbacks.append(TensorBoard(log_dir=tensorboard_dir, update_freq='epoch'))
     else:
+        callbacks.append(keras.callbacks.ReduceLROnPlateau(patience=10, verbose=1))
         callbacks.append(ModelCheckpoint(args.output_dir + '/checkpoint-{epoch}.h5'))
-        callbacks.append(CustomTensorBoardCallback(log_dir=tensorboard_dir))
+        callbacks.append(TensorBoard(log_dir=tensorboard_dir, update_freq='epoch'))
     logging.info("Starting training")
     size = 1
     if mpi:
@@ -267,9 +274,9 @@ def main(args):
     # Horovod: Save model only on worker 0 (i.e. master)
     if mpi:
         if hvd.rank() == 0:
-            return save_model(model, args.model_output_dir)
+            save_model(model, args.model_output_dir)
     else:
-        return save_model(model, args.model_output_dir)
+        save_model(model, args.model_output_dir)
 
 
 def num_examples_per_epoch(subset='train'):
