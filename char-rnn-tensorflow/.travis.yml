@@ -1,0 +1,44 @@
+dist: trusty
+
+language: python
+
+python:
+ - 2.7
+ - 3.6
+ - 3.5
+ - 3.4
+
+# Use container-based infrastructure
+sudo: false
+
+install:
+ - pip install -U pip
+ - pip install pyflakes
+ - pip install coverage
+ - pip install tensorflow
+
+ # Make a smaller input file. Output won't look great, but runs much quicker.
+ - mkdir data/teenytinyshakespeare
+ - head -100 data/tinyshakespeare/input.txt > data/teenytinyshakespeare/input.txt
+
+script:
+ - pyflakes .
+ - coverage erase
+ - export NUM_EPOCHS=15
+ - export SAVE_DIR_FIRST=$(mktemp -d)
+ - export SAVE_DIR_SECOND=$(mktemp -d)
+ - export LOG_DIR=$(mktemp -d)
+ - export SAMPLE_FILE=$(mktemp)
+ - coverage run --append --include=./* train.py --data_dir data/teenytinyshakespeare --save_dir $SAVE_DIR_FIRST --log_dir $LOG_DIR --num_epochs $NUM_EPOCHS;test -s $SAVE_DIR_FIRST/model.ckpt-$(( $NUM_EPOCHS - 1)).index
+ - coverage run --append --include=./* train.py --data_dir data/teenytinyshakespeare --init_from $SAVE_DIR_FIRST --save_dir $SAVE_DIR_SECOND --log_dir $LOG_DIR --num_epochs $NUM_EPOCHS;test -s $SAVE_DIR_SECOND/model.ckpt-$(( $NUM_EPOCHS - 1)).index
+ - coverage run --append --include=./* sample.py --save_dir $SAVE_DIR_SECOND | tee $SAMPLE_FILE;test -s $SAMPLE_FILE
+
+after_script:
+ - pip install pycodestyle
+ - pycodestyle --statistics --count .
+ - pip freeze
+
+after_success:
+ - coverage report
+ - pip install coveralls
+ - coveralls
