@@ -1,7 +1,10 @@
 import io
 import os
+import sys
 import time
 import json
+import logging
+import traceback
 
 import boto3
 from google.protobuf import text_format
@@ -10,14 +13,16 @@ from tensorflow.python.training.checkpoint_state_pb2 import CheckpointState
 from rl_coach.data_stores.data_store import DataStore, DataStoreParameters, SyncFiles
 from markov import utils
 
+logger = utils.Logger(__name__, logging.INFO).get_logger()
+
 CHECKPOINT_METADATA_FILENAME = "checkpoint"
 SLEEP_TIME_WHILE_WAITING_FOR_DATA_FROM_TRAINER_IN_SECOND = 1
 IP_KEY = "IP"
 
 
 class S3BotoDataStoreParameters(DataStoreParameters):
-    def __init__(self, bucket_name: str = None, s3_folder: str = None,
-                 checkpoint_dir: str = None, aws_region=None):
+    def __init__(self, aws_region: str = "us-west-2", bucket_name: str = None, s3_folder: str = None,
+                 checkpoint_dir: str = None):
         super().__init__("s3", "", "")
         self.aws_region = aws_region
         self.bucket = bucket_name
@@ -83,7 +88,7 @@ class S3BotoDataStore(DataStore):
                         checkpoint_file = (root, filename)
                         continue
 
-                    if not filename.startswith(str(checkpoint_number) + "_"):
+                    if not filename.startswith(str(checkpoint_number)):
                         continue
 
                     # Upload all the other files from the checkpoint directory
@@ -93,7 +98,7 @@ class S3BotoDataStore(DataStore):
                                           Bucket=self.params.bucket,
                                           Key=self._get_s3_key(rel_name))
                     num_files_uploaded += 1
-            print("Uploaded %s files for checkpoint %s" % (num_files_uploaded, checkpoint_number))
+            logger.info("Uploaded {} files for checkpoint {}".format(num_files_uploaded, checkpoint_number))
 
             # After all the checkpoint files have been uploaded, we upload the version file.
             abs_name = os.path.abspath(os.path.join(checkpoint_file[0], checkpoint_file[1]))
@@ -108,8 +113,15 @@ class S3BotoDataStore(DataStore):
             # Upload the frozen graph which is used for deployment
             if self.graph_manager:
                 utils.write_frozen_graph(self.graph_manager)
+                # upload the model_<ID>.pb to S3. NOTE: there's no cleanup as we don't know the best checkpoint
+                iteration_id = self.graph_manager.level_managers[0].agents['agent'].training_iteration
+                frozen_graph_fpath = utils.SM_MODEL_OUTPUT_DIR + "/model.pb"
+                frozen_graph_s3_name = "model_%s.pb" % iteration_id
+                s3_client.upload_file(Filename=frozen_graph_fpath,
+                                  Bucket=self.params.bucket,
+                                  Key=self._get_s3_key(frozen_graph_s3_name))
+                logger.info("saved intermediate frozen graph: {}".format(self._get_s3_key(frozen_graph_s3_name)))
 
-            print("Trying to clean up old checkpoints.")
             # Clean up old checkpoints
             checkpoint = self._get_current_checkpoint()
             if checkpoint:
@@ -125,11 +137,9 @@ class S3BotoDataStore(DataStore):
                         s3_client.delete_object(Bucket=self.params.bucket,
                                                 Key=obj["Key"])
                         num_files += 1
-
-                    print("Deleted %s old model files from S3" % num_files)
-                else:
-                    print("Cleanup was not required.")
         except Exception as e:
+            utils.json_format_logger("Exception [{}] occured while uploading files on S3 for checkpoint".format(e),
+                      **utils.build_system_error_dict(utils.SIMAPP_S3_DATA_STORE_EXCEPTION, utils.SIMAPP_EVENT_ERROR_CODE_500))
             raise e
 
     def load_from_store(self, expected_checkpoint_number=-1):
@@ -162,7 +172,6 @@ class S3BotoDataStore(DataStore):
                                                 Key=self._get_s3_key(CHECKPOINT_METADATA_FILENAME),
                                                 Filename=filename)
                     except Exception as e:
-                        print("Could not retrieve model checkpoint from S3. Will retry after some time.")
                         time.sleep(SLEEP_TIME_WHILE_WAITING_FOR_DATA_FROM_TRAINER_IN_SECOND)
                         continue
                 else:
@@ -176,7 +185,7 @@ class S3BotoDataStore(DataStore):
                     # if we get a checkpoint that is older that the expected checkpoint, we wait for
                     #  the new checkpoint to arrive.
                     if checkpoint_number < expected_checkpoint_number:
-                        print("Expecting checkpoint >= %s. Waiting." % expected_checkpoint_number)
+                        logger.info("Expecting checkpoint >= %s. Waiting." % expected_checkpoint_number)
                         time.sleep(SLEEP_TIME_WHILE_WAITING_FOR_DATA_FROM_TRAINER_IN_SECOND)
                         continue
 
@@ -194,12 +203,13 @@ class S3BotoDataStore(DataStore):
                                                     Key=obj["Key"],
                                                     Filename=filename)
                             num_files += 1
-                        print("Downloaded %s model files from S3" % num_files)
                         return True
 
         except Exception as e:
-            print("Got exception while loading model from S3", e)
-            raise e
+            utils.json_format_logger("Exception [{}] occured while loading checkpoint from S3. Job failed!".format(e),
+                                     **utils.build_system_error_dict(utils.SIMAPP_S3_DATA_STORE_EXCEPTION, utils.SIMAPP_EVENT_ERROR_CODE_503))
+            traceback.print_exc()
+            sys.exit(1)
 
     def store_ip(self, ip_address):
         s3_client = self._get_client()
@@ -209,17 +219,6 @@ class S3BotoDataStore(DataStore):
         ip_done_file_object = io.BytesIO(b'done')
         s3_client.upload_fileobj(ip_data_file_object, self.params.bucket, self.ip_data_key)
         s3_client.upload_fileobj(ip_done_file_object, self.params.bucket, self.ip_done_key)
-
-    def get_ip(self):
-        self._wait_for_ip_upload()
-        s3_client = self._get_client()
-        try:
-            s3_client.download_file(self.params.bucket, self.ip_data_key, 'ip.json')
-            with open("ip.json") as f:
-                ip_address = json.load(f)[IP_KEY]
-            return ip_address
-        except Exception as e:
-            raise RuntimeError("Cannot fetch IP of redis server running in SageMaker:", e)
 
     def download_preset_if_present(self, local_path):
         s3_client = self._get_client()
@@ -237,25 +236,6 @@ class S3BotoDataStore(DataStore):
     def get_current_checkpoint_number(self):
         return self._get_checkpoint_number(self._get_current_checkpoint())
 
-    def _wait_for_ip_upload(self, timeout_in_second=600):
-        start_time = time.time()
-        s3_client = self._get_client()
-        while True:
-            response = s3_client.list_objects(Bucket=self.params.bucket, Prefix=self.ip_done_key)
-            if "Contents" not in response:
-                time.sleep(SLEEP_TIME_WHILE_WAITING_FOR_DATA_FROM_TRAINER_IN_SECOND)
-
-                time_elapsed_in_second = time.time() - start_time
-                if time_elapsed_in_second % 5 == 0:
-                    print("Waiting for SageMaker Redis server IP... Time elapsed: %s seconds" % time_elapsed_in_second)
-                if time_elapsed_in_second % 300 == 0:
-                    # Recreate the client with new credential every 5 minutes
-                    s3_client = self._get_client()
-                if time_elapsed_in_second >= timeout_in_second:
-                    raise RuntimeError("Cannot retrieve IP of redis server running in SageMaker")
-            else:
-                break
-
     def _get_current_checkpoint(self):
         try:
             checkpoint_metadata_filepath = os.path.abspath(
@@ -268,7 +248,8 @@ class S3BotoDataStore(DataStore):
             text_format.Merge(contents, checkpoint)
             return checkpoint
         except Exception as e:
-            print("Got exception while reading checkpoint metadata", e)
+            utils.json_format_logger("Exception[{}] occured while reading checkpoint metadata".format(e),
+                                     **utils.build_system_error_dict(utils.SIMAPP_S3_DATA_STORE_EXCEPTION, utils.SIMAPP_EVENT_ERROR_CODE_500))
             raise e
 
     def _get_checkpoint_number(self, checkpoint):
