@@ -10,9 +10,6 @@ This notebook `Imageclassification-lst-format.ipynb` demos an end-2-end system f
 ### SageMaker Image classification full training highlevel
 This notebook `ImageClassification-fulltraining-highlevel.ipynb` is similar to the `ImageClassification-fulltraining.ipynb` but using Sagemaker high-level APIs
 
-### SageMaker Image classification full training highlevel with Neo
-This notebook `ImageClassification-fulltraining-highlevel-neo.ipynb` is similar to the `ImageClassification-fulltraining.ipynb` but using Sagemaker high-level APIs(including Neo)
-
 ### SageMaker Image classification transfer learning highlevel
 This notebook `Imageclassification-transfer-learning-highlevel.ipynb` is similar to the `ImageClassification-transfer-learning.ipynb` but using Sagemaker high-level APIs
 

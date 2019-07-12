@@ -43,7 +43,7 @@ def _get_train_data_loader(batch_size, training_dir, is_distributed, **kwargs):
     dataset = datasets.MNIST(training_dir, train=True, transform=transforms.Compose([
         transforms.ToTensor(),
         transforms.Normalize((0.1307,), (0.3081,))
-    ]))
+    ]), download=True)
     train_sampler = torch.utils.data.distributed.DistributedSampler(dataset) if is_distributed else None
     return torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=train_sampler is None,
                                        sampler=train_sampler, **kwargs)
@@ -55,7 +55,7 @@ def _get_test_data_loader(test_batch_size, training_dir, **kwargs):
         datasets.MNIST(training_dir, train=False, transform=transforms.Compose([
             transforms.ToTensor(),
             transforms.Normalize((0.1307,), (0.3081,))
-        ])),
+        ]), download=True),
         batch_size=test_batch_size, shuffle=True, **kwargs)
 
 
