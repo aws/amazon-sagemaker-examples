@@ -15,9 +15,6 @@ import base64
 import io
 import json
 import requests
-import tensorflow as tf
-from google.protobuf.json_format import MessageToDict
-from string import whitespace
 
 def input_handler(data, context):
     """ Pre-process request input before it is sent to TensorFlow Serving REST API
@@ -30,12 +27,9 @@ def input_handler(data, context):
         (dict): a JSON-serializable dict that contains request body and headers
     """
 
-    if context.request_content_type == 'application/x-tfexample':
+    if context.request_content_type == 'application/x-image':
         payload = data.read()
-        example = tf.train.Example()
-        example.ParseFromString(payload)
-        example_feature = MessageToDict(example.features)['feature']
-        encoded_image = example_feature['image/encoded']['bytesList']['value'][0]
+        encoded_image = base64.b64encode(payload).decode('utf-8')
         instance = [{"b64": encoded_image}]
         return json.dumps({"instances": instance})
     else:
@@ -46,7 +40,7 @@ def output_handler(response, context):
     """Post-process TensorFlow Serving output before it is returned to the client.
 
     Args:
-        data (obj): the TensorFlow serving response
+        response (obj): the TensorFlow serving response
         context (Context): an object containing request and configuration details
 
     Returns:
@@ -55,8 +49,7 @@ def output_handler(response, context):
     if response.status_code != 200:
         _return_error(response.status_code, response.content.decode('utf-8'))
     response_content_type = context.accept_header
-    # Remove whitespace from output JSON string.
-    prediction = response.content.decode('utf-8').translate(dict.fromkeys(map(ord,whitespace)))
+    prediction = response.content
     return prediction, response_content_type
 
 
