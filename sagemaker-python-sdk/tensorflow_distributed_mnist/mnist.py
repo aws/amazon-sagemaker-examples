@@ -123,15 +123,21 @@ def _input_fn(training_dir, training_filename, batch_size=100):
 def neo_preprocess(payload, content_type):
     import logging
     import numpy as np
+    import PIL.Image   # Training container doesn't have this package
     import io
 
     logging.info('Invoking user-defined pre-processing function')
 
-    if content_type != 'application/x-image' and content_type != 'application/vnd+python.numpy+binary':
-        raise RuntimeError('Content type must be application/x-image or application/vnd+python.numpy+binary')
+    if content_type != 'application/x-image':
+        raise RuntimeError('Content type must be application/x-image')
     
     f = io.BytesIO(payload)
-    image = np.load(f)*255
+    # Load image and convert to greyscale space
+    image = PIL.Image.open(f).convert('L')
+    # Resize
+    image = np.asarray(image.resize((28, 28)))
+    # Reshape
+    image = image.reshape((1,-1)).astype('float32')
 
     return image
 
