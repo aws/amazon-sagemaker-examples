@@ -72,9 +72,6 @@ def transformation():
 
     print('Invoked with {} records'.format(data.shape[0]))
 
-    # Drop first column, since sample notebook uses training data to show case predictions
-    data.drop(data.columns[[0]],axis=1,inplace=True)
-
     # Do the prediction
     predictions = ScoringService.predict(data)
 
