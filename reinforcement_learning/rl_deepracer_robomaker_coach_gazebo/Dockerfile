@@ -52,17 +52,20 @@ RUN pip install \
     Pillow==4.3.0 \
     matplotlib==2.0.2 \
     numpy==1.14.0 \
-    pandas==0.20.2 \
+    pandas==0.22.0 \
     pygame==1.9.3 \
     PyOpenGL==3.1.0 \
     scipy==1.2.1 \
     scikit-image==0.13.0 \
     gym==0.10.5 \
-    rl-coach-slim==0.11.1 \
     retrying \
     eventlet \
     boto3 \
-    minio==4.0.5
+    minio==4.0.5 \
+    futures==3.1.1
+
+#Install rl coach
+RUN pip install rl-coach-slim==0.11.1
 
 RUN pip install kubernetes
 
