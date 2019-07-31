@@ -1,9 +1,5 @@
-# As part of the transform, we need to pull this image from ECR instead of DockerHub. 
-# This is a static image of Ubuntu 16.04, maintained by the silverstone-dev team. It is maintained 
-# in the Alpha AWS account, as that is where BATS builds are configured to take place.
-# 
-# See the following for more information on BATS DockerImage:
-# https://w.amazon.com/index.php/BuilderTools/PackagingTeam/Products/BATS/Transformers/DockerImage
+#
+# This is the custom docker image used in the sagemaker container
 #
 
 FROM ubuntu:16.04
