@@ -53,6 +53,8 @@ def train(batch_size, epochs, learning_rate, num_gpus, training_channel, testing
           hosts, current_host, model_dir):
     (train_labels, train_images) = load_data(training_channel)
     (test_labels, test_images) = load_data(testing_channel)
+    if not os.path.exists('/opt/ml/checkpoints'):
+        os.makedirs('/opt/ml/checkpoints')
 
     # Data parallel training - shard the data so each host
     # only trains on a subset of the total data.
@@ -73,12 +75,17 @@ def train(batch_size, epochs, learning_rate, num_gpus, training_channel, testing
 
     mlp_model = mx.mod.Module(symbol=build_graph(),
                               context=get_training_context(num_gpus))
+    checkpoint_callback = mx.callback.module_checkpoint(mlp_model,
+                                                        "/opt/ml/checkpoints/mnist",
+                                                        period=1,
+                                                        save_optimizer_states=True)
     mlp_model.fit(train_iter,
                   eval_data=val_iter,
                   kvstore=kvstore,
                   optimizer='sgd',
                   optimizer_params={'learning_rate': learning_rate},
                   eval_metric='acc',
+                  epoch_end_callback  = checkpoint_callback,
                   batch_end_callback=mx.callback.Speedometer(batch_size, 100),
                   num_epoch=epochs)
 
