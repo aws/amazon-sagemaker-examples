@@ -75,6 +75,7 @@ def train(batch_size, epochs, learning_rate, num_gpus, training_channel, testing
 
     mlp_model = mx.mod.Module(symbol=build_graph(),
                               context=get_training_context(num_gpus))
+    # Create a checkpoint callback that checkpoints the model params and the optimizer state after every epoch at the given path.
     checkpoint_callback = mx.callback.module_checkpoint(mlp_model,
                                                         "/opt/ml/checkpoints/mnist",
                                                         period=1,
