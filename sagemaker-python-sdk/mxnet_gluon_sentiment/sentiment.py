@@ -50,6 +50,8 @@ def train(current_host, hosts, num_cpus, num_gpus, training_dir, model_dir,
             start = shard_size * i
             end = start + shard_size
             break
+    if not os.path.exists('/opt/ml/checkpoints'):
+        os.makedirs('/opt/ml/checkpoints')
 
     train_iterator = BucketSentenceIter(train_sentences[start:end], train_labels[start:end], batch_size)
     val_iterator = BucketSentenceIter(val_sentences, val_labels, batch_size)
@@ -65,7 +67,9 @@ def train(current_host, hosts, num_cpus, num_gpus, training_dir, model_dir,
                             kvstore=kvstore)
     metric = mx.metric.Accuracy()
     loss = gluon.loss.SoftmaxCrossEntropyLoss()
+    net.hybridize()
 
+    best_acc_score = 0.0
     for epoch in range(epochs):
         # reset data iterator and metric at begining of epoch.
         metric.reset()
