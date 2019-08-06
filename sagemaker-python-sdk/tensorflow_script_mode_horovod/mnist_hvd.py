@@ -138,5 +138,4 @@ if __name__ == '__main__':
 
     # Horovod: Save model only on worker 0 (i.e. master)
     if hvd.rank() == 0:
-        saved_model_path = tf.contrib.saved_model.save_keras_model(model, args.model_dir)
-        print("Model successfully saved at: {}".format(saved_model_path))
+        model.save(os.path.join(args.model_dir, 'model.h5'))
