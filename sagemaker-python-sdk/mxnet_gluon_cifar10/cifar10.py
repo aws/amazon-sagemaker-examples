@@ -45,8 +45,9 @@ def train(current_host, hosts, num_cpus, num_gpus, channel_input_dirs, model_dir
 
 
     data_dir = channel_input_dirs['training']
-    if not os.path.exists('/opt/ml/checkpoints'):
-        os.makedirs('/opt/ml/checkpoints')
+    CHECKPOINTS_DIR = '/opt/ml/checkpoints'
+    if not os.path.exists(CHECKPOINTS_DIR):
+        os.makedirs(CHECKPOINTS_DIR)
     train_data = get_train_data(num_cpus, data_dir, batch_size, (3, 32, 32),
                                 num_parts=len(hosts), part_index=part_index)
     test_data = get_test_data(num_cpus, data_dir, batch_size, (3, 32, 32))
@@ -102,11 +103,10 @@ def train(current_host, hosts, num_cpus, num_gpus, channel_input_dirs, model_dir
         # only save params on primary host
         if current_host == hosts[0]:
             if val_acc > best_accuracy:
-                net.save_params('{}/model-{:0>4}.params'.format(model_dir, epoch))
                 best_accuracy = val_acc
-                logging.info('Saving the model, params and optimizer state in the path /opt/ml/checkpoints')
-                net.export("/opt/ml/checkpoints/gluon_mnist", epoch)
-                trainer.save_states('/opt/ml/checkpoints/gluon_mnist-%.4f.states'%(epoch))
+                logging.info('Saving the model, params and optimizer state')
+                net.export(CHECKPOINTS_DIR + "/gluon_mnist", epoch)
+                trainer.save_states(CHECKPOINTS_DIR + '/gluon_mnist-%.4f.states'%(epoch))
 
     return net
 

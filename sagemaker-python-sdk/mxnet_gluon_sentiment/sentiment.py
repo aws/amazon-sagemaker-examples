@@ -50,8 +50,9 @@ def train(current_host, hosts, num_cpus, num_gpus, training_dir, model_dir,
             start = shard_size * i
             end = start + shard_size
             break
-    if not os.path.exists('/opt/ml/checkpoints'):
-        os.makedirs('/opt/ml/checkpoints')
+    CHECKPOINTS_DIR = "/opt/ml/checkpoints"
+    if not os.path.exists(CHECKPOINTS_DIR):
+        os.makedirs(CHECKPOINTS_DIR)
 
     train_iterator = BucketSentenceIter(train_sentences[start:end], train_labels[start:end], batch_size)
     val_iterator = BucketSentenceIter(val_sentences, val_labels, batch_size)
@@ -104,6 +105,11 @@ def train(current_host, hosts, num_cpus, num_gpus, training_dir, model_dir,
 
         name, val_acc = test(ctx, net, val_iterator)
         print('[Epoch %d] Validation: %s=%f' % (epoch, name, val_acc))
+        if val_acc > best_acc_score:
+            best_acc_score = val_acc
+            logging.info('Saving the model, params and optimizer state.')
+            net.export(CHECKPOINTS_DIR + "/gluon_mnist", epoch)
+            trainer.save_states(CHECKPOINTS_DIR + '/gluon_mnist-%.4f.states'%(epoch))
         train_iterator.reset()
     return net, vocab
 
