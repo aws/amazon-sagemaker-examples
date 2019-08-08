@@ -108,8 +108,8 @@ def train(current_host, hosts, num_cpus, num_gpus, training_dir, model_dir,
         if val_acc > best_acc_score:
             best_acc_score = val_acc
             logging.info('Saving the model, params and optimizer state.')
-            net.export(CHECKPOINTS_DIR + "/gluon_mnist", epoch)
-            trainer.save_states(CHECKPOINTS_DIR + '/gluon_mnist-%.4f.states'%(epoch))
+            net.export(CHECKPOINTS_DIR + "/%.4f-gluon_sentiment"%(best_acc_score), epoch)
+            trainer.save_states(CHECKPOINTS_DIR + '/%.4f-gluon_sentiment-%d.states'%(best_acc_score, epoch))
         train_iterator.reset()
     return net, vocab
 

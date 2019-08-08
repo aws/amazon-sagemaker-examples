@@ -105,8 +105,8 @@ def train(current_host, hosts, num_cpus, num_gpus, channel_input_dirs, model_dir
             if val_acc > best_accuracy:
                 best_accuracy = val_acc
                 logging.info('Saving the model, params and optimizer state')
-                net.export(CHECKPOINTS_DIR + "/gluon_mnist", epoch)
-                trainer.save_states(CHECKPOINTS_DIR + '/gluon_mnist-%.4f.states'%(epoch))
+                net.export(CHECKPOINTS_DIR + "/%.4f-cifar10"%(best_accuracy), epoch)
+                trainer.save_states(CHECKPOINTS_DIR + '/%.4f-cifar10-%d.states'%(best_accuracy, epoch))
 
     return net
 

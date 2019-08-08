@@ -115,8 +115,8 @@ def train(args):
         if val_acc > best_val_score:
             best_val_score = val_acc
             logging.info('Saving the model, params and optimizer state.')
-            net.export(CHECKPOINTS_DIR + "/gluon_mnist", epoch)
-            trainer.save_states(CHECKPOINTS_DIR + '/gluon_mnist-%.4f.states'%(epoch))
+            net.export(CHECKPOINTS_DIR + "/%.4f-gluon_mnist"%(best_val_score), epoch)
+            trainer.save_states(CHECKPOINTS_DIR + '/%.4f-gluon_mnist-%d.states'%(best_val_score, epoch))
 
     if current_host == hosts[0]:
         save(net, model_dir)
