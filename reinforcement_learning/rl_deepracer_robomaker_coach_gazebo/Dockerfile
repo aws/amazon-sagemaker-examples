@@ -1,9 +1,5 @@
-# As part of the transform, we need to pull this image from ECR instead of DockerHub. 
-# This is a static image of Ubuntu 16.04, maintained by the silverstone-dev team. It is maintained 
-# in the Alpha AWS account, as that is where BATS builds are configured to take place.
-# 
-# See the following for more information on BATS DockerImage:
-# https://w.amazon.com/index.php/BuilderTools/PackagingTeam/Products/BATS/Transformers/DockerImage
+#
+# This is the custom docker image used in the sagemaker container
 #
 
 FROM ubuntu:16.04
@@ -52,17 +48,20 @@ RUN pip install \
     Pillow==4.3.0 \
     matplotlib==2.0.2 \
     numpy==1.14.0 \
-    pandas==0.20.2 \
+    pandas==0.22.0 \
     pygame==1.9.3 \
     PyOpenGL==3.1.0 \
     scipy==1.2.1 \
     scikit-image==0.13.0 \
     gym==0.10.5 \
-    rl-coach-slim==0.11.1 \
     retrying \
     eventlet \
     boto3 \
-    minio==4.0.5
+    minio==4.0.5 \
+    futures==3.1.1
+
+#Install rl coach
+RUN pip install rl-coach-slim==0.11.1
 
 RUN pip install kubernetes
 
