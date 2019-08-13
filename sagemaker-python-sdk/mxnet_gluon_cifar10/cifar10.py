@@ -46,8 +46,9 @@ def train(current_host, hosts, num_cpus, num_gpus, channel_input_dirs, model_dir
 
     data_dir = channel_input_dirs['training']
     CHECKPOINTS_DIR = '/opt/ml/checkpoints'
-    if not os.path.exists(CHECKPOINTS_DIR):
-        os.makedirs(CHECKPOINTS_DIR)
+    checkpoints_enabled = False
+    if os.path.exists(CHECKPOINTS_DIR):
+        checkpoints_enabled = True
     train_data = get_train_data(num_cpus, data_dir, batch_size, (3, 32, 32),
                                 num_parts=len(hosts), part_index=part_index)
     test_data = get_test_data(num_cpus, data_dir, batch_size, (3, 32, 32))
@@ -101,7 +102,7 @@ def train(current_host, hosts, num_cpus, num_gpus, channel_input_dirs, model_dir
         logging.info('[Epoch %d] validation: %s=%f' % (epoch, name, val_acc))
 
         # only save params on primary host
-        if current_host == hosts[0]:
+        if checkpoints_enabled and current_host == hosts[0]:
             if val_acc > best_accuracy:
                 best_accuracy = val_acc
                 logging.info('Saving the model, params and optimizer state')

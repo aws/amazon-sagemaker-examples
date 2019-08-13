@@ -36,8 +36,9 @@ def train(args):
     hosts = args.hosts
     model_dir = args.model_dir
     CHECKPOINTS_DIR = '/opt/ml/checkpoints'
-    if not os.path.exists(CHECKPOINTS_DIR):
-        os.makedirs(CHECKPOINTS_DIR)
+    checkpoints_enabled = False
+    if os.path.exists(CHECKPOINTS_DIR):
+        checkpoints_enabled = True
 
     # load training and validation data
     # we use the gluon.data.vision.MNIST class because of its built in mnist pre-processing logic,
@@ -112,7 +113,7 @@ def train(args):
         name, val_acc = test(ctx, net, val_data)
         print('[Epoch %d] Validation: %s=%f' % (epoch, name, val_acc))
         # checkpoint the model, params and optimizer states in the folder /opt/ml/checkpoints
-        if val_acc > best_val_score:
+        if checkpoints_enabled and val_acc > best_val_score:
             best_val_score = val_acc
             logging.info('Saving the model, params and optimizer state.')
             net.export(CHECKPOINTS_DIR + "/%.4f-gluon_mnist"%(best_val_score), epoch)
