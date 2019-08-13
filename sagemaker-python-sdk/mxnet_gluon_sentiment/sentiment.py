@@ -51,9 +51,7 @@ def train(current_host, hosts, num_cpus, num_gpus, training_dir, model_dir,
             end = start + shard_size
             break
     CHECKPOINTS_DIR = "/opt/ml/checkpoints"
-    checkpoints_enabled = False
-    if os.path.exists(CHECKPOINTS_DIR):
-        checkpoints_enabled = True
+    checkpoints_enabled = os.path.exists(CHECKPOINTS_DIR)
 
     train_iterator = BucketSentenceIter(train_sentences[start:end], train_labels[start:end], batch_size)
     val_iterator = BucketSentenceIter(val_sentences, val_labels, batch_size)

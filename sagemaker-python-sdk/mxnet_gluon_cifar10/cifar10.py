@@ -46,9 +46,8 @@ def train(current_host, hosts, num_cpus, num_gpus, channel_input_dirs, model_dir
 
     data_dir = channel_input_dirs['training']
     CHECKPOINTS_DIR = '/opt/ml/checkpoints'
-    checkpoints_enabled = False
-    if os.path.exists(CHECKPOINTS_DIR):
-        checkpoints_enabled = True
+    checkpoints_enabled = os.path.exists(CHECKPOINTS_DIR)
+
     train_data = get_train_data(num_cpus, data_dir, batch_size, (3, 32, 32),
                                 num_parts=len(hosts), part_index=part_index)
     test_data = get_test_data(num_cpus, data_dir, batch_size, (3, 32, 32))

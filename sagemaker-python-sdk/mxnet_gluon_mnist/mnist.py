@@ -36,9 +36,7 @@ def train(args):
     hosts = args.hosts
     model_dir = args.model_dir
     CHECKPOINTS_DIR = '/opt/ml/checkpoints'
-    checkpoints_enabled = False
-    if os.path.exists(CHECKPOINTS_DIR):
-        checkpoints_enabled = True
+    checkpoints_enabled = os.path.exists(CHECKPOINTS_DIR)
 
     # load training and validation data
     # we use the gluon.data.vision.MNIST class because of its built in mnist pre-processing logic,
