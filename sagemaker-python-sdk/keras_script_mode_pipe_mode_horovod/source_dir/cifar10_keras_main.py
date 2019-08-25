@@ -256,9 +256,8 @@ def main(args):
     model = keras_model_fn(args.learning_rate, args.weight_decay, args.optimizer, args.momentum, mpi, hvd)
     CHECKPOINTS_DIR = '/opt/ml/checkpoints'
     checkpoints_enabled = os.path.exists(CHECKPOINTS_DIR)
-    checkpoint_callback = None
     if checkpoints_enabled:
-        checkpoint_callback = ModelCheckpoint(CHECKPOINTS_DIR + '/checkpoint-{epoch}.h5')
+        logging.info("Checkpoint data will be saved in {}".format(CHECKPOINTS_DIR))
     callbacks = []
     if mpi:
         callbacks.append(hvd.callbacks.BroadcastGlobalVariablesCallback(0))
@@ -266,11 +265,13 @@ def main(args):
         callbacks.append(hvd.callbacks.LearningRateWarmupCallback(warmup_epochs=5, verbose=1))
         callbacks.append(keras.callbacks.ReduceLROnPlateau(patience=10, verbose=1))
         if hvd.rank() == 0:
-            callbacks.append(checkpoint_callback)
+            if checkpoints_enabled:
+                callbacks.append(ModelCheckpoint(CHECKPOINTS_DIR + '/checkpoint-{epoch}.h5'))
             callbacks.append(TensorBoard(log_dir=tensorboard_dir, update_freq='epoch'))
     else:
+        if checkpoints_enabled:
+            callbacks.append(ModelCheckpoint(CHECKPOINTS_DIR + '/checkpoint-{epoch}.h5'))
         callbacks.append(keras.callbacks.ReduceLROnPlateau(patience=10, verbose=1))
-        callbacks.append(checkpoint_callback)
         callbacks.append(TensorBoard(log_dir=tensorboard_dir, update_freq='epoch'))
     logging.info("Starting training")
     size = 1
