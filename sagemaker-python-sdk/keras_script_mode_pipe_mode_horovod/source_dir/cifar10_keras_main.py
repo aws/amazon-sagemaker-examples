@@ -37,16 +37,16 @@ DEPTH = 3
 NUM_CLASSES = 10
 NUM_DATA_BATCHES = 5
 NUM_EXAMPLES_PER_EPOCH_FOR_TRAIN = 10000 * NUM_DATA_BATCHES
-INPUT_TENSOR_NAME = 'inputs_input'  # needs to match the name of the first layer + "_input"
+INPUT_TENSOR_NAME = 'inputs_input'  # needs to match the name of the first  layer + "_input"
 
 
 def keras_model_fn(learning_rate, weight_decay, optimizer, momentum, mpi=False, hvd=False):
     """keras_model_fn receives hyperparameters from the training job and returns a compiled keras model.
-    The model will be transformed into a TensorFlow Estimator before training and it will be saved in a 
+    The model will be transformed into a TensorFlow Estimator before training and it will be saved in a
     TensorFlow Serving SavedModel at the end of training.
 
     Args:
-        hyperparameters: The hyperparameters passed to the SageMaker TrainingJob that runs your TensorFlow 
+        hyperparameters: The hyperparameters passed to the SageMaker TrainingJob that runs your TensorFlow
                          training script.
     Returns: A compiled Keras model
     """
@@ -112,33 +112,42 @@ def get_filenames(channel_name, channel):
         raise ValueError('Invalid data subset "%s"' % channel_name)
 
 
-def train_input_fn():
-    return _input(args.epochs, args.batch_size, args.train, 'train')
+def train_input_fn(hvd=None):
+    return _input(args.epochs, args.batch_size, args.train, 'train', hvd)
 
 
-def eval_input_fn():
-    return _input(args.epochs, args.batch_size, args.eval, 'eval')
+def eval_input_fn(hvd=None):
+    return _input(args.epochs, args.batch_size, args.eval, 'eval', hvd)
 
 
-def validation_input_fn():
-    return _input(args.epochs, args.batch_size, args.validation, 'validation')
+def validation_input_fn(hvd=None):
+    return _input(args.epochs, args.batch_size, args.validation, 'validation', hvd)
 
 
-def _input(epochs, batch_size, channel, channel_name):
-    mode = args.data_config[channel_name]['TrainingInputMode']
+def _input(epochs, batch_size, channel, channel_name, hvd=None):
+    try:
+        mode = args.data_config[channel_name]['TrainingInputMode']
+    except KeyError as e:
+        if hvd:
+            mode = args.data_config[channel_name+str(hvd.local_rank())]['TrainingInputMode']
+        else:
+            print(e)
+            raise
     """Uses the tf.data input pipeline for CIFAR-10 dataset.
     Args:
         mode: Standard names for model modes (tf.estimators.ModeKeys).
         batch_size: The number of samples per batch of input requested.
     """
-    filenames = get_filenames(channel_name, channel)
     # Repeat infinitely.
     logging.info("Running {} in {} mode".format(channel_name, mode))
     if mode == 'Pipe':
         from sagemaker_tensorflow import PipeModeDataset
-        dataset = PipeModeDataset(channel=channel_name, record_format='TFRecord')
+        if hvd:
+            dataset = PipeModeDataset(channel=channel_name+str(hvd.local_rank()), record_format='TFRecord')
+        else:
+            dataset = PipeModeDataset(channel=channel_name, record_format='TFRecord')
     else:
-        dataset = tf.data.TFRecordDataset(filenames)
+        dataset = tf.data.TFRecordDataset(get_filenames(channel_name, channel))
 
     dataset = dataset.repeat(epochs)
     dataset = dataset.prefetch(10)
@@ -236,13 +245,20 @@ def main(args):
         hvd = None
 
     logging.info("Running with MPI={}".format(mpi))
+    if mpi:
+        logging.info("RANK={}, LOCAL_RANK={}".format(str(hvd.rank()),str(hvd.local_rank())))
     logging.info("getting data")
-    train_dataset = train_input_fn()
+    train_dataset = train_input_fn(hvd)
     eval_dataset = eval_input_fn()
-    validation_dataset = validation_input_fn()
+    validation_dataset = validation_input_fn(hvd)
 
     logging.info("configuring model")
     model = keras_model_fn(args.learning_rate, args.weight_decay, args.optimizer, args.momentum, mpi, hvd)
+    CHECKPOINTS_DIR = '/opt/ml/checkpoints'
+    checkpoints_enabled = os.path.exists(CHECKPOINTS_DIR)
+    checkpoint_callback = None
+    if checkpoints_enabled:
+        checkpoint_callback = ModelCheckpoint(CHECKPOINTS_DIR + '/checkpoint-{epoch}.h5')
     callbacks = []
     if mpi:
         callbacks.append(hvd.callbacks.BroadcastGlobalVariablesCallback(0))
@@ -250,11 +266,11 @@ def main(args):
         callbacks.append(hvd.callbacks.LearningRateWarmupCallback(warmup_epochs=5, verbose=1))
         callbacks.append(keras.callbacks.ReduceLROnPlateau(patience=10, verbose=1))
         if hvd.rank() == 0:
-            callbacks.append(ModelCheckpoint(args.output_dir + '/checkpoint-{epoch}.h5'))
+            callbacks.append(checkpoint_callback)
             callbacks.append(TensorBoard(log_dir=tensorboard_dir, update_freq='epoch'))
     else:
         callbacks.append(keras.callbacks.ReduceLROnPlateau(patience=10, verbose=1))
-        callbacks.append(ModelCheckpoint(args.output_dir + '/checkpoint-{epoch}.h5'))
+        callbacks.append(checkpoint_callback)
         callbacks.append(TensorBoard(log_dir=tensorboard_dir, update_freq='epoch'))
     logging.info("Starting training")
     size = 1
@@ -264,13 +280,19 @@ def main(args):
               steps_per_epoch=(num_examples_per_epoch('train') // args.batch_size) // size,
               epochs=args.epochs, validation_data=validation_dataset,
               validation_steps=(num_examples_per_epoch('validation') // args.batch_size) // size, callbacks=callbacks)
+    score = None
+    if mpi:
+        if hvd.rank() == 0:
+            score = model.evaluate(eval_dataset[0], eval_dataset[1],
+                                   steps=num_examples_per_epoch('eval') // args.batch_size,
+                                   verbose=0)
+    else:
+        score = model.evaluate(eval_dataset[0], eval_dataset[1],
+                               steps=num_examples_per_epoch('eval') // args.batch_size, verbose=0)
 
-    score = model.evaluate(eval_dataset[0], eval_dataset[1], steps=num_examples_per_epoch('eval') // args.batch_size,
-                           verbose=0)
-
-    logging.info('Test loss:{}'.format(score[0]))
-    logging.info('Test accuracy:{}'.format(score[1]))
-
+    if score:
+        logging.info('Test loss:{}'.format(score[0]))
+        logging.info('Test accuracy:{}'.format(score[1]))
     # Horovod: Save model only on worker 0 (i.e. master)
     if mpi:
         if hvd.rank() == 0:
