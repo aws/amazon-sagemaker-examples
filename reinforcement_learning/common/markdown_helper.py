@@ -16,6 +16,14 @@ def generate_s3_write_permission_for_sagemaker_role(role):
     url = "https://console.aws.amazon.com/iam/home#/roles/%s" % role_name
     text = "1. Go to IAM console to edit current SageMaker role: [%s](%s).\n" % (role_name, url)
     text += "2. Next, go to the `Permissions tab` and click on `Attach Policy.` \n"
+    text += "3. Search and select `AmazonKinesisVideoStreamsFullAccess` policy\n"
+    return text
+
+def generate_kinesis_create_permission_for_sagemaker_role(role):
+    role_name = role.split("/")[-1]
+    url = "https://console.aws.amazon.com/iam/home#/roles/%s" % role_name
+    text = "1. Go to IAM console to edit current SageMaker role: [%s](%s).\n" % (role_name, url)
+    text += "2. Next, go to the `Permissions tab` and click on `Attach Policy.` \n"
     text += "3. Search and select `AmazonS3FullAccess` policy\n"
     return text
 
@@ -191,3 +199,4 @@ def generate_help_for_experiment_manager_permissions(role):
         },```\n"""
     text += "4. Now wait for a few minutes before executing this cell again!"
     return text
+
