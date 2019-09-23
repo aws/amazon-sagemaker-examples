@@ -2,7 +2,8 @@
 # This is the custom docker image used in the sagemaker container
 #
 ARG CPU_OR_GPU
-FROM 520713654638.dkr.ecr.us-west-2.amazonaws.com/sagemaker-tensorflow-scriptmode:1.12.0-$CPU_OR_GPU-py3
+ARG AWS_REGION
+FROM 520713654638.dkr.ecr.$AWS_REGION.amazonaws.com/sagemaker-tensorflow-scriptmode:1.12.0-$CPU_OR_GPU-py3
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
         build-essential \
