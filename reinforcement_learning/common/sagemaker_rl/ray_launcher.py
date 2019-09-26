@@ -10,8 +10,6 @@ import boto3
 
 import ray
 from ray.tune import run_experiments
-from ray.rllib.agents.agent import get_agent_class
-
 from .tf_serving_utils import export_tf_serving, natural_keys, change_permissions_recursive
 from .configuration_list import ConfigurationList
 from .sage_cluster_communicator import SageClusterCommunicator
@@ -154,9 +152,15 @@ class SageMakerRayLauncher(object):
         return config
 
     def start_ray_cluster(self, master_ip):
-        p = subprocess.Popen("ray start --head --redis-port=6379 --no-ui --node-ip-address=%s" % master_ip,
-                             shell=True,
-                             stderr=subprocess.STDOUT)
+        if ray.__version__ >= "0.6.5":
+            p = subprocess.Popen("ray start --head --redis-port=6379 --node-ip-address=%s" % master_ip,
+                                 shell=True,
+                                 stderr=subprocess.STDOUT)
+        else:
+            p = subprocess.Popen("ray start --head --redis-port=6379 --no-ui --node-ip-address=%s" % master_ip,
+                                 shell=True,
+                                 stderr=subprocess.STDOUT)
+
         time.sleep(3)
         if p.poll() != 0:
             raise RuntimeError("Could not start Ray server.")
@@ -170,16 +174,29 @@ class SageMakerRayLauncher(object):
 
     def copy_checkpoints_to_model_output(self):
         checkpoints = []
-        for root, directories, filenames in os.walk(INTERMEDIATE_DIR):
-            for filename in filenames:
-                if filename.startswith("checkpoint"):
-                    checkpoints.append(os.path.join(root, filename))
+        count = 0
+        while not checkpoints:
+            count += 1
+            for root, directories, filenames in os.walk(INTERMEDIATE_DIR):
+                for filename in filenames:
+                    if filename.startswith("checkpoint"):
+                        checkpoints.append(os.path.join(root, filename))
+            time.sleep(5)
+            if count >= 6:
+                raise RuntimeError("Failed to find checkpoint files")
+
         checkpoints.sort(key=natural_keys)
         latest_checkpoints = checkpoints[-2:]
         validation = sum(1 if x.endswith("tune_metadata") or x.endswith("extra_data") else 0 for x in
                          latest_checkpoints)
-        if validation is not 2:
-            raise RuntimeError("Failed to save checkpoint files - .tune_metadata or .extra_data")
+
+        if ray.__version__ >= "0.6.5":
+            if validation is not 1:
+                raise RuntimeError("Failed to save checkpoint files - .tune_metadata")
+        else:
+            if validation is not 2:
+                raise RuntimeError("Failed to save checkpoint files - .tune_metadata or .extra_data")
+
         for source_path in latest_checkpoints:
             _, ext = os.path.splitext(source_path)
             destination_path = os.path.join(MODEL_OUTPUT_DIR, "checkpoint%s" % ext)
@@ -193,6 +210,10 @@ class SageMakerRayLauncher(object):
 
     def create_tf_serving_model(self, algorithm=None, env_string=None, config=None):
         self.register_env_creator()
+        if ray.__version__ >= "0.6.5":
+            from ray.rllib.agents.registry import get_agent_class
+        else:
+            from ray.rllib.agents.agent import get_agent_class
         cls = get_agent_class(algorithm)
         config["monitor"] = False
         config["num_workers"] = 1

@@ -1,6 +1,6 @@
 ARG CPU_OR_GPU
 ARG AWS_REGION
-FROM 520713654638.dkr.ecr.${AWS_REGION}.amazonaws.com/sagemaker-rl-tensorflow:ray0.5.3-${CPU_OR_GPU}-py3
+FROM 520713654638.dkr.ecr.${AWS_REGION}.amazonaws.com/sagemaker-rl-tensorflow:ray0.6.5-${CPU_OR_GPU}-py3
 
 WORKDIR /opt/ml
 

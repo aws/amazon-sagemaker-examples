@@ -19,6 +19,8 @@ These examples focus on the Amazon SageMaker Python SDK which allows you to writ
 - [Introduction to Estimators in TensorFlow](tensorflow_iris_dnn_classifier_using_estimators)
 - [TensorFlow and TensorBoard](tensorflow_resnet_cifar10_with_tensorboard)
 - [Distributed TensorFlow](tensorflow_distributed_mnist)
+- [Managed Spot Training on MXNet](spot_training_mxnet)
+- [Managed Spot Training on TensorFlow](spot_training_tensorflow_estimator)
 
 #### Using pre-trained ONNX models with Amazon SageMaker
 
