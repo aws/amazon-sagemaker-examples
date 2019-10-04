@@ -3,7 +3,7 @@
 ## Prerequisites
 1. [Create and activate an AWS Account](https://aws.amazon.com/premiumsupport/knowledge-center/create-and-activate-aws-account/)
 
-2. [Manage your SageMaker service limits](https://aws.amazon.com/premiumsupport/knowledge-center/manage-service-limits/). You will need a minimum limit of 2 ```ml.p3.16xlarge``` and 2 ```ml.p3.24xlarge``` instance types, but a service limit of 4 for each instance type is recommended. Keep in mind that the service limit is specific to each AWS region. We recommend using ```us-west-2``` region for this tutorial.
+2. [Manage your SageMaker service limits](https://aws.amazon.com/premiumsupport/knowledge-center/manage-service-limits/). You will need a minimum limit of 2 ```ml.p3.16xlarge``` and 2 ```ml.p3dn.24xlarge``` instance types, but a service limit of 4 for each instance type is recommended. Keep in mind that the service limit is specific to each AWS region. We recommend using ```us-west-2``` region for this tutorial.
 
 3. Create an [Amazon S3 bucket](https://docs.aws.amazon.com/en_pv/AmazonS3/latest/gsg/CreatingABucket.html) in the AWS region where you would like to execute this tutorial. Save the S3 bucket name. You will need it later.
 
