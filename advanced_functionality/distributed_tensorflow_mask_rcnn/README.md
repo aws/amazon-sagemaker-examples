@@ -3,7 +3,7 @@
 ## Prerequisites
 1. [Create and activate an AWS Account](https://aws.amazon.com/premiumsupport/knowledge-center/create-and-activate-aws-account/)
 
-2. [Manage your SageMaker service limits](https://aws.amazon.com/premiumsupport/knowledge-center/manage-service-limits/). You will need a minimum limit of 2 ml.p3.16xlarge instances, but a service limit of 8 ml.p3.16xlarge instance types is recommended. Keep in mind that the service limit is specific to each AWS region. We recommend using ```us-west-2``` or ```us-east-1``` region for this tutorial.
+2. [Manage your SageMaker service limits](https://aws.amazon.com/premiumsupport/knowledge-center/manage-service-limits/). You will need a minimum limit of 2 ```ml.p3.16xlarge``` and 2 ```ml.p3.24xlarge``` instance types, but a service limit of 4 for each instance type is recommended. Keep in mind that the service limit is specific to each AWS region. We recommend using ```us-west-2``` region for this tutorial.
 
 3. Create an [Amazon S3 bucket](https://docs.aws.amazon.com/en_pv/AmazonS3/latest/gsg/CreatingABucket.html) in the AWS region where you would like to execute this tutorial. Save the S3 bucket name. You will need it later.
 
@@ -17,22 +17,22 @@ This tutorial has two key steps:
 
 1. We use [Amazon CloudFormation](https://aws.amazon.com/cloudformation/) to create a new [Sagemaker notebook instance](https://docs.aws.amazon.com/en_pv/sagemaker/latest/dg/nbi.html) in an [Amazon Virtual Private Network (VPC)](https://aws.amazon.com/vpc/).
 
-2. We use the SageMaker notebook instance to launch distributed training jobs in the VPC using [Amazon S3](https://aws.amazon.com/s3/), [Amazon EFS](https://aws.amazon.com/efs/), or [Amazon FSx Lustre](https://aws.amazon.com/fsx/) as data source for tranining data pipeline.
+2. We use the SageMaker notebook instance to launch distributed training jobs in the VPC using [Amazon S3](https://aws.amazon.com/s3/), [Amazon EFS](https://aws.amazon.com/efs/), or [Amazon FSx Lustre](https://aws.amazon.com/fsx/) as data source for training data pipeline.
 
-If you are viewing this page from a SageMaker notebook instance and wondering why we need a new SageMaker notebook instance. the reason is that your current SageMaker notebook instance may not be running in a VPC, may not have an IAM role attached to it that provides access to required AWS resources, or it may not have access to EFS mount targets that we need for this tutorial.
+If you are viewing this page from a SageMaker notebook instance and wondering why we need a new SageMaker notebook instance. the reason is that your current SageMaker notebook instance may not be running in a VPC, may not have an [IAM Role](https://docs.aws.amazon.com/en_pv/IAM/latest/UserGuide/id_roles.html) attached that provides access to required AWS resources, or may not have access to [EFS mount targets](https://docs.aws.amazon.com/en_pv/efs/latest/ug/accessing-fs.html) that we need for this tutorial.
 
 ### Create SageMaker notebook instance in a VPC
 Our objective in this step is to create a SageMaker notebook instance in a VPC. We have two options. We can create a SageMaker notebook instance in a new VPC, or we can create the notebook instance in an existing VPC. We cover both options below.
 
 #### Create SageMaker notebook instance in a new VPC
 
-The [AWS IAM User](https://docs.aws.amazon.com/en_pv/IAM/latest/UserGuide/id_users.html) or [AWS IAM Role](https://docs.aws.amazon.com/en_pv/IAM/latest/UserGuide/id_roles.html) executing this step requires [AWS IAM permissions](https://docs.aws.amazon.com/en_pv/IAM/latest/UserGuide/access_policies_job-functions.html) consistent with Network Administrator job function.
+The [AWS IAM User](https://docs.aws.amazon.com/en_pv/IAM/latest/UserGuide/id_users.html) or [AWS IAM Role](https://docs.aws.amazon.com/en_pv/IAM/latest/UserGuide/id_roles.html) executing this step requires [AWS IAM permissions](https://docs.aws.amazon.com/en_pv/IAM/latest/UserGuide/access_policies_job-functions.html) consistent with [Network Administrator](https://docs.aws.amazon.com/en_pv/IAM/latest/UserGuide/access_policies_job-functions.html) job function.
 
 The CloudFormation template [cfn-sm.yaml](cfn-sm.yaml) can be used to create a [CloudFormation stack](https://docs.aws.amazon.com/en_pv/AWSCloudFormation/latest/UserGuide/stacks.html) that creates a SageMaker notebook instance in a new VPC. 
 
-You can create the CloudFormation stack using [cfn-sm.yaml](cfn-sm.yaml) directly in [CloudFormation service console](https://docs.aws.amazon.com/en_pv/AWSCloudFormation/latest/UserGuide/cfn-console-create-stack.html). 
+You can [create the CloudFormation stack](https://docs.aws.amazon.com/en_pv/AWSCloudFormation/latest/UserGuide/cfn-console-create-stack.html) using [cfn-sm.yaml](cfn-sm.yaml) directly in CloudFormation service console. 
 
-Alternatively, if you prefer using command line, you can customize variables in [stack-sm.sh](stack-sn.sh) script and execute the script anywhere you have [AWS Command Line Interface (CLI)](https://docs.aws.amazon.com/en_pv/cli/latest/userguide/cli-chap-welcome.html) installed, as detailed below:
+Alternatively, you can customize variables in [stack-sm.sh](stack-sm.sh) script and execute the script anywhere you have [AWS Command Line Interface (CLI)](https://docs.aws.amazon.com/en_pv/cli/latest/userguide/cli-chap-welcome.html) installed. The CLI option is detailed below:
 
    * [Install AWS CLI](https://docs.aws.amazon.com/en_pv/cli/latest/userguide/cli-chap-install.html) 
    * In ```stack-sm.sh```, set ```AWS_REGION``` to your AWS region and ```S3_BUCKET``` to your S3 bucket . These two variables are required. 
@@ -58,7 +58,7 @@ This option is only recommended for advanced AWS users. Make sure your existing 
   * One or more private subnets with NAT Gateway access and existing EFS file-system mount targets
   * Endpoint gateway to S3
   
- [Create a SageMaker notebook instance](https://docs.aws.amazon.com/en_pv/sagemaker/latest/dg/howitworks-create-ws.html) in a VPC using AWS SageMaker console. When you are creating the SageMaker notebook instance, add at least 100 GB of local EBS volume under advanced configuration options.
+ [Create a SageMaker notebook instance](https://docs.aws.amazon.com/en_pv/sagemaker/latest/dg/howitworks-create-ws.html) in a VPC using AWS SageMaker console. When you are creating the SageMaker notebook instance, add at least 100 GB of local EBS volume under advanced configuration options. You will also need to [mount your EFS file-system on the SageMaker notebook instanxce](https://aws.amazon.com/blogs/machine-learning/mount-an-efs-file-system-to-an-amazon-sagemaker-notebook-with-lifecycle-configurations/).
 
 ### Launch SageMaker tranining jobs
 
