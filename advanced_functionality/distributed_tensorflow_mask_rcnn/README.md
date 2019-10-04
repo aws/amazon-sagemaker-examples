@@ -58,7 +58,7 @@ This option is only recommended for advanced AWS users. Make sure your existing 
   * One or more private subnets with NAT Gateway access and existing EFS file-system mount targets
   * Endpoint gateway to S3
   
- [Create a SageMaker notebook instance](https://docs.aws.amazon.com/en_pv/sagemaker/latest/dg/howitworks-create-ws.html) in a VPC using AWS SageMaker console.
+ [Create a SageMaker notebook instance](https://docs.aws.amazon.com/en_pv/sagemaker/latest/dg/howitworks-create-ws.html) in a VPC using AWS SageMaker console. When you are creating the SageMaker notebook instance, add at least 100 GB of local EBS volume under advanced configuration options.
 
 ### Launch SageMaker tranining jobs
 
