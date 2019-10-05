@@ -50,6 +50,8 @@ def train(current_host, hosts, num_cpus, num_gpus, training_dir, model_dir,
             start = shard_size * i
             end = start + shard_size
             break
+    CHECKPOINTS_DIR = "/opt/ml/checkpoints"
+    checkpoints_enabled = os.path.exists(CHECKPOINTS_DIR)
 
     train_iterator = BucketSentenceIter(train_sentences[start:end], train_labels[start:end], batch_size)
     val_iterator = BucketSentenceIter(val_sentences, val_labels, batch_size)
@@ -65,7 +67,9 @@ def train(current_host, hosts, num_cpus, num_gpus, training_dir, model_dir,
                             kvstore=kvstore)
     metric = mx.metric.Accuracy()
     loss = gluon.loss.SoftmaxCrossEntropyLoss()
+    net.hybridize()
 
+    best_acc_score = 0.0
     for epoch in range(epochs):
         # reset data iterator and metric at begining of epoch.
         metric.reset()
@@ -100,6 +104,11 @@ def train(current_host, hosts, num_cpus, num_gpus, training_dir, model_dir,
 
         name, val_acc = test(ctx, net, val_iterator)
         print('[Epoch %d] Validation: %s=%f' % (epoch, name, val_acc))
+        if checkpoints_enabled and val_acc > best_acc_score:
+            best_acc_score = val_acc
+            logging.info('Saving the model, params and optimizer state.')
+            net.export(CHECKPOINTS_DIR + "/%.4f-gluon_sentiment"%(best_acc_score), epoch)
+            trainer.save_states(CHECKPOINTS_DIR + '/%.4f-gluon_sentiment-%d.states'%(best_acc_score, epoch))
         train_iterator.reset()
     return net, vocab
 

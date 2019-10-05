@@ -11,6 +11,21 @@
 # ANY KIND, either express or implied. See the License for the specific
 # language governing permissions and limitations under the License.
 
+def generate_s3_write_permission_for_sagemaker_role(role):
+    role_name = role.split("/")[-1]
+    url = "https://console.aws.amazon.com/iam/home#/roles/%s" % role_name
+    text = "1. Go to IAM console to edit current SageMaker role: [%s](%s).\n" % (role_name, url)
+    text += "2. Next, go to the `Permissions tab` and click on `Attach Policy.` \n"
+    text += "3. Search and select `AmazonKinesisVideoStreamsFullAccess` policy\n"
+    return text
+
+def generate_kinesis_create_permission_for_sagemaker_role(role):
+    role_name = role.split("/")[-1]
+    url = "https://console.aws.amazon.com/iam/home#/roles/%s" % role_name
+    text = "1. Go to IAM console to edit current SageMaker role: [%s](%s).\n" % (role_name, url)
+    text += "2. Next, go to the `Permissions tab` and click on `Attach Policy.` \n"
+    text += "3. Search and select `AmazonS3FullAccess` policy\n"
+    return text
 
 def generate_help_for_s3_endpoint_permissions(role):
     role_name = role.split("/")[-1]
@@ -146,3 +161,42 @@ def create_s3_endpoint_manually(aws_region, default_vpc):
     text += "4. Select `Full Access` in policy and click on `Create Endpoint`\n"
     text += "5. That should be it! Now wait for a few seconds before proceeding to the next cell."
     return text
+
+
+def generate_help_for_administrator_policy(role):
+    role_name = role.split("/")[-1]
+    url = "https://console.aws.amazon.com/iam/home#/roles/%s" % role_name
+    text = "1. Go to IAM console to edit current SageMaker role: [%s](%s).\n" % (role_name, url)
+    text += "2. Next, go to the `Permissions tab` and click on `Attach policies`. \n"
+    text += "3. Check the box for `AdministratorAccess`\n"
+    text += "4. Click on `Attach policy` at the bottom.\n"
+    text += "5. You'll see message `Policy AdministratorAccess has been attached for the %s`. \n" % (role)
+    text += "6. Once this is complete, you are all set."
+    return text
+
+def generate_help_for_experiment_manager_permissions(role):
+    role_name = role.split("/")[-1]
+    url = "https://console.aws.amazon.com/iam/home#/roles/%s" % role_name
+    text = ">It looks like your SageMaker role has insufficient premissions. Please do the following:\n"
+    text += "1. Go to IAM console to edit current SageMaker role: [%s](%s).\n" % (role_name, url)
+    text += "2. Click on policy starting with `AmazonSageMaker-ExecutionPolicy` and then edit policy.\n"
+    text += "3. Go to JSON tab, add the following JSON blob to the `Statement` list and save policy:\n"
+    text += """```json
+        {
+            "Effect": "Allow",
+            "Action": [
+                "firehose:*",
+                "cloudformation:*",
+                "dynamodb:*",
+                "iam:*",
+                "cloudwatch:*",
+                "glue:*",
+                "athena:*"
+            ],
+            "Resource": [
+                "*"
+            ]
+        },```\n"""
+    text += "4. Now wait for a few minutes before executing this cell again!"
+    return text
+

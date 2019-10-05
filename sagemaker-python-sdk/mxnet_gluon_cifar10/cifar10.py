@@ -45,6 +45,9 @@ def train(current_host, hosts, num_cpus, num_gpus, channel_input_dirs, model_dir
 
 
     data_dir = channel_input_dirs['training']
+    CHECKPOINTS_DIR = '/opt/ml/checkpoints'
+    checkpoints_enabled = os.path.exists(CHECKPOINTS_DIR)
+
     train_data = get_train_data(num_cpus, data_dir, batch_size, (3, 32, 32),
                                 num_parts=len(hosts), part_index=part_index)
     test_data = get_test_data(num_cpus, data_dir, batch_size, (3, 32, 32))
@@ -57,6 +60,7 @@ def train(current_host, hosts, num_cpus, num_gpus, channel_input_dirs, model_dir
                             kvstore=kvstore)
     metric = mx.metric.Accuracy()
     loss = gluon.loss.SoftmaxCrossEntropyLoss()
+    net.hybridize()
 
     best_accuracy = 0.0
     for epoch in range(epochs):
@@ -97,10 +101,12 @@ def train(current_host, hosts, num_cpus, num_gpus, channel_input_dirs, model_dir
         logging.info('[Epoch %d] validation: %s=%f' % (epoch, name, val_acc))
 
         # only save params on primary host
-        if current_host == hosts[0]:
+        if checkpoints_enabled and current_host == hosts[0]:
             if val_acc > best_accuracy:
-                net.save_params('{}/model-{:0>4}.params'.format(model_dir, epoch))
                 best_accuracy = val_acc
+                logging.info('Saving the model, params and optimizer state')
+                net.export(CHECKPOINTS_DIR + "/%.4f-cifar10"%(best_accuracy), epoch)
+                trainer.save_states(CHECKPOINTS_DIR + '/%.4f-cifar10-%d.states'%(best_accuracy, epoch))
 
     return net
 

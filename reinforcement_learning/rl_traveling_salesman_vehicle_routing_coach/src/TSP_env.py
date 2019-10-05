@@ -96,7 +96,12 @@ class TSPEasyEnv(gym.Env):
         self.agt_x = self.restaurant_x
         self.agt_y = self.restaurant_y
         if self.randomized_orders:
-            orders = [self.__receive_order() for i in range(self.n_orders)]
+            # Enforce uniqueness of orders, to prevent multiple orders being placed on the same points
+            # And ensure actual orders in the episode are always == n_orders as expected
+            orders=[]
+            while len(orders) != self.n_orders:
+                orders += [self.__receive_order()]
+                orders = list(set(orders))
         else:
             orders = [(-2, -2), (1,1), (2,0), (0, -2)] 
         self.o_x = [x for x, y in orders]
