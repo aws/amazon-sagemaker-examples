@@ -1,4 +1,13 @@
-# Simple Cartpole Example
+# Simple Cartpole Example with SageMaker Managed Spot Training
+
+The example here is almost the same as Cart-pole Balancing Model with Amazon SageMaker.
+
+This notebook tackles the exact same problem with the same solution, but it has been modified to be able to run using SageMaker Managed Spot infrastructure. SageMaker Managed Spot uses EC2 Spot Instances to run Training at a lower cost.
+
+Please read the original notebook and try it out to gain an understanding of the ML use-case and how it is being solved. We will not delve into that here in this notebook.
+
+The explanations below has been lifted verbatim from Cart-pole Balancing Model with Amazon SageMaker.
+
 
 ## What is cartpole?
 
