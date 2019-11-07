@@ -17,6 +17,8 @@ from .docker_utils import get_ip_from_host
 
 TERMINATION_SIGNAL = "JOB_TERMINATED"
 INTERMEDIATE_DIR = "/opt/ml/output/intermediate"
+TRAINING_DIR = "/opt/ml/input/training"
+CHECKPOINT_DIR = "/opt/ml/input/data/checkpoint"
 MODEL_OUTPUT_DIR = "/opt/ml/model"
 
 
@@ -97,7 +99,15 @@ class SageMakerRayLauncher(object):
         # TODO: move this to before customer-specified so they can override
         hyperparams_dict["rl.training.local_dir"] = INTERMEDIATE_DIR
         hyperparams_dict["rl.training.checkpoint_at_end"] = True
-        hyperparams_dict["rl.training.checkpoint_freq"] = 10
+
+        try:
+            customized_checkpoint_frequency = config['training']['checkpoint_freq']
+            hyperparams_dict["rl.training.checkpoint_freq"] = customized_checkpoint_frequency
+        except KeyError:
+            print("Using default checkpoint frequency: 10")
+            hyperparams_dict["rl.training.checkpoint_freq"] = 10
+            pass
+
         self.hyperparameters = ConfigurationList()  # TODO: move to shared
         for name, value in hyperparams_dict.items():
             # self.map_hyperparameter(name, val) #TODO
@@ -201,8 +211,8 @@ class SageMakerRayLauncher(object):
             _, ext = os.path.splitext(source_path)
             destination_path = os.path.join(MODEL_OUTPUT_DIR, "checkpoint%s" % ext)
             copyfile(source_path, destination_path)
-            print("Saved the checkpoint file %s as %s" % (source_path, destination_path))
-
+            print("Saved the checkpoint file %s as %s" % (source_path, destination_path))     
+           
     def save_experiment_config(self, config):
         with open(os.path.join(MODEL_OUTPUT_DIR, "params.json"), "w") as f:
             json.dump(config, f, indent=2)
@@ -231,6 +241,47 @@ class SageMakerRayLauncher(object):
         # To ensure SageMaker local mode works fine
         change_permissions_recursive(INTERMEDIATE_DIR, 0o777)
         change_permissions_recursive(MODEL_OUTPUT_DIR, 0o777)
+        
+    def set_up_checkpoint(self, config=None):
+        try:
+            checkpoint_dir = config['training']['restore']
+            print("Found checkpoint dir in user config.")
+        except KeyError:
+            pass
+
+        try:
+            # validate files in checkpoint channel and set restore dir in ray config
+            validation = 0
+            if len(os.listdir(CHECKPOINT_DIR)) is not 2 or 3:
+                raise RuntimeError("Unexpected files in checkpoint dir.",
+                                   "Please check ray documents for the correct checkpoint format.")
+            checkpoint_dir = ""
+            for filename in os.listdir(CHECKPOINT_DIR):
+                is_tune_metadata= filename.endswith("tune_metadata")
+                is_extra_data = filename.endswith("extra_data")
+                is_checkpoint_meta = is_tune_metadata + is_extra_data
+                validation += is_checkpoint_meta
+                if not is_checkpoint_meta:
+                    checkpoint_dir = os.path.join(CHECKPOINT_DIR, filename)
+
+            if ray.__version__ >= "0.6.5":
+                if validation is not 1:
+                    raise RuntimeError("Failed to find .tune_metadata to restore checkpoint.")
+            else:
+                if validation is not 2:
+                    raise RuntimeError("Failed to find .tune_metadata or .extra_data to restore checkpoint")
+            if checkpoint_dir:
+                print("Found checkpoint: %s. Setting restore path in ray config." %checkpoint_dir)
+                print( "Important! Ray with version <=7.2 may report \"Did not find checkpoint file\" even if the",
+                    "experiment is actually restored successfully. Please check \"training_iteration\" in the experiment",
+                    "info to confirm."
+            )
+            config['training']['restore'] = checkpoint_dir
+            else:
+                print("No checkpoint found in %s. Training from scratch." %CHECKPOINT_DIR)
+        except OSError:
+            print("No checkpoint path specified. Training from scratch.")
+            pass
 
     def launch(self):
         """Actual entry point into the class instance where everything happens.
@@ -247,6 +298,8 @@ class SageMakerRayLauncher(object):
         ray.init(**ray_cluster_config)
         experiment_config = self.get_experiment_config()
         experiment_config = self.customize_experiment_config(experiment_config)
+        self.set_up_checkpoint(experiment_config)
+        
         print("Running experiment with config %s" % json.dumps(experiment_config, indent=2))
         run_experiments(experiment_config)
         all_wokers_host_names = self.get_all_host_names()[1:]
