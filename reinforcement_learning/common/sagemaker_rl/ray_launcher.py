@@ -17,7 +17,6 @@ from .docker_utils import get_ip_from_host
 
 TERMINATION_SIGNAL = "JOB_TERMINATED"
 INTERMEDIATE_DIR = "/opt/ml/output/intermediate"
-TRAINING_DIR = "/opt/ml/input/training"
 CHECKPOINT_DIR = "/opt/ml/input/data/checkpoint"
 MODEL_OUTPUT_DIR = "/opt/ml/model"
 
@@ -252,7 +251,7 @@ class SageMakerRayLauncher(object):
         try:
             # validate files in checkpoint channel and set restore dir in ray config
             validation = 0
-            if len(os.listdir(CHECKPOINT_DIR)) is not 2 or 3:
+            if len(os.listdir(CHECKPOINT_DIR)) is not (2 or 3):
                 raise RuntimeError("Unexpected files in checkpoint dir.",
                                    "Please check ray documents for the correct checkpoint format.")
             checkpoint_dir = ""
@@ -275,8 +274,8 @@ class SageMakerRayLauncher(object):
                 print( "Important! Ray with version <=7.2 may report \"Did not find checkpoint file\" even if the",
                     "experiment is actually restored successfully. Please check \"training_iteration\" in the experiment",
                     "info to confirm."
-            )
-            config['training']['restore'] = checkpoint_dir
+                    )
+                config['training']['restore'] = checkpoint_dir
             else:
                 print("No checkpoint found in %s. Training from scratch." %CHECKPOINT_DIR)
         except OSError:
