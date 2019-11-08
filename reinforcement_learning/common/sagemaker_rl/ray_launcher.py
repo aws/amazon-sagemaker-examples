@@ -98,14 +98,7 @@ class SageMakerRayLauncher(object):
         # TODO: move this to before customer-specified so they can override
         hyperparams_dict["rl.training.local_dir"] = INTERMEDIATE_DIR
         hyperparams_dict["rl.training.checkpoint_at_end"] = True
-
-        try:
-            customized_checkpoint_frequency = config['training']['checkpoint_freq']
-            hyperparams_dict["rl.training.checkpoint_freq"] = customized_checkpoint_frequency
-        except KeyError:
-            print("Using default checkpoint frequency: 10")
-            hyperparams_dict["rl.training.checkpoint_freq"] = 10
-            pass
+        hyperparams_dict["rl.training.checkpoint_freq"] = config['training'].get('checkpoint_freq', 10)
 
         self.hyperparameters = ConfigurationList()  # TODO: move to shared
         for name, value in hyperparams_dict.items():
@@ -244,24 +237,28 @@ class SageMakerRayLauncher(object):
     def set_up_checkpoint(self, config=None):
         try:
             checkpoint_dir = config['training']['restore']
-            print("Found checkpoint dir in user config.")
+            print("Found checkpoint dir %s in user config." %checkpoint_dir)
+            return config
         except KeyError:
             pass
 
         try:
             # validate files in checkpoint channel and set restore dir in ray config
             validation = 0
-            if len(os.listdir(CHECKPOINT_DIR)) is not (2 or 3):
+            num_checkpoint_files = len(os.listdir(CHECKPOINT_DIR))
+                
+            if num_checkpoint_files is not (2 or 3):
                 raise RuntimeError("Unexpected files in checkpoint dir.",
-                                   "Please check ray documents for the correct checkpoint format.")
-            checkpoint_dir = ""
+                                    "Please check ray documents for the correct checkpoint format.")
+
+            checkpoint_file_in_container = ""
             for filename in os.listdir(CHECKPOINT_DIR):
                 is_tune_metadata= filename.endswith("tune_metadata")
                 is_extra_data = filename.endswith("extra_data")
                 is_checkpoint_meta = is_tune_metadata + is_extra_data
                 validation += is_checkpoint_meta
                 if not is_checkpoint_meta:
-                    checkpoint_dir = os.path.join(CHECKPOINT_DIR, filename)
+                    checkpoint_file_in_container = os.path.join(CHECKPOINT_DIR, filename)
 
             if ray.__version__ >= "0.6.5":
                 if validation is not 1:
@@ -269,18 +266,17 @@ class SageMakerRayLauncher(object):
             else:
                 if validation is not 2:
                     raise RuntimeError("Failed to find .tune_metadata or .extra_data to restore checkpoint")
-            if checkpoint_dir:
-                print("Found checkpoint: %s. Setting restore path in ray config." %checkpoint_dir)
-                print( "Important! Ray with version <=7.2 may report \"Did not find checkpoint file\" even if the",
-                    "experiment is actually restored successfully. Please check \"training_iteration\" in the experiment",
-                    "info to confirm."
-                    )
-                config['training']['restore'] = checkpoint_dir
+                    
+            if checkpoint_file_in_container:
+                print("Found checkpoint: %s. Setting `restore` path in ray config." %checkpoint_file_in_container)
+                config['training']['restore'] = checkpoint_file_in_container
             else:
-                print("No checkpoint found in %s. Training from scratch." %CHECKPOINT_DIR)
+                print("No valid checkpoint found in %s. Training from scratch." %CHECKPOINT_DIR)
         except OSError:
             print("No checkpoint path specified. Training from scratch.")
             pass
+            
+        return config
 
     def launch(self):
         """Actual entry point into the class instance where everything happens.
@@ -297,9 +293,13 @@ class SageMakerRayLauncher(object):
         ray.init(**ray_cluster_config)
         experiment_config = self.get_experiment_config()
         experiment_config = self.customize_experiment_config(experiment_config)
-        self.set_up_checkpoint(experiment_config)
+        experiment_config = self.set_up_checkpoint(experiment_config)
         
         print("Running experiment with config %s" % json.dumps(experiment_config, indent=2))
+        print("Important! Ray with version <=7.2 may report \"Did not find checkpoint file\" even if the",
+              "experiment is actually restored successfully. If restoration is expected, please check",
+              "\"training_iteration\" in the experiment info to confirm."
+             )
         run_experiments(experiment_config)
         all_wokers_host_names = self.get_all_host_names()[1:]
         # If distributed job, send TERMINATION_SIGNAL to all workers.
