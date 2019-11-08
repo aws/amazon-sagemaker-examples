@@ -203,8 +203,8 @@ class SageMakerRayLauncher(object):
             _, ext = os.path.splitext(source_path)
             destination_path = os.path.join(MODEL_OUTPUT_DIR, "checkpoint%s" % ext)
             copyfile(source_path, destination_path)
-            print("Saved the checkpoint file %s as %s" % (source_path, destination_path))     
-           
+            print("Saved the checkpoint file %s as %s" % (source_path, destination_path))
+
     def save_experiment_config(self, config):
         with open(os.path.join(MODEL_OUTPUT_DIR, "params.json"), "w") as f:
             json.dump(config, f, indent=2)
@@ -275,7 +275,7 @@ class SageMakerRayLauncher(object):
         except OSError:
             print("No checkpoint path specified. Training from scratch.")
             pass
-            
+
         return config
 
     def launch(self):
