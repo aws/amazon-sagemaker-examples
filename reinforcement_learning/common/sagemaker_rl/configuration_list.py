@@ -65,6 +65,10 @@ class ConfigurationList(object):
     def _autotype(self, val):
         """Converts string to an int or float as possible.
         """
+        if type(val) == dict:
+            return val
+        if type(val) == list:
+            return val
         if type(val) == bool:
             return val
         try:
