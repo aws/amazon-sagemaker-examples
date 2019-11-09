@@ -233,7 +233,7 @@ class SageMakerRayLauncher(object):
         # To ensure SageMaker local mode works fine
         change_permissions_recursive(INTERMEDIATE_DIR, 0o777)
         change_permissions_recursive(MODEL_OUTPUT_DIR, 0o777)
-        
+
     def set_up_checkpoint(self, config=None):
         try:
             checkpoint_dir = config['training']['restore']
@@ -242,41 +242,51 @@ class SageMakerRayLauncher(object):
         except KeyError:
             pass
 
-        try:
-            # validate files in checkpoint channel and set restore dir in ray config
-            validation = 0
-            num_checkpoint_files = len(os.listdir(CHECKPOINT_DIR))
-                
-            if num_checkpoint_files is not (2 or 3):
-                raise RuntimeError("Unexpected files in checkpoint dir.",
+        if not os.path.exists(CHECKPOINT_DIR):
+            print("No checkpoint path specified. Training from scratch.")
+            return config
+
+        checkpoint_dir = self._checkpoint_dir_finder(CHECKPOINT_DIR)
+        # validate the contents
+        print("checkpoint_dir is {}".format(checkpoint_dir))
+        checkpoint_dir_contents = os.listdir(checkpoint_dir)
+        if len(checkpoint_dir_contents) not in [2, 3]:
+            raise RuntimeError(f"Unexpected files {checkpoint_dir_contents} in checkpoint dir. "
                                     "Please check ray documents for the correct checkpoint format.")
 
-            checkpoint_file_in_container = ""
-            for filename in os.listdir(CHECKPOINT_DIR):
-                is_tune_metadata= filename.endswith("tune_metadata")
-                is_extra_data = filename.endswith("extra_data")
-                is_checkpoint_meta = is_tune_metadata + is_extra_data
-                validation += is_checkpoint_meta
-                if not is_checkpoint_meta:
-                    checkpoint_file_in_container = os.path.join(CHECKPOINT_DIR, filename)
+        validation = 0
+        checkpoint_file_in_container = ""
+        for filename in checkpoint_dir_contents:
+            is_tune_metadata= filename.endswith("tune_metadata")
+            is_extra_data = filename.endswith("extra_data")
+            is_checkpoint_meta = is_tune_metadata + is_extra_data
+            validation += is_checkpoint_meta
+            if not is_checkpoint_meta:
+                checkpoint_file_in_container = os.path.join(checkpoint_dir, filename)
 
-            if ray.__version__ >= "0.6.5":
-                if validation is not 1:
-                    raise RuntimeError("Failed to find .tune_metadata to restore checkpoint.")
-            else:
-                if validation is not 2:
-                    raise RuntimeError("Failed to find .tune_metadata or .extra_data to restore checkpoint")
-                    
-            if checkpoint_file_in_container:
-                print("Found checkpoint: %s. Setting `restore` path in ray config." %checkpoint_file_in_container)
-                config['training']['restore'] = checkpoint_file_in_container
-            else:
-                print("No valid checkpoint found in %s. Training from scratch." %CHECKPOINT_DIR)
-        except OSError:
-            print("No checkpoint path specified. Training from scratch.")
-            pass
+        if ray.__version__ >= "0.6.5":
+            if validation is not 1:
+                raise RuntimeError("Failed to find .tune_metadata to restore checkpoint.")
+        else:
+            if validation is not 2:
+                raise RuntimeError("Failed to find .tune_metadata or .extra_data to restore checkpoint")
+                
+        if checkpoint_file_in_container:
+            print("Found checkpoint: %s. Setting `restore` path in ray config." %checkpoint_file_in_container)
+            config['training']['restore'] = checkpoint_file_in_container
+        else:
+            print("No valid checkpoint found in %s. Training from scratch." %checkpoint_dir)
 
         return config
+    
+    def _checkpoint_dir_finder(self, current_dir=None):
+        current_dir_subfolders = os.walk(current_dir).__next__()[1]
+        if len(current_dir_subfolders) > 1:
+            raise RuntimeError(f"Multiple folders detected: '{current_dir_subfolders}'."
+                                "Please provide one checkpoint only." )
+        elif not current_dir_subfolders:
+            return current_dir
+        return self._checkpoint_dir_finder(os.path.join(current_dir, *current_dir_subfolders))
 
     def launch(self):
         """Actual entry point into the class instance where everything happens.
