@@ -104,8 +104,8 @@ class SageS3Client():
                         return True
 
         except Exception as e:
-            util.json_format_logger ("{} while downloading the model {} from S3".format(e, filename),
-                     **util.build_system_error_dict(utils.SIMAPP_S3_DATA_STORE_EXCEPTION, utils.SIMAPP_EVENT_ERROR_CODE_500))
+            utils.json_format_logger ("{} while downloading the model {} from S3".format(e, filename),
+                     **utils.build_system_error_dict(utils.SIMAPP_S3_DATA_STORE_EXCEPTION, utils.SIMAPP_EVENT_ERROR_CODE_500))
             return False
 
     def get_ip(self):
