@@ -25,6 +25,9 @@ These examples show you how to use model-packages and algorithms from AWS Market
 	- [Using models for extracting vehicle metadata](using_model_packages/auto_insurance) provides a detailed walkthrough on how to use pre-trained models from AWS Marketplace for extracting metadata for a sample use-case of auto-insurance claim processing.
 	- [Using models for identifying non-compliance at a workplace](using_model_packages/improving_industrial_workplace_safety) provides a detailed walkthrough on how to use pre-trained models from AWS Marketplace for extracting metadata for a sample use-case of generating summary reports for identifying non-compliance at a construction/industrial workplace.
 
+- [Using Data](using_data)
+	- [Using data and algorithm from AWS Marketplace for training a model](using_data/using_data_from_aws_data_exchange_to_predict_product_popularity) provides a detailed walkthrough on how to use data from AWS Marketplace for training a model that predicts popularity of a bath product.
+
 ## FAQ
 
 *What do I need in order to get started?*
