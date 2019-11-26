@@ -45,7 +45,7 @@ class MyLauncher(SageMakerRayLauncher):
                     "ignore_worker_failures": True,
                     "entropy_coeff": 0.01
                 },
-                "checkpoint_freq": 1
+                "checkpoint_freq": 1 # make sure at least one checkpoint is saved 
             }
         }
 
