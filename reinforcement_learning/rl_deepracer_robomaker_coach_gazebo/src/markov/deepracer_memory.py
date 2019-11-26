@@ -3,6 +3,7 @@ import pickle
 import time
 import queue
 import redis
+import logging
 
 from rl_coach.memories.backend.memory import MemoryBackend
 from rl_coach.core_types import Episode
@@ -10,10 +11,16 @@ from rl_coach.core_types import Episode
 from markov.utils import Logger, json_format_logger, build_system_error_dict
 from markov.utils import SIMAPP_MEMORY_BACKEND_EXCEPTION, SIMAPP_EVENT_ERROR_CODE_500
 
+logger = Logger(__name__, logging.INFO).get_logger()
+
 # Channel used by the training worker to request episodes
 WORKER_CHANNEL = 'worker_channel'
 # The amount of time to wait before querying the socket
 POLL_TIME = 0.001
+# Since all the data is handled by the physical memory, there is a limit to the number of steps that can
+# be contained in a rollout. This number was determined empirically, as it seems rl_coach is making
+# a bunch of hard copies of the transitions
+MAX_MEMORY_STEPS = 10000
 
 def log_info(message):
     ''' Helper method that logs the exception
@@ -81,11 +88,11 @@ class DeepRacerRolloutBackEnd(MemoryBackend):
                                          pickle.dumps((self.total_episodes + 1, "")))
 
         except redis.ConnectionError as ex:
-            log_info("Redis connection error: {}".format(ex))
+            logger.info("Redis connection error: {}".format(ex))
         except pickle.PickleError as ex:
-            log_info("Could not decode/encode trainer request {}".format(ex))
+            logger.info("Could not decode/encode trainer request {}".format(ex))
         except Exception as ex:
-            log_info("Rollout worker data_req_handler {}".format(ex))
+            logger.info("Rollout worker data_req_handler {}".format(ex))
 
     def store(self, obj):
         ''' Stores the data object into the data list along with episode number
@@ -107,8 +114,12 @@ class DeepRacerTrainerBackEnd(MemoryBackend):
         '''
         # Redis params
         self.params = params
+        # Track the total steps taken in the rollout
+        self.rollout_steps = 0
         # Episode number whose data is to be retrieved from the rollout worker
         self.episode_req = 0
+        # Episodes in rollout
+        self.total_episodes_in_rollout = 0
         # Queue object to hold data from the rollout worker while waiting to be consumed
         self.data_queue = queue.Queue(1)
         # Flag to notify the publish worker that data should be requested
@@ -136,6 +147,14 @@ class DeepRacerTrainerBackEnd(MemoryBackend):
         except Exception as ex:
             log_info("Trainer data handler error: {}".format(ex))
 
+    def get_rollout_steps(self):
+        '''Returns the total number of steps in a rollout '''
+        return self.rollout_steps
+
+    def get_total_episodes_in_rollout(self):
+        '''Return the total number of episodes collected in the rollout '''
+        return self.total_episodes_in_rollout
+
     def publish_worker(self):
         ''' Worker responsible for requesting data from the rollout worker'''
         while True:
@@ -160,14 +179,22 @@ class DeepRacerTrainerBackEnd(MemoryBackend):
                                             collect before performing a training iteration
         '''
         episode_counter = 0
+        step_counter = 0
         self.request_data = True
+        self.rollout_steps = 0
+        self.total_episodes_in_rollout = 0
         while episode_counter <= num_consecutive_playing_steps.num_steps:
             try:
                 obj = self.data_queue.get()
+
                 if obj[0] == episode_counter and isinstance(obj[1], Episode):
                     episode_counter += 1
+                    step_counter += obj[1].length()
                     self.episode_req = episode_counter
-                    yield from obj[1]
+                    if step_counter <= MAX_MEMORY_STEPS:
+                        self.rollout_steps += obj[1].length()
+                        self.total_episodes_in_rollout += 1
+                        yield from obj[1]
                 # When we request num_consecutive_playing_steps.num we will get back
                 # 1 more than the requested index this lets us lknow the trollout worker
                 # has given us all available data
