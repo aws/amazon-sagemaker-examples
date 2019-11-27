@@ -162,6 +162,43 @@ class S3BotoDataStore(DataStore):
                                                                                              utils.SIMAPP_EVENT_ERROR_CODE_500))
             utils.simapp_exit_gracefully()
 
+    def get_latest_checkpoint(self):
+        try:
+            filename = os.path.abspath(os.path.join(self.params.checkpoint_dir, "latest_ckpt"))
+            if not os.path.exists(self.params.checkpoint_dir):
+                os.makedirs(self.params.checkpoint_dir)
+
+            while True:
+                s3_client = self._get_client()
+                # Check if there's a lock file
+                response = s3_client.list_objects_v2(Bucket=self.params.bucket,
+                                                     Prefix=self._get_s3_key(self.params.lock_file))
+
+                if "Contents" not in response:
+                    try:
+                        # If no lock is found, try getting the checkpoint
+                        s3_client.download_file(Bucket=self.params.bucket,
+                                                Key=self._get_s3_key(CHECKPOINT_METADATA_FILENAME),
+                                                Filename=filename)
+                    except Exception as e:
+                        logger.info("Error occured while getting latest checkpoint %s. Waiting." % e)
+                        time.sleep(SLEEP_TIME_WHILE_WAITING_FOR_DATA_FROM_TRAINER_IN_SECOND)
+                        continue
+                else:
+                    time.sleep(SLEEP_TIME_WHILE_WAITING_FOR_DATA_FROM_TRAINER_IN_SECOND)
+                    continue
+
+                checkpoint = self._get_current_checkpoint(checkpoint_metadata_filepath=filename)
+                if checkpoint:
+                    checkpoint_number = self._get_checkpoint_number(checkpoint)
+                    return checkpoint_number
+
+        except Exception as e:
+            utils.json_format_logger("Exception [{}] occured while getting latest checkpoint from S3.".format(e),
+                                     **utils.build_system_error_dict(utils.SIMAPP_S3_DATA_STORE_EXCEPTION, utils.SIMAPP_EVENT_ERROR_CODE_503))
+
+
+
     def load_from_store(self, expected_checkpoint_number=-1):
         try:
             filename = os.path.abspath(os.path.join(self.params.checkpoint_dir, CHECKPOINT_METADATA_FILENAME))
@@ -288,10 +325,11 @@ class S3BotoDataStore(DataStore):
     def get_current_checkpoint_number(self):
         return self._get_checkpoint_number(self._get_current_checkpoint())
 
-    def _get_current_checkpoint(self):
+    def _get_current_checkpoint(self, checkpoint_metadata_filepath=None):
         try:
-            checkpoint_metadata_filepath = os.path.abspath(
-                os.path.join(self.params.checkpoint_dir, CHECKPOINT_METADATA_FILENAME))
+            if not checkpoint_metadata_filepath:
+                checkpoint_metadata_filepath = os.path.abspath(
+                    os.path.join(self.params.checkpoint_dir, CHECKPOINT_METADATA_FILENAME))
             checkpoint = CheckpointState()
             if not os.path.exists(checkpoint_metadata_filepath):
                 return None
