@@ -16,7 +16,7 @@ import time
 import logging
 import traceback
 
-import markov.deepracer_memory as deepracer_memory
+import markov.deepracer_memory_multi as deepracer_memory
 
 from google.protobuf import text_format
 from tensorflow.python.training.checkpoint_state_pb2 import CheckpointState
@@ -141,14 +141,17 @@ def rollout_worker(graph_manager, checkpoint_dir, data_store, num_workers, memor
                                                                                    graph_manager.agent_params.algorithm.num_consecutive_playing_steps)
     try:
         with graph_manager.phase_context(RunPhase.TRAIN):
-            last_checkpoint = 0
-            act_steps = math.ceil((graph_manager.agent_params.algorithm.num_consecutive_playing_steps.num_steps) / num_workers)
+            # act_steps = math.ceil((graph_manager.agent_params.algorithm.num_consecutive_playing_steps.num_steps) / num_workers)
+            act_steps = 1
+            current_checkpoint = get_latest_checkpoint(checkpoint_dir)
+            for level in graph_manager.level_managers:
+                for agent in level.agents.values():
+                    agent.memory.memory_backend.set_current_checkpoint(current_checkpoint)
 
-            for i in range(int(graph_manager.improve_steps.num_steps/act_steps)):
-
+            # for i in range(int(graph_manager.improve_steps.num_steps/act_steps)):
+            while True:
                 if should_stop(checkpoint_dir):
                     break
-
                 try:
                     # This will only work for DeepRacerRacetrackEnv enviroments
                     graph_manager.top_level_manager.environment.env.env.set_allow_servo_step_signals(True)
@@ -161,24 +164,23 @@ def rollout_worker(graph_manager, checkpoint_dir, data_store, num_workers, memor
                 elif type(graph_manager.agent_params.algorithm.num_consecutive_playing_steps) == EnvironmentEpisodes:
                     graph_manager.act(EnvironmentEpisodes(num_steps=act_steps))
 
-                try:
-                    # This will only work for DeepRacerRacetrackEnv enviroments
-                    graph_manager.top_level_manager.environment.env.env.set_allow_servo_step_signals(False)
-                    graph_manager.top_level_manager.environment.env.env.stop_car()
-                except Exception as ex:
-                    utils.json_format_logger("Method not defined in enviroment class: {}".format(ex),
-                                       **utils.build_system_error_dict(utils.SIMAPP_SIMULATION_WORKER_EXCEPTION, utils.SIMAPP_EVENT_ERROR_CODE_500))
-            
-                if graph_manager.agent_params.algorithm.distributed_coach_synchronization_type == DistributedCoachSynchronizationType.SYNC:
-                    data_store.load_from_store(expected_checkpoint_number=last_checkpoint+1)
-                    last_checkpoint = get_latest_checkpoint(checkpoint_dir)
-                    graph_manager.restore_checkpoint()
+                latest_checkpoint = data_store.get_latest_checkpoint()
+                if latest_checkpoint:
+                    if latest_checkpoint > current_checkpoint:
+                        # Stop the simulation and download the latest model
+                        try:
+                            graph_manager.top_level_manager.environment.env.env.set_allow_servo_step_signals(False)
+                            graph_manager.top_level_manager.environment.env.env.stop_car()
+                        except Exception as ex:
+                            utils.json_format_logger("Method not defined in enviroment class: {}".format(ex),
+                                            **utils.build_system_error_dict(utils.SIMAPP_SIMULATION_WORKER_EXCEPTION, utils.SIMAPP_EVENT_ERROR_CODE_500))
 
-                if graph_manager.agent_params.algorithm.distributed_coach_synchronization_type == DistributedCoachSynchronizationType.ASYNC:
-                    new_checkpoint = get_latest_checkpoint(checkpoint_dir)
-                    if new_checkpoint > last_checkpoint:
+                        data_store.load_from_store(expected_checkpoint_number=latest_checkpoint)
                         graph_manager.restore_checkpoint()
-                    last_checkpoint = new_checkpoint
+                        current_checkpoint = latest_checkpoint
+                        for level in graph_manager.level_managers:
+                            for agent in level.agents.values():
+                                agent.memory.memory_backend.set_current_checkpoint(current_checkpoint)
     except Exception as ex:
         utils.json_format_logger("An error occured during simulation: {}".format(ex),
                      **utils.build_system_error_dict(utils.SIMAPP_SIMULATION_WORKER_EXCEPTION, utils.SIMAPP_EVENT_ERROR_CODE_500))
