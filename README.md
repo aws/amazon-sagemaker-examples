@@ -109,6 +109,9 @@ These examples that showcase unique functionality available in Amazon SageMaker.
 - [Inference Pipeline with SparkML and XGBoost](advanced_functionality/inference_pipeline_sparkml_xgboost_abalone) shows how to deploy an Inference Pipeline with SparkML for data pre-processing and XGBoost for training on the Abalone dataset. The pre-processing code is written once and used between training and inference.
 - [Inference Pipeline with SparkML and BlazingText](advanced_functionality/inference_pipeline_sparkml_blazingtext_dbpedia) shows how to deploy an Inference Pipeline with SparkML for data pre-processing and BlazingText for training on the DBPedia dataset. The pre-processing code is written once and used between training and inference.
 - [Experiment Management Capabilities with Search](advanced_functionality/search) shows how to organize Training Jobs into projects, and track relationships between Models, Endpoints, and Training Jobs.
+- [Host Multiple Models with Your Own Algorithm](advanced_functionality/multi_model_bring_your_own) shows how to deploy multiple models to a realtime hosted endpoint with your own custom algorithm.
+- [Host Multiple Models with XGBoost](advanced_functionality/multi_model_xgboost_home_value) shows how to deploy multiple models to a realtime hosted endpoint using a multi-model enabled XGBoost container.
+- [Host Multiple Models with SKLearn](advanced_functionality/multi_model_sklearn_home_value) shows how to deploy multiple models to a realtime hosted endpoint using a multi-model enabled SKLearn container.
 
 ### Amazon SageMaker Neo Compilation Jobs
 
@@ -156,13 +159,13 @@ These examples show how to use Amazon SageMaker for model training, hosting, and
 
 #### Create algorithms/model packages for listing in AWS Marketplace for machine learning.
 
-This example shows you how to package a model-package/algorithm for listing in AWS Markteplace for machine learning.
+This example shows you how to package a model-package/algorithm for listing in AWS Marketplace for machine learning.
 
 - [Creating Algorithm and Model Package - Listing on AWS Marketplace](aws_marketplace/creating_marketplace_products) provides a detailed walkthrough on how to package a scikit learn algorithm to create SageMaker Algorithm and SageMaker Model Package entities that can be used with the enhanced SageMaker Train/Transform/Hosting/Tuning APIs and listed on AWS Marketplace.
 
 #### Use algorithms and model packages from AWS Marketplace for machine learning.
 
-These examples show you how to use model-packages and algorithms from AWS Markteplace for machine learning.
+These examples show you how to use model-packages and algorithms from AWS Marketplace for machine learning.
 
 - [Using Algorithms](aws_marketplace/using_algorithms)
 	- [Using Algorithm From AWS Marketplace](aws_marketplace/using_algorithms/amazon_demo_product) provides a detailed walkthrough on how to use Algorithm with the enhanced SageMaker Train/Transform/Hosting/Tuning APIs by choosing a canonical product listed on AWS Marketplace.
@@ -171,8 +174,11 @@ These examples show you how to use model-packages and algorithms from AWS Markte
 - [Using Model Packages](aws_marketplace/using_model_packages)
 	- [Using Model Packages From AWS Marketplace](aws_marketplace/using_model_packages/amazon_demo_product) provides a detailed walkthrough on how to use Model Package entities with the enhanced SageMaker Transform/Hosting APIs by choosing a canonical product listed on AWS Marketplace.
 	- [Using models for extracting vehicle metadata](aws_marketplace/using_model_packages/auto_insurance) provides a detailed walkthrough on how to use pre-trained models from AWS Marketplace for extracting metadata for a sample use-case of auto-insurance claim processing.
+	- [Using models for identifying non-compliance at a workplace](aws_marketplace/using_model_packages/improving_industrial_workplace_safety) provides a detailed walkthrough on how to use pre-trained models from AWS Marketplace for extracting metadata for a sample use-case of generating summary reports for identifying non-compliance at a construction/industrial workplace.
 
-
+- [Using Data](aws_marketplace/using_data)
+	- [Using data and algorithm from AWS Marketplace for training a model](aws_marketplace/using_data/using_data_from_aws_data_exchange_to_predict_product_popularity) provides a detailed walkthrough on how to use data from AWS Marketplace for training a model that predicts popularity of a bath product.
+	
 ### Under Development
 
 These Amazon SageMaker examples fully illustrate a concept, but may require some additional configuration on the users part to complete.

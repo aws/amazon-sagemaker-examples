@@ -32,3 +32,17 @@ This folder contains examples of how to use RL to train an autonomous deepracer.
 8. This takes like 2 min to create your notebook instance. Then click on the newly created instance and click on the juypter notebook.
 9. You will see all the github files and now run `deepracer_rl.ipynb`
 10. Run clean robomaker & sagemaker commands in the script only when you are done with training.
+
+## DeepRacer Paper
+
+A techncial paper for AWS DeepRacer is available at https://arxiv.org/abs/1911.01562. Below is a BibTeX entry for citations:
+```
+@misc{deepracer2019,  
+	title={DeepRacer: Educational Autonomous Racing Platform for Experimentation with Sim2Real Reinforcement Learning},
+	author={Bharathan Balaji and Sunil Mallya and Sahika Genc and Saurabh Gupta and Leo Dirac and Vineet Khare and Gourav Roy and Tao Sun and Yunzhe Tao and Brian Townsend and Eddie Calleja and Sunil Muralidhara and Dhanasekar Karuppasamy},
+	year={2019},  
+	eprint={1911.01562},  
+	archivePrefix={arXiv},  
+	primaryClass={cs.LG}  
+}
+```
