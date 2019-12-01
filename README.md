@@ -91,6 +91,14 @@ These examples provide more thorough mathematical treatment on a select group of
 - [Latent Dirichlet Allocation (LDA)](scientific_details_of_algorithms/lda_topic_modeling) dives into Amazon SageMaker's spectral decomposition approach to LDA.
 - [Linear Learner features](scientific_details_of_algorithms/linear_learner_class_weights_loss_functions) shows how to use the class weights and loss functions features of the SageMaker Linear Learner algorithm to improve performance on a credit card fraud prediction task
 
+### Amazon SageMaker Debugger
+These examples provide an introduction to SageMaker Debugger, a system for the debugging and monitoring of training of machine learning and deep learning algorithms.
+
+- [MNIST Tensor Analysis](sagemaker-debugger/mnist_tensor_analysis) describes the usage of SageMaker Debugger to show data as it flows through a Tensorflow network
+- [Custom Rules](sagemaker-debugger/custom_rules) shows how to create algorithm-specific rules
+- [MXNet Realtime Analysis](sagemaker-debugger/mxnet_realtime_analysis) shows real-time plots of images to understand the behavior of convolutional networks
+
+
 ### Advanced Amazon SageMaker Functionality
 
 These examples that showcase unique functionality available in Amazon SageMaker.  They cover a broad range of topics and will utilize a variety of methods, but aim to provide the user with sufficient insight or inspiration to develop within Amazon SageMaker.
