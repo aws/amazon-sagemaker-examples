@@ -92,14 +92,15 @@ These examples provide more thorough mathematical treatment on a select group of
 - [Linear Learner features](scientific_details_of_algorithms/linear_learner_class_weights_loss_functions) shows how to use the class weights and loss functions features of the SageMaker Linear Learner algorithm to improve performance on a credit card fraud prediction task
 
 ### Amazon SageMaker Debugger
-These examples provide an introduction to SageMaker Debugger, a system for the debugging and monitoring of training of machine learning and deep learning algorithms. Note that although these notebooks focus on a specific framework, the same approach works with all the frameworks that Amazon SageMaker Debugger supports. These are in the order in which we recommend you review them.
+These examples provide and introduction to SageMaker Debugger which allows debugging and monitoring capabilities for training of machine learning and deep learning algorithms. Note that although these notebooks focus on a specific framework, the same approach works with all the frameworks that Amazon SageMaker Debugger supports. The notebooks below are listed in the order in which we recommend you review them.
 
-- [Using a built-in rule with TensorFlow](sagemaker-debugger/using_rules/tf-mnist-builtin-rule.ipynb) 
-- [Using a custom rule with TensorFlow](sagemaker-debugger/using_rules/tf-mnist-custom-rule.ipynb)
-- [Using Cloudwatch events from rules to stop training jobs if rule condition is met](sagemaker-debugger/using_rules/tf-mnist-stop-training-job.ipynb)
-- [Interactive tensor analysis in notebook with MXNet](sagemaker-debugger/mnist_tensor_analysis/)
-- [Real time analysis in notebook with MXNet](sagemaker-debugger/mxnet_realtime_analysis/)
-
+- [Using a built-in rule with TensorFlow](tensorflow_builtin_rule/)
+- [Using a custom rule with TensorFlow Keras](tensorflow_keras_custom_rule/)
+- [Interactive tensor analysis in notebook with MXNet](mnist_tensor_analysis/)
+- [Real-time analysis in notebook with MXNet](mxnet_realtime_analysis/)
+- [Using a built in rule with XGBoost](xgboost_builtin_rules/)
+- [Real-time analysis in notebook with XGBoost](xgboost_realtime_analysis/)
+- [Reacting to CloudWatch Events from Rules to take an action based on status](tensorflow_action_on_rule/)
 
 ### Advanced Amazon SageMaker Functionality
 

@@ -1,3 +1,14 @@
+"""
+This script is a simple MNIST training script which uses Tensorflow's Estimator interface.
+It has been orchestrated with SageMaker Debugger hooks to allow saving tensors during training.
+These hooks have been instrumented to read from json configuration that SageMaker will put in the training container.
+Configuration provided to the SageMaker python SDK when creating a job will be passed on to the hook.
+This allows you to use the same script with differing configurations across different runs. 
+If you use an official SageMaker Framework container (i.e. AWS Deep Learning Container), then 
+you do not have to orchestrate your script as below. Hooks will automatically be added in those environments.
+For more information, please refer to https://github.com/awslabs/sagemaker-debugger/blob/master/docs/sagemaker.md 
+"""
+
 # Standard Library
 import argparse
 import random
@@ -5,6 +16,7 @@ import random
 # Third Party
 import numpy as np
 import tensorflow as tf
+import smdebug.tensorflow as smd
 
 import logging
 logging.getLogger().setLevel(logging.INFO)
@@ -27,14 +39,13 @@ parser.add_argument(
 parser.add_argument("--model_dir", type=str, default="/tmp/mnist_model")
 args = parser.parse_args()
 
-# these random seeds are only intended for test purpose.
-# for now, 2,2,12 could promise no assert failure when running tests.
-# if you wish to change the number, notice that certain steps' tensor value may be capable of variation
 if args.random_seed:
     tf.set_random_seed(2)
     np.random.seed(2)
     random.seed(12)
 
+# This allows you to create the hook from the configuration you pass to the SageMaker pySDK
+hook = smd.SessionHook.create_from_json_file()
 
 def cnn_model_fn(features, labels, mode):
     """Model function for CNN."""
@@ -82,6 +93,11 @@ def cnn_model_fn(features, labels, mode):
     # Configure the Training Op (for TRAIN mode)
     if mode == tf.estimator.ModeKeys.TRAIN:
         optimizer = tf.train.GradientDescentOptimizer(learning_rate=args.lr)
+
+        # SMD: Wrap your optimizer as follows to help SageMaker Debugger identify gradients
+        # This does not change your optimization logic, it returns back the same optimizer
+        optimizer = hook.wrap_optimizer(optimizer)
+
         train_op = optimizer.minimize(loss=loss, global_step=tf.train.get_global_step())
         return tf.estimator.EstimatorSpec(mode=mode, loss=loss, train_op=train_op)
 
@@ -111,6 +127,10 @@ eval_input_fn = tf.estimator.inputs.numpy_input_fn(
     x={"x": eval_data}, y=eval_labels, num_epochs=1, shuffle=False
 )
 
-mnist_classifier.train(input_fn=train_input_fn, steps=args.num_steps)
+# Set training mode so SMDebug can classify the steps into training mode
+hook.set_mode(smd.modes.TRAIN)
+mnist_classifier.train(input_fn=train_input_fn, steps=args.num_steps, hooks=[hook])
 
-mnist_classifier.evaluate(input_fn=eval_input_fn, steps=args.num_eval_steps)
+# Set eval mode so SMDebug can classify the steps into eval mode
+hook.set_mode(smd.modes.EVAL)
+mnist_classifier.evaluate(input_fn=eval_input_fn, steps=args.num_eval_steps, hooks=[hook])

@@ -1,3 +1,14 @@
+"""
+This script is a simple MNIST training script which uses Tensorflow's Estimator interface.
+It has been orchestrated with SageMaker Debugger hooks to allow saving tensors during training.
+These hooks have been instrumented to read from json configuration that SageMaker will put in the training container.
+Configuration provided to the SageMaker python SDK when creating a job will be passed on to the hook.
+This allows you to use the same script with differing configurations across different runs. 
+If you use an official SageMaker Framework container (i.e. AWS Deep Learning Container), then 
+you do not have to orchestrate your script as below. Hooks will automatically be added in those environments.
+For more information, please refer to https://github.com/awslabs/sagemaker-debugger/blob/master/docs/sagemaker.md 
+"""
+
 # Standard Library
 import argparse
 import random
@@ -34,7 +45,7 @@ if args.random_seed:
     random.seed(12)
 
 # This allows you to create the hook from the configuration you pass to the SageMaker pySDK
-hook = smd.SessionHook.create_from_json_file()
+hook = smd.EstimatorHook.create_from_json_file()
 
 def cnn_model_fn(features, labels, mode):
     """Model function for CNN."""

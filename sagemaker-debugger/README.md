@@ -1,9 +1,11 @@
 ## Amazon SageMaker Debugger Examples
 
-This repository contains example notebooks that show how to use Amazon SageMaker Debugger. It's a feature in SageMaker that allows you to look inside the training process and debug it by analyzing data emitted. Note that although these notebooks focus on a specific framework, the same approach works with all the frameworks that Amazon SageMaker Debugger supports. These are in the order in which we recommend you review them.
+These examples provide and introduction to SageMaker Debugger which allows debugging and monitoring capabilities for training of machine learning and deep learning algorithms. Note that although these notebooks focus on a specific framework, the same approach works with all the frameworks that Amazon SageMaker Debugger supports. The notebooks below are listed in the order in which we recommend you review them.
 
-- [Using a built-in rule with TensorFlow](using_rules/tf-mnist-builtin-rule.ipynb) 
-- [Using a custom rule with TensorFlow](using_rules/tf-mnist-custom-rule.ipynb)
-- [Using Cloudwatch events from rules to stop training jobs if rule condition is met](using_rules/tf-mnist-stop-training-job.ipynb)
+- [Using a built-in rule with TensorFlow](tensorflow_builtin_rule/)
+- [Using a custom rule with TensorFlow Keras](tensorflow_keras_custom_rule/)
 - [Interactive tensor analysis in notebook with MXNet](mnist_tensor_analysis/)
-- [Real time analysis in notebook with MXNet](mxnet_realtime_analysis/)
+- [Real-time analysis in notebook with MXNet](mxnet_realtime_analysis/)
+- [Using a built in rule with XGBoost](xgboost_builtin_rules/)
+- [Real-time analysis in notebook with XGBoost](xgboost_realtime_analysis/)
+- [Reacting to CloudWatch Events from Rules to take an action based on status](tensorflow_action_on_rule/)
