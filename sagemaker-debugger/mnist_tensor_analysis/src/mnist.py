@@ -7,8 +7,6 @@ import numpy as np
 from mxnet import autograd, gluon, init
 from mxnet.gluon import nn
 from mxnet.gluon.data.vision import datasets, transforms
-import smdebug.mxnet as smd
-from smdebug.mxnet import SaveConfig, Hook
 import os
 import time
 
@@ -69,17 +67,6 @@ def train_model(batch_size, net, train_data, lr):
             trainer.step(batch_size)
         print(np.mean(loss.asnumpy()))
 
-def create_hook(output_s3_uri):
-    save_config = SaveConfig(save_interval=10)
-    hook = Hook(
-        out_dir=output_s3_uri,
-        save_config=save_config,
-        save_all=True
-    )
-    
-    return hook
-
-
 def prepare_data(batch_size):
     mnist_train = datasets.FashionMNIST(train=True)
     transformer = transforms.Compose([transforms.ToTensor(), transforms.Normalize(0.286, 0.352)])
@@ -94,9 +81,6 @@ def prepare_data(batch_size):
 def main():
     opt = parse_args()
     net = create_gluon_model(opt.initializer)
-    output_s3_uri = opt.smdebug_path if opt.smdebug_path is not None else opt.output_s3_uri
-    hook = create_hook(output_s3_uri)
-    hook.register_hook(net)
     train_data = prepare_data(128)
     train_model(128, net, train_data, opt.lr)
 
