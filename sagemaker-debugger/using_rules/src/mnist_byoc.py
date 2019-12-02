@@ -5,15 +5,12 @@ import random
 # Third Party
 import numpy as np
 import tensorflow as tf
-
-# First Party
 import smdebug.tensorflow as smd
 
+import logging
+logging.getLogger().setLevel(logging.INFO)
+
 parser = argparse.ArgumentParser()
-parser.add_argument("--script-mode", type=bool, default=False)
-parser.add_argument("--smdebug_path", type=str)
-parser.add_argument("--train_frequency", type=int, help="How often to save TS data", default=50)
-parser.add_argument("--eval_frequency", type=int, help="How often to save TS data", default=10)
 parser.add_argument("--lr", type=float, default=0.001)
 parser.add_argument("--random_seed", type=bool, default=False)
 parser.add_argument("--num_epochs", type=int, default=5, help="Number of epochs to train for")
@@ -31,14 +28,13 @@ parser.add_argument(
 parser.add_argument("--model_dir", type=str, default="/tmp/mnist_model")
 args = parser.parse_args()
 
-# these random seeds are only intended for test purpose.
-# for now, 2,2,12 could promise no assert failure when running tests.
-# if you wish to change the number, notice that certain steps' tensor value may be capable of variation
 if args.random_seed:
     tf.set_random_seed(2)
     np.random.seed(2)
     random.seed(12)
 
+# This allows you to create the hook from the configuration you pass to the SageMaker pySDK
+hook = smd.SessionHook.create_from_json_file()
 
 def cnn_model_fn(features, labels, mode):
     """Model function for CNN."""
@@ -82,13 +78,15 @@ def cnn_model_fn(features, labels, mode):
 
     # Calculate Loss (for both TRAIN and EVAL modes)
     loss = tf.losses.sparse_softmax_cross_entropy(labels=labels, logits=logits)
-    tf.summary.scalar("loss", loss)
 
     # Configure the Training Op (for TRAIN mode)
     if mode == tf.estimator.ModeKeys.TRAIN:
         optimizer = tf.train.GradientDescentOptimizer(learning_rate=args.lr)
-        if args.script_mode:
-            optimizer = smd.get_hook().wrap_optimizer(optimizer)
+
+        # SMD: Wrap your optimizer as follows to help SageMaker Debugger identify gradients
+        # This does not change your optimization logic, it returns back the same optimizer
+        optimizer = hook.wrap_optimizer(optimizer)
+
         train_op = optimizer.minimize(loss=loss, global_step=tf.train.get_global_step())
         return tf.estimator.EstimatorSpec(mode=mode, loss=loss, train_op=train_op)
 
@@ -118,25 +116,10 @@ eval_input_fn = tf.estimator.inputs.numpy_input_fn(
     x={"x": eval_data}, y=eval_labels, num_epochs=1, shuffle=False
 )
 
-if args.script_mode:
-    hook = smd.SessionHook(
-        out_dir=args.smdebug_path,
-        save_config=smd.SaveConfig(
-            {
-                smd.modes.TRAIN: smd.SaveConfigMode(args.train_frequency),
-                smd.modes.EVAL: smd.SaveConfigMode(args.eval_frequency),
-            }
-        ),
-    )
-    hooks = [hook]
-else:
-    hooks = []
+# Set training mode so SMDebug can classify the steps into training mode
+hook.set_mode(smd.modes.TRAIN)
+mnist_classifier.train(input_fn=train_input_fn, steps=args.num_steps, hooks=[hook])
 
-if args.script_mode:
-    hook.set_mode(smd.modes.TRAIN)
-# train one step and display the probabilties
-mnist_classifier.train(input_fn=train_input_fn, steps=args.num_steps, hooks=hooks)
-
-if args.script_mode:
-    hook.set_mode(smd.modes.EVAL)
-mnist_classifier.evaluate(input_fn=eval_input_fn, steps=args.num_eval_steps, hooks=hooks)
+# Set eval mode so SMDebug can classify the steps into eval mode
+hook.set_mode(smd.modes.EVAL)
+mnist_classifier.evaluate(input_fn=eval_input_fn, steps=args.num_eval_steps, hooks=[hook])

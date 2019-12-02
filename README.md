@@ -92,11 +92,13 @@ These examples provide more thorough mathematical treatment on a select group of
 - [Linear Learner features](scientific_details_of_algorithms/linear_learner_class_weights_loss_functions) shows how to use the class weights and loss functions features of the SageMaker Linear Learner algorithm to improve performance on a credit card fraud prediction task
 
 ### Amazon SageMaker Debugger
-These examples provide an introduction to SageMaker Debugger, a system for the debugging and monitoring of training of machine learning and deep learning algorithms.
+These examples provide an introduction to SageMaker Debugger, a system for the debugging and monitoring of training of machine learning and deep learning algorithms. Note that although these notebooks focus on a specific framework, the same approach works with all the frameworks that Amazon SageMaker Debugger supports. These are in the order in which we recommend you review them.
 
-- [MNIST Tensor Analysis](sagemaker-debugger/mnist_tensor_analysis) describes the usage of SageMaker Debugger to show data as it flows through a Tensorflow network
-- [Custom Rules](sagemaker-debugger/custom_rules) shows how to create algorithm-specific rules
-- [MXNet Realtime Analysis](sagemaker-debugger/mxnet_realtime_analysis) shows real-time plots of images to understand the behavior of convolutional networks
+- [Using a built-in rule with TensorFlow](sagemaker-debugger/using_rules/tf-mnist-builtin-rule.ipynb) 
+- [Using a custom rule with TensorFlow](sagemaker-debugger/using_rules/tf-mnist-custom-rule.ipynb)
+- [Using Cloudwatch events from rules to stop training jobs if rule condition is met](sagemaker-debugger/using_rules/tf-mnist-stop-training-job.ipynb)
+- [Interactive tensor analysis in notebook with MXNet](sagemaker-debugger/mnist_tensor_analysis/)
+- [Real time analysis in notebook with MXNet](sagemaker-debugger/mxnet_realtime_analysis/)
 
 
 ### Advanced Amazon SageMaker Functionality
