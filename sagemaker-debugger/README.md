@@ -8,4 +8,5 @@ These examples provide and introduction to SageMaker Debugger which allows debug
 - [Real-time analysis in notebook with MXNet](mxnet_realtime_analysis/)
 - [Using a built in rule with XGBoost](xgboost_builtin_rules/)
 - [Real-time analysis in notebook with XGBoost](xgboost_realtime_analysis/)
-- [Reacting to CloudWatch Events from Rules to take an action based on status](tensorflow_action_on_rule/)
+- [Using SageMaker Debugger with Managed Spot Training and MXNet](mxnet_spot_training/)
+- [Reacting to CloudWatch Events from Rules to take an action based on status with TensorFlow](tensorflow_action_on_rule/)

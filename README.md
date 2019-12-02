@@ -94,13 +94,14 @@ These examples provide more thorough mathematical treatment on a select group of
 ### Amazon SageMaker Debugger
 These examples provide and introduction to SageMaker Debugger which allows debugging and monitoring capabilities for training of machine learning and deep learning algorithms. Note that although these notebooks focus on a specific framework, the same approach works with all the frameworks that Amazon SageMaker Debugger supports. The notebooks below are listed in the order in which we recommend you review them.
 
-- [Using a built-in rule with TensorFlow](tensorflow_builtin_rule/)
-- [Using a custom rule with TensorFlow Keras](tensorflow_keras_custom_rule/)
-- [Interactive tensor analysis in notebook with MXNet](mnist_tensor_analysis/)
-- [Real-time analysis in notebook with MXNet](mxnet_realtime_analysis/)
-- [Using a built in rule with XGBoost](xgboost_builtin_rules/)
-- [Real-time analysis in notebook with XGBoost](xgboost_realtime_analysis/)
-- [Reacting to CloudWatch Events from Rules to take an action based on status](tensorflow_action_on_rule/)
+- [Using a built-in rule with TensorFlow](sagemaker-debugger/tensorflow_builtin_rule/)
+- [Using a custom rule with TensorFlow Keras](sagemaker-debugger/tensorflow_keras_custom_rule/)
+- [Interactive tensor analysis in notebook with MXNet](sagemaker-debugger/mnist_tensor_analysis/)
+- [Real-time analysis in notebook with MXNet](sagemaker-debugger/mxnet_realtime_analysis/)
+- [Using a built in rule with XGBoost](sagemaker-debugger/xgboost_builtin_rules/)
+- [Real-time analysis in notebook with XGBoost](sagemaker-debugger/xgboost_realtime_analysis/)
+- [Using SageMaker Debugger with Managed Spot Training and MXNet](sagemaker-debugger/mxnet_spot_training/)
+- [Reacting to CloudWatch Events from Rules to take an action based on status with TensorFlow](sagemaker-debugger/tensorflow_action_on_rule/)
 
 ### Advanced Amazon SageMaker Functionality
 
