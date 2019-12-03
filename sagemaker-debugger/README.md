@@ -10,3 +10,4 @@ These examples provide and introduction to SageMaker Debugger which allows debug
 - [Real-time analysis in notebook with XGBoost](xgboost_realtime_analysis/)
 - [Using SageMaker Debugger with Managed Spot Training and MXNet](mxnet_spot_training/)
 - [Reacting to CloudWatch Events from Rules to take an action based on status with TensorFlow](tensorflow_action_on_rule/)
+- [Using SageMaker Debugger with a custom PyTorch container](pytorch_custom_container/)
