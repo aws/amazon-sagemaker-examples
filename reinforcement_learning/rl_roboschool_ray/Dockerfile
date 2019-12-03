@@ -29,7 +29,10 @@ RUN curl -fSsL -O https://bootstrap.pypa.io/get-pip.py && \
 
 RUN pip install --upgrade \
     pip \
-    setuptools
+    setuptools \
+    setproctitle \
+    lz4 \
+    psutil
 
 RUN pip install sagemaker-containers --upgrade
 

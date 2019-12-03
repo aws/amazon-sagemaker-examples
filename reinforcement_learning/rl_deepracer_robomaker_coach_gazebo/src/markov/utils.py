@@ -8,6 +8,7 @@ import time
 import datetime
 import inspect
 from collections import OrderedDict
+import traceback
 
 SIMAPP_VERSION="1.0"
 
@@ -21,9 +22,7 @@ SIMAPP_EVENT_SYSTEM_ERROR = "system_error"
 SIMAPP_EVENT_USER_ERROR = "user_error"
 
 SIMAPP_EVENT_ERROR_CODE_500 = "500"
-SIMAPP_EVENT_ERROR_CODE_503 = "503"
 SIMAPP_EVENT_ERROR_CODE_400 = "400"
-SIMAPP_EVENT_ERROR_CODE_401 = "401"
 
 class Logger(object):
     counter = 0
@@ -104,10 +103,10 @@ def get_ip_from_host(timeout=100):
 
     if counter == timeout and not ip_address:
         error_string = "Environment Error: Could not retrieve IP address \
-        for %s in past %s seconds. Job failed!" % (host_name, timeout)
+        for %s in past %s seconds." % (host_name, timeout)
         json_format_logger (error_string,
-                            **build_system_error_dict(SIMAPP_ENVIRONMENT_EXCEPTION, SIMAPP_EVENT_ERROR_CODE_503))
-        sys.exit(1)
+                            **build_system_error_dict(SIMAPP_ENVIRONMENT_EXCEPTION, SIMAPP_EVENT_ERROR_CODE_500))
+        simapp_exit_gracefully()
 
     return ip_address
 
@@ -155,12 +154,30 @@ def load_model_metadata(s3_client, model_metadata_s3_key, model_metadata_local_p
             json.dump(model_metadata, f, indent=4)
         logger.info("Loaded default action space.")
 
+from markov.environments.deepracer_racetrack_env import simapp_shutdown
+SIMAPP_DONE_EXIT=0
+SIMAPP_ERROR_EXIT=-1
+def simapp_exit_gracefully(simapp_exit=SIMAPP_ERROR_EXIT):
+    #simapp exception leading to exiting the system
+    # -close the running processes
+    # -upload simtrace data to S3
+    logger.info("simapp_exit_gracefully: simapp_exit-{}".format(simapp_exit))
+    simapp_shutdown()
+
+    logger.info("Terminating simapp simulation...")
+    stack_trace = traceback.format_exc()
+    logger.info ("deepracer_racetrack_env - callstack={}".format(stack_trace))
+    if simapp_exit == SIMAPP_ERROR_EXIT:
+        os._exit(1)
 
 class DoorMan:
     def __init__(self):
         self.terminate_now = False
+        logger.info ("DoorMan: installing SIGINT, SIGTERM")
         signal.signal(signal.SIGINT, self.exit_gracefully)
         signal.signal(signal.SIGTERM, self.exit_gracefully)
 
     def exit_gracefully(self, signum, frame):
         self.terminate_now = True
+        logger.info ("DoorMan: received signal {}".format(signum))
+        simapp_exit_gracefully(SIMAPP_DONE_EXIT)
