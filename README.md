@@ -91,6 +91,19 @@ These examples provide more thorough mathematical treatment on a select group of
 - [Latent Dirichlet Allocation (LDA)](scientific_details_of_algorithms/lda_topic_modeling) dives into Amazon SageMaker's spectral decomposition approach to LDA.
 - [Linear Learner features](scientific_details_of_algorithms/linear_learner_class_weights_loss_functions) shows how to use the class weights and loss functions features of the SageMaker Linear Learner algorithm to improve performance on a credit card fraud prediction task
 
+### Amazon SageMaker Debugger
+These examples provide and introduction to SageMaker Debugger which allows debugging and monitoring capabilities for training of machine learning and deep learning algorithms. Note that although these notebooks focus on a specific framework, the same approach works with all the frameworks that Amazon SageMaker Debugger supports. The notebooks below are listed in the order in which we recommend you review them.
+
+- [Using a built-in rule with TensorFlow](sagemaker-debugger/tensorflow_builtin_rule/)
+- [Using a custom rule with TensorFlow Keras](sagemaker-debugger/tensorflow_keras_custom_rule/)
+- [Interactive tensor analysis in notebook with MXNet](sagemaker-debugger/mnist_tensor_analysis/)
+- [Real-time analysis in notebook with MXNet](sagemaker-debugger/mxnet_realtime_analysis/)
+- [Using a built in rule with XGBoost](sagemaker-debugger/xgboost_builtin_rules/)
+- [Real-time analysis in notebook with XGBoost](sagemaker-debugger/xgboost_realtime_analysis/)
+- [Using SageMaker Debugger with Managed Spot Training and MXNet](sagemaker-debugger/mxnet_spot_training/)
+- [Reacting to CloudWatch Events from Rules to take an action based on status with TensorFlow](sagemaker-debugger/tensorflow_action_on_rule/)
+- [Using SageMaker Debugger with a custom PyTorch container](sagemaker-debugger/pytorch_custom_container/)
+
 ### Advanced Amazon SageMaker Functionality
 
 These examples that showcase unique functionality available in Amazon SageMaker.  They cover a broad range of topics and will utilize a variety of methods, but aim to provide the user with sufficient insight or inspiration to develop within Amazon SageMaker.
@@ -122,6 +135,13 @@ These examples provide you an introduction to how to use Neo to optimizes deep l
 - [Deploying pre-trained PyTorch vision models](sagemaker_neo_compilation_jobs/pytorch_torchvision) shows how to use Amazon SageMaker Neo to compile and optimize pre-trained PyTorch models from TorchVision.
 - [Distributed TensorFlow](sagemaker_neo_compilation_jobs/tensorflow_distributed_mnist) Adapts form [tensorflow mnist](sagemaker-python-sdk/tensorflow_distributed_mnist) including Neo API and comparsion between the baseline
 - [Predicting Customer Churn](sagemaker_neo_compilation_jobs/xgboost_customer_churn) Adapts form [xgboost customer churn](introduction_to_applying_machine_learning/xgboost_customer_churn) including Neo API and comparsion between the baseline
+
+### Amazon SageMaker Procesing
+
+These examples show you how to use SageMaker Processing jobs to run data processing workloads.
+
+- [Scikit-Learn Data Processing and Model Evaluation](sagemaker_processing/scikit_learn_data_processing_and_model_evaluation) shows how to use SageMaker Processing and the Scikit-Learn container to run data preprocessing and model evaluation workloads.
+- [Feature transformation with Amazon SageMaker Processing and SparkML](sagemaker_processing/feature_transformation_with_sagemaker_processing) shows how to use SageMaker Processing to run data processing workloads using SparkML prior to training.
 
 ### Amazon SageMaker Pre-Built Framework Containers and the Python SDK
 
