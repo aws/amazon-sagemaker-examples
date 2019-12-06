@@ -97,6 +97,7 @@ These examples provide and introduction to SageMaker Debugger which allows debug
 - [Using a built-in rule with TensorFlow](sagemaker-debugger/tensorflow_builtin_rule/)
 - [Using a custom rule with TensorFlow Keras](sagemaker-debugger/tensorflow_keras_custom_rule/)
 - [Interactive tensor analysis in notebook with MXNet](sagemaker-debugger/mnist_tensor_analysis/)
+- [Visualizing Debugging Tensors of MXNet training](sagemaker-debugger/mnist_tensor_plot/)
 - [Real-time analysis in notebook with MXNet](sagemaker-debugger/mxnet_realtime_analysis/)
 - [Using a built in rule with XGBoost](sagemaker-debugger/xgboost_builtin_rules/)
 - [Real-time analysis in notebook with XGBoost](sagemaker-debugger/xgboost_realtime_analysis/)
@@ -198,7 +199,7 @@ These examples show you how to use model-packages and algorithms from AWS Market
 
 - [Using Data](aws_marketplace/using_data)
 	- [Using data and algorithm from AWS Marketplace for training a model](aws_marketplace/using_data/using_data_from_aws_data_exchange_to_predict_product_popularity) provides a detailed walkthrough on how to use data from AWS Marketplace for training a model that predicts popularity of a bath product.
-	
+
 ### Under Development
 
 These Amazon SageMaker examples fully illustrate a concept, but may require some additional configuration on the users part to complete.
