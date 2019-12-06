@@ -5,6 +5,7 @@ These examples provide and introduction to SageMaker Debugger which allows debug
 - [Using a built-in rule with TensorFlow](tensorflow_builtin_rule/)
 - [Using a custom rule with TensorFlow Keras](tensorflow_keras_custom_rule/)
 - [Interactive tensor analysis in notebook with MXNet](mnist_tensor_analysis/)
+- [Visualizing Debugging Tensors of MXNet training](mnist_tensor_plot/)
 - [Real-time analysis in notebook with MXNet](mxnet_realtime_analysis/)
 - [Using a built in rule with XGBoost](xgboost_builtin_rules/)
 - [Real-time analysis in notebook with XGBoost](xgboost_realtime_analysis/)
