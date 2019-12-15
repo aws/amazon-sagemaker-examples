@@ -25,6 +25,7 @@ import keras
 import tensorflow as tf
 from keras import backend as K
 from keras.callbacks import TensorBoard, ModelCheckpoint
+import smdebug.tensorflow as smd
 from keras.layers import Activation, Conv2D, Dense, Dropout, Flatten, MaxPooling2D, BatchNormalization
 from keras.models import Sequential
 from keras.optimizers import Adam, SGD, RMSprop
@@ -209,7 +210,7 @@ def save_model(model, output):
     signature = tf.saved_model.signature_def_utils.predict_signature_def(
         inputs={'image': model.input}, outputs={'scores': model.output})
 
-    builder = tf.saved_model.builder.SavedModelBuilder(output+'/1/')
+    builder = tf.saved_model.builder.SavedModelBuilder(output+'/export/Servo/1/')
     builder.add_meta_graph_and_variables(
         sess=K.get_session(),
         tags=[tf.saved_model.tag_constants.SERVING],
@@ -259,6 +260,7 @@ def main(args):
     if checkpoints_enabled:
         logging.info("Checkpoint data will be saved in {}".format(CHECKPOINTS_DIR))
     callbacks = []
+    debuggerhook = smd.KerasHook(out_dir=tensorboard_dir)
     if mpi:
         callbacks.append(hvd.callbacks.BroadcastGlobalVariablesCallback(0))
         callbacks.append(hvd.callbacks.MetricAverageCallback())
@@ -267,11 +269,13 @@ def main(args):
         if hvd.rank() == 0:
             if checkpoints_enabled:
                 callbacks.append(ModelCheckpoint(CHECKPOINTS_DIR + '/checkpoint-{epoch}.h5'))
+            callbacks.append(debuggerhook)
             callbacks.append(TensorBoard(log_dir=tensorboard_dir, update_freq='epoch'))
     else:
         if checkpoints_enabled:
             callbacks.append(ModelCheckpoint(CHECKPOINTS_DIR + '/checkpoint-{epoch}.h5'))
         callbacks.append(keras.callbacks.ReduceLROnPlateau(patience=10, verbose=1))
+        callbacks.append(debuggerhook)
         callbacks.append(TensorBoard(log_dir=tensorboard_dir, update_freq='epoch'))
     logging.info("Starting training")
     size = 1
@@ -285,11 +289,12 @@ def main(args):
     if mpi:
         if hvd.rank() == 0:
             score = model.evaluate(eval_dataset[0], eval_dataset[1],
-                                   steps=num_examples_per_epoch('eval') // args.batch_size,
+                                   steps=num_examples_per_epoch('eval') // args.batch_size, callbacks=[debuggerhook],
                                    verbose=0)
     else:
         score = model.evaluate(eval_dataset[0], eval_dataset[1],
-                               steps=num_examples_per_epoch('eval') // args.batch_size, verbose=0)
+                               steps=num_examples_per_epoch('eval') // args.batch_size, callbacks=[debuggerhook],
+                               verbose=0)
 
     if score:
         logging.info('Test loss:{}'.format(score[0]))
