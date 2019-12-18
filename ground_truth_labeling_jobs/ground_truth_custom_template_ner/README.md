@@ -1,16 +1,13 @@
-# SageMaker GroundTruth  - Named Entity Recognition
-This is a sample template for SageMaker named entity recognition ground truth solution. 
-This has 3 components
+# SageMaker GroundTruth Custom Template  - Named Entity Recognition
+This is a sample custom template for SageMaker named entity recognition ground truth solution.  
+
+**Note** This is an example  on how to build custom template. The named entity task has a built in readily available in SageMaker Groundtruth to use
+
+This exmaple has 3 components
 1. The HTML template that the workers will use to work on the task
 1. Lambda functions for pre and post processing rules.
 
-**Note** This template currently only supports one type of entity
-
 ![Preview](docs/preview.png)
-
-
-## Known issues
-1. Does not support multi-word entities on the user interface. 
 
 
 ## Setup
