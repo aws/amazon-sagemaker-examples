@@ -1,0 +1,117 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: minecraft
+    release: r1.12 
+  name: minecraft
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: minecraft
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: minecraft
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: lifecycle
+                operator: In
+                values:
+                - Ec2Spot
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 1
+            preference:
+              matchExpressions:
+              - key: alpha.eksctl.io/nodegroup-name
+                operator: In
+                values:
+                - mixed-instances-1
+                - mixed-instances-2
+      containers:
+      - env:
+        - name: REGION
+          value: "us-west-2"
+        - name: QUEUENAME
+          value: "notused"
+        - name: EULA
+          value: "true"
+        - name: TYPE
+          value: FORGE
+        - name: VERSION
+          value: "1.12"
+        - name: DIFFICULTY
+          value: easy
+        - name: WHITELIST
+        - name: OPS
+        - name: ICON
+        - name: MAX_PLAYERS
+          value: "20"
+        - name: MAX_WORLD_SIZE
+          value: "10000"
+        - name: ALLOW_NETHER
+          value: "true"
+        - name: ANNOUNCE_PLAYER_ACHIEVEMENTS
+          value: "true"
+        - name: ENABLE_COMMAND_BLOCK
+          value: "true"
+        - name: FORCE_gameMode
+          value: "false"
+        - name: GENERATE_STRUCTURES
+          value: "true"
+        - name: HARDCORE
+          value: "false"
+        - name: MAX_BUILD_HEIGHT
+          value: "256"
+        - name: MAX_TICK_TIME
+          value: "60000"
+        - name: SPAWN_ANIMALS
+          value: "true"
+        - name: SPAWN_MONSTERS
+          value: "true"
+        - name: SPAWN_NPCS
+          value: "true"
+        - name: VIEW_DISTANCE
+          value: "10"
+        - name: SEED
+        - name: MODE
+          value: survival
+        - name: MOTD
+          value: Welcome to Minecraft on Kubernetes!
+        - name: PVP
+          value: "false"
+        - name: LEVEL_TYPE
+          value: DEFAULT
+        - name: GENERATOR_SETTINGS
+        - name: LEVEL
+          value: world
+        - name: ONLINE_MODE
+          value: "true"
+        - name: JVM_OPTS
+          value: -Xmx512M -Xms512M
+        image: 356566070122.dkr.ecr.us-west-2.amazonaws.com/minecraft-server
+        imagePullPolicy: Always
+        name: minecraft-r1-12
+        command: ["/start.py"]
+        resources:
+          requests:
+            cpu: 500m
+            memory: 512Mi
+        volumeMounts:
+        - mountPath: /data
+          name: datadir
+      hostNetwork: true
+      schedulerName: default-scheduler
+      securityContext:
+        fsGroup: 2000
+        runAsUser: 1000
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - emptyDir: {}
+        name: datadir
