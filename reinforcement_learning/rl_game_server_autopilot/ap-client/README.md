@@ -29,5 +29,5 @@ Now that we have the game server running, we can schedule the autopilot client t
    1. Create a line graph that includes `num_of_gs` and `current_gs_demand` to assess the prediction quality. Set the metric data aggregation to 5min **(Statistics=Average)**
    2. Create a line graph that includes `num_of_gs` and `num_of_nodes` to assess the correlation between game-server allocation and EC2 instances allocation. Set the metric data aggregation to 5min **(Statistics=Average)**
    3. Create a line graph that aggregates the number of **false positives** by the autopilot model. Set the metric aggregation to 5min **(Statistics=Sum)**
-   Resulted ![CloudWatch Dashboard](ap-cloudwatch.png)
+   Resulted ![CloudWatch Dashboard](../ap-cloudwatch.png)
 
