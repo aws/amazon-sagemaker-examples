@@ -54,3 +54,5 @@ x-amzn-RequestId: 0b5e6c94-2f8e-432f-97e5-fa589582e9ab
     }
 }
 ```
+
+The next step is to deploy [game-server autopilot client](../ap_client)
