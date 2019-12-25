@@ -25,8 +25,8 @@ class GameServerEnv(gym.Env):
         self.history_len = 5
         self.total_num_of_obs = 1
         # we have two observation array, allocation and demand. allocation is alloc_observation, demand is observation hence *2
-        self.observation_space = Box(low=np.array([self.min_servers]*self.history_len*3),
-                                           high=np.array([self.max_servers]*self.history_len*3),
+        self.observation_space = Box(low=np.array([self.min_servers]*self.history_len*2),
+                                           high=np.array([self.max_servers]*self.history_len*2),
                                            dtype=np.uint32)
         
         # How many servers should the agent spin up at each time step 
@@ -41,11 +41,10 @@ class GameServerEnv(gym.Env):
         self.current_min = 0
         self.demand_observation = np.array([self.min_servers]*self.history_len)
         self.alloc_observation = np.array([self.min_servers]*self.history_len)
-        self.action_observation = np.array([self.min_servers]*self.history_len)
         
         print ('self.demand_observation '+str(self.demand_observation))
         print ('self.alloc_observation '+str(self.alloc_observation))
-        return np.concatenate((self.demand_observation, self.alloc_observation,self.action_observation))
+        return np.concatenate((self.demand_observation, self.alloc_observation))
 
    
 
@@ -82,23 +81,24 @@ class GameServerEnv(gym.Env):
         self.curr_demand = np.clip(self.curr_demand, self.min_servers, self.max_servers)
         print('self.curr_demand={}'.format(self.curr_demand)) 
 
+        #time-horizon - use the oldest observation for current allocation
         self.curr_alloc = self.alloc_observation[0]
         print('self.curr_alloc={}'.format(self.curr_alloc)) 
             
         # Assumes it takes history_len time steps to create or delete 
         # the game server from allocation
-        self.action_observation = self.action_observation[1:]
-        self.action_observation = np.append(self.action_observation, self.curr_action)
-        print('self.action_observation={}'.format(self.action_observation))
+        # self.action_observation = self.action_observation[1:]
+        # self.action_observation = np.append(self.action_observation, self.curr_action)
+        # print('self.action_observation={}'.format(self.action_observation))
         
         # store the current demand in the history array demand_observation
         self.demand_observation = self.demand_observation[1:] # shift the observation by one to remove one history point
         self.demand_observation=np.append(self.demand_observation,self.curr_demand)
         print('self.demand_observation={}'.format(self.demand_observation))
         
-        # store the current demand in the history array demand_observation
+        # store the current allocation in the history array alloc_observation
         self.alloc_observation = self.alloc_observation[1:] 
-        self.alloc_observation=np.append(self.alloc_observation,self.curr_alloc)
+        self.alloc_observation=np.append(self.alloc_observation,self.curr_action)
         print('self.alloc_observation={}'.format(self.alloc_observation))
  
         
@@ -111,11 +111,11 @@ class GameServerEnv(gym.Env):
         if (ratio>1):
            #reward=1-ratio
            reward = -1 * (self.curr_alloc - self.curr_demand)
-           print('over provision - ratio>1 - {}'.format(reward))
+           print('reward over provision - ratio>1 - {}'.format(reward))
         if (ratio<1):
            #reward=-50*ratio
            reward = -5 * (self.curr_demand - self.curr_alloc) 
-           print('under provision - ratio<1 - {}'.format(reward))
+           print('reward under provision - ratio<1 - {}'.format(reward))
         if (ratio==1):
            reward=1
            print('ratio=1')
@@ -144,7 +144,7 @@ class GameServerEnv(gym.Env):
         
         extra_info = {}
         #the next state includes the demand and allocation history. 
-        next_state=np.concatenate((self.demand_observation,self.alloc_observation,self.action_observation))
+        next_state=np.concatenate((self.demand_observation,self.alloc_observation))
         print ('next_state={}'.format(next_state))
         return next_state, reward, done, extra_info
 
@@ -177,3 +177,5 @@ class GameServerEnv(gym.Env):
         sine=max_servers*np.sin(current_point)
         print('sine({})={}'.format(current_point,sine))
         return {"Prediction":{"num_of_gameservers": sine}}
+
+
