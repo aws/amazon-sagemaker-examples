@@ -1,9 +1,9 @@
 AWSTemplateFormatVersion: 2010-09-09
 Description: >-
   Creates VPC and subnets for SageMaker training. 
-  It also creates an EFS file-system for SageMakwr training input.
-  Finally, it creares a SageMaker notebook instance that mounts
-  the EFS file-system for staging tranining data on EFS file-system.
+  It also creates an EFS file-system for SageMaker training input.
+  Finally, it creates a SageMaker notebook instance that mounts
+  the EFS file-system for staging Training data on EFS file-system.
 Parameters:
   VpcCIDR:
     Default: 172.30.0.0/25
@@ -32,7 +32,7 @@ Parameters:
     Type: String
   EbsVolumeSize:
     Default: '100'
-    Description: Notebook instance Ebs volume size
+    Description: Notebook instance EBS volume size
     Type: String
     AllowedValues:
       - '100'
