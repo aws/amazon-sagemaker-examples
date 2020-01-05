@@ -21,17 +21,16 @@ import logging
 import os
 import re
 
-import keras
+from tensorflow import keras
 import tensorflow as tf
-from keras import backend as K
-from keras.callbacks import TensorBoard, ModelCheckpoint
+from tensorflow.keras import backend as K
+from tensorflow.keras.callbacks import TensorBoard, ModelCheckpoint
 import smdebug.tensorflow as smd
-from keras.layers import Activation, Conv2D, Dense, Dropout, Flatten, MaxPooling2D, BatchNormalization
-from keras.models import Sequential
-from keras.optimizers import Adam, SGD, RMSprop
+from tensorflow.keras.layers import Activation, Conv2D, Dense, Dropout, Flatten, MaxPooling2D, BatchNormalization
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.optimizers import Adam, SGD, RMSprop
 
 logging.getLogger().setLevel(logging.INFO)
-tf.logging.set_verbosity(tf.logging.INFO)
 HEIGHT = 32
 WIDTH = 32
 DEPTH = 3
@@ -166,10 +165,10 @@ def _input(epochs, batch_size, channel, channel_name, hvd=None):
 
     # Batch it up.
     dataset = dataset.batch(batch_size, drop_remainder=True)
-    iterator = dataset.make_one_shot_iterator()
-    image_batch, label_batch = iterator.get_next()
+    # iterator = dataset.make_one_shot_iterator()
+    # image_batch, label_batch = iterator.get_next()
 
-    return {INPUT_TENSOR_NAME: image_batch}, label_batch
+    return dataset
 
 
 def _train_preprocess_fn(image):
@@ -189,12 +188,12 @@ def _train_preprocess_fn(image):
 def _dataset_parser(value):
     """Parse a CIFAR-10 record from value."""
     featdef = {
-        'image': tf.FixedLenFeature([], tf.string),
-        'label': tf.FixedLenFeature([], tf.int64),
+        'image': tf.io.FixedLenFeature([], tf.string),
+        'label': tf.io.FixedLenFeature([], tf.int64),
     }
 
-    example = tf.parse_single_example(value, featdef)
-    image = tf.decode_raw(example['image'], tf.uint8)
+    example = tf.io.parse_single_example(value, featdef)
+    image = tf.io.decode_raw(example['image'], tf.uint8)
     image.set_shape([DEPTH * HEIGHT * WIDTH])
 
     # Reshape from [depth * height * width] to [depth, height, width].
@@ -207,18 +206,7 @@ def _dataset_parser(value):
 
 
 def save_model(model, output):
-    signature = tf.saved_model.signature_def_utils.predict_signature_def(
-        inputs={'image': model.input}, outputs={'scores': model.output})
-
-    builder = tf.saved_model.builder.SavedModelBuilder(output+'/export/Servo/1/')
-    builder.add_meta_graph_and_variables(
-        sess=K.get_session(),
-        tags=[tf.saved_model.tag_constants.SERVING],
-        signature_def_map={
-            tf.saved_model.signature_constants.DEFAULT_SERVING_SIGNATURE_DEF_KEY:
-                signature
-        })
-    builder.save()
+    model.save(output+'/export/Servo/1/')
     logging.info("Model successfully saved at: {}".format(output))
     return
 
@@ -281,18 +269,18 @@ def main(args):
     size = 1
     if mpi:
         size = hvd.size()
-    model.fit(x=train_dataset[0], y=train_dataset[1],
+    model.fit(train_dataset,
               steps_per_epoch=(num_examples_per_epoch('train') // args.batch_size) // size,
               epochs=args.epochs, validation_data=validation_dataset,
               validation_steps=(num_examples_per_epoch('validation') // args.batch_size) // size, callbacks=callbacks)
     score = None
     if mpi:
         if hvd.rank() == 0:
-            score = model.evaluate(eval_dataset[0], eval_dataset[1],
+            score = model.evaluate(eval_dataset,
                                    steps=num_examples_per_epoch('eval') // args.batch_size, callbacks=[debuggerhook],
                                    verbose=0)
     else:
-        score = model.evaluate(eval_dataset[0], eval_dataset[1],
+        score = model.evaluate(eval_dataset,
                                steps=num_examples_per_epoch('eval') // args.batch_size, callbacks=[debuggerhook],
                                verbose=0)
 
