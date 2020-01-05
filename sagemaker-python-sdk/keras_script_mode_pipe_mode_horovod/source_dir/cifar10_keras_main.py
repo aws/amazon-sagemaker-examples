@@ -25,7 +25,6 @@ from tensorflow import keras
 import tensorflow as tf
 from tensorflow.keras import backend as K
 from tensorflow.keras.callbacks import TensorBoard, ModelCheckpoint
-import smdebug.tensorflow as smd
 from tensorflow.keras.layers import Activation, Conv2D, Dense, Dropout, Flatten, MaxPooling2D, BatchNormalization
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.optimizers import Adam, SGD, RMSprop
@@ -174,10 +173,10 @@ def _input(epochs, batch_size, channel, channel_name, hvd=None):
 def _train_preprocess_fn(image):
     """Preprocess a single training image of layout [height, width, depth]."""
     # Resize the image to add four extra pixels on each side.
-    image = tf.image.resize_image_with_crop_or_pad(image, HEIGHT + 8, WIDTH + 8)
+    image = tf.image.resize_with_crop_or_pad(image, HEIGHT + 8, WIDTH + 8)
 
     # Randomly crop a [HEIGHT, WIDTH] section of the image.
-    image = tf.random_crop(image, [HEIGHT, WIDTH, DEPTH])
+    image = tf.image.random_crop(image, [HEIGHT, WIDTH, DEPTH])
 
     # Randomly flip the image horizontally.
     image = tf.image.random_flip_left_right(image)
@@ -248,7 +247,6 @@ def main(args):
     if checkpoints_enabled:
         logging.info("Checkpoint data will be saved in {}".format(CHECKPOINTS_DIR))
     callbacks = []
-    debuggerhook = smd.KerasHook(out_dir=tensorboard_dir)
     if mpi:
         callbacks.append(hvd.callbacks.BroadcastGlobalVariablesCallback(0))
         callbacks.append(hvd.callbacks.MetricAverageCallback())
@@ -263,7 +261,6 @@ def main(args):
         if checkpoints_enabled:
             callbacks.append(ModelCheckpoint(CHECKPOINTS_DIR + '/checkpoint-{epoch}.h5'))
         callbacks.append(keras.callbacks.ReduceLROnPlateau(patience=10, verbose=1))
-        callbacks.append(debuggerhook)
         callbacks.append(TensorBoard(log_dir=tensorboard_dir, update_freq='epoch'))
     logging.info("Starting training")
     size = 1
@@ -277,11 +274,11 @@ def main(args):
     if mpi:
         if hvd.rank() == 0:
             score = model.evaluate(eval_dataset,
-                                   steps=num_examples_per_epoch('eval') // args.batch_size, callbacks=[debuggerhook],
+                                   steps=num_examples_per_epoch('eval') // args.batch_size, callbacks=None,
                                    verbose=0)
     else:
         score = model.evaluate(eval_dataset,
-                               steps=num_examples_per_epoch('eval') // args.batch_size, callbacks=[debuggerhook],
+                               steps=num_examples_per_epoch('eval') // args.batch_size, callbacks=None,
                                verbose=0)
 
     if score:
