@@ -275,11 +275,11 @@ def main(args):
         if hvd.rank() == 0:
             score = model.evaluate(eval_dataset,
                                    steps=num_examples_per_epoch('eval') // args.batch_size, callbacks=None,
-                                   verbose=0)
+                                   verbose=1)
     else:
         score = model.evaluate(eval_dataset,
                                steps=num_examples_per_epoch('eval') // args.batch_size, callbacks=None,
-                               verbose=0)
+                               verbose=1)
 
     if score:
         logging.info('Test loss:{}'.format(score[0]))
