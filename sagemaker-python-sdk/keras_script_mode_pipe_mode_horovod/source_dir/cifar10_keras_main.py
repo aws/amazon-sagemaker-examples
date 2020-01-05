@@ -225,10 +225,14 @@ def main(args):
             hvd.init()
 
             # Horovod: pin GPU to be used to process local rank (one GPU per process)
-            config = tf.ConfigProto()
-            config.gpu_options.allow_growth = True
-            config.gpu_options.visible_device_list = str(hvd.local_rank())
-            K.set_session(tf.Session(config=config))
+            for gpu in range(gpus):
+                tf.config.experimental.set_memory_growth(gpu, True)
+            if gpus:
+                tf.config.experimental.set_visible_devices(gpus[hvd.local_rank()], 'GPU')
+            # config = tf.ConfigProto()
+            # config.gpu_options.allow_growth = True
+            # config.gpu_options.visible_device_list = str(hvd.local_rank())
+            # K.set_session(tf.Session(config=config))
     else:
         hvd = None
 
@@ -327,6 +331,12 @@ if __name__ == '__main__':
         '--model_dir',
         type=str,
         required=True,
+        help='The directory where the model will be stored.')
+    parser.add_argument(
+        '--num_gpus',
+        type=str,
+        required=False,
+        default=os.environ.get('SM_NUM_GPUS'),
         help='The directory where the model will be stored.')
     parser.add_argument(
         '--model_output_dir',
