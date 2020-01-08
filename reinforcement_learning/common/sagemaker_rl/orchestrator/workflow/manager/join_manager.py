@@ -1,6 +1,7 @@
 import boto3
 import logging
 import os
+import io
 import time
 import re
 import json
@@ -539,20 +540,22 @@ class JoinManager:
         Return:
             str: S3 data path of the joined data file
         """
-        body = b''
         count = 0
-
+        f = io.BytesIO()
         for record in data_buffer:
             if count == 0:
-                body += self._val_list_to_csv_byte_string(list(record.keys()))
+                f.write(self._val_list_to_csv_byte_string(list(record.keys())))
                 count += 1
-            body += self._val_list_to_csv_byte_string(list(record.values()))
-
+            f.write(self._val_list_to_csv_byte_string(list(record.values())))
+        body = f.getvalue()
         timstamp = str(int(time.time()))
         joined_data_s3_file_key = f"{s3_prefix}/local-joined-data-{timstamp}.csv"
         s3_client = self.boto_session.client("s3")
 
         try:
+            logger.info("_upload_data_buffer_as_joined_data_format put s3://{}/{}".format(
+                s3_bucket, joined_data_s3_file_key
+            ))
             s3_client.put_object(Body=body,
                                  Bucket=s3_bucket,
                                  Key=joined_data_s3_file_key)
