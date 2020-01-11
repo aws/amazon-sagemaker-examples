@@ -2,8 +2,8 @@
 Here we describe how to setup the AWS envrionment setup. It includes EKS cluster, SQS Queues, DynamoDB tables, Lambda functions and API gateway endpoints.
 
 ### Workspace preparation
-1. Clone the github repo from [amazon-sagemaker-examples](https://github.com/TBD).
-2. Create an admin role to assign the cloud9 workspace so we can provision the required resources (EKS cluster, SQS queues, DynamoDB tables, ECR registries and more). Click [here](https://console.aws.amazon.com/iam/home?region=eu-central-1#/roles$new?step=type). Under ***Choose the service that will use this role*** choose EC2. Click next and add the first role **AdministratorAccess**.
+1. Clone the github repo from [amazon-sagemaker-examples](https://github.com/awslabs/amazon-sagemaker-examples).
+2. Create an admin role to assign the cloud9 workspace so we can provision the required resources (EKS cluster, SQS queues, DynamoDB tables, ECR registries and more). Click [here](https://console.aws.amazon.com/iam/home?region=us-west-2#/roles$new?step=type). Under ***Choose the service that will use this role*** choose EC2. Click next and add the first role **AdministratorAccess**.
 3. Create a Cloud9 Environment in your favorite region e.g., `us-west-2` (Oregon region). Using the [link](https://us-west-2.console.aws.amazon.com/cloud9/home?region=us-west-2). Name it `rl-game-server-autopilot`. Choose the `t2.micro` instance. Cloud9 will spin up an EC2 instance in your account in `us-west-2`. Choose the IAM Role that you created in Step 2.
 * Cloud9 normally manages IAM credentials dynamically. This isn’t currently compatible with the EKS IAM authentication, so we will disable it and rely on the IAM role instead. Therefore, we are going to disable the assigned Cloud9 credentials as indicated in the ![image](cloud9-iam-disable.png) below.
 4. Inside the Cloud9 instance, clone the GitHub repository into your workspace. Your github repository should be public, so you can clone it using the HTTPS Url.
