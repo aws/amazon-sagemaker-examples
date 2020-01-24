@@ -89,11 +89,7 @@ def train_model(epochs, batch_size, learning_rate, train_dataset_size, val_datas
     net.span_classifier.initialize(init=mx.init.Normal(0.02), ctx=ctx)
 
     #create smdebug hook
-    hook = smd.Hook.create_from_json_file()
-
-    #configure smdebug hook
-    hook.get_collections()['all'].save_config.set_save_config(smd.modes.TRAIN, smd.SaveConfigMode(save_steps=[0])) 
-    hook.get_collections()['all'].save_config.set_save_config(smd.modes.EVAL, smd.SaveConfigMode(save_interval=1)) 
+    hook = smd.Hook.create_from_json_file() 
     
     hook.register_block(net)
     
