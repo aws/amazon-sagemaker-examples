@@ -37,13 +37,14 @@ RUN pip install Cython==0.28.4
 RUN pip install pycocotools==2.0.0
 RUN pip install matplotlib==3.0.3
 RUN pip install markdown==3.1
+RUN pip install numpy==1.17.5
 
 RUN git clone https://github.com/aws-samples/mask-rcnn-tensorflow
 RUN cd /mask-rcnn-tensorflow && git fetch origin 153442bc70b06e59f2bbeadc4d359b240f64cbc2
 RUN cd /mask-rcnn-tensorflow && git reset --hard 153442bc70b06e59f2bbeadc4d359b240f64cbc2
 
 RUN chmod -R +w /mask-rcnn-tensorflow
-RUN pip install --ignore-installed -e /mask-rcnn-tensorflow/
+RUN pip install -e /mask-rcnn-tensorflow/
 
 ##########################################################################################
 # SageMaker requirements
