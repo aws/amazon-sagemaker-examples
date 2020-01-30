@@ -31,11 +31,12 @@ RUN pip install Cython==0.28.4
 RUN pip install pycocotools==2.0.0
 RUN pip install matplotlib==3.0.3
 RUN pip install markdown==3.1
+RUN pip install numpy==1.17.5
 
 RUN git clone https://github.com/tensorpack/tensorpack.git /tensorpack
 RUN cd /tensorpack && git fetch origin 26664c3f1d58ae029ea6c3ba0af6ae11900b1e55 
 RUN cd /tensorpack && git reset --hard 26664c3f1d58ae029ea6c3ba0af6ae11900b1e55 
-RUN pip install --ignore-installed -e /tensorpack
+RUN pip install -e /tensorpack
 
 ##########################################################################################
 # SageMaker requirements
