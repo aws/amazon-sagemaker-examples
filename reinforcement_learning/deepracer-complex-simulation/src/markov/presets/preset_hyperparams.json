@@ -1,0 +1,11 @@
+{
+    "learning_rate": 0.0003,
+    "batch_size" : 64,
+    "optimizer_epsilon" : 0.00001,
+    "adam_optimizer_beta2" : 0.999,
+    "clip_likelihood_ratio_using_epsilon" : 0.2,
+    "beta_entropy" : 0.01,
+    "gae_lambda" : 0.95,
+    "discount" : 0.999,
+    "optimization_epochs" : 10
+}
