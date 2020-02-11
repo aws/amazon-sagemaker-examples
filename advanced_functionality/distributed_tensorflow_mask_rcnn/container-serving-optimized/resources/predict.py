@@ -42,6 +42,11 @@ class MaskRCNNService:
             except KeyError:
                 model_dir = '/opt/ml/model'
 
+            try:
+                cls.pretrained_model = os.environ['PRETRAINED_MODEL']
+            except KeyError:
+                pass
+
             # file path to previoulsy trained mask r-cnn model
             latest_trained_model = ""
             model_search_path = os.path.join(model_dir, "model-*.index" )
@@ -56,7 +61,7 @@ class MaskRCNNService:
             cfg.BACKBONE.WEIGHTS = os.path.join(cls.pretrained_model)
             cfg.MODE_FPN = True
             cfg.MODE_MASK = True
-            
+
             # calling detection dataset gets the number of coco categories 
             # and saves in the configuration
             DetectionDataset()

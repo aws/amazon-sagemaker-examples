@@ -40,6 +40,11 @@ class MaskRCNNService:
             except KeyError:
                 model_dir = '/opt/ml/model'
 
+            try:
+                cls.pretrained_model = os.environ['PRETRAINED_MODEL']
+            except KeyError:
+                pass
+
             # file path to previoulsy trained mask r-cnn model
             latest_trained_model = ""
             model_search_path = os.path.join(model_dir, "model-*.index" )
@@ -83,7 +88,6 @@ class MaskRCNNService:
             a = {}
             b = dr.box.tolist()
             a["bbox"] = [int(b[0]), int(b[1]), int(b[2] - b[0]), int(b[3] - b[1])]
-            score = dr.score
             category_id = dr.class_id
             
             a["category_id"] = int(category_id)
