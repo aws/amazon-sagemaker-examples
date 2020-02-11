@@ -22,9 +22,11 @@ def lambda_handler(event, context):
             response['TrainingJobStatus']))
 
     except Exception as e:
-        response = 'Failed to read training status!'
+        response = ('Failed to read training status!'+ 
+                    ' The training job may not exist or the job name may be incorrect.'+ 
+                    ' Check SageMaker to confirm the job name.')
         print(e)
-        print(response +' Attempted to read job name: {}'.format(job_name))
+        print('{} Attempted to read job name: {}.'.format(response, job_name))
 
     #We can't marshall datetime objects in JSON response. So convert
     #all datetime objects returned to unix time.
