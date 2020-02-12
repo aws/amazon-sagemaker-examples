@@ -13,7 +13,8 @@ def lambda_handler(event, context):
         job_name = event['TrainingJobName']
 
     else:
-        raise KeyError('Input must include TrainingJobName key!')
+        raise KeyError('TrainingJobName key not found in function input!'+
+                      ' The input received was: {}.'.format(json.dumps(event)))
 
     #Query boto3 API to check training status.
     try:
