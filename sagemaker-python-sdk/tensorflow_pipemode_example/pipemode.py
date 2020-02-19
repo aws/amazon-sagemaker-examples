@@ -3,7 +3,6 @@ import os
 import tensorflow as tf
 from sagemaker_tensorflow import PipeModeDataset
 
-from tensorflow.contrib.data import map_and_batch
 
 PREFETCH_SIZE = 10
 BATCH_SIZE = 64
@@ -40,7 +39,7 @@ def _input_fn(channel):
     if EPOCHS > 1:
         ds = ds.repeat(EPOCHS)
     ds = ds.prefetch(PREFETCH_SIZE)
-    ds = ds.apply(map_and_batch(parse, batch_size=BATCH_SIZE,
-                                num_parallel_batches=NUM_PARALLEL_BATCHES))
+    ds = ds.map(parse, num_parallel_calls=10)
+    ds = ds.batch(64)
 
     return ds
