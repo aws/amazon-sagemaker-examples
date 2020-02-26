@@ -58,7 +58,7 @@ def loader(batch_size=128):
 def train(epochs, batch_size, learning_rate, momentum):
     
     #load pruned model definition and weights
-    checkpoint = torch.load("checkpoint_model_pruned")
+    checkpoint = torch.load("model_checkpoint")
     model = checkpoint['model']
     model.load_state_dict(checkpoint['state_dict'])
     
