@@ -13,7 +13,7 @@ class check_accuracy(Rule):
         self.labels = labels
         self.predictions = predictions 
         self.previous_accuracy = float(previous_accuracy)
-        self.threshold = threshold
+        self.threshold = float(threshold)
         self.correct = 0
         self.samples = 0
         
