@@ -1,15 +1,11 @@
 from __future__ import print_function
 
-import boto3
-import json
 import logging
 import os
-import time
-import traceback
 import sys
-from collections import OrderedDict
 from io import StringIO
 import csv
+import boto3
 
 from markov import utils
 
@@ -44,7 +40,7 @@ if node_type == SIMULATION_WORKER:
                 self.setup_mutipart_upload()
 
         def setup_mutipart_upload(self):
-            logger.info("simtrace_data: setup_mutipart_upload to {}".format(self.s3_bucket, self.s3_object_key))
+            logger.info("simtrace_data: setup_mutipart_upload to %s", self.s3_bucket)
 
             #setup for SIM_TRACE data incremental uploads to S3
             self.simtrace_csv_data = StringIO()
@@ -55,7 +51,7 @@ if node_type == SIMULATION_WORKER:
             logger.info("simtrace_data: setup_mutipart_upload on s3_bucket {} s3_object_key {} region {}".format(self.s3_bucket, self.s3_object_key, self.aws_region))
 
             #initiate the multipart upload
-            s3_client = boto3.session.Session().client('s3', region_name=self.aws_region)
+            s3_client = boto3.session.Session().client('s3', region_name=self.aws_region, config=utils.get_boto_config())
             self.mpu = s3_client.create_multipart_upload(Bucket=self.s3_bucket, Key=self.s3_object_key)
             self.mpu_id = self.mpu["UploadId"]
             self.mpu_part_number = 1
@@ -63,7 +59,7 @@ if node_type == SIMULATION_WORKER:
             self.mpu_episodes = 0
             self.total_upload_size = 0
             self.data_state = SIMTRACE_DATA_UPLOAD_INIT_DONE
-            logger.info("simtrace_data: setup_mutipart_upload done! mpu_id={} mpu_part_number".format(self.mpu_id, self.mpu_part_number))
+            logger.info("simtrace_data: setup_mutipart_upload done! mpu_id= %s mpu_part_number", self.mpu_id)
 
         def write_simtrace_data(self,jsondata):
             if self.data_state != SIMTRACE_DATA_UPLOAD_UNKNOWN_STATE:
@@ -74,11 +70,10 @@ if node_type == SIMULATION_WORKER:
                     self.csvwriter.writerow(csvdata)
                     self.total_upload_size += sys.getsizeof(csvdata)
                     logger.debug ("csvdata={} size data={} csv={}".format(csvdata, sys.getsizeof(csvdata), sys.getsizeof(self.simtrace_csv_data.getvalue())))
-                except Exception as ex:
-                    utils.json_format_logger("Invalid SIM_TRACE data format , Exception={}.".format(ex),
-                           **utils.build_system_error_dict(utils.SIMAPP_SIMULATION_WORKER_EXCEPTION, utils.SIMAPP_EVENT_ERROR_CODE_500))
-                    traceback.print_exc()
-                    utils.simapp_exit_gracefully()
+                except Exception:
+                    utils.log_and_exit("Invalid SIM_TRACE data format",
+                                       utils.SIMAPP_SIMULATION_WORKER_EXCEPTION,
+                                       utils.SIMAPP_EVENT_ERROR_CODE_500)
 
         def get_mpu_part_size(self):
             if self.data_state != SIMTRACE_DATA_UPLOAD_UNKNOWN_STATE:
@@ -101,9 +96,8 @@ if node_type == SIMULATION_WORKER:
             if self.data_state != SIMTRACE_DATA_UPLOAD_UNKNOWN_STATE:
                 logger.debug("simtrace_data: Uploading mpu_part_to_s3::: mpu_id-{} mpu_part_number-{} episode-{}".format(self.mpu_id, self.mpu_part_number,episodes))
                 self.mpu_episodes = episodes
-                #session = boto3.session.Session()
-                #s3_client = session.client('s3', region_name=self.aws_region)
-                s3_client = boto3.session.Session().client('s3', region_name=self.aws_region)
+                s3_client = boto3.session.Session().client('s3', region_name=self.aws_region,
+                                                           config=utils.get_boto_config())
                 metrics_body = self.simtrace_csv_data.getvalue()
                 part = s3_client.upload_part(
                        Body=bytes(metrics_body, encoding='utf-8'),
@@ -138,7 +132,8 @@ if node_type == SIMULATION_WORKER:
 
                     #now complete the multi-part-upload
                     session = boto3.session.Session()
-                    s3_client = session.client('s3', region_name=self.aws_region)
+                    s3_client = session.client('s3', region_name=self.aws_region,
+                                               config=utils.get_boto_config())
                     result = s3_client.complete_multipart_upload(
                                 Bucket=self.s3_bucket,
                                 Key=self.s3_object_key,
@@ -152,7 +147,8 @@ if node_type == SIMULATION_WORKER:
                         self.data_state = SIMTRACE_DATA_UPLOAD_DONE
                         logger.info("simtrace_data:  complete_upload_to_s3 ::: write simtrace data to s3")
                         session = boto3.session.Session()
-                        s3_client = session.client('s3', region_name=self.aws_region)
+                        s3_client = session.client('s3', region_name=self.aws_region,
+                                                   config=utils.get_boto_config())
 
                         # cancel multipart upload process
                         logger.info("simtrace_data: multi-part upload not required, cancel it before uploading the complete S3 object")

@@ -216,7 +216,7 @@ class MultiAgentLevelManager(EnvironmentInterface):
 
         for i in range(self.steps_limit.num_steps):
             # let the agent observe the result and decide if it wants to terminate the episode
-            done = all([agent.observe(env_response) for agent, env_response in zip(self.agents.values(), env_responses)])
+            done = any([agent.observe(env_response) for agent, env_response in zip(self.agents.values(), env_responses)])
 
             if done:
                 break
@@ -245,7 +245,7 @@ class MultiAgentLevelManager(EnvironmentInterface):
         # if the environment terminated the episode -> let the agent observe the last response
         # in HRL,excluding top level one, we will always enter the below if clause
         # (because should_reset_agent_state_after_time_limit_passes is set to True)
-        done = all(env_response.game_over for env_response in env_responses)
+        done = any(env_response.game_over for env_response in env_responses)
         if done or self.should_reset_agent_state_after_time_limit_passes:
             # this is the agent's only opportunity to observe this transition - he will not get another one
             [agent.observe(env_response) for agent, env_response in zip(self.agents.values(), env_responses)]

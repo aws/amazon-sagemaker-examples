@@ -28,4 +28,5 @@ class AgentPos(Enum):
 class ObstacleDimensions(Enum):
     ''' The dimensions of different obstacle '''
     BOX_OBSTACLE_DIMENSION = (0.4, 0.5) # Length(x), width(y) + 0.1 buffer for each
+    # TODO: Fix the bot car dimension so that all collisions are detected
     BOT_CAR_DIMENSION = (0.296, 0.422) # Length(x), width(y) + 0.1 buffer for each

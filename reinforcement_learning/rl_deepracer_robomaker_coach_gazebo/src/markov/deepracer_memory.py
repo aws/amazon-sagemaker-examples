@@ -1,24 +1,24 @@
 from threading import Thread, Event, Lock
 import pickle
-import time
 import queue
-import redis
 import logging
+import redis
 
 from rl_coach.memories.backend.memory import MemoryBackend
 from rl_coach.core_types import Episode
 
-from markov.utils import Logger, json_format_logger, build_system_error_dict
-from markov.utils import SIMAPP_MEMORY_BACKEND_EXCEPTION, SIMAPP_EVENT_ERROR_CODE_500
+from markov.utils import Logger
 
-logger = Logger(__name__, logging.INFO).get_logger()
+LOG = Logger(__name__, logging.INFO).get_logger()
 
 # Channel used by the training worker to request episodes
 WORKER_CHANNEL = 'worker_channel'
 # The amount of time to wait before querying the socket
 POLL_TIME = 10.0
-# Since all the data is handled by the physical memory, there is a limit to the number of steps that can
-# be contained in a rollout. This number was determined empirically, as it seems rl_coach is making
+# Since all the data is handled by the physical memory, there
+# is a limit to the number of steps that can
+# be contained in a rollout. This number was determined empirically,
+# as it seems rl_coach is making
 # a bunch of hard copies of the transitions
 #
 # Cutting down to 5000 from 10000 as the state size is increased:
@@ -27,20 +27,12 @@ POLL_TIME = 10.0
 # TODO: We need better approach to handle this memory cap.
 MAX_MEMORY_STEPS = 5000
 
-def log_info(message):
-    ''' Helper method that logs the exception
-        message - Message to send to the log
-    '''
-    json_format_logger(message, **build_system_error_dict(SIMAPP_MEMORY_BACKEND_EXCEPTION,
-                                                          SIMAPP_EVENT_ERROR_CODE_500))
-
 def get_endpoint_helper(redis_address, redis_port):
     '''Helper method that returns a dict with the address and port
        redis_address - address to be returned in the dict
        redis_port - Port to be returned in the dict
     '''
     return {'redis_address': redis_address, 'redis_port': redis_port}
-
 
 class DeepRacerRolloutBackEnd(MemoryBackend):
     ''' Class used by the rollout worker to publish data to the training worker'''
@@ -72,7 +64,8 @@ class DeepRacerRolloutBackEnd(MemoryBackend):
         # allow us to get request from the subscriber
         self.data_pubsub = self.data_client.pubsub()
         # Handle request via call back
-        self.data_pubsub.subscribe(**{WORKER_CHANNEL + '_' + self.agent_name: self.data_req_handler})
+        self.data_pubsub.subscribe(**{WORKER_CHANNEL + '_' + self.agent_name:
+                                      self.data_req_handler})
         self.data_pubsub.run_in_thread()
 
     def data_req_handler(self, message):
@@ -84,7 +77,7 @@ class DeepRacerRolloutBackEnd(MemoryBackend):
             episode = pickle.loads(message['data'])
 
             if episode < 0:
-                log_info("Negative episode index value")
+                LOG.info("Negative episode index value")
                 return
 
             with self._lock:
@@ -105,11 +98,11 @@ class DeepRacerRolloutBackEnd(MemoryBackend):
                                              pickle.dumps((self.total_episodes + 1, "")))
 
         except redis.ConnectionError as ex:
-            logger.info("Redis connection error: {}".format(ex))
+            LOG.info("Redis connection error: %s", ex)
         except pickle.PickleError as ex:
-            logger.info("Could not decode/encode trainer request {}".format(ex))
+            LOG.info("Could not decode/encode trainer request %s", ex)
         except Exception as ex:
-            logger.info("Rollout worker data_req_handler {}".format(ex))
+            LOG.info("Rollout worker data_req_handler %s", ex)
 
     def store(self, obj):
         ''' Stores the data object into the data list along with episode number
@@ -181,7 +174,7 @@ class DeepRacerTrainerBackEnd(MemoryBackend):
         except queue.Full:
             pass
         except Exception as ex:
-            log_info("Trainer data handler error: {}".format(ex))
+            LOG.info("Trainer data handler error: %s", ex)
 
     def get_rollout_steps(self):
         '''Returns the total number of steps in a rollout '''
@@ -197,17 +190,18 @@ class DeepRacerTrainerBackEnd(MemoryBackend):
             try:
                 if self.request_data:
                     # Request the desired episode
-                    self.data_client.publish(WORKER_CHANNEL + '_' + agent_name, pickle.dumps(self.episode_req))
+                    self.data_client.publish(WORKER_CHANNEL + '_' + agent_name,
+                                             pickle.dumps(self.episode_req))
                 self.request_events[agent_name].wait(POLL_TIME)
                 self.request_events[agent_name].clear()
             except redis.ConnectionError as ex:
-                log_info("Redis connection error: {} : {}".format(agent_name, ex))
+                LOG.info("Redis connection error: %s : %s", agent_name, ex)
                 continue
             except pickle.PickleError as ex:
-                log_info("Could not decode rollout request {}, {}".format(agent_name, ex))
+                LOG.info("Could not decode rollout request %s, %s", agent_name, ex)
                 continue
             except Exception as ex:
-                log_info("Trainer publish worker error: {}, {}".format(agent_name, ex))
+                LOG.info("Trainer publish worker error: %s, %s", agent_name, ex)
                 continue
 
     def memory_purge(self):
@@ -230,7 +224,7 @@ class DeepRacerTrainerBackEnd(MemoryBackend):
         self.total_episodes_in_rollout = 0
         while episode_counter <= num_consecutive_playing_steps.num_steps:
             try:
-                objs = {k: v.get() for k,v in self.data_queues.items()}
+                objs = {k: v.get() for k, v in self.data_queues.items()}
 
                 if all(obj[0] == episode_counter and isinstance(obj[1], Episode) for obj in objs.values()):
                     episode_counter += 1
@@ -239,11 +233,11 @@ class DeepRacerTrainerBackEnd(MemoryBackend):
                     if step_counter <= MAX_MEMORY_STEPS:
                         self.rollout_steps = {k: self.rollout_steps[k] + objs[k][1].length() for k in self.rollout_steps.keys()}
                         self.total_episodes_in_rollout += 1
-                        transition_iters = {k: iter(v[1].transitions) for k,v in objs.items()}
-                        transition = {k: next(v, None) for k,v in transition_iters.items()}
+                        transition_iters = {k: iter(v[1].transitions) for k, v in objs.items()}
+                        transition = {k: next(v, None) for k, v in transition_iters.items()}
                         while any(transition.values()):
                             yield transition
-                            transition = {k: next(v, None) for k,v in transition_iters.items()}
+                            transition = {k: next(v, None) for k, v in transition_iters.items()}
                 # When we request num_consecutive_playing_steps.num we will get back
                 # 1 more than the requested index this lets us know the rollout worker
                 # has given us all available data
@@ -254,7 +248,7 @@ class DeepRacerTrainerBackEnd(MemoryBackend):
                     continue
                 [event.set() for event in self.request_events.values()]
             except Exception as ex:
-                log_info("Trainer fetch error: {}".format(ex))
+                LOG.info("Trainer fetch error: %s", ex)
                 continue
 
     def get_endpoint(self):
