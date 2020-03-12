@@ -295,8 +295,10 @@ def copy_best_frozen_model_to_sm_output_dir(s3_bucket, s3_prefix, region,
         shutil.copy(os.path.join(source_dir, source_dir_pb_files[0]), os.path.join(dest_dir, "model.pb"))
     else:
         # Delete the current .pb files in the destination direcory
+        """
         for filename in dest_dir_pb_files:
             os.remove(os.path.join(dest_dir, filename))
+        """
 
         # Copy the frozen model for the current best checkpoint to the destination directory
         logger.info("Copying the frozen checkpoint from {} to {}.".format(
@@ -305,6 +307,7 @@ def copy_best_frozen_model_to_sm_output_dir(s3_bucket, s3_prefix, region,
 
         # Loop through the current list of frozen models in source directory and
         # delete the iterations lower than last_checkpoint_iteration except best_model
+        """
         for filename in source_dir_pb_files:
             if filename not in [best_model_name, last_model_name]:
                 if len(filename.split("_")[1]) > 1 and len(filename.split("_")[1].split(".pb")):
@@ -314,7 +317,7 @@ def copy_best_frozen_model_to_sm_output_dir(s3_bucket, s3_prefix, region,
                 else:
                     logger.error("Frozen model name not in the right format in the source directory: {}, {}"
                                  .format(filename, source_dir))
-
+        """
 
 def get_best_checkpoint(s3_bucket, s3_prefix, region):
     return get_deepracer_checkpoint(s3_bucket=s3_bucket,

@@ -20,7 +20,7 @@ LOG = Logger(__name__, logging.INFO).get_logger()
 
 # The number of models to keep in S3
 #! TODO discuss with product team if this number should be configurable
-NUM_MODELS_TO_KEEP = 4
+NUM_MODELS_TO_KEEP = 50
 
 SLEEP_TIME_WHILE_WAITING_FOR_DATA_FROM_TRAINER_IN_SECOND = 1
 SM_MODEL_OUTPUT_DIR = os.environ.get("ALGO_MODEL_DIR", "/opt/ml/model")
