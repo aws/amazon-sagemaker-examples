@@ -15,7 +15,7 @@ from shapely.geometry import Point, Polygon
 from shapely.geometry.polygon import LinearRing, LineString
 
 from markov.agent_ctrl.constants import RewardParam
-from markov.cameras.frustum import Frustum
+from markov.cameras.frustum_manager import FrustumManager
 from markov.track_geom.constants import TrackNearPnts, TrackNearDist, AgentPos, \
                                         GET_LINK_STATE, GET_MODEL_STATE
 from markov.track_geom.utils import euler_to_quaternion, apply_orientation, find_prev_next, quaternion_to_euler
@@ -201,7 +201,7 @@ class TrackData(object):
                                                   link.link_state.pose.position.y)
             link_points = [make_link_points(self._get_link_state_(name, ''))
                            for name in link_name_list]
-
+   
             return {AgentPos.ORIENTATION.value : model_orientation,
                     AgentPos.POINT.value : model_point,
                     AgentPos.LINK_POINTS.value :link_points}
@@ -252,13 +252,13 @@ class TrackData(object):
         except Exception as ex:
             raise GenericRolloutException("Unable to get nearest points: {}".format(ex))
 
-    def get_object_reward_params(self, model_point, model_heading, current_progress, reverse_dir):
+    def get_object_reward_params(self, racecar_name, model_point, model_heading, current_progress, reverse_dir):
         '''Returns a dictionary with object-related reward function params.'''
         with self._lock_:
             try:
                 object_locations = [[pose.position.x, pose.position.y]
-                                    for pose in self.object_poses.values()]
-                object_poses = [pose for pose in self.object_poses.values()]
+                                    for name, pose in self.object_poses.items() if racecar_name not in name]
+                object_poses = [pose for name, pose in self.object_poses.items() if racecar_name not in name]
                 if not object_locations:
                     return {}
 
@@ -316,10 +316,10 @@ class TrackData(object):
                 closest_object_is_inner = \
                     closest_object_nearest_dist_dict[TrackNearDist.NEAR_DIST_IN.value] < \
                     closest_object_nearest_dist_dict[TrackNearDist.NEAR_DIST_OUT.value]
-
-                objects_in_camera = self.get_objects_in_camera_frustums(object_order)
+                objects_in_camera = self.get_objects_in_camera_frustums(agent_name=racecar_name,
+                                                                        object_order=object_order)
                 is_next_object_in_camera = any(object_in_camera_idx == next_object_index
-                                               for object_in_camera_idx, _ in objects_in_camera)
+                                            for object_in_camera_idx, _ in objects_in_camera)
                 # Determine if they are in the same lane
                 return {RewardParam.CLOSEST_OBJECTS.value[0]: [prev_object_index, next_object_index],
                         RewardParam.OBJECT_LOCATIONS.value[0]: object_locations,
@@ -383,23 +383,27 @@ class TrackData(object):
                 + apply_orientation(object_orientation, p)
                 for p in local_verts]
 
-    def is_racecar_collided(self, racecar_wheel_points):
+    def is_racecar_collided(self, racecar_wheel_points, racecar_name):
         '''Returns a true if there is a collision between the racecar and an object
            racecar_wheel_points - List of points that specifies the wheels of the training car
         '''
         try:
-            for object_pose, object_dims in zip(self.object_poses.values(), self.object_dims.values()):
-                object_boundary = Polygon(TrackData.get_object_bounding_rect(object_pose, object_dims))
-                if any([object_boundary.contains(p) for p in racecar_wheel_points]):
-                    return True
+            for object_name in self.object_poses.keys():
+                if object_name != racecar_name:
+                    object_pose = self.object_poses[object_name]
+                    object_dims = self.object_dims[object_name]
+                    object_boundary = Polygon(TrackData.get_object_bounding_rect(object_pose, object_dims))
+                    if any([object_boundary.contains(p) for p in racecar_wheel_points]):
+                        return True, object_name
+            return False, None
         except Exception as ex:
             raise GenericRolloutException("Unable to detect collision {}".format(ex))
 
-    def get_objects_in_camera_frustums(self, object_order=None):
+    def get_objects_in_camera_frustums(self, agent_name, object_order=None):
         """Returns list of tuple (idx, object.pose) for the objects
         that are in camera frustums"""
 
-        frustum = Frustum.get_instance()
+        frustum = FrustumManager.get_instance().get(agent_name=agent_name)
         frustum.update()
         objects_in_frustum = []
 

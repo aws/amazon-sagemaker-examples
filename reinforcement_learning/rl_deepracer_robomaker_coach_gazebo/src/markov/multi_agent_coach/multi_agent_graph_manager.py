@@ -102,10 +102,13 @@ class MultiAgentGraphManager(object):
             task_parameters.worker_target, task_parameters.device = \
                 self.create_worker_or_parameters_server(task_parameters=task_parameters)
         # If necessary start the physics and then stop it after agent creation
+        screen.log_title("Start physics before creating graph")
         if start_physics and empty_service_call:
             start_physics(empty_service_call())
         # create the graph modules
+        screen.log_title("Create graph")
         self.level_managers, self.environments = self._create_graph(task_parameters)
+        screen.log_title("Stop physics after creating graph")
         if stop_physics and empty_service_call:
             stop_physics(empty_service_call())
         # set self as the parent of all the level managers
@@ -115,8 +118,8 @@ class MultiAgentGraphManager(object):
 
         # create a session (it needs to be created after all the graph ops were created)
         self.sess = {agent_params.name: None for agent_params in self.agents_params}
+        screen.log_title("Creating session")
         self.create_session(task_parameters=task_parameters)
-
         self._phase = self.phase = RunPhase.UNDEFINED
 
         self.setup_logger()
@@ -136,7 +139,7 @@ class MultiAgentGraphManager(object):
             agent_params.task_parameters = copy.copy(task_parameters)
             agent = short_dynamic_import(agent_params.path)(agent_params)
             agents[agent_params.name] = agent
-
+            screen.log_title("Created agent: {}".format(agent_params.name))
             if hasattr(self, 'memory_backend_params') and \
                     self.memory_backend_params.run_type == str(RunType.ROLLOUT_WORKER):
                 agent.memory.memory_backend = deepracer_memory.DeepRacerRolloutBackEnd(self.memory_backend_params,
@@ -145,7 +148,6 @@ class MultiAgentGraphManager(object):
 
         # set level manager
         level_manager = MultiAgentLevelManager(agents=agents, environment=env, name="main_level")
-
         return [level_manager], [env]
 
     @staticmethod
@@ -325,6 +327,7 @@ class MultiAgentGraphManager(object):
             level_manager.phase = val
         for environment in self.environments:
             environment.phase = val
+            environment._notify_phase(val)
 
     @property
     def current_step_counter(self) -> TotalStepsCounter:
@@ -557,13 +560,13 @@ class MultiAgentGraphManager(object):
                     restored_checkpoint_paths.append(model_checkpoint_path)
 
                     # Set the last checkpoint ID - only in the case of the path being a dir
-                    chkpt_state_reader = CheckpointStateReader(self.task_parameters.checkpoint_restore_path,
+                    chkpt_state_reader = CheckpointStateReader(agent_checkpoint_restore_path,
                                                                checkpoint_state_optional=False)
                     self.checkpoint_id = chkpt_state_reader.get_latest().num + 1
                 else:
                     # a checkpoint file
                     if self.task_parameters.framework_type == Frameworks.tensorflow:
-                        model_checkpoint_path = self.task_parameters.checkpoint_restore_path
+                        model_checkpoint_path = agent_checkpoint_restore_path
                         checkpoint_restore_dir = os.path.dirname(model_checkpoint_path)
                         restored_checkpoint_paths.append(model_checkpoint_path)
                     else:
@@ -730,6 +733,8 @@ class MultiAgentGraphManager(object):
         if hasattr(self, 'memory_backend'):
             for transitions in self.memory_backend.fetch(num_consecutive_playing_steps):
                 self.emulate_act_on_trainer(EnvironmentSteps(1), transitions)
+                if hasattr(self, 'sample_collector'):
+                    self.sample_collector.sample(transitions)
 
     def setup_memory_backend(self) -> None:
         if hasattr(self, 'memory_backend_params'):

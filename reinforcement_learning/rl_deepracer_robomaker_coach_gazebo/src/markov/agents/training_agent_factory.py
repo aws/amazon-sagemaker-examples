@@ -12,12 +12,11 @@ def create_training_agent(agent_config):
     '''
     model_metadata = agent_config['model_metadata']
     observation_list, network, _ = utils_parse_model_metadata.parse_model_metadata(model_metadata)
-    sensor = construct_sensor(observation_list, SensorFactory)
+    sensor = construct_sensor(agent_config[ConfigParams.CAR_CTRL_CONFIG.value][ConfigParams.AGENT_NAME.value], observation_list, SensorFactory)
     network_settings = get_network_settings(sensor, network)
-    sensor = construct_sensor(observation_list, SensorFactory)
 
-    ctrl_config = agent_config['car_ctrl_cnfig']
+    ctrl_config = agent_config[ConfigParams.CAR_CTRL_CONFIG.value]
     ctrl = TrainingCtrl(ctrl_config[ConfigParams.AGENT_NAME.value],
                         ctrl_config[ConfigParams.ACTION_SPACE_PATH.value])
 
-    return Agent(network_settings, sensor, ctrl, None)
+    return Agent(network_settings, sensor, ctrl)

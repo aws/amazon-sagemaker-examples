@@ -5,9 +5,11 @@ import json
 import time
 import boto3
 import botocore
-from markov import utils
+from markov.utils import log_and_exit, Logger, get_boto_config, \
+                         SIMAPP_EVENT_ERROR_CODE_500, SIMAPP_EVENT_ERROR_CODE_400, \
+                         SIMAPP_S3_DATA_STORE_EXCEPTION
 
-logger = utils.Logger(__name__, logging.INFO).get_logger()
+LOG = Logger(__name__, logging.INFO).get_logger()
 
 # The amount of time for the sim app to wait for sagemaker to produce
 # the ip
@@ -22,50 +24,46 @@ class SageS3Client():
         self.hyperparameters_key = os.path.normpath(s3_prefix + "/ip/hyperparameters.json")
         self.done_file_key = os.path.normpath(s3_prefix + "/ip/done")
         self.model_checkpoints_prefix = os.path.normpath(s3_prefix + "/model/") + "/"
-        logger.info("Initializing SageS3Client...")
+        LOG.info("Initializing SageS3Client...")
 
     def get_client(self):
         session = boto3.session.Session()
-        return session.client('s3', region_name=self.aws_region)
+        return session.client('s3', region_name=self.aws_region, config=get_boto_config())
 
     def _get_s3_key(self, key):
         return os.path.normpath(self.model_checkpoints_prefix + "/" + key)
 
-    def write_ip_config(self, ip):
+    def write_ip_config(self, ip_address):
         try:
             s3_client = self.get_client()
-            data = {"IP": ip}
+            data = {"IP": ip_address}
             json_blob = json.dumps(data)
             file_handle = io.BytesIO(json_blob.encode())
             file_handle_done = io.BytesIO(b'done')
             s3_client.upload_fileobj(file_handle, self.bucket, self.config_key)
             s3_client.upload_fileobj(file_handle_done, self.bucket, self.done_file_key)
-        except botocore.exceptions.ClientError as e:
-            utils.json_format_logger("Write ip config failed to upload to {}, {}".format(self.bucket, e.response['Error']['Code']),
-                                     **utils.build_user_error_dict(utils.SIMAPP_S3_DATA_STORE_EXCEPTION,
-                                                                   utils.SIMAPP_EVENT_ERROR_CODE_400))
-            utils.simapp_exit_gracefully()
-        except Exception as e:
-            utils.json_format_logger("Write ip config failed to upload to {}, {}".format(self.bucket, e),
-                                     **utils.build_system_error_dict(utils.SIMAPP_S3_DATA_STORE_EXCEPTION,
-                                                                     utils.SIMAPP_EVENT_ERROR_CODE_500))
-            utils.simapp_exit_gracefully()
+        except botocore.exceptions.ClientError:
+            log_and_exit("Write ip config failed to upload",
+                         SIMAPP_S3_DATA_STORE_EXCEPTION,
+                         SIMAPP_EVENT_ERROR_CODE_400)
+        except Exception:
+            log_and_exit("Write ip config failed to upload",
+                         SIMAPP_S3_DATA_STORE_EXCEPTION,
+                         SIMAPP_EVENT_ERROR_CODE_500)
 
     def upload_hyperparameters(self, hyperparams_json):
         try:
             s3_client = self.get_client()
             file_handle = io.BytesIO(hyperparams_json.encode())
             s3_client.upload_fileobj(file_handle, self.bucket, self.hyperparameters_key)
-        except botocore.exceptions.ClientError as e:
-            utils.json_format_logger("Hyperparameters failed to upload to {}, {}".format(self.bucket, e.response['Error']['Code']),
-                                     **utils.build_user_error_dict(utils.SIMAPP_S3_DATA_STORE_EXCEPTION,
-                                                                   utils.SIMAPP_EVENT_ERROR_CODE_400))
-            utils.simapp_exit_gracefully()
-        except Exception as e:
-            utils.json_format_logger("Hyperparameters failed to upload to {}, {}".format(self.bucket, e),
-                                     **utils.build_system_error_dict(utils.SIMAPP_S3_DATA_STORE_EXCEPTION,
-                                                                     utils.SIMAPP_EVENT_ERROR_CODE_500))
-            utils.simapp_exit_gracefully()
+        except botocore.exceptions.ClientError:
+            log_and_exit("Hyperparameters failed to upload",
+                         SIMAPP_S3_DATA_STORE_EXCEPTION,
+                         SIMAPP_EVENT_ERROR_CODE_400)
+        except Exception:
+            log_and_exit("Hyperparameters failed to upload",
+                         SIMAPP_S3_DATA_STORE_EXCEPTION,
+                         SIMAPP_EVENT_ERROR_CODE_500)
 
     def get_ip(self):
         s3_client = self.get_client()
@@ -79,46 +77,43 @@ class SageS3Client():
                 time.sleep(1)
                 time_elapsed += 1
                 if time_elapsed % 5 == 0:
-                    logger.info("Waiting for SageMaker Redis server IP: Time elapsed: %s seconds",
-                                time_elapsed)
+                    LOG.info("Waiting for SageMaker Redis server IP: Time elapsed: %s seconds",
+                             time_elapsed)
             if time_elapsed >= SAGEMAKER_WAIT_TIME:
-                utils.log_and_exit("Timed out while attempting to retrieve the Redis IP",
-                                   utils.SIMAPP_S3_DATA_STORE_EXCEPTION,
-                                   utils.SIMAPP_EVENT_ERROR_CODE_500)
+                log_and_exit("Timed out while attempting to retrieve the Redis IP",
+                             SIMAPP_S3_DATA_STORE_EXCEPTION, SIMAPP_EVENT_ERROR_CODE_500)
             # Download the ip file
             s3_client.download_file(self.bucket, self.config_key, 'ip.json')
             with open("ip.json") as file:
                 ip_file = json.load(file)["IP"]
             return ip_file
-        except botocore.exceptions.ClientError as e:
-            utils.log_and_exit("Unable to retrieve redis ip from {}: {}"\
-                               .format(self.bucket, e.response['Error']['Code']),
-                               utils.SIMAPP_S3_DATA_STORE_EXCEPTION,
-                               utils.SIMAPP_EVENT_ERROR_CODE_400)
-        except Exception as e:
-            utils.log_and_exit("Unable to retrieve redis ip from {}: {}".format(self.bucket, e),
-                               utils.SIMAPP_S3_DATA_STORE_EXCEPTION,
-                               utils.SIMAPP_EVENT_ERROR_CODE_500)
+        except botocore.exceptions.ClientError:
+            log_and_exit("Unable to retrieve redis ip",
+                         SIMAPP_S3_DATA_STORE_EXCEPTION,
+                         SIMAPP_EVENT_ERROR_CODE_400)
+        except Exception:
+            log_and_exit("Unable to retrieve redis ip",
+                         SIMAPP_S3_DATA_STORE_EXCEPTION,
+                         SIMAPP_EVENT_ERROR_CODE_500)
 
     def download_file(self, s3_key, local_path):
         s3_client = self.get_client()
         try:
             s3_client.download_file(self.bucket, s3_key, local_path)
             return True
-        except botocore.exceptions.ClientError as e:
-            # It is possible that the file isn't there in which case we should return fasle and let the client decide the next action
-            if e.response['Error']['Code'] == "404":
+        except botocore.exceptions.ClientError as err:
+            # It is possible that the file isn't there in which case we should
+            # return fasle and let the client decide the next action
+            if err.response['Error']['Code'] == "404":
                 return False
             else:
-                utils.json_format_logger("Unable to download {} from {}: {}".format(s3_key, self.bucket, e.response['Error']['Code']),
-                                         **utils.build_user_error_dict(utils.SIMAPP_S3_DATA_STORE_EXCEPTION,
-                                                                       utils.SIMAPP_EVENT_ERROR_CODE_400))
-                utils.simapp_exit_gracefully()
-        except Exception as e:
-            utils.json_format_logger("Unable to download {} from {}: {}".format(s3_key, self.bucket, e),
-                                     **utils.build_system_error_dict(utils.SIMAPP_S3_DATA_STORE_EXCEPTION,
-                                                                     utils.SIMAPP_EVENT_ERROR_CODE_500))
-            utils.simapp_exit_gracefully()
+                log_and_exit("Unable to download file",
+                             SIMAPP_S3_DATA_STORE_EXCEPTION,
+                             SIMAPP_EVENT_ERROR_CODE_400)
+        except Exception:
+            log_and_exit("Unable to download file",
+                         SIMAPP_S3_DATA_STORE_EXCEPTION,
+                         SIMAPP_EVENT_ERROR_CODE_500)
 
     def upload_file(self, s3_key, local_path):
         s3_client = self.get_client()
@@ -127,12 +122,11 @@ class SageS3Client():
                                   Bucket=self.bucket,
                                   Key=s3_key)
             return True
-        except botocore.exceptions.ClientError as e:
-            utils.json_format_logger("Unable to upload {} to {}: {}".format(s3_key, self.bucket, e.response['Error']['Code']),
-                                     **utils.build_user_error_dict(utils.SIMAPP_S3_DATA_STORE_EXCEPTION,
-                                                                   utils.SIMAPP_EVENT_ERROR_CODE_400))
-        except Exception as e:
-            utils.json_format_logger("Unable to upload {} to {}: {}".format(s3_key, self.bucket, e),
-                                     **utils.build_system_error_dict(utils.SIMAPP_S3_DATA_STORE_EXCEPTION,
-                                                                     utils.SIMAPP_EVENT_ERROR_CODE_500))
-        return False
+        except botocore.exceptions.ClientError:
+            log_and_exit("Unable to upload file",
+                         SIMAPP_S3_DATA_STORE_EXCEPTION,
+                         SIMAPP_EVENT_ERROR_CODE_400)
+        except Exception:
+            log_and_exit("Unable to upload file",
+                         SIMAPP_S3_DATA_STORE_EXCEPTION,
+                         SIMAPP_EVENT_ERROR_CODE_500)

@@ -13,18 +13,21 @@ from gazebo_msgs.srv import SetModelState, SpawnModel
 from geometry_msgs.msg import Pose
 from rosgraph_msgs.msg import Clock
 
-from markov.track_geom.constants import SET_MODEL_STATE, SPAWN_URDF_MODEL, ObstacleDimensions
+from markov.agent_ctrl.constants import ConfigParams, BOT_CAR_Z
+from markov.track_geom.constants import SET_MODEL_STATE, SPAWN_SDF_MODEL, ObstacleDimensions
 from markov.track_geom.track_data import TrackData, TrackLine
 from markov.track_geom.utils import euler_to_quaternion
 from markov.agent_ctrl.agent_ctrl_interface import AgentCtrlInterface
 from markov.rospy_wrappers import ServiceProxyWrapper
 from markov import utils
+from markov.reset.constants import AgentPhase, AgentInfo
+from markov.deepracer_exceptions import GenericRolloutException
 
 from scipy.interpolate import splprep, spalde
 from shapely.geometry import Point
 from shapely.geometry.polygon import LineString
 
-SPLINE_DEGREE = 2
+SPLINE_DEGREE = 3
 
 class BotCarsCtrl(AgentCtrlInterface):
     def __init__(self):
@@ -40,16 +43,21 @@ class BotCarsCtrl(AgentCtrlInterface):
         self.lower_lane_change_time = float(rospy.get_param("LOWER_LANE_CHANGE_TIME", 3.0))
         self.upper_lane_change_time = float(rospy.get_param("UPPER_LANE_CHANGE_TIME", 5.0))
         self.lane_change_distance = float(rospy.get_param("LANE_CHANGE_DISTANCE", 1.0))
+        self.penalty_seconds = float(rospy.get_param("PENALTY_SECONDS", 2.0))
         self.lane_change_duration = self.lane_change_distance/self.bot_car_speed
         self.bot_car_names = ["bot_car_{}".format(i) for i in range(self.num_bot_cars)]
+        self.bot_car_poses = []
+        self.bot_car_progresses = {}
+        self.bot_car_phase = AgentPhase.RUN.value
         self.bot_car_dimensions = ObstacleDimensions.BOT_CAR_DIMENSION
+        self.bot_car_crash_count = 0
+        self.pause_end_time = 0.0
 
         # Wait for ros services
         rospy.wait_for_service(SET_MODEL_STATE)
-        rospy.wait_for_service(SPAWN_URDF_MODEL)
+        rospy.wait_for_service(SPAWN_SDF_MODEL)
         self.set_model_state = ServiceProxyWrapper(SET_MODEL_STATE, SetModelState)
-        self.spawn_urdf_model = ServiceProxyWrapper(SPAWN_URDF_MODEL, SpawnModel)
-        self.bot_car_urdf = rospy.get_param('robot_description_bot')
+        self.spawn_sdf_model = ServiceProxyWrapper(SPAWN_SDF_MODEL, SpawnModel)
 
         # Build splines for inner/outer lanes
         self.inner_lane = self._build_lane(self.track_data._inner_lane_)
@@ -63,8 +71,31 @@ class BotCarsCtrl(AgentCtrlInterface):
         rospy.Subscriber('/clock', Clock, self._update_sim_time)
 
     def _build_lane(self, lane):
+        '''Take in the track lane and return a track lane dictionary
+
+        Args:
+            lane (TrackLine): TrackLine instance
+
+        Returns:
+            dict: Dictionary contains input track lane, track lane point distance,
+                  prepared track lane spline.
+        '''
         center_line = self.track_data._center_line_
         lane_dists = [center_line.project(Point(c)) for c in lane.coords]
+        # projecting inner/outer lane into center line cannot
+        # guarantee monotonic increase along starting and ending position
+        # if wrap around along start (more than half of track length),
+        # subtract track length
+        for i in range(len(lane_dists)):
+            if lane_dists[i] < 0.5 * center_line.length:
+                break
+            lane_dists[i] -= center_line.length
+        # if wrap around along finish (less than half of track length),
+        # add track length
+        for i in range(len(lane_dists) - 1, 0, -1):
+            if lane_dists[i] > 0.5 * center_line.length:
+                break
+            lane_dists[i] += center_line.length
         u,ui = np.unique(lane_dists, return_index=True)
         x = np.array(lane.coords.xy)[:,ui]
         if u[0] > 0.0:
@@ -85,30 +116,60 @@ class BotCarsCtrl(AgentCtrlInterface):
                 "spline": lane_spline}
 
     def _reset_sim_time(self):
+        '''reset simulation start time
+        '''
         sim_time = rospy.get_rostime()
         self.start_sim_time = self.current_sim_time = sim_time.secs + 1.e-9*sim_time.nsecs
 
     def _update_sim_time(self, sim_time):
+        '''Gazebo clock call back to update current time
+
+        Args:
+            sim_time (Clock): gazebo clock
+        '''
         self.current_sim_time = sim_time.clock.secs + 1.e-9*sim_time.clock.nsecs
 
     def _get_dist_from_sim_time(self, initial_dist, sim_time):
-        seconds_elapsed = sim_time - self.start_sim_time
+        '''Get the bot car travel distance since the simulation start time
+
+        Args:
+            initial_dist (float): bot car initial distance
+            sim_time (float): current simulation time
+
+        Returns:
+            float: current bot car distance
+        '''
+        seconds_elapsed = sim_time - self.start_sim_time - self.bot_car_crash_count * \
+                          self.penalty_seconds
         bot_car_traveled_dist = seconds_elapsed * self.bot_car_speed
         bot_car_center_dist = (initial_dist + bot_car_traveled_dist) \
                               % self.track_data._center_line_.length
         return bot_car_center_dist
 
     def _eval_spline(self, initial_dist, sim_time, spline):
+        '''Use spline to generate point
+
+        Args:
+            initial_dist (float): bot car initial distance
+            sim_time (float): current simulation time
+            spline (splprep): B-spline representation of an N-dimensional curve.
+            https://docs.scipy.org/doc/scipy-0.14.0/reference/generated/scipy.interpolate.splprep.html
+
+        Returns:
+            spalde: Evaluate all derivatives of a B-spline.
+            https://docs.scipy.org/doc/scipy-0.18.1/reference/generated/scipy.interpolate.spalde.html
+        '''
         center_line = self.track_data._center_line_
         dist = self._get_dist_from_sim_time(initial_dist, sim_time)
         min_dist = spline[0][SPLINE_DEGREE]
         max_dist = spline[0][-SPLINE_DEGREE-1]
         if dist < min_dist: dist += center_line.length
         if dist > max_dist: dist -= center_line.length
-        return spalde(dist, spline)
+        return spalde(max(min_dist, min(dist, max_dist)), spline)
 
     def _compute_bot_car_initial_states(self):
-
+        '''Compute the bot car initial distance and spline
+        '''
         # Start with equally spaced
         bot_car_start_dist = self.min_bot_car_dist
         bot_car_end_dist = self.track_data._center_line_.length - 1.0
@@ -151,6 +212,8 @@ class BotCarsCtrl(AgentCtrlInterface):
             self.bot_car_splines = [lane["spline"] for lane in self.bot_cars_lanes]
 
     def _compute_bot_car_lane_changes(self):
+        '''Compute the bot car lane change splines and update bot car lane change end times
+        '''
         center_line = self.track_data._center_line_
 
         bot_car_splines = []
@@ -158,7 +221,6 @@ class BotCarsCtrl(AgentCtrlInterface):
 
             # See if the last lane change has finished
             if self.current_sim_time >= lane_change_end_time:
-
                 # Swap lanes
                 if lane_change_end_time > 0.0:
                     self.bot_cars_lanes[i_bot_car], self.bot_cars_opposite_lanes[i_bot_car] = \
@@ -207,8 +269,8 @@ class BotCarsCtrl(AgentCtrlInterface):
                     num_start_coords -= 1
                     num_end_coords -= 1
                 start_index_0 = (current_prev_index - 3) % num_start_coords
-                start_index_1 = start_prev_index
-                end_index_0 = end_next_index
+                start_index_1 = start_prev_index % num_start_coords
+                end_index_0 = end_next_index % num_end_coords
                 end_index_1 = (end_next_index + 3) % num_end_coords
 
                 # Grab waypoint indices for these intervals (some corner cases here...)
@@ -254,7 +316,11 @@ class BotCarsCtrl(AgentCtrlInterface):
                     self.bot_car_splines[i_bot_car] = bot_car_spline
 
     def _compute_bot_car_poses(self):
+        '''Compute bot car poses
 
+        Returns:
+            list: list of bot car Pose instance
+        '''
         # Evaluate the splines
         with self.lock:
             bot_cars_spline_derivs = \
@@ -273,7 +339,7 @@ class BotCarsCtrl(AgentCtrlInterface):
             bot_car_pose = Pose()
             bot_car_pose.position.x = bot_car_x
             bot_car_pose.position.y = bot_car_y
-            bot_car_pose.position.z = 0.0
+            bot_car_pose.position.z = BOT_CAR_Z
             bot_car_pose.orientation.x = bot_car_orientation[0]
             bot_car_pose.orientation.y = bot_car_orientation[1]
             bot_car_pose.orientation.z = bot_car_orientation[2]
@@ -283,16 +349,27 @@ class BotCarsCtrl(AgentCtrlInterface):
         return bot_car_poses
 
     def _spawn_bot_cars(self):
+        '''Spawn the bot cars and initialize track data bot car objects
+        '''
         self._compute_bot_car_initial_states()
-        bot_car_poses = self._compute_bot_car_poses()
-        for bot_car_name, bot_car_pose in zip(self.bot_car_names, bot_car_poses):
-            self.spawn_urdf_model(bot_car_name, self.bot_car_urdf, '/{}'.format(bot_car_name),
-                                  bot_car_pose, '')
+        self.bot_car_poses = self._compute_bot_car_poses()
+
+        rospack = rospkg.RosPack()
+        deepracer_path = rospack.get_path("deepracer_simulation_environment")
+        bot_car_sdf_path = os.path.join(deepracer_path, "models", "bot_car", "model.sdf")
+        with open(bot_car_sdf_path, "r") as fp:
+            bot_car_sdf = fp.read()
+
+        for bot_car_name, bot_car_pose in zip(self.bot_car_names, self.bot_car_poses):
+            self.spawn_sdf_model(bot_car_name, bot_car_sdf, '/{}'.format(bot_car_name),
+                                 bot_car_pose, '')
             self.track_data.initialize_object(bot_car_name, bot_car_pose, self.bot_car_dimensions)
 
     def _update_bot_cars(self):
-        bot_car_poses = self._compute_bot_car_poses()
-        for bot_car_name, bot_car_pose in zip(self.bot_car_names, bot_car_poses):
+        '''Update bot car objects locations
+        '''
+        self.bot_car_poses = self._compute_bot_car_poses()
+        for bot_car_name, bot_car_pose in zip(self.bot_car_names, self.bot_car_poses):
             bot_car_state = ModelState()
             bot_car_state.model_name = bot_car_name
             bot_car_state.pose = bot_car_pose
@@ -310,19 +387,82 @@ class BotCarsCtrl(AgentCtrlInterface):
         return None
 
     def reset_agent(self):
+        '''reset bot car when a new episode start by resetting simulation time and
+        initial position.
+        '''
+        self.bot_car_crash_count = 0
         self._reset_sim_time()
         self._compute_bot_car_initial_states()
         self._update_bot_cars()
 
     def send_action(self, action):
-        self._compute_bot_car_lane_changes()
-        self._update_bot_cars()
+        '''Send bot car action to Gazebo for rendering
 
-    def judge_action(self, action):
+        Args:
+            action (int): index of action
+        '''
+        if self.bot_car_phase == AgentPhase.RUN.value:
+            self._compute_bot_car_lane_changes()
+            self._update_bot_cars()
+
+    def update_agent(self, action):
+        '''Update bot car status after action is taken
+
+        Args:
+            action (int): index of action
+
+        Returns:
+            dict: dictionary of bot car info after action is taken
+        '''
+        for bot_car_name, bot_car_pose in zip(self.bot_car_names, self.bot_car_poses):
+            bot_car_progress = self.track_data.get_norm_dist(
+                Point(bot_car_pose.position.x, bot_car_pose.position.y)) * 100.0
+            self.bot_car_progresses.update(
+                {bot_car_name:{AgentInfo.CURRENT_PROGRESS.value:bot_car_progress}})
+        return self.bot_car_progresses
+
+    def judge_action(self, agents_info_map):
+        '''Judge action to see whether reset is needed
+
+        Args:
+            agents_info_map: Dictionary contains all agents info with agent name as the key
+                             and info as the value
+
+        Returns:
+            tuple: None, None, None
+
+        Raises:
+            GenericRolloutException: bot car pahse is not defined
+        '''
+        if self.bot_car_phase == AgentPhase.RUN.value:
+            self.pause_end_time = self.current_sim_time
+            for agent_name, _ in agents_info_map.items():
+                # check racecar crash with a bot_car
+                crashed_object_name = agents_info_map[agent_name]\
+                    [AgentInfo.CRASHED_OBJECT_NAME.value] \
+                    if AgentInfo.CRASHED_OBJECT_NAME.value in agents_info_map[agent_name] else None
+                if 'racecar' in agent_name and \
+                        crashed_object_name and 'bot_car' in crashed_object_name:
+                    racecar_progress = agents_info_map[agent_name]\
+                                                      [AgentInfo.CURRENT_PROGRESS.value]
+                    bot_car_progress = agents_info_map[crashed_object_name]\
+                                                      [AgentInfo.CURRENT_PROGRESS.value]
+                    # transition to AgentPhase.PAUSE.value
+                    if racecar_progress > bot_car_progress:
+                        self.bot_cars_lane_change_end_times = \
+                            [t + self.penalty_seconds for t in self.bot_cars_lane_change_end_times]
+                        self.bot_car_crash_count += 1
+                        self.pause_end_time += self.penalty_seconds
+                        self.bot_car_phase = AgentPhase.PAUSE.value
+                        break
+        elif self.bot_car_phase == AgentPhase.PAUSE.value:
+            # transition to AgentPhase.RUN.value
+            if self.current_sim_time > self.pause_end_time:
+                self.bot_car_phase = AgentPhase.RUN.value
+        else:
+            raise GenericRolloutException('bot car phase {} is not defined'.\
+                  format(self.bot_car_phase))
         return None, None, None
 
     def finish_episode(self):
-        pass
-
-    def clear_data(self):
         pass

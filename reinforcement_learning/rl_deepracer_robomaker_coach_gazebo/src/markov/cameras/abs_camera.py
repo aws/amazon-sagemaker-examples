@@ -1,30 +1,30 @@
 import abc
-import os
-import rospkg
 import threading
 
 from markov.deepracer_exceptions import GenericRolloutException
 from markov.rospy_wrappers import ServiceProxyWrapper
 from markov.track_geom.constants import SPAWN_SDF_MODEL
+from markov.cameras.camera_manager import CameraManager
 from gazebo_msgs.srv import SpawnModel
 
 # Python 2 and 3 compatible Abstract class
 ABC = abc.ABCMeta('ABC', (object,), {})
 
 
-class BaseCamera(ABC):
+class AbstractCamera(ABC):
     """
     Abstract Camera method
     """
-    def __init__(self, name):
+    def __init__(self, name, namespace, topic_name):
         if not name or not isinstance(name, str):
             raise GenericRolloutException("Camera name cannot be None or empty string")
         self._name = name
-        self._topic_name = self._name
+        self._topic_name = topic_name or self._name
+        self._namespace = namespace or 'default'
         self.lock = threading.Lock()
         self.is_reset_called = False
         self.spawn_sdf_model = ServiceProxyWrapper(SPAWN_SDF_MODEL, SpawnModel)
-        self.rospack = rospkg.RosPack()
+        CameraManager.get_instance().add(self, namespace)
 
     @property
     def name(self):
@@ -44,21 +44,14 @@ class BaseCamera(ABC):
         """
         return self._topic_name
 
-    @topic_name.setter
-    def topic_name(self, val):
-        """
-        Set gazebo topic name
+    @property
+    def namespace(self):
+        """Return namespace of camera in camera manager
 
-        Args:
-            val: topic name
+        Returns:
+            (str): the namespace of camera in camera manager
         """
-        self._topic_name = val
-
-    @classmethod
-    def has_instance(cls):
-        if not hasattr(cls, '_instance_'):
-            raise GenericRolloutException("Camera class requires _instance_ static member variable")
-        return cls._instance_ is not None
+        return self._namespace
 
     def reset_pose(self, model_state):
         """
@@ -71,14 +64,17 @@ class BaseCamera(ABC):
             self._reset(model_state)
             self.is_reset_called = True
 
-    def spawn_model(self, model_state):
-        deepracer_path = self.rospack.get_path("deepracer_simulation_environment")
-        camera_sdf_path = os.path.join(deepracer_path, "models", "camera", "model.sdf")
-        with open(camera_sdf_path, "r") as fp:
-            camera_sdf = fp.read()
+    def spawn_model(self, model_state, camera_sdf_path):
+        """
+        Spawns a sdf model located in the given path
+
+        Args:
+            model_state (object): State object
+            camera_sdf_path (string): full path to the location of sdf file
+        """
+        camera_sdf = self._get_sdf_string(camera_sdf_path)
         camera_pose = self._get_initial_camera_pose(model_state)
-        self.spawn_sdf_model(self.topic_name, camera_sdf, '/{}'.format(self.topic_name),
-                             camera_pose, '')
+        self.spawn_sdf_model(self.topic_name, camera_sdf, self.topic_name, camera_pose, '')
 
     def update_pose(self, model_state, delta_time):
         """
@@ -91,6 +87,17 @@ class BaseCamera(ABC):
         with self.lock:
             if self.is_reset_called:
                 self._update(model_state, delta_time)
+
+    @abc.abstractmethod
+    def _get_sdf_string(self, camera_sdf_path):
+        """
+        Reads the sdf file and converts it to a string in
+        memory
+
+        Args:
+            camera_sdf_path (string): full path to the location of sdf file
+        """
+        raise NotImplementedError('Camera must read and convert model sdf file')
 
     @abc.abstractmethod
     def _reset(self, model_state):
@@ -110,4 +117,3 @@ class BaseCamera(ABC):
         """compuate camera pose
         """
         raise NotImplementedError('Camera must be able to compuate pose')
-        
