@@ -20,7 +20,6 @@ class MaskRCNNService:
 
     lock = Lock()
     predictor = None
-    pretrained_model = "/ImageNet-R50-AlignPadding.npz"
 
     # class method to load trained model and create an offline predictor
     @classmethod
@@ -39,11 +38,11 @@ class MaskRCNNService:
                 model_dir = os.environ['SM_MODEL_DIR']
             except KeyError:
                 model_dir = '/opt/ml/model'
-
+            
             try:
-                cls.pretrained_model = os.environ['PRETRAINED_MODEL']
+                resnet_arch = os.environ['RESNET_ARCH']
             except KeyError:
-                pass
+                resnet_arch = 'resnet50'
 
             # file path to previoulsy trained mask r-cnn model
             latest_trained_model = ""
@@ -55,12 +54,29 @@ class MaskRCNNService:
             trained_model = latest_trained_model[:-6]
             print(f'Using model: {trained_model}')
 
-            # fixed resnet50 backbone weights
-            cfg.BACKBONE.WEIGHTS = os.path.join(cls.pretrained_model)
             cfg.MODE_FPN = True
             cfg.MODE_MASK = True
+            if resnet_arch == 'resnet101':
+                cfg.BACKBONE.RESNET_NUM_BLOCKS = [3, 4, 23, 3]
+            else:
+                cfg.BACKBONE.RESNET_NUM_BLOCKS = [3, 4, 6, 3]
+                
             cfg.TEST.RESULT_SCORE_THRESH = cfg.TEST.RESULT_SCORE_THRESH_VIS
-            finalize_configs(is_training=False)
+            cfg.DATA.CLASS_NAMES = ["BG",
+                     "person", "bicycle", "car", "motorcycle", "airplane", "bus", "train", "truck", 
+                    "boat", "traffic light", "fire hydrant", "stop sign", "parking meter", "bench", 
+                    "bird", "cat", "dog", "horse", "sheep", "cow", "elephant", "bear", "zebra", "giraffe", 
+                    "backpack", "umbrella", "handbag", "tie", "suitcase", "frisbee", "skis", "snowboard", 
+                    "sports ball", "kite", "baseball bat", "baseball glove", "skateboard", "surfboard", 
+                    "tennis racket", "bottle", "wine glass", "cup", "fork", "knife", "spoon", "bowl", "banana",
+                    "apple", "sandwich", "orange", "broccoli", "carrot", "hot dog", "pizza", "donut", "cake", 
+                    "chair", "couch", "potted plant", "bed", "dining table", "toilet", "tv", "laptop", "mouse", 
+                    "remote", "keyboard", "cell phone", "microwave", "oven", "toaster", "sink", "refrigerator", 
+                    "book", "clock", "vase", "scissors", "teddy bear", "hair drier", "toothbrush"] 
+            cfg.DATA.NUM_CATEGORY = 80
+            cfg.freeze(False)
+            cfg.FPN.RESOLUTION_REQUIREMENT = cfg.FPN.ANCHOR_STRIDES[3]
+            cfg.freeze(True)
 
             # Create an inference model
             # PredictConfig takes a model, input tensors and output tensors

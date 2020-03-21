@@ -20,7 +20,6 @@ class MaskRCNNService:
 
     lock = Lock()
     predictor = None
-    pretrained_model = "/ImageNet-R50-AlignPadding.npz"
 
     # class method to load trained model and create an offline predictor
     @classmethod
@@ -41,12 +40,11 @@ class MaskRCNNService:
                 model_dir = os.environ['SM_MODEL_DIR']
             except KeyError:
                 model_dir = '/opt/ml/model'
-
             try:
-                cls.pretrained_model = os.environ['PRETRAINED_MODEL']
+                resnet_arch = os.environ['RESNET_ARCH']
             except KeyError:
-                pass
-
+                resnet_arch = 'resnet50'
+                
             # file path to previoulsy trained mask r-cnn model
             latest_trained_model = ""
             model_search_path = os.path.join(model_dir, "model-*.index" )
@@ -58,9 +56,12 @@ class MaskRCNNService:
             print(f'Using model: {trained_model}')
 
             # fixed resnet50 backbone weights
-            cfg.BACKBONE.WEIGHTS = os.path.join(cls.pretrained_model)
             cfg.MODE_FPN = True
             cfg.MODE_MASK = True
+            if resnet_arch == 'resnet101':
+                cfg.BACKBONE.RESNET_NUM_BLOCKS = [3, 4, 23, 3]
+            else:
+                cfg.BACKBONE.RESNET_NUM_BLOCKS = [3, 4, 6, 3]
 
             # calling detection dataset gets the number of coco categories 
             # and saves in the configuration
