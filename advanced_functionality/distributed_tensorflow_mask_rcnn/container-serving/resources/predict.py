@@ -77,6 +77,7 @@ class MaskRCNNService:
             cfg.freeze(False)
             cfg.FPN.RESOLUTION_REQUIREMENT = cfg.FPN.ANCHOR_STRIDES[3]
             cfg.freeze(True)
+            print(cfg)
 
             # Create an inference model
             # PredictConfig takes a model, input tensors and output tensors
