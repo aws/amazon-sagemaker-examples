@@ -62,7 +62,20 @@ class MaskRCNNService:
                 cfg.BACKBONE.RESNET_NUM_BLOCKS = [3, 4, 23, 3]
             else:
                 cfg.BACKBONE.RESNET_NUM_BLOCKS = [3, 4, 6, 3]
-
+            
+            cfg_prefix = "CONFIG__"
+            for key,value in dict(os.environ).items():
+                if key.startswith(cfg_prefix):
+                    attr_name = key[len(cfg_prefix):]
+                    attr_name = attr_name.replace('__', '.')
+                    value=eval(value)
+                    print(f"update config: {attr_name}={value}")
+                    nested_var = cfg
+                    attr_list = attr_name.split('.')
+                    for attr in attr_list[0:-1]:
+                        nested_var = getattr(nested_var, attr)
+                    setattr(nested_var, attr_list[-1], value)
+                    
             # calling detection dataset gets the number of coco categories 
             # and saves in the configuration
             DetectionDataset()

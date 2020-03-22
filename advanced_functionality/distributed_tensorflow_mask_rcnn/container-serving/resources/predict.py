@@ -6,6 +6,7 @@ sys.path.append('/tensorpack/examples/FasterRCNN')
 from modeling.generalized_rcnn import ResNetFPNModel
 from config import finalize_configs, config as cfg
 from eval import predict_image, DetectionResult
+from dataset import register_coco
 
 from tensorpack.predict.base import OfflinePredictor
 from tensorpack.tfutils.sessinit import get_model_loader
@@ -60,24 +61,26 @@ class MaskRCNNService:
                 cfg.BACKBONE.RESNET_NUM_BLOCKS = [3, 4, 23, 3]
             else:
                 cfg.BACKBONE.RESNET_NUM_BLOCKS = [3, 4, 6, 3]
-                
+        
+            cfg_prefix = "CONFIG__"
+            for key,value in dict(os.environ).items():
+                if key.startswith(cfg_prefix):
+                    attr_name = key[len(cfg_prefix):]
+                    attr_name = attr_name.replace('__', '.')
+                    value=eval(value)
+                    print(f"update config: {attr_name}={value}")
+                    nested_var = cfg
+                    attr_list = attr_name.split('.')
+                    for attr in attr_list[0:-1]:
+                        nested_var = getattr(nested_var, attr)
+                    setattr(nested_var, attr_list[-1], value)
+                    
             cfg.TEST.RESULT_SCORE_THRESH = cfg.TEST.RESULT_SCORE_THRESH_VIS
-            cfg.DATA.CLASS_NAMES = ["BG",
-                     "person", "bicycle", "car", "motorcycle", "airplane", "bus", "train", "truck", 
-                    "boat", "traffic light", "fire hydrant", "stop sign", "parking meter", "bench", 
-                    "bird", "cat", "dog", "horse", "sheep", "cow", "elephant", "bear", "zebra", "giraffe", 
-                    "backpack", "umbrella", "handbag", "tie", "suitcase", "frisbee", "skis", "snowboard", 
-                    "sports ball", "kite", "baseball bat", "baseball glove", "skateboard", "surfboard", 
-                    "tennis racket", "bottle", "wine glass", "cup", "fork", "knife", "spoon", "bowl", "banana",
-                    "apple", "sandwich", "orange", "broccoli", "carrot", "hot dog", "pizza", "donut", "cake", 
-                    "chair", "couch", "potted plant", "bed", "dining table", "toilet", "tv", "laptop", "mouse", 
-                    "remote", "keyboard", "cell phone", "microwave", "oven", "toaster", "sink", "refrigerator", 
-                    "book", "clock", "vase", "scissors", "teddy bear", "hair drier", "toothbrush"] 
-            cfg.DATA.NUM_CATEGORY = 80
-            cfg.freeze(False)
-            cfg.FPN.RESOLUTION_REQUIREMENT = cfg.FPN.ANCHOR_STRIDES[3]
-            cfg.freeze(True)
-            print(cfg)
+            cfg.DATA.BASEDIR = '/data'
+            cfg.DATA.TRAIN='coco_train2017'
+            cfg.DATA.VAL='coco_val2017'
+            register_coco(cfg.DATA.BASEDIR)
+            finalize_configs(is_training=False)
 
             # Create an inference model
             # PredictConfig takes a model, input tensors and output tensors

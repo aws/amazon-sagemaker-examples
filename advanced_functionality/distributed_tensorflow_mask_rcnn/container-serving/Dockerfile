@@ -54,6 +54,7 @@ RUN apt-get -y update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
  
 COPY resources/*.* /
+ADD  data /
 ENV WORKDIR /
 
 ENTRYPOINT ["python", "/serve.py"]
