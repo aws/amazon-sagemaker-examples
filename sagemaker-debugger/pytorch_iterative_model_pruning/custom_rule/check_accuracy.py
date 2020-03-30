@@ -4,8 +4,8 @@ import numpy as np
 
 class check_accuracy(Rule):
     def __init__(self, base_trial, 
-                 predictions='CrossEntropyLoss_input_0', 
-                 labels='CrossEntropyLoss_input_1',
+                 predictions='CrossEntropyLoss_0_input_0', 
+                 labels='CrossEntropyLoss_0_input_1',
                  previous_accuracy=0.0,
                  threshold=0.05):
         super().__init__(base_trial)
@@ -37,7 +37,7 @@ class check_accuracy(Rule):
             current_accuracy =  self.correct/self.samples
             
             if self.previous_accuracy - current_accuracy > self.threshold  : 
-                self.logger.info(f"Step {step}: accuracy dropped by more than {threshold}. Current accuracy: {current_accuracy} Previous accuracy {self.previous_accuracy}")
+                self.logger.info(f"Step {step}: accuracy dropped by more than {self.threshold}. Current accuracy: {current_accuracy} Previous accuracy {self.previous_accuracy}")
                 return True
             
             self.logger.info(f"Step {step}: current accuracy {current_accuracy}")
