@@ -1,6 +1,17 @@
 ARG AWS_REGION
 FROM 520713654638.dkr.ecr.${AWS_REGION}.amazonaws.com/sagemaker-rl-tensorflow:coach0.11.0-cpu-py3
 
+##############################################################
+# Compatible g++ version for Tensorflow installation
+##############################################################
+
+RUN apt update
+RUN apt-get install -y gcc-4.9
+RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.9 50
+RUN apt-get install -y g++-4.9
+RUN update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.9 50
+##############################################################
+
 RUN buildDeps=" \
         wget \
         build-essential \
@@ -40,6 +51,10 @@ RUN mv /usr/local/bin/mpirun /usr/local/bin/mpirun.real && \
 #   --bind-to none --map-by slot --mca btl_tcp_if_exclude lo,docker0
 RUN echo "hwloc_base_binding_policy = none" >> /usr/local/etc/openmpi-mca-params.conf && \
     echo "rmaps_base_mapping_policy = slot" >> /usr/local/etc/openmpi-mca-params.conf
+
+# Install mpi4py
+
+RUN pip install mpi4py
 
 ENV LD_LIBRARY_PATH=/usr/local/openmpi/lib:$LD_LIBRARY_PATH
 ENV PATH /usr/local/openmpi/bin/:$PATH
@@ -126,3 +141,4 @@ RUN pip install stable-baselines
 ############################################
 # Test to verify if all required dependencies installed successfully or not.
 RUN python -c "import gym; import roboschool;"
+
