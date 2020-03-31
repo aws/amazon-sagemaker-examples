@@ -10,37 +10,37 @@ import numpy as np
 import argparse
 import logging
 import sys
+import os
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 logger.addHandler(logging.StreamHandler(sys.stdout))
 
-
+    
 def loader(batch_size=128):
 
     # preprocessing for training data
     train_transforms = transforms.Compose([
-                               transforms.Resize((70, 70)),
-                               transforms.RandomCrop(64),
-                               transforms.ToTensor()
+                               transforms.RandomResizedCrop(224),
+                               transforms.RandomHorizontalFlip(),
+                               transforms.ToTensor(),
+                               transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
                            ])
 
     #preprocessing for validation data
-    val_transforms = transforms.Compose([transforms.Resize((70, 70)),
-                                     transforms.CenterCrop((64, 64)),
-                                     transforms.ToTensor()])
-    
-    #CIFAR10 training data
-    train_data = datasets.CIFAR10('data', 
-                              train = True, 
-                              download = True, 
+    val_transforms = transforms.Compose([transforms.Resize(256),
+                                        transforms.CenterCrop(224),
+                                     transforms.ToTensor(),
+                                     transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+                                        ])
+  
+    # training data
+    train_data = datasets.ImageFolder(os.environ['SM_CHANNEL_TRAIN'],
                               transform = train_transforms)
 
-    #CIFAR10 validation data
-    val_data = datasets.CIFAR10('data', 
-                             train = False, 
-                             download = True, 
-                             transform = val_transforms)
+    # validation data
+    val_data = datasets.ImageFolder(os.environ['SM_CHANNEL_TEST'],
+                              transform = val_transforms)
 
     # train dataloader
     train_iterator = torch.utils.data.DataLoader(train_data, 
@@ -55,7 +55,7 @@ def loader(batch_size=128):
     
     return train_iterator, valid_iterator
 
-def train(epochs, batch_size, learning_rate, momentum):
+def train(epochs, batch_size, learning_rate):
     
     #load pruned model definition and weights
     checkpoint = torch.load("model_checkpoint")
@@ -63,9 +63,9 @@ def train(epochs, batch_size, learning_rate, momentum):
     model.load_state_dict(checkpoint['state_dict'])
     
     #optimizer
-    optimizer = optim.Adam(model.parameters())
+    optimizer = optim.SGD(model.parameters(), lr=learning_rate, momentum=0.9)    
     
-    #make parameters trainable
+    #count number of parameters 
     params = 0
     for parameter in model.parameters():
         parameter.requires_grad = True
@@ -73,7 +73,7 @@ def train(epochs, batch_size, learning_rate, momentum):
     
     #dataloader
     train_data_loader, val_data_loader = loader(batch_size)
-   
+ 
     #loss
     criterion = torch.nn.CrossEntropyLoss()
     
@@ -113,7 +113,7 @@ def train(epochs, batch_size, learning_rate, momentum):
         hook.set_mode(smd.modes.EVAL)
         correct = 0
         total = 0
-        for i, (batch, label) in enumerate(train_data_loader):
+        for i, (batch, label) in enumerate(val_data_loader):
             batch = batch.to(device)
             label = label.to(device)
             
@@ -132,13 +132,11 @@ if __name__ =='__main__':
 
     # hyperparameters sent by the client are passed as command-line arguments to the script.
     parser.add_argument('--epochs', type=int, default=10)
-    parser.add_argument('--batch_size', type=int, default=256)  
+    parser.add_argument('--batch_size', type=int, default=64)  
     parser.add_argument('--learning_rate', type=float, default=0.001)
-    parser.add_argument('--momentum', type=float, default=0.9)
 
     #parse arguments
     args, _ = parser.parse_known_args()
-    
-
+ 
     #train model
-    model = train(epochs=args.epochs, batch_size=args.batch_size, learning_rate=args.learning_rate, momentum=args.momentum)
+    model = train(epochs=args.epochs, batch_size=args.batch_size, learning_rate=args.learning_rate)
