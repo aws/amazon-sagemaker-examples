@@ -49,7 +49,9 @@ model_path = os.environ.get('SM_MODEL_DIR', '/opt/ml/model')
 input_path =  os.environ.get('SM_CHANNEL_TRAIN', '/opt/ml/input/data')
 output_path = os.environ.get('SM_OUTPUT_DIR', '/opt/ml/output')
 
-tokenizer_bucket = 'sagemaker-us-west-2-166163396559'
+# This bucket should be updated based on the value in Part 2: Bring Your Own Model to an Active Learning Workflow
+# notebook after the preprocessing is done.
+tokenizer_bucket = '<Update tokenizer bucket here>'
 tokenizer_key = 'sagemaker/tokenizer.pickle'
 
 # There is a minor path difference between the location of the input from notebook compared to the step function. This function looks for a file in both the paths.
