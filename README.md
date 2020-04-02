@@ -194,12 +194,11 @@ These examples show you how to use model-packages and algorithms from AWS Market
 	- [Using AutoML algorithm](aws_marketplace/using_algorithms/automl) provides a detailed walkthrough on how to use AutoML algorithm from AWS Marketplace.
 
 - [Using Model Packages](aws_marketplace/using_model_packages)
-	- [Using Model Packages From AWS Marketplace](aws_marketplace/using_model_packages/amazon_demo_product) provides a detailed walkthrough on how to use Model Package entities with the enhanced SageMaker Transform/Hosting APIs by choosing a canonical product listed on AWS Marketplace.
+	- [Using Model Packages From AWS Marketplace](aws_marketplace/using_model_packages/generic_sample_notebook) is a generic notebook which provides sample code snippets you can modify and use for performing inference on Model Packages from AWS Marketplace, using Amazon SageMaker.
+	- [Using Amazon Demo product From AWS Marketplace](aws_marketplace/using_model_packages/amazon_demo_product) provides a detailed walkthrough on how to use Model Package entities with the enhanced SageMaker Transform/Hosting APIs by choosing a canonical product listed on AWS Marketplace.
 	- [Using models for extracting vehicle metadata](aws_marketplace/using_model_packages/auto_insurance) provides a detailed walkthrough on how to use pre-trained models from AWS Marketplace for extracting metadata for a sample use-case of auto-insurance claim processing.
 	- [Using models for identifying non-compliance at a workplace](aws_marketplace/using_model_packages/improving_industrial_workplace_safety) provides a detailed walkthrough on how to use pre-trained models from AWS Marketplace for extracting metadata for a sample use-case of generating summary reports for identifying non-compliance at a construction/industrial workplace.
 
-- [Using Data](aws_marketplace/using_data)
-	- [Using data and algorithm from AWS Marketplace for training a model](aws_marketplace/using_data/using_data_from_aws_data_exchange_to_predict_product_popularity) provides a detailed walkthrough on how to use data from AWS Marketplace for training a model that predicts popularity of a bath product.
 
 ### Under Development
 

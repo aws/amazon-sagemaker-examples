@@ -1,34 +1,24 @@
+import math
 import numpy as np
 import rospy
-import math
 
 from gazebo_msgs.srv import SetModelState, GetModelState
 from gazebo_msgs.msg import ModelState, ModelStates
 from geometry_msgs.msg import Pose
-from markov.deepracer_exceptions import GenericRolloutException
 from markov.rospy_wrappers import ServiceProxyWrapper
 from markov.track_geom.track_data import TrackData
 from markov.cameras import utils
 from markov.track_geom.utils import euler_to_quaternion, quaternion_to_euler, apply_orientation
-from markov.cameras.abs_camera import BaseCamera
+from markov.cameras.abs_camera import AbstractCamera
 
 
-class FollowCarCamera(BaseCamera):
-    """this module is for follow-car camera singelton"""
-    _instance_ = None
+class FollowCarCamera(AbstractCamera):
+    """this module is for follow-car camera"""
     name = "follow_car_camera"
 
-    @staticmethod
-    def get_instance():
-        """Method for geting a reference to the camera object"""
-        if FollowCarCamera._instance_ is None:
-            FollowCarCamera()
-        return FollowCarCamera._instance_
-
-    def __init__(self):
-        if FollowCarCamera._instance_ is not None:
-            raise GenericRolloutException("Attempting to construct multiple follow car camera")
-        super(FollowCarCamera, self).__init__(FollowCarCamera.name)
+    def __init__(self, namespace=None, topic_name=None):
+        super(FollowCarCamera, self).__init__(FollowCarCamera.name, namespace=namespace,
+                                              topic_name=topic_name)
         rospy.wait_for_service('/gazebo/set_model_state')
         self.model_state_client = ServiceProxyWrapper('/gazebo/set_model_state', SetModelState)
         self.track_data = TrackData.get_instance()
@@ -41,8 +31,10 @@ class FollowCarCamera(BaseCamera):
         self.last_yaw = 0.0
         self.last_camera_state = None
 
-        # there should be only one video camera instance
-        FollowCarCamera._instance_ = self
+    def _get_sdf_string(self, camera_sdf_path):
+        with open(camera_sdf_path, "r") as sdf_file:
+            camera_sdf = sdf_file.read()
+        return camera_sdf
 
     def _get_initial_camera_pose(self, car_model_state):
         _, _, car_yaw = quaternion_to_euler(x=car_model_state.pose.orientation.x,
@@ -91,7 +83,7 @@ class FollowCarCamera(BaseCamera):
 
         # Linear interpolate Camera position to target position
         cur_camera_2d_pos = np.array([self.last_camera_state.pose.position.x,
-                                     self.last_camera_state.pose.position.y])
+                                      self.last_camera_state.pose.position.y])
         new_cam_pos_2d = utils.lerp(cur_camera_2d_pos, target_camera_location_2d, delta_time * self.damping)
 
         # Calculate camera rotation quaternion based on lookAt yaw

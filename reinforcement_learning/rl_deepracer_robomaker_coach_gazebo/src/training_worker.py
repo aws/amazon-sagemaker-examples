@@ -22,6 +22,7 @@ from markov.s3_boto_data_store import S3BotoDataStore, S3BotoDataStoreParameters
 from markov.s3_client import SageS3Client
 from markov.sagemaker_graph_manager import get_graph_manager
 from markov.utils_parse_model_metadata import parse_model_metadata
+from markov.samples.sample_collector import SampleCollector
 
 import tensorflow as tf
 tf.logging.set_verbosity(tf.logging.DEBUG)
@@ -70,10 +71,9 @@ def training_worker(graph_manager, task_parameters, user_batch_size,
                 # Make sure we have enough data for the requested batches
                 rollout_steps = graph_manager.memory_backend.get_rollout_steps()
                 if any(rollout_steps.values()) <= 0:
-                    utils.json_format_logger("No rollout data retrieved from the rollout worker",
-                                             **utils.build_system_error_dict(utils.SIMAPP_TRAINING_WORKER_EXCEPTION,
-                                                                             utils.SIMAPP_EVENT_ERROR_CODE_500))
-                    utils.simapp_exit_gracefully()
+                    utils.log_and_exit("No rollout data retrieved from the rollout worker",
+                                       utils.SIMAPP_TRAINING_WORKER_EXCEPTION,
+                                       utils.SIMAPP_EVENT_ERROR_CODE_500)
 
                 episode_batch_size = user_batch_size if min(rollout_steps.values()) > user_batch_size else 2**math.floor(math.log(min(rollout_steps.values()), 2))
                 # Set the batch size to the closest power of 2 such that we have at least two batches, this prevents coach from crashing
@@ -95,10 +95,9 @@ def training_worker(graph_manager, task_parameters, user_batch_size,
                         if np.isnan(agent.loss.get_mean()):
                             rollout_has_nan = True
                 if rollout_has_nan:
-                    utils.json_format_logger("NaN detected in loss function, aborting training.",
-                                             **utils.build_system_error_dict(utils.SIMAPP_TRAINING_WORKER_EXCEPTION,
-                                                                             utils.SIMAPP_EVENT_ERROR_CODE_500))
-                    utils.simapp_exit_gracefully()
+                    utils.log_and_exit("NaN detected in loss function, aborting training.",
+                                       utils.SIMAPP_TRAINING_WORKER_EXCEPTION,
+                                       utils.SIMAPP_EVENT_ERROR_CODE_500)
 
                 if graph_manager.agent_params.algorithm.distributed_coach_synchronization_type == DistributedCoachSynchronizationType.SYNC:
                     graph_manager.save_checkpoint()
@@ -114,9 +113,9 @@ def training_worker(graph_manager, task_parameters, user_batch_size,
                     agent.ap.algorithm.num_steps_between_copying_online_weights_to_target.num_steps = user_episode_per_rollout
 
             if door_man.terminate_now:
-                utils.json_format_logger("Received SIGTERM. Checkpointing before exiting.",
-                                         **utils.build_system_error_dict(utils.SIMAPP_TRAINING_WORKER_EXCEPTION,
-                                                                         utils.SIMAPP_EVENT_ERROR_CODE_500))
+                utils.log_and_exit("Received SIGTERM. Checkpointing before exiting.",
+                                   utils.SIMAPP_TRAINING_WORKER_EXCEPTION,
+                                   utils.SIMAPP_EVENT_ERROR_CODE_500)
                 graph_manager.save_checkpoint()
                 break
 
@@ -193,9 +192,9 @@ def main():
                         type=str,
                         default=os.environ.get("AWS_REGION", "us-east-1"))
 
-    start_redis_server()
-
     args, _ = parser.parse_known_args()
+    
+    start_redis_server()
 
     s3_client = SageS3Client(bucket=args.s3_bucket, s3_prefix=args.s3_prefix, aws_region=args.aws_region)
 
@@ -229,7 +228,7 @@ def main():
 
         #! TODO each agent should have own config
         agent_config = {'model_metadata': model_metadata_local_path,
-                        'car_ctrl_cnfig': {ConfigParams.LINK_NAME_LIST.value: [],
+                        ConfigParams.CAR_CTRL_CONFIG.value: {ConfigParams.LINK_NAME_LIST.value: [],
                                            ConfigParams.VELOCITY_LIST.value : {},
                                            ConfigParams.STEERING_LIST.value : {},
                                            ConfigParams.CHANGE_START.value : None,
@@ -240,12 +239,21 @@ def main():
 
         agent_list = list()
         agent_list.append(create_training_agent(agent_config))
-        #agent_list.append(create_training_agent(agent_config))
 
-        graph_manager, robomaker_hyperparams_json = get_graph_manager(sm_hyperparams_dict, agent_list)
+        graph_manager, robomaker_hyperparams_json = get_graph_manager(hp_dict=sm_hyperparams_dict,
+                                                                      agent_list=agent_list,
+                                                                      run_phase_subject=None)
 
         s3_client.upload_hyperparameters(robomaker_hyperparams_json)
         logger.info("Uploaded hyperparameters.json to S3")
+
+        # Attach sample collector to graph_manager only if sample count > 0
+        max_sample_count = int(sm_hyperparams_dict.get("max_sample_count", 0))
+        if max_sample_count > 0:
+            sample_collector = SampleCollector(s3_client=s3_client, s3_prefix=args.s3_prefix,
+                                               max_sample_count=max_sample_count,
+                                               sampling_frequency=int(sm_hyperparams_dict.get("sampling_frequency", 1)))
+            graph_manager.sample_collector = sample_collector
 
     host_ip_address = utils.get_ip_from_host()
     s3_client.write_ip_config(host_ip_address)
@@ -258,12 +266,16 @@ def main():
         not utils.has_current_ckpnt_name(args.pretrained_s3_bucket, args.pretrained_s3_prefix, args.aws_region):
             utils.make_compatible(args.pretrained_s3_bucket, args.pretrained_s3_prefix,
                                   args.aws_region, SyncFiles.TRAINER_READY.value)
+        #Select the optimal model for the starting weights
+        utils.do_model_selection(s3_bucket=args.s3_bucket,
+                                 s3_prefix=args.s3_prefix,
+                                 region=args.aws_region)
 
         ds_params_instance_pretrained = S3BotoDataStoreParameters(aws_region=args.aws_region,
-                                                                  bucket_name=args.pretrained_s3_bucket,
-                                                                  checkpoint_dir=args.pretrained_checkpoint_dir,
-                                                                  s3_folder=args.pretrained_s3_prefix)
-        data_store_pretrained = S3BotoDataStore(ds_params_instance_pretrained)
+                                                                  bucket_names={'agent':args.pretrained_s3_bucket},
+                                                                  base_checkpoint_dir=args.pretrained_checkpoint_dir,
+                                                                  s3_folders={'agent':args.pretrained_s3_prefix})
+        data_store_pretrained = S3BotoDataStore(ds_params_instance_pretrained, graph_manager, True)
         data_store_pretrained.load_from_store()
 
     memory_backend_params = RedisPubSubMemoryBackendParameters(redis_address="localhost",
@@ -274,14 +286,13 @@ def main():
     graph_manager.memory_backend_params = memory_backend_params
 
     ds_params_instance = S3BotoDataStoreParameters(aws_region=args.aws_region,
-                                                   bucket_name=args.s3_bucket,
-                                                   checkpoint_dir=args.checkpoint_dir,
-                                                   s3_folder=args.s3_prefix)
+                                                   bucket_names={'agent':args.s3_bucket},
+                                                   base_checkpoint_dir=args.checkpoint_dir,
+                                                   s3_folders={'agent':args.s3_prefix})
+
     graph_manager.data_store_params = ds_params_instance
 
-    data_store = S3BotoDataStore(ds_params_instance)
-    data_store.graph_manager = graph_manager
-    graph_manager.data_store = data_store
+    graph_manager.data_store = S3BotoDataStore(ds_params_instance, graph_manager)
 
     task_parameters = TaskParameters()
     task_parameters.experiment_path = SM_MODEL_OUTPUT_DIR

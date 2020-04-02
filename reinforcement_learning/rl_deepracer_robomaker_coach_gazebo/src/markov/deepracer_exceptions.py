@@ -7,7 +7,7 @@ class RewardFunctionError(Exception):
         '''msg - This should be text containing information about what caused
                  the exception, for example "cannot divide by zero
         '''
-        super().__init__(msg)
+        super(RewardFunctionError, self).__init__(msg)
         self.msg = msg
 
     def log_except_and_exit(self):
@@ -22,7 +22,7 @@ class GenericTrainerException(Exception):
         '''msg - This should be text containing information about what caused
                  the exception, for example "cannot divide by zero
         '''
-        super().__init__(msg)
+        super(GenericTrainerException, self).__init__(msg)
         self.msg = msg
 
     def log_except_and_exit(self):
@@ -37,7 +37,7 @@ class GenericTrainerError(Exception):
         '''msg - This should be text containing information about what caused
                  the exception, for example "cannot divide by zero
         '''
-        super().__init__(msg)
+        super(GenericTrainerError, self).__init__(msg)
         self.msg = msg
 
     def log_except_and_exit(self):
@@ -52,7 +52,7 @@ class GenericRolloutException(Exception):
         '''msg - This should be text containing information about what caused
                  the exception, for example "cannot divide by zero
         '''
-        super().__init__(msg)
+        super(GenericRolloutException, self).__init__(msg)
         self.msg = msg
 
     def log_except_and_exit(self):
@@ -67,7 +67,7 @@ class GenericRolloutError(Exception):
         '''msg - This should be text containing information about what caused
                  the exception, for example "cannot divide by zero
         '''
-        super().__init__(msg)
+        super(GenericRolloutError, self).__init__(msg)
         self.msg = msg
 
     def log_except_and_exit(self):
@@ -75,3 +75,65 @@ class GenericRolloutError(Exception):
         utils.log_and_exit("Rollout worker failed: {}".format(self.msg),
                            utils.SIMAPP_SIMULATION_WORKER_EXCEPTION,
                            utils.SIMAPP_EVENT_ERROR_CODE_400)
+
+class GenericValidatorException(Exception):
+    '''This exception is a generic exception for the validation worker'''
+    def __init__(self, msg):
+        '''msg - This should be text containing information about what caused
+                 the exception, for example "cannot divide by zero
+        '''
+        super(GenericValidatorException, self).__init__(msg)
+        self.msg = msg
+
+    def log_except_and_exit(self):
+        '''Logs the exception to cloud watch and exits the sim app'''
+        utils.log_and_exit("Validation worker failed: {}".format(self.msg),
+                           utils.SIMAPP_VALIDATION_WORKER_EXCEPTION,
+                           utils.SIMAPP_EVENT_ERROR_CODE_500)
+
+class GenericValidatorError(Exception):
+    ''''This exception is a generic error for the validation worker'''
+    def __init__(self, msg):
+        '''msg - This should be text containing information about what caused
+                 the exception, for example "cannot divide by zero
+        '''
+        super(GenericValidatorError, self).__init__(msg)
+        self.msg = msg
+
+    def log_except_and_exit(self):
+        '''Logs the exception to cloud watch and exits the sim app'''
+        utils.log_and_exit("Validation worker failed: {}".format(self.msg),
+                           utils.SIMAPP_VALIDATION_WORKER_EXCEPTION,
+                           utils.SIMAPP_EVENT_ERROR_CODE_400)
+
+class GenericException(Exception):
+    '''This exception is a generic exception'''
+    def __init__(self, msg):
+        '''msg - This should be text containing information about what caused
+                 the exception, for example "cannot divide by zero
+        '''
+        super(GenericException, self).__init__(msg)
+        self.msg = msg
+
+    def log_except_and_exit(self, worker):
+        '''Logs the exception to cloud watch and exits the worker
+           worker - String indicating which worker is throwing the exception
+        '''
+        utils.log_and_exit("Validation worker failed: {}".format(self.msg),
+                           worker, utils.SIMAPP_EVENT_ERROR_CODE_500)
+
+class GenericError(Exception):
+    ''''This exception is a generic error'''
+    def __init__(self, msg):
+        '''msg - This should be text containing information about what caused
+                 the exception, for example "cannot divide by zero
+        '''
+        super(GenericError, self).__init__(msg)
+        self.msg = msg
+
+    def log_except_and_exit(self, worker):
+        '''Logs the exception to cloud watch and exits the worker
+           worker - String indicating which worker is throwing the exception
+        '''
+        utils.log_and_exit("Validation worker failed: {}".format(self.msg),
+                           worker, utils.SIMAPP_EVENT_ERROR_CODE_400)
