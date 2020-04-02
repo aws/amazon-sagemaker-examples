@@ -61,15 +61,10 @@ logger.setLevel(logging.DEBUG)
 
 def model_fn(model_dir):
     import torch
-    import torchvision.models as models
     
     logger.info('model_fn')
     device = "cuda" if torch.cuda.is_available() else "cpu"
-    model = models.vgg19_bn(pretrained=True)
-    if torch.cuda.device_count() > 1:
-        logger.info("Gpu count: {}".format(torch.cuda.device_count()))
-        model = nn.DataParallel(model)
-    with open(os.path.join(model_dir, 'model.pt'), 'rb') as f:
-        model.load_state_dict(torch.load(f))
+    with open(os.path.join(model_dir, 'model.pth'), 'rb') as f:
+        model = torch.jit.load(f))
     return model.to(device)
 
