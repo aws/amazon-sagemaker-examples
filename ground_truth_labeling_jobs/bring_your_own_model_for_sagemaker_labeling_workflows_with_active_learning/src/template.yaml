@@ -118,6 +118,12 @@ Resources:
                     }
                   ]
                 },
+                "Retry": [ {
+                   "ErrorEquals": [ "States.TaskFailed", "States.ALL" ],
+                   "IntervalSeconds": 3,
+                   "BackoffRate": 2.0,
+                   "MaxAttempts": 2
+                }],
                 "ResultPath":"$.training_job_result",
                 "Next": "SaveModel"
               },
@@ -179,6 +185,12 @@ Resources:
                      "OutputFilter": "$['id','SageMakerOutput']"
                   }
                 },
+                "Retry": [ {
+                   "ErrorEquals": [ "States.TaskFailed", "States.ALL" ],
+                   "IntervalSeconds": 3,
+                   "BackoffRate": 2.0,
+                   "MaxAttempts": 2
+                }],
                "ResultPath":"$.transform_job_result",
                "Next": "PerformActiveLearning"
               },
