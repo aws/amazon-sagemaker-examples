@@ -285,8 +285,8 @@ def transform_fn(net, data, content_type, output_content_type):
     x, image = gcv.data.transforms.presets.ssd.transform_test(mx.nd.array(data), 512)
     
     #check if GPUs area available
-    ctx = mx.gpu() if mx.context.num_gpus() > 0 else mx.cpu()
-    
+    #ctx = mx.gpu() if mx.context.num_gpus() > 0 else mx.cpu()
+    ctx = mx.cpu()
     #load image onto right context
     x = x.as_in_context(ctx)
     
