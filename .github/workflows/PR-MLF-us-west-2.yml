@@ -36,9 +36,13 @@ jobs:
           export JAVA_HOME=$(get-java-home)
           echo "set JAVA_HOME=$JAVA_HOME"
 
-      - name: Get Role
+      - name: Set SageMaker Role
         run: |
           export SAGEMAKER_ROLE_ARN=$(aws iam list-roles --output text --query "Roles[?RoleName == 'SageMakerRole'].Arn")
+          echo "set SAGEMAKER_ROLE_ARN=$SAGEMAKER_ROLE_ARN"
+
+      - name: Print SageMaker Role
+        run: |
           echo "set SAGEMAKER_ROLE_ARN=$SAGEMAKER_ROLE_ARN"
 
       - name: Run Notebook Tests
