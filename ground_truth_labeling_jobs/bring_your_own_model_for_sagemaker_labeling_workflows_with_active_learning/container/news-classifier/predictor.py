@@ -48,8 +48,10 @@ class ScoringService(object):
     model = None                # Where we keep the model when it's loaded
 
     def __init__(self):
-        tokenizer_bucket = 'sagemaker-us-west-2-166163396559'
-        tokenizer_key = 'sagemaker/tokenizer.pickle'
+        # This bucket should be updated based on the value in Part 2: Bring Your Own Model to an Active Learning Workflow
+        # notebook after the preprocessing is done.
+        tokenizer_bucket = '<Update tokenizer bucket here>'
+        tokenizer_key = 'sagemaker-byoal/tokenizer.pickle'
         pickle_file_name = tokenizer_key.split('/')[-1]
         boto3.resource('s3').Bucket(tokenizer_bucket).download_file(tokenizer_key, pickle_file_name)
         with open(pickle_file_name, 'rb') as handle:
