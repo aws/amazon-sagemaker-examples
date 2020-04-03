@@ -30,6 +30,8 @@ jobs:
         run: |
           aws s3 cp s3://sagemaker-mead-cli/mead-nb-test.tar.gz mead-nb-test.tar.gz
           tar -xzf mead-nb-test.tar.gz
+          pwd
+          ls -altr
 
       - name: Run Notebook Tests
         run: |
