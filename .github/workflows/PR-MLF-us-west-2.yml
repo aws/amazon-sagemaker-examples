@@ -31,22 +31,12 @@ jobs:
           aws s3 cp s3://sagemaker-mead-cli/mead-nb-test.tar.gz mead-nb-test.tar.gz
           tar -xzf mead-nb-test.tar.gz
 
-      - name: Set JAVA Environment
+      - name: Run Notebook Tests
         run: |
           export JAVA_HOME=$(get-java-home)
           echo "set JAVA_HOME=$JAVA_HOME"
-
-      - name: Set SageMaker Role
-        run: |
           export SAGEMAKER_ROLE_ARN=$(aws iam list-roles --output text --query "Roles[?RoleName == 'SageMakerRole'].Arn")
           echo "set SAGEMAKER_ROLE_ARN=$SAGEMAKER_ROLE_ARN"
-
-      - name: Print SageMaker Role
-        run: |
-          echo "set SAGEMAKER_ROLE_ARN=$SAGEMAKER_ROLE_ARN"
-
-      - name: Run Notebook Tests
-        run: |
           ./runtime/bin/mead-run-nb-test \
           --instance-type ml.c4.8xlarge \
           --region us-west-2 \
