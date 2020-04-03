@@ -84,8 +84,6 @@ def train():
        cat=tf_train['CATEGORY'].astype("category").cat.categories
        tf_train['CATEGORY']=tf_train['CATEGORY'].astype("category").cat.codes
        y_train=tf_train['CATEGORY'].values
-       print("y train")
-       print(y_train)
 
        pickle_file_name = tokenizer_key.split('/')[-1]
        boto3.resource('s3').Bucket(tokenizer_bucket).download_file(tokenizer_key, pickle_file_name)
