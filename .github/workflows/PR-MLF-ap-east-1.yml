@@ -1,4 +1,4 @@
-name: MLF PR Build (us-west-2)
+name: MLF PR Build (ap-east-1)
 
 # Controls when the action will run. Triggers the workflow on push or pull request
 # events but only for the master branch
@@ -22,9 +22,9 @@ jobs:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
-          aws-access-key-id: ${{ secrets.MLF_us_west_2_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.MLF_us_west_2_SECRET_ACCESS_KEY }}
-          aws-region: us-west-2
+          aws-access-key-id: ${{ secrets.MLF_ap_east_1_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.MLF_ap_east_1_SECRET_ACCESS_KEY }}
+          aws-region: ap-east-1
 
       - name: Download Testing Tool
         run: |
@@ -39,7 +39,7 @@ jobs:
           echo "set SAGEMAKER_ROLE_ARN=$SAGEMAKER_ROLE_ARN"
           ./runtime/bin/mead-run-nb-test \
           --instance-type ml.c4.8xlarge \
-          --region us-west-2 \
+          --region ap-east-1 \
           --lifecycle-config-name install-python-sdk \
           --notebook-instance-role-arn $SAGEMAKER_ROLE_ARN \
           ./advanced_functionality/kmeans_bring_your_own_model/kmeans_bring_your_own_model.ipynb \
@@ -49,7 +49,7 @@ jobs:
           ./sagemaker-python-sdk/managed_spot_training_tensorflow_estimator/managed_spot_training_tensorflow_estimator.ipynb \
           ./sagemaker-python-sdk/mxnet_onnx_eia/mxnet_onnx_eia.ipynb \
           ./sagemaker-python-sdk/mxnet_onnx_export/mxnet_onnx_export.ipynb \
-          ./sagemaker-python-sdk/pytorch_cnn_cifar10/pytorch_local_mode_cifar10.ipynb \
+          ./sagemaker-python-sdk/phubytorch_cnn_cifar10/pytorch_local_mode_cifar10.ipynb \
           ./sagemaker-python-sdk/scikit_learn_randomforest/Sklearn_on_SageMaker_end2end.ipynb \
           ./sagemaker-python-sdk/tensorflow_moving_from_framework_mode_to_script_mode/tensorflow_moving_from_framework_mode_to_script_mode.ipynb \
           ./sagemaker-python-sdk/tensorflow_script_mode_pipe_mode/tensorflow_script_mode_pipe_mode.ipynb \
