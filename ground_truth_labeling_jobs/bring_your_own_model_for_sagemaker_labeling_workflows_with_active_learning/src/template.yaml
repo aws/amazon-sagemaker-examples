@@ -119,13 +119,7 @@ Resources:
                   ]
                 },
                 "Retry": [ {
-                   "ErrorEquals": [ "States.TaskFailed" ],
-                   "IntervalSeconds": 3,
-                   "BackoffRate": 2.0,
-                   "MaxAttempts": 2
-                },
-                 {
-                   "ErrorEquals": [ "States.ALL" ],
+                   "ErrorEquals": [ "States.TaskFailed", "States.ALL" ],
                    "IntervalSeconds": 3,
                    "BackoffRate": 2.0,
                    "MaxAttempts": 2
@@ -192,13 +186,7 @@ Resources:
                   }
                 },
                 "Retry": [ {
-                   "ErrorEquals": [ "States.TaskFailed" ],
-                   "IntervalSeconds": 3,
-                   "BackoffRate": 2.0,
-                   "MaxAttempts": 2
-                },
-                 {
-                   "ErrorEquals": [ "States.ALL" ],
+                   "ErrorEquals": [ "States.TaskFailed", "States.ALL" ],
                    "IntervalSeconds": 3,
                    "BackoffRate": 2.0,
                    "MaxAttempts": 2
