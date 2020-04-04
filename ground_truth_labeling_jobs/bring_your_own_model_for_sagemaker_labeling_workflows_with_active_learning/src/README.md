@@ -4,9 +4,7 @@ This repository contains the code that you will need to complete the tutorial in
 
 With Amazon SageMaker Ground Truth, you can easily and inexpensively build more accurately labeled machine learning datasets. To decrease labeling costs, Ground Truth uses active learning to choose “difficult” images that require human annotation and “easy” images that can be automatically labeled with machine learning (automated labeling or auto-labeling).
 
-Use [Bring your own model for Amazon SageMaker labeling workflows with active learning](https://aws.amazon.com/blogs/machine-learning/bring-your-own-model-for-amazon-sagemaker-labeling-workflows-with-active-learning/) to learn how to:
-1) Tweak the active learning workflow and the algorithm used to run training and inference.
-2) Perform active learning with a custom labeling job.
+Use Bring your own model for Amazon SageMaker labeling workflows with active learning to learn how to create an active learning workflow with your own algorithm to run training and inference in that workflow. This example can be used as a starting point to perform active learning and auto annotation with a custom labeling job.
 
 #### Pre-req to build:
 1) Install [AWS SAM CLI](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-sam-cli-install.html)
