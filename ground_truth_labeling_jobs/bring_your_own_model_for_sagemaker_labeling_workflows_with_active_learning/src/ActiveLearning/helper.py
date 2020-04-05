@@ -1,7 +1,7 @@
 from datetime import datetime
 import random
 
-AUTOANNOTATION_THRESHOLD = 0.75
+AUTOANNOTATION_THRESHOLD = 0.50
 JOB_TYPE = "groundtruth/text-classification"
 
 class SimpleActiveLearning:
