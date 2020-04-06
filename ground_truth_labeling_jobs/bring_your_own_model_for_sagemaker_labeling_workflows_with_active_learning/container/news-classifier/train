@@ -1,0 +1,136 @@
+#!/usr/bin/env python
+# Copyright 2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+#
+#   Licensed under the Apache License, Version 2.0 (the "License").
+#   You may not use this file except in compliance with the License.
+#   A copy of the License is located at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#   or in the "license" file accompanying this file. This file is distributed
+#   on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+#   express or implied. See the License for the specific language governing
+#   permissions and limitations under the License.
+#
+#   A sample training component that trains a keras text classification
+#   model.
+
+
+from __future__ import print_function
+
+import os
+import json
+import pickle
+import sys
+import traceback
+
+from sklearn.feature_extraction import stop_words
+
+import pandas as pd
+import tensorflow as tf
+import re
+import numpy as np
+
+import boto3
+
+from tensorflow.python.estimator.export.export import build_raw_serving_input_receiver_fn
+from tensorflow.python.estimator.export.export_output import PredictOutput
+from tensorflow.python.keras.preprocessing.text import Tokenizer
+from tensorflow.python.keras.preprocessing.sequence import pad_sequences
+
+# These are the paths to where SageMaker mounts interesting things in your container.
+
+max_features=5000 #we set maximum number of words to 5000
+maxlen=100 #and maximum sequence length to 100
+embedding_dim = 50
+stop_words=stop_words.ENGLISH_STOP_WORDS
+
+model_path = os.environ.get('SM_MODEL_DIR', '/opt/ml/model')
+input_path =  os.environ.get('SM_CHANNEL_TRAIN', '/opt/ml/input/data')
+output_path = os.environ.get('SM_OUTPUT_DIR', '/opt/ml/output')
+
+# This bucket should be updated based on the value in Part 2: Bring Your Own Model to an Active Learning Workflow
+# notebook after the preprocessing is done.
+tokenizer_bucket = '<Update tokenizer bucket here>'
+tokenizer_key = 'sagemaker-byoal/tokenizer.pickle'
+
+# There is a minor path difference between the location of the input from notebook compared to the step function. This function looks for a file in both the paths.
+# Note - the hyperparameters and the validation file are ignored to keep this example simple.
+def get_training_file():
+   train_file_paths = ['/opt/ml/input/data/train-manifest', '/opt/ml/input/data/training/train-manifest']
+   for file in train_file_paths:
+     if os.path.isfile(file):
+       return file
+   raise Exception("train-manifest not found in expected locations {}".format(",".join(train_file_paths)))
+       
+
+# The function to execute the training.
+def train():
+    print('Starting the training with input_path {}'.format(input_path))
+    try:
+
+       tf_train=pd.DataFrame(columns=['TITLE','CATEGORY'])
+       file=open(get_training_file(), 'r')
+       for line in file:
+            train_data=json.loads(line)
+            single_train_input = {'CATEGORY': train_data['category'], 'TITLE':train_data['source']}
+            #print("single train input {}".format(json.dumps(single_train_input)))
+            tf_train=tf_train.append(single_train_input, ignore_index=True)
+    
+       tf_train["TITLE"]=tf_train["TITLE"].str.lower().replace('[^\w\s]','')
+       tf_train["TITLE"]= tf_train["TITLE"].apply(lambda x: ' '.join([word for word in x.split() if word not in (stop_words)]))
+       tf_train.dropna(inplace=True)
+
+       cat=tf_train['CATEGORY'].astype("category").cat.categories
+       tf_train['CATEGORY']=tf_train['CATEGORY'].astype("category").cat.codes
+       y_train=tf_train['CATEGORY'].values
+
+       pickle_file_name = tokenizer_key.split('/')[-1]
+       boto3.resource('s3').Bucket(tokenizer_bucket).download_file(tokenizer_key, pickle_file_name)
+       with open(pickle_file_name, 'rb') as handle:
+         tok= pickle.load(handle)
+
+       tf_train=tok.texts_to_sequences(list(tf_train['TITLE'])) #this is how we create sequences
+       X_train=tf.keras.preprocessing.sequence.pad_sequences(tf_train, maxlen=maxlen) #let's execute pad step 
+       vocab_size = len(tok.word_index) + 1 
+
+       model = tf.keras.models.Sequential([
+         tf.keras.layers.Embedding(input_dim=vocab_size, #embedding input
+                               output_dim=embedding_dim,#embedding output
+                               input_length=maxlen), #maximum length of an input sequence
+
+         tf.keras.layers.Flatten(), #flatten layer
+
+         tf.keras.layers.Dense(4, activation=tf.nn.softmax) #ouput layer a Dense layer with 4 probabilities
+         #we also define our final activation function which is the softmax function typical for multiclass
+         #classifiction problems
+       ])
+       
+       model.compile(optimizer=tf.keras.optimizers.Nadam(learning_rate=1e-3), \
+                      loss='sparse_categorical_crossentropy', \
+                      metrics=['accuracy'])
+                      
+       early_stopping_cb = tf.keras.callbacks.EarlyStopping(patience=5,restore_best_weights=True)
+       checkpoint_cb = tf.keras.callbacks.ModelCheckpoint("keras_model.h5",save_best_only=True)
+       history = model.fit(X_train, y_train, epochs=3, validation_split=0.25,
+                        callbacks=[checkpoint_cb, early_stopping_cb])
+
+       model_file_name = os.path.join(model_path,"keras_news_classifier_model.h5")
+       model.save(model_file_name)
+
+    except Exception as e:
+       # Write out an error file. This will be returned as the failureReason in the
+       # DescribeTrainingJob result.
+       trc = traceback.format_exc()
+       with open(os.path.join(output_path, 'failure'), 'w') as s:
+           s.write('Exception during training: ' + str(e) + '\n' + trc)
+       # Printing this causes the exception to be in the training job logs, as well.
+       print('Exception during training: ' + str(e) + '\n' + trc, file=sys.stderr)
+       # A non-zero exit code causes the training job to be marked as Failed.
+       sys.exit(255)
+
+if __name__ == '__main__':
+    train()
+
+    # A zero exit code causes the job to be marked a Succeeded.
+    sys.exit(0)
