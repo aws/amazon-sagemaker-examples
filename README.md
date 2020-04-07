@@ -199,6 +199,8 @@ These examples show you how to use model-packages and algorithms from AWS Market
 	- [Using Amazon Demo product From AWS Marketplace](aws_marketplace/using_model_packages/amazon_demo_product) provides a detailed walkthrough on how to use Model Package entities with the enhanced SageMaker Transform/Hosting APIs by choosing a canonical product listed on AWS Marketplace.
 	- [Using models for extracting vehicle metadata](aws_marketplace/using_model_packages/auto_insurance) provides a detailed walkthrough on how to use pre-trained models from AWS Marketplace for extracting metadata for a sample use-case of auto-insurance claim processing.
 	- [Using models for identifying non-compliance at a workplace](aws_marketplace/using_model_packages/improving_industrial_workplace_safety) provides a detailed walkthrough on how to use pre-trained models from AWS Marketplace for extracting metadata for a sample use-case of generating summary reports for identifying non-compliance at a construction/industrial workplace.
+	- [Extracting insights from your credit card statements](aws_marketplace/using_model_packages/financial_transaction_processing) provides a detailed walkthrough on how to use pre-trained models from AWS Marketplace for efficiently processing financial transaction logs.
+
 
 
 ### Under Development
