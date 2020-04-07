@@ -436,8 +436,6 @@ Resources:
                 - lambda.amazonaws.com
         Version: '2012-10-17'
       Path: /
-      ManagedPolicyArns:
-        - 'arn:aws:iam::aws:policy/AmazonS3FullAccess'
       Policies:
         - PolicyDocument:
             Statement:
@@ -445,6 +443,19 @@ Resources:
                   - 'logs:*'
                 Effect: Allow
                 Resource: 'arn:aws:logs:*:*:*'
+            Version: '2012-10-17'
+            Statement:
+              - Action:
+                  - 's3:GetObject'
+                  - 's3:PutObject'
+                  - 's3:DeleteObject'
+                  - 's3:ListBucket'
+                Effect: Allow
+                Resource: [
+                   "arn:aws:s3:::*SageMaker*",
+                   "arn:aws:s3:::*Sagemaker*",
+                   "arn:aws:s3:::*sagemaker*"
+                ]
             Version: '2012-10-17'
           PolicyName: root
     Type: 'AWS::IAM::Role'
@@ -486,7 +497,6 @@ Resources:
         - 'arn:aws:iam::aws:policy/AmazonSageMakerFullAccess'
         - 'arn:aws:iam::aws:policy/AWSStepFunctionsFullAccess'
         - 'arn:aws:iam::aws:policy/CloudWatchEventsFullAccess'
-        - 'arn:aws:iam::aws:policy/AmazonS3FullAccess'
       Policies:
         - PolicyName: StatesExecutionPolicy
           PolicyDocument:
@@ -495,7 +505,8 @@ Resources:
               - Effect: Allow
                 Action:
                   - 'lambda:InvokeFunction'
-                Resource: '*'
+                Resource:
+                  'Fn::Sub': 'arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${AWS::StackName}*'
               - Action:
                   - 'logs:*'
                 Effect: Allow
