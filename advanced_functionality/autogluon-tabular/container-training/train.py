@@ -85,8 +85,7 @@ def train(args):
     )
     
     # Results summary
-    if args.verbosity >= 2:
-        predictor.fit_summary()
+    predictor.fit_summary(verbosity=1)
 
     # Leaderboard on optional test data
     if args.test:
