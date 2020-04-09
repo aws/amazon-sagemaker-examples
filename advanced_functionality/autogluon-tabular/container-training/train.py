@@ -85,9 +85,7 @@ def train(args):
     )
     
     # Results summary
-    #print()
-    #predictor.fit_summary()
-    #print()
+    predictor.fit_summary(verbosity=1)
 
     # Leaderboard on optional test data
     if args.test:
@@ -119,8 +117,7 @@ def parse_args():
              formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     def str2bool(v):
         return v.lower() in ('yes', 'true', 't', '1')
-    parser.register('type','bool',str2bool) # add type keyword to registries   
-    
+    parser.register('type','bool',str2bool) # add type keyword to registries
 
     parser.add_argument('--hosts', type=list, default=json.loads(os.environ['SM_HOSTS']))    
     parser.add_argument('--current-host', type=str, default=os.environ['SM_CURRENT_HOST'])
@@ -226,7 +223,6 @@ def parse_args():
                         help="How many GPUs to use in each trial (ie. single training run of a model). This is automatically determined by AutoGluon when left as None.")
     parser.add_argument('--dist_ip_addrs', type=list, default=None,
                         help="List of IP addresses corresponding to remote workers, in order to leverage distributed computation.") 
-
     parser.add_argument('--visualizer', type=str, default='none',
                         help=("How to visualize the neural network training progress during `fit()`. "
                               "Options: ['mxboard', 'tensorboard', 'none']."))          
@@ -235,10 +231,7 @@ def parse_args():
                               "Higher levels correspond to more detailed print statements (you can set verbosity = 0 to suppress warnings). "
                               "If using logging, you can alternatively control amount of information printed via `logger.setLevel(L)`, "
                               "where `L` ranges from 0 to 50 (Note: higher values of `L` correspond to fewer print statements, "
-                              "opposite of verbosity levels"))        
-          
-       
-    
+                              "opposite of verbosity levels"))
     parser.add_argument('--debug', type='bool', default=False,
                        help=("Whether to set logging level to DEBUG"))                         
 

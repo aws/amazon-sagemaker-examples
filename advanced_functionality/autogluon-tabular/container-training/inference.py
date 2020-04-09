@@ -79,8 +79,7 @@ def transform_fn(net, data, input_content_type, output_content_type):
 
             performance = net.evaluate_predictions(y_true=ds[target], y_pred=predictions.tolist(), 
                                                    auxiliary_metrics=True)
-            print(json.dumps(performance, indent=4))
-            
+            print(json.dumps(performance, indent=4))       
              
     else: raise NotImplementedError("content_type must be 'text/csv'")
 
@@ -88,5 +87,3 @@ def transform_fn(net, data, input_content_type, output_content_type):
     print(f'Elapsed time: {round(timer()-start,3)} seconds')           
     
     return response_body, output_content_type
-
-
