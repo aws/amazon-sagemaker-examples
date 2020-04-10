@@ -8,6 +8,7 @@ account=$(aws sts get-caller-identity --query Account --output text)
 
 # Get the region defined in the current configuration
 region=$(aws configure get region)
+region=${region:-us-east-1}
 
 fullname="${account}.dkr.ecr.${region}.amazonaws.com/${algorithm_name}:latest"
 
@@ -23,6 +24,6 @@ $(aws ecr get-login --region ${region} --no-include-email)
 $(aws ecr get-login --registry-ids 763104351884 --region ${region} --no-include-email)
 
 # Build the docker image, tag with full name and then push it to ECR
-docker build  -t ${algorithm_name} -f container-training/Dockerfile.training . --build-arg REGION=${region}
+docker build -t ${algorithm_name} -f container-training/Dockerfile.training . --build-arg REGION=${region}
 docker tag ${algorithm_name} ${fullname}
 docker push ${fullname}
