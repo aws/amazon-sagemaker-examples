@@ -1,12 +1,3 @@
-# Default max number of steps to allow per episode
-MAX_STEPS = 10000
-# Default enviroment
-ENV_ID = 'DeepRacerRacetrackCustomActionSpaceEnv-v0'
-# Entry point for default enviroment
-ENTRY_POINT = 'markov.environments.deepracer_racetrack_env:DeepRacerRacetrackCustomActionSpaceEnv'
-# Default reward threshold
-THRESHOLD = 200
-
 """
 Default action space from re:Invent (6 actions).
 """
@@ -62,3 +53,15 @@ def reward_function(params):
         reward = 1e-3  # likely crashed/ close to off track
 
     return float(reward)
+
+
+"""
+Default Main Camera
+"""
+DEFAULT_MAIN_CAMERA = "follow_car_camera"
+
+
+"""
+Default Sub Camera
+"""
+DEFAULT_SUB_CAMERA = "top_camera"

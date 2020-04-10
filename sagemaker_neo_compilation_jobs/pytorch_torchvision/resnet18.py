@@ -14,9 +14,18 @@ def neo_preprocess(payload, content_type):
     image = PIL.Image.open(f).convert('RGB')
     # Resize
     image = np.asarray(image.resize((224, 224)))
-    # Transpose
-    image = np.rollaxis(image, axis=2, start=0)[np.newaxis, :]
 
+    # Normalize
+    mean_vec = np.array([0.485, 0.456, 0.406])
+    stddev_vec = np.array([0.229, 0.224, 0.225])
+    image = (image/255- mean_vec)/stddev_vec
+
+    # Transpose
+    if len(image.shape) == 2:  # for greyscale image
+        image = np.expand_dims(image, axis=2)
+    
+    image = np.rollaxis(image, axis=2, start=0)[np.newaxis, :]
+    
     return image
 
 def neo_postprocess(result):

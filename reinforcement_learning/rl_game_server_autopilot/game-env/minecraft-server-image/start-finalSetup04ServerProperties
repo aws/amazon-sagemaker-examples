@@ -1,0 +1,134 @@
+#!/bin/bash
+
+# FUNCTIONS
+function setServerProp {
+  local prop=$1
+  local var=$2
+  if [ -n "$var" ]; then
+    # normalize booleans
+    case ${var^^} in
+      TRUE|FALSE)
+        var=${var,,} ;;
+    esac
+    echo "Setting ${prop} to '${var}' in ${SERVER_PROPERTIES}"
+    sed -i "/^${prop}\s*=/ c ${prop}=${var}" $SERVER_PROPERTIES
+  else
+    echo "Skip setting ${prop}"
+  fi
+}
+
+# Deploy server.properties file
+if [ ! -e $SERVER_PROPERTIES ]; then
+  echo "Creating server.properties in ${SERVER_PROPERTIES}"
+  cp /tmp/server.properties $SERVER_PROPERTIES
+
+  if [[ ${TYPE} == "FEED-THE-BEAST" ]]; then
+    export SERVER_PROPERTIES=${FTB_DIR}/server.properties
+    echo "detected FTB, changing properties path to ${SERVER_PROPERTIES}"
+    cp /tmp/server.properties $SERVER_PROPERTIES
+  fi
+
+  if [ -n "$WHITELIST" ]; then
+    echo "Creating whitelist"
+    setServerProp "whitelist" "true"
+    setServerProp "white-list" "true"
+  fi
+
+  # If not provided, generate a reasonable default message-of-the-day,
+  # which shows up in the server listing in the client
+  if [ -z "$MOTD" ]; then
+    # snapshot is the odd case where we have to look at version to identify that label
+    if [[ ${ORIGINAL_TYPE} == "VANILLA" && ${VERSION} == "SNAPSHOT" ]]; then
+      label=SNAPSHOT
+    else
+      label=${ORIGINAL_TYPE}
+    fi
+
+    # Convert label to title-case
+    label=${label,,}
+    label=${label^}
+    MOTD="A ${label} Minecraft Server powered by Docker"
+  fi
+
+  setServerProp "server-port" "$SERVER_PORT"
+  setServerProp "motd" "$MOTD"
+  setServerProp "allow-nether" "$ALLOW_NETHER"
+  setServerProp "announce-player-achievements" "$ANNOUNCE_PLAYER_ACHIEVEMENTS"
+  setServerProp "enable-command-block" "$ENABLE_COMMAND_BLOCK"
+  setServerProp "spawn-animals" "$SPAWN_ANIMALS"
+  setServerProp "spawn-monsters" "$SPAWN_MONSTERS"
+  setServerProp "spawn-npcs" "$SPAWN_NPCS"
+  setServerProp "generate-structures" "$GENERATE_STRUCTURES"
+  setServerProp "view-distance" "$VIEW_DISTANCE"
+  setServerProp "hardcore" "$HARDCORE"
+  setServerProp "snooper-enabled" "$SNOOPER_ENABLED"
+  setServerProp "max-build-height" "$MAX_BUILD_HEIGHT"
+  setServerProp "force-gamemode" "$FORCE_GAMEMODE"
+  setServerProp "max-tick-time" "$MAX_TICK_TIME"
+  setServerProp "enable-query" "$ENABLE_QUERY"
+  setServerProp "query.port" "$QUERY_PORT"
+  setServerProp "enable-rcon" "$ENABLE_RCON"
+  setServerProp "rcon.password" "$RCON_PASSWORD"
+  setServerProp "rcon.port" "$RCON_PORT"
+  setServerProp "max-players" "$MAX_PLAYERS"
+  setServerProp "max-world-size" "$MAX_WORLD_SIZE"
+  setServerProp "level-name" "$LEVEL"
+  setServerProp "level-seed" "$SEED"
+  setServerProp "pvp" "$PVP"
+  setServerProp "generator-settings" "$GENERATOR_SETTINGS"
+  setServerProp "online-mode" "$ONLINE_MODE"
+  setServerProp "allow-flight" "$ALLOW_FLIGHT"
+  setServerProp "level-type" "${LEVEL_TYPE^^}"
+
+  if [ -n "$DIFFICULTY" ]; then
+    case $DIFFICULTY in
+      peaceful|0)
+        DIFFICULTY=0
+        ;;
+      easy|1)
+        DIFFICULTY=1
+        ;;
+      normal|2)
+        DIFFICULTY=2
+        ;;
+      hard|3)
+        DIFFICULTY=3
+        ;;
+      *)
+        echo "DIFFICULTY must be peaceful, easy, normal, or hard."
+        exit 1
+        ;;
+    esac
+    setServerProp "difficulty" "$DIFFICULTY"
+  fi
+
+  if [ -n "$MODE" ]; then
+    echo "Setting mode"
+    MODE_LC=$( echo $MODE | tr '[:upper:]' '[:lower:]' )
+    case $MODE_LC in
+      0|1|2|3)
+        ;;
+      su*)
+        MODE=0
+        ;;
+      c*)
+        MODE=1
+        ;;
+      a*)
+        MODE=2
+        ;;
+      sp*)
+        MODE=3
+        ;;
+      *)
+        echo "ERROR: Invalid game mode: $MODE"
+        exit 1
+        ;;
+    esac
+    setServerProp "gamemode" "$MODE"
+  fi
+else
+  echo "server.properties already created, skipping"
+fi
+
+exec /start-minecraftFinalSetup $@

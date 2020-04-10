@@ -1,0 +1,579 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+Description: An AWS Serverless Specification template describing your function.
+Globals:
+  Function:
+    MemorySize: 3008
+    Timeout: 900
+    Layers:
+      - 'Fn::GetAtt':
+          - LambdaLayerApp
+          - Outputs.ByoalUtil
+Resources:
+  LambdaLayerApp:
+    Type: 'AWS::Serverless::Application'
+    Properties:
+      Location: ./lambda_layer_template.yaml
+  AddRecordId:
+    Properties:
+      Description: 'This function adds a sequential id to each record in the input manifest.'
+      Handler: Bootstrap/add_record_id.lambda_handler
+      Runtime: python3.7
+      CodeUri: ./
+      Role:
+        'Fn::GetAtt':
+          - LambdaExecutionRole
+          - Arn
+    Type: 'AWS::Serverless::Function'
+  ActiveLearning:
+    Type: 'AWS::StepFunctions::StateMachine'
+    Properties:
+      RoleArn:
+        'Fn::GetAtt':
+          - StatesExecutionRole
+          - Arn
+      StateMachineName: !Sub "ActiveLearning-${AWS::StackName}"
+      DefinitionString:
+        'Fn::Sub': |
+          {
+            "Comment": "Active Learning logic with training, inference and predictions",
+            "StartAt": "ShouldCreateValidationSet",
+            "States": {
+              "ShouldCreateValidationSet": {
+                "Type": "Choice",
+                "Choices": [
+                  {
+                   "Variable": "$.meta_data.counts.validation",
+                   "NumericGreaterThan": 0,
+                   "Next": "PrepareForTraining"
+                  }
+                  ],
+                "Default": "CreateValidationSet"
+              },
+              "CreateValidationSet": {
+                "Type": "Task",
+                "Resource": "${CreateValidationSet.Arn}",
+                "Parameters": {
+                   "LabelAttributeName.$": "$.LabelAttributeName",
+                   "meta_data.$": "$.meta_data"
+                },
+                "ResultPath": "$.meta_data",
+                "Next": "PrepareForTraining"
+              },
+              "PrepareForTraining": {
+                "Type": "Task",
+                "Resource": "${PrepareForTraining.Arn}",
+                "Parameters": {
+                  "LabelingJobNamePrefix.$": "$.LabelingJobNamePrefix",
+                  "LabelAttributeName.$": "$.LabelAttributeName",
+                  "ManifestS3Uri.$": "$.meta_data.IntermediateManifestS3Uri",
+                  "meta_data.$": "$.meta_data"
+                },
+                "ResultPath":"$.meta_data.training_config",
+                "Next": "CreateTrainingJob"
+              },
+              "CreateTrainingJob": {
+                "Type": "Task",
+                "Resource": "arn:aws:states:::sagemaker:createTrainingJob.sync",
+                "Parameters": {
+                  "TrainingJobName.$": "$.meta_data.training_config.TrainingJobName",
+                  "ResourceConfig.$": "$.meta_data.training_config.ResourceConfig",
+                  "AlgorithmSpecification.$": "$.meta_data.training_config.AlgorithmSpecification",
+                  "HyperParameters.$": "$.meta_data.training_config.HyperParameters",
+                  "OutputDataConfig": {
+                      "S3OutputPath.$": "$.meta_data.training_config.S3OutputPath"
+                  },
+                  "StoppingCondition": {
+                      "MaxRuntimeInSeconds": 432000
+                  },
+                  "RoleArn.$": "$.RoleArn",
+                  "InputDataConfig": [
+                    {
+                      "ChannelName":"train",
+                      "ContentType": "application/x-recordio",
+                      "InputMode": "Pipe",
+                      "RecordWrapperType": "RecordIO",
+                      "DataSource": {
+                        "S3DataSource": {
+                          "S3DataType":"AugmentedManifestFile",
+                          "AttributeNames.$": "$.meta_data.training_config.AttributeNames",
+                          "S3Uri.$": "$.meta_data.training_config.trainS3Uri",
+                          "S3DataDistributionType":"FullyReplicated"
+                        }
+                      }
+                    },
+                    {
+                      "ChannelName":"validation",
+                      "ContentType": "application/x-recordio",
+                      "InputMode": "Pipe",
+                      "RecordWrapperType": "RecordIO",
+                      "DataSource": {
+                        "S3DataSource": {
+                          "S3DataType":"AugmentedManifestFile",
+                          "AttributeNames.$": "$.meta_data.training_config.AttributeNames",
+                          "S3Uri.$": "$.meta_data.ValidationS3Uri",
+                          "S3DataDistributionType":"FullyReplicated"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "ResultPath":"$.training_job_result",
+                "Next": "SaveModel"
+              },
+              "SaveModel" : {
+                "Type": "Task",
+                "Resource": "arn:aws:states:::sagemaker:createModel",
+                "Parameters": {
+                   "PrimaryContainer": {
+                      "Image.$": "$.meta_data.training_config.AlgorithmSpecification.TrainingImage",
+                      "Environment": {},
+                      "ModelDataUrl.$": "$.training_job_result.ModelArtifacts.S3ModelArtifacts"
+                   },
+                   "ExecutionRoleArn.$": "$.RoleArn",
+                   "ModelName.$": "$.meta_data.training_config.TrainingJobName"
+                },
+                "ResultPath": "$.save_model_result",
+                "Next": "PrepareForInference"
+              },
+              "PrepareForInference": {
+                "Type": "Task",
+                "Resource": "${PrepareForInference.Arn}",
+                "Parameters": {
+                  "LabelAttributeName.$": "$.LabelAttributeName",
+                  "meta_data.$": "$.meta_data"
+                },
+                "ResultPath": "$.meta_data",
+                "Next": "CreateTransformJob"
+              },
+              "CreateTransformJob": {
+                "Type": "Task",
+                "Resource": "arn:aws:states:::sagemaker:createTransformJob.sync",
+                "Parameters": {
+                  "BatchStrategy": "MultiRecord",
+                  "ModelName.$": "$.meta_data.transform_config.ModelName",
+                  "TransformJobName.$": "$.meta_data.transform_config.TransformJobName",
+                  "TransformInput": {
+                    "CompressionType": "None",
+                    "ContentType": "application/jsonlines",
+                    "SplitType": "Line",
+                    "DataSource": {
+                      "S3DataSource": {
+                         "S3DataType": "S3Prefix",
+                         "S3Uri.$": "$.meta_data.UnlabeledS3Uri"
+                       }
+                    }
+                  },
+                  "TransformOutput": {
+                     "Accept": "application/jsonlines",
+                     "AssembleWith": "Line",
+                     "S3OutputPath.$": "$.meta_data.transform_config.S3OutputPath"
+                  },
+                  "TransformResources": {
+                     "InstanceCount": 1,
+                     "InstanceType": "ml.c5.xlarge"
+                  },
+                  "DataProcessing": { 
+                     "InputFilter": "$",
+                     "JoinSource": "Input",
+                     "OutputFilter": "$['id','SageMakerOutput']"
+                  }
+                },
+               "ResultPath":"$.transform_job_result",
+               "Next": "PerformActiveLearning"
+              },
+              "PerformActiveLearning": {
+                "Type": "Task",
+                "Resource": "${PerformActiveLearning.Arn}",
+                "Parameters": {
+                  "LabelingJobNamePrefix.$": "$.LabelingJobNamePrefix",
+                  "LabelAttributeName.$": "$.LabelAttributeName",
+                  "LabelCategoryConfigS3Uri.$": "$.LabelCategoryConfigS3Uri",
+                  "meta_data.$": "$.meta_data"
+                },
+                "ResultPath": "$.meta_data",
+                "Next": "ExportPartialOutput"
+              },
+              "ExportPartialOutput": {
+                "Type": "Task",
+                "Resource": "${ExportPartialOutput.Arn}",
+                "Parameters": {
+                  "ManifestS3Uri.$":"$.meta_data.IntermediateManifestS3Uri",
+                  "OutputS3Uri.$": "$.meta_data.autoannotations"
+                 },
+                 "ResultPath": null,
+                 "Next": "SaveModelArnToMetaData"
+              },
+              "SaveModelArnToMetaData" : {
+                "Type": "Pass",
+                "Parameters": {
+                   "TrainedModelArn.$": "$.save_model_result.ModelArn"
+                },
+                "ResultPath": "$.meta_data.model_output",
+                "Next": "FilterOutput"
+              },
+              "FilterOutput" : {
+                "Type": "Pass",
+                "Parameters": {
+                   "meta_data.$": "$.meta_data"
+                },
+                "ResultPath": "$",
+                "End": true
+              }
+            }
+          }
+  ActiveLearningLoop:
+    Type: 'AWS::StepFunctions::StateMachine'
+    Properties:
+      RoleArn:
+        'Fn::GetAtt':
+          - StatesExecutionRole
+          - Arn
+      StateMachineName: !Sub "ActiveLearningLoop-${AWS::StackName}"
+      DefinitionString:
+        'Fn::Sub': |
+          {  
+            "Comment": "Active learning loop state machine. This state machine contains the Active Learning statemachine and other lambdas to orchestrate the process.",
+            "StartAt": "CopyInputManifest",
+            "States": {
+              "CopyInputManifest": {
+                "Type": "Task",
+                "Parameters": {
+                  "ManifestS3Uri.$": "$.InputConfig.DataSource.S3DataSource.ManifestS3Uri",
+                  "S3OutputPath.$": "$.OutputConfig.S3OutputPath"
+                },
+                "Resource": "${CopyInputManfiest.Arn}",
+                "ResultPath": "$.meta_data",
+                "Next": "AddRecordId"
+              },
+              "AddRecordId": {
+                "Type": "Task",
+                "Parameters": {
+                  "ManifestS3Uri.$": "$.meta_data.IntermediateManifestS3Uri"
+                },
+                "Resource": "${AddRecordId.Arn}",
+                "ResultPath": null,
+                "Next": "GetCounts"
+              },
+              "GetCounts": {
+                "Type": "Task",
+                "Parameters": {
+                  "LabelAttributeName.$": "$.LabelAttributeName",
+                  "meta_data.$": "$.meta_data"
+                },
+                "Resource": "${GetCounts.Arn}",
+                "ResultPath": "$.meta_data.counts",
+                "Next": "CheckForCompletion1"
+              },
+              "CheckForCompletion1": {
+                "Type": "Choice",
+                "Choices": [
+                  {
+                   "Variable": "$.meta_data.counts.unlabeled",
+                   "NumericGreaterThan": 0,
+                   "Next": "ShouldStartActiveLearning"
+                  }
+                  ],
+                "Default": "PerformFinalExport"
+              },
+              "ShouldStartActiveLearning": {
+                "Type": "Choice",
+                "Choices": [
+                 {
+                   "Variable": "$.meta_data.counts.human_label_percentage",
+                   "NumericGreaterThanEquals": 20,
+                   "Next": "StartActiveLearningExecution"
+                 }
+                 ],
+                 "Default": "PrepareForHumanLabeling"
+              },
+              "StartActiveLearningExecution": {
+                "Type": "Task",
+                "Resource": "arn:aws:states:::states:startExecution.sync",
+                "Parameters": {
+                   "StateMachineArn": "arn:aws:states:${AWS::Region}:${AWS::AccountId}:stateMachine:ActiveLearning-${AWS::StackName}",
+                   "Input": {
+                      "meta_data.$": "$.meta_data",
+                      "LabelAttributeName.$": "$.LabelAttributeName",
+                      "LabelingJobNamePrefix.$": "$.LabelingJobNamePrefix",
+                      "LabelCategoryConfigS3Uri.$": "$.LabelCategoryConfigS3Uri",
+                      "RoleArn.$": "$.RoleArn"
+                   }
+                },
+                "ResultPath": "$.active_learning_result",
+                "Next": "UpdateMetaData"
+              },
+              "UpdateMetaData": {
+                "Type": "Task",
+                "Resource": "${UpdateMetaData.Arn}",
+                "Parameters": {
+                   "active_learning_output.$":"$.active_learning_result.Output"
+                },
+                "ResultPath": "$.meta_data",
+                "Next": "CheckForCompletion2"
+              },
+              "PrepareForHumanLabeling": {
+                "Type": "Task",
+                "Parameters": {
+                   "LabelingJobNamePrefix.$":"$.LabelingJobNamePrefix",
+                   "LabelAttributeName.$":"$.LabelAttributeName",
+                   "ManifestS3Uri.$":"$.meta_data.IntermediateManifestS3Uri",
+                   "human_label_done_count.$":"$.meta_data.counts.human_label",
+                   "input_total.$":"$.meta_data.counts.input_total",
+                   "IntermediateFolderUri.$":"$.meta_data.IntermediateFolderUri"
+                },
+                "Resource": "${PrepareForHumanLabeling.Arn}",
+                "ResultPath": "$.meta_data.human_label_config",
+                "Next": "CreateLabelingJob"
+              },
+              "CreateLabelingJob": {
+                "Type": "Task",
+                "Resource": "arn:aws:states:::sagemaker:createLabelingJob.sync",
+                "Parameters": {
+                  "LabelingJobName.$": "$.meta_data.human_label_config.labeling_job_name",
+                  "LabelAttributeName.$": "$.LabelAttributeName",
+                  "HumanTaskConfig.$": "$.HumanTaskConfig",
+                  "RoleArn.$": "$.RoleArn",
+                  "LabelCategoryConfigS3Uri.$": "$.LabelCategoryConfigS3Uri",
+                  "InputConfig": {
+                    "DataAttributes.$": "$.InputConfig.DataAttributes",
+                    "DataSource": {
+                      "S3DataSource": {
+                        "ManifestS3Uri.$": "$.meta_data.human_label_config.human_input_s3_uri"
+                       }
+                    }
+                   },
+                   "OutputConfig": {
+                     "S3OutputPath.$": "$.meta_data.human_label_config.labeling_job_output_uri"
+                   }
+                 },
+                 "ResultPath":"$.labeling_job_result",
+                 "Next": "ExportPartialOutput"
+              },
+              "ExportPartialOutput": {
+                "Type": "Task",
+                "Resource": "${ExportPartialOutput.Arn}",
+                "Parameters": {
+                  "ManifestS3Uri.$":"$.meta_data.IntermediateManifestS3Uri",
+                  "OutputS3Uri.$": "$.labeling_job_result.LabelingJobOutput.OutputDatasetS3Uri"
+                 },
+                 "ResultPath": null,
+                 "Next": "GetCounts"
+              },
+              "CheckForCompletion2": {
+                "Type": "Choice",
+                "Choices": [
+                  {
+                   "Variable": "$.meta_data.counts.selected",
+                   "NumericGreaterThan": 0,
+                   "Next": "PrepareForSelectedHumanLabeling"
+                  }
+                  ],
+                "Default": "PerformFinalExport"
+              },
+              "PrepareForSelectedHumanLabeling": {
+                "Type": "Pass",
+                "Parameters": {
+                   "human_input_s3_uri.$":"$.meta_data.selections_s3_uri",
+                   "labeling_job_name.$":"$.meta_data.selected_job_name",
+                   "labeling_job_output_uri.$":"$.meta_data.selected_job_output_uri"
+                },
+                "ResultPath": "$.meta_data.human_label_config",
+                "Next": "CreateLabelingJob"
+              },
+              "PerformFinalExport": {
+                "Type": "Task",
+                "Resource": "${PerformFinalExport.Arn}",
+                "Parameters": {
+                  "ManifestS3Uri.$":"$.meta_data.IntermediateManifestS3Uri",
+                  "FinalOutputS3Uri.$": "$.OutputConfig.S3OutputPath"
+                 },
+                 "ResultPath": "$.FinalManifestS3Uri",
+                 "Next": "ConstructFinalResponse"
+              },
+              "ConstructFinalResponse": {
+                "Type": "Pass",
+                "Parameters": {
+                    "FinalManifestS3Uri.$": "$.FinalManifestS3Uri",
+                    "TrainedModelArn.$": "$.meta_data.model_output.TrainedModelArn"
+                },
+                "ResultPath": "$",
+                "End": true
+              }
+             }
+           }
+  CopyInputManfiest:
+    Properties:
+      Description: 'This function does a copy of the input manifest to the a location within the specified output path.'
+      CodeUri: ./
+      Handler: Bootstrap/copy_input_manifest.lambda_handler
+      Role:
+        'Fn::GetAtt':
+          - LambdaExecutionRole
+          - Arn
+      Runtime: python3.7
+    Type: 'AWS::Serverless::Function'
+  GetCounts:
+    Properties:
+      Description: 'This function returns the counts of the labeling job records.'
+      CodeUri: ./
+      Handler: MetaData/get_counts.lambda_handler
+      Role:
+        'Fn::GetAtt':
+          - LambdaExecutionRole
+          - Arn
+      Runtime: python3.7
+    Type: 'AWS::Serverless::Function'
+  LambdaExecutionRole:
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action:
+              - 'sts:AssumeRole'
+            Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+        Version: '2012-10-17'
+      Path: /
+      Policies:
+        - PolicyDocument:
+            Statement:
+              - Action:
+                  - 'logs:*'
+                Effect: Allow
+                Resource: 'arn:aws:logs:*:*:*'
+            Version: '2012-10-17'
+            Statement:
+              - Action:
+                  - 's3:GetObject'
+                  - 's3:PutObject'
+                  - 's3:DeleteObject'
+                  - 's3:ListBucket'
+                Effect: Allow
+                Resource: [
+                   "arn:aws:s3:::*SageMaker*",
+                   "arn:aws:s3:::*Sagemaker*",
+                   "arn:aws:s3:::*sagemaker*"
+                ]
+            Version: '2012-10-17'
+          PolicyName: root
+    Type: 'AWS::IAM::Role'
+  PrepareForHumanLabeling:
+    Properties:
+      Description: 'Creates input parameters required for the first human labeling job.'
+      CodeUri: ./
+      Handler: Labeling/prepare_for_labeling.lambda_handler
+      Role:
+        'Fn::GetAtt':
+          - LambdaExecutionRole
+          - Arn
+      Runtime: python3.7
+    Type: 'AWS::Serverless::Function'
+  ExportPartialOutput:
+    Properties:
+      Description: 'This function is used to merge partial outputs to the manifest. The result is uploaded to s3.'
+      CodeUri: ./
+      Handler: Output/export_partial.lambda_handler
+      Role:
+        'Fn::GetAtt':
+          - LambdaExecutionRole
+          - Arn
+      Runtime: python3.7
+    Type: 'AWS::Serverless::Function'
+  StatesExecutionRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                'Fn::Sub': 'states.${AWS::Region}.amazonaws.com'
+            Action: 'sts:AssumeRole'
+      Path: /
+      ManagedPolicyArns:
+        - 'arn:aws:iam::aws:policy/AmazonSageMakerFullAccess'
+        - 'arn:aws:iam::aws:policy/AWSStepFunctionsFullAccess'
+        - 'arn:aws:iam::aws:policy/CloudWatchEventsFullAccess'
+      Policies:
+        - PolicyName: StatesExecutionPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'lambda:InvokeFunction'
+                Resource:
+                  'Fn::Sub': 'arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${AWS::StackName}*'
+              - Action:
+                  - 'logs:*'
+                Effect: Allow
+                Resource: 'arn:aws:logs:*:*:*'
+  CreateValidationSet:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Handler: ActiveLearning/create_validation_set.lambda_handler
+      Description: 'This method selects 10% of the input manifest as validation and creates an s3 file containing the validation objects.'
+      Runtime: python3.7
+      Role:
+        'Fn::GetAtt':
+          - LambdaExecutionRole
+          - Arn
+      CodeUri: ./
+  PrepareForTraining:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Handler: ActiveLearning/prepare_for_training.lambda_handler
+      Description: 'This function sets up all the input parameters required for the training job.'
+      Runtime: python3.7
+      Role:
+        'Fn::GetAtt':
+          - LambdaExecutionRole
+          - Arn
+      CodeUri: ./
+  PrepareForInference:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Handler: ActiveLearning/prepare_for_inference.lambda_handler
+      Description: 'This function sets up all the input parameters required for the transform job.'
+      Runtime: python3.7
+      Role:
+        'Fn::GetAtt':
+          - LambdaExecutionRole
+          - Arn
+      CodeUri: ./
+  PerformActiveLearning:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Handler: ActiveLearning/perform_active_learning.lambda_handler
+      Description: 'This function generates auto annotatations and performs active learning.'
+      Runtime: python3.7
+      Role:
+        'Fn::GetAtt':
+          - LambdaExecutionRole
+          - Arn
+      CodeUri: ./
+  PerformFinalExport:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Handler: Output/export_final.lambda_handler
+      Description: 'This function is used to copy the final completed manifest to the output location.'
+      Runtime: python3.7
+      Role:
+        'Fn::GetAtt':
+          - LambdaExecutionRole
+          - Arn
+      CodeUri: ./
+  UpdateMetaData:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Handler: MetaData/update.lambda_handler
+      Description: 'This function is used to update the meta_data values based on active learning ouput.'
+      Runtime: python3.7
+      Role:
+        'Fn::GetAtt':
+          - LambdaExecutionRole
+          - Arn
+      CodeUri: ./
