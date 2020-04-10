@@ -1,6 +1,7 @@
 # 1.6.0 or 1.4.1
 ARG REGION=us-east-1
-FROM 763104351884.dkr.ecr.${REGION}.amazonaws.com/mxnet-training:1.6.0-cpu-py3
+ARG REGISTRY_ID=763104351884
+FROM ${REGISTRY_ID}.dkr.ecr.${REGION}.amazonaws.com/mxnet-training:1.6.0-cpu-py3
 
 RUN pip install --upgrade pip
 ENV PATH="/opt/ml/code:${PATH}"
