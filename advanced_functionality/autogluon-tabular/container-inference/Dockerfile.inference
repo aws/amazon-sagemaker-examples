@@ -1,8 +1,5 @@
-# 1.6.0 or 1.4.1
-ARG REGION=us-east-1
-ARG REGISTRY_ID=763104351884
-
-FROM ${REGISTRY_ID}.dkr.ecr.${REGION}.amazonaws.com/mxnet-inference:1.6.0-cpu-py3
+ARG REGISTRY_URI
+FROM ${REGISTRY_URI}/mxnet-inference:1.6.0-cpu-py3
 
 RUN pip install --upgrade pip
 

@@ -77,9 +77,6 @@ def train(args):
         num_trials=args.num_trials, # default: None
         search_strategy=args.search_strategy, # default: 'random'
         search_options=args.search_options,
-        #nthreads_per_trial=args.nthreads_per_trial,
-        #ngpus_per_trial=ngpus_per_trial,
-        #dist_ip_addrs=dist_ip_addrs,
         visualizer=args.visualizer,
         verbosity=args.verbosity
     )

@@ -73,7 +73,6 @@ def transform_fn(net, data, input_content_type, output_content_type):
         # If target column passed, evaluate predictions performance
         target = net.label_column
         if target in ds:
-            #print('Top 3 rows of input csv:\n', make_str_table(ds.head(3)))
             print(f'Label column ({target}) found in input data. '
                   'Therefore, evaluating prediction performance...')
 
@@ -81,7 +80,8 @@ def transform_fn(net, data, input_content_type, output_content_type):
                                                    auxiliary_metrics=True)
             print(json.dumps(performance, indent=4))       
              
-    else: raise NotImplementedError("content_type must be 'text/csv'")
+    else: 
+        raise NotImplementedError("content_type must be 'text/csv'")
 
     elapsed_time = round(timer()-start,3)
     print(f'Elapsed time: {round(timer()-start,3)} seconds')           
