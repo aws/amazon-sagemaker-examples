@@ -52,7 +52,7 @@ class SimpleActiveLearning:
       return {
         'source': source['source'],
         'id': prediction['id'],
-        f'{self.label_category_name}': best_label,
+        f'{self.label_category_name}': self.get_label_index(best_label),
         f'{self.label_category_name}-metadata': self.make_metadata(margin,
                       best_label)
       }

@@ -30,6 +30,7 @@ def test_autoannotate():
     autoannotations = al.autoannotate(predictions, sources)
     assert len(autoannotations) == 1
     assert autoannotations[0]['id'] == 0
+    assert autoannotations[0]['animal'] == 0
     assert autoannotations[0]['animal-metadata']['class-name'] == 'dog'
     assert autoannotations[0]['animal-metadata']['human-annotated'] == 'no'
 
