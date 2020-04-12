@@ -113,7 +113,7 @@ def train():
 
          tf.keras.layers.GlobalMaxPool1D(), #Max pooling operation for temporal data
 
-         tf.keras.layers.Dropout(0.1), # Drop out to avoid overfitting
+         tf.keras.layers.Dropout(0.3), # Drop out to avoid overfitting
 
          tf.keras.layers.Dense(4, activation=tf.nn.softmax) #ouput layer a Dense layer with 4 probabilities
          #we also define our final activation function which is the softmax function typical for multiclass
@@ -121,14 +121,14 @@ def train():
        ])
        
        model.compile(optimizer=tf.keras.optimizers.Nadam(learning_rate=1e-3), \
-                      loss=CategoricalCrossentropy(label_smoothing=0.001), \
+                      loss=CategoricalCrossentropy(label_smoothing=0.1), \
                       metrics=['accuracy'])
                       
        # training loss is used instead of validation loss for stopping condition to increase
        # confidence in the predicted labels.
-       early_stopping_cb = tf.keras.callbacks.EarlyStopping(monitor='loss',patience=5,restore_best_weights=True)
+       early_stopping_cb = tf.keras.callbacks.EarlyStopping(monitor='loss',patience=2,restore_best_weights=True)
        checkpoint_cb = tf.keras.callbacks.ModelCheckpoint("keras_model.h5",save_best_only=True)
-       history = model.fit(X_train, y_train, epochs=250, validation_data=get_validation_data(),
+       history = model.fit(X_train, y_train, epochs=10, validation_data=get_validation_data(),
                         callbacks=[checkpoint_cb, early_stopping_cb])
 
        model_file_name = os.path.join(model_path,"keras_news_classifier_model.h5")
