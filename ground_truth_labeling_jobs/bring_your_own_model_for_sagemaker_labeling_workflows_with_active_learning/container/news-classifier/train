@@ -37,6 +37,7 @@ from tensorflow.python.estimator.export.export import build_raw_serving_input_re
 from tensorflow.python.estimator.export.export_output import PredictOutput
 from tensorflow.python.keras.preprocessing.text import Tokenizer
 from tensorflow.python.keras.preprocessing.sequence import pad_sequences
+from tensorflow.keras.losses import CategoricalCrossentropy
 
 # These are the paths to where SageMaker mounts interesting things in your container.
 
@@ -62,57 +63,72 @@ def get_training_file():
      if os.path.isfile(file):
        return file
    raise Exception("train-manifest not found in expected locations {}".format(",".join(train_file_paths)))
-       
+
+def get_keras_input(inp_file):
+   tf_train=pd.DataFrame(columns=['TITLE','CATEGORY'])
+   for line in inp_file:
+        train_data=json.loads(line)
+        single_train_input = {'CATEGORY': train_data['category'], 'TITLE':train_data['source']}
+        tf_train=tf_train.append(single_train_input, ignore_index=True)
+   tf_train["TITLE"]=tf_train["TITLE"].str.lower().replace('[^\w\s]','')
+   tf_train["TITLE"]= tf_train["TITLE"].apply(lambda x: ' '.join([word for word in x.split() if word not in (stop_words)]))
+   tf_train.dropna(inplace=True)
+
+   cat=tf_train['CATEGORY'].astype("category").cat.categories
+   tf_train['CATEGORY']=tf_train['CATEGORY'].astype("category").cat.codes
+   y_train_int=tf_train['CATEGORY'].values
+   # Convert labels to categorical one-hot encoding
+   y_train = tf.keras.utils.to_categorical(y_train_int, num_classes=4)
+
+   pickle_file_name = tokenizer_key.split('/')[-1]
+   boto3.resource('s3').Bucket(tokenizer_bucket).download_file(tokenizer_key, pickle_file_name)
+   with open(pickle_file_name, 'rb') as handle:
+     tok= pickle.load(handle)
+
+   tf_train=tok.texts_to_sequences(list(tf_train['TITLE'])) #this is how we create sequences
+   X_train=tf.keras.preprocessing.sequence.pad_sequences(tf_train, maxlen=maxlen) #let's execute pad step
+   vocab_size = len(tok.word_index) + 1
+
+   return X_train, y_train, vocab_size
+
+def get_validation_data():
+   validation_files = [ '/opt/ml/input/data/validation-manifest', '/opt/ml/input/data/validation/validation-manifest']
+   for val_file in validation_files:
+     if os.path.isfile(val_file):
+       return get_keras_input(open(val_file, 'r'))[:2]
+   raise Exception("validation-manifest not found in expected locations {}".format(",".join(validation_files)))
 
 # The function to execute the training.
 def train():
     print('Starting the training with input_path {}'.format(input_path))
     try:
 
-       tf_train=pd.DataFrame(columns=['TITLE','CATEGORY'])
-       file=open(get_training_file(), 'r')
-       for line in file:
-            train_data=json.loads(line)
-            single_train_input = {'CATEGORY': train_data['category'], 'TITLE':train_data['source']}
-            #print("single train input {}".format(json.dumps(single_train_input)))
-            tf_train=tf_train.append(single_train_input, ignore_index=True)
-    
-       tf_train["TITLE"]=tf_train["TITLE"].str.lower().replace('[^\w\s]','')
-       tf_train["TITLE"]= tf_train["TITLE"].apply(lambda x: ' '.join([word for word in x.split() if word not in (stop_words)]))
-       tf_train.dropna(inplace=True)
-
-       cat=tf_train['CATEGORY'].astype("category").cat.categories
-       tf_train['CATEGORY']=tf_train['CATEGORY'].astype("category").cat.codes
-       y_train=tf_train['CATEGORY'].values
-
-       pickle_file_name = tokenizer_key.split('/')[-1]
-       boto3.resource('s3').Bucket(tokenizer_bucket).download_file(tokenizer_key, pickle_file_name)
-       with open(pickle_file_name, 'rb') as handle:
-         tok= pickle.load(handle)
-
-       tf_train=tok.texts_to_sequences(list(tf_train['TITLE'])) #this is how we create sequences
-       X_train=tf.keras.preprocessing.sequence.pad_sequences(tf_train, maxlen=maxlen) #let's execute pad step 
-       vocab_size = len(tok.word_index) + 1 
+       train_file=open(get_training_file(), 'r')
+       X_train, y_train, vocab_size = get_keras_input(train_file)
 
        model = tf.keras.models.Sequential([
          tf.keras.layers.Embedding(input_dim=vocab_size, #embedding input
                                output_dim=embedding_dim,#embedding output
                                input_length=maxlen), #maximum length of an input sequence
 
-         tf.keras.layers.Flatten(), #flatten layer
+         tf.keras.layers.GlobalMaxPool1D(), #Max pooling operation for temporal data
+
+         tf.keras.layers.Dropout(0.1), # Drop out to avoid overfitting
 
          tf.keras.layers.Dense(4, activation=tf.nn.softmax) #ouput layer a Dense layer with 4 probabilities
          #we also define our final activation function which is the softmax function typical for multiclass
-         #classifiction problems
+         #classification problems
        ])
        
        model.compile(optimizer=tf.keras.optimizers.Nadam(learning_rate=1e-3), \
-                      loss='sparse_categorical_crossentropy', \
+                      loss=CategoricalCrossentropy(label_smoothing=0.001), \
                       metrics=['accuracy'])
                       
-       early_stopping_cb = tf.keras.callbacks.EarlyStopping(patience=5,restore_best_weights=True)
+       # training loss is used instead of validation loss for stopping condition to increase
+       # confidence in the predicted labels.
+       early_stopping_cb = tf.keras.callbacks.EarlyStopping(monitor='loss',patience=5,restore_best_weights=True)
        checkpoint_cb = tf.keras.callbacks.ModelCheckpoint("keras_model.h5",save_best_only=True)
-       history = model.fit(X_train, y_train, epochs=3, validation_split=0.25,
+       history = model.fit(X_train, y_train, epochs=250, validation_data=get_validation_data(),
                         callbacks=[checkpoint_cb, early_stopping_cb])
 
        model_file_name = os.path.join(model_path,"keras_news_classifier_model.h5")
@@ -134,3 +150,4 @@ if __name__ == '__main__':
 
     # A zero exit code causes the job to be marked a Succeeded.
     sys.exit(0)
+
