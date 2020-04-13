@@ -128,7 +128,7 @@ def train():
        # confidence in the predicted labels.
        early_stopping_cb = tf.keras.callbacks.EarlyStopping(monitor='loss',patience=2,restore_best_weights=True)
        checkpoint_cb = tf.keras.callbacks.ModelCheckpoint("keras_model.h5",save_best_only=True)
-       history = model.fit(X_train, y_train, epochs=10, validation_data=get_validation_data(),
+       history = model.fit(X_train, y_train, epochs=100, validation_data=get_validation_data(),
                         callbacks=[checkpoint_cb, early_stopping_cb])
 
        model_file_name = os.path.join(model_path,"keras_news_classifier_model.h5")
