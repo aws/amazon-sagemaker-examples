@@ -8,11 +8,11 @@ from smdebug import modes
 
 #list of ordered tensor names 
 activation_outputs = [
-  'features.1_ReLU_output_0',
-  'features.4_ReLU_output_0',
-  'features.7_ReLU_output_0',
-  'features.9_ReLU_output_0',
-  'features.11_ReLU_output_0']
+  'features.1_0_output_0',
+  'features.4_0_output_0',
+  'features.7_0_output_0',
+  'features.9_0_output_0',
+  'features.11_0_output_0']
 
 weights =  [
   'AlexNet_features.0.weight',          
@@ -73,7 +73,7 @@ def prune(model, activation_outputs, weights, biases, classifier_weights, classi
                 in_channels_dense = layer2.out_channels
 
                 #create key to find right weights/bias/filters for the corresponding layer
-                key = "features." + str(counter) + "_ReLU_output_0"
+                key = "features." + str(counter) + "_0_output_0"
                 index = activation_outputs.index(key)
                 
                 #get name of weight tensor
@@ -167,3 +167,4 @@ def prune(model, activation_outputs, weights, biases, classifier_weights, classi
                 counter = counter + 1
                 
     return model
+

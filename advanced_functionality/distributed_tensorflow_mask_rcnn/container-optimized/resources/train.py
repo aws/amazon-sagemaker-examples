@@ -229,7 +229,13 @@ def train():
         resnet_arch = hyperparamters['resnet_arch']
     except KeyError:
         resnet_arch = 'resnet50'
-        
+    
+    load_model = None
+    try:
+        load_model = hyperparamters['load_model']
+    except KeyError:
+        pass
+    
     resnet_num_blocks = '[3, 4, 6, 3]'
     if resnet_arch == 'resnet101':
         resnet_num_blocks = '[3, 4, 23, 3]'
@@ -278,6 +284,14 @@ PREPROC.PREDEFINED_PADDING=True \
 TRAIN.GRADIENT_CLIP=0 \
 TRAINER=horovod"""
 
+    for key,item in hyperparamters.items():
+        if key.startswith("config:"):
+            hp=f" {key[7:]}={item}"
+            mpirun_cmd+=hp
+    
+    if load_model:
+        mpirun_cmd += f' --load {train_data_dir}/pretrained-models/{load_model}'
+        
     print("--------Begin MPI Run Command----------")
     print(mpirun_cmd)
     print("--------End MPI Run Comamnd------------")
