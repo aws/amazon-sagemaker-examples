@@ -77,7 +77,6 @@ def main():
     # Create hook from the configuration provided through sagemaker python sdk
     hook = smd.KerasHook.create_from_json_file()
     opt = tf.keras.optimizers.Adam(learning_rate=args.lr)
-    opt = hook.wrap_optimizer(opt)
     model.compile(loss='categorical_crossentropy',
                   optimizer=opt,
                   metrics=['accuracy'])
