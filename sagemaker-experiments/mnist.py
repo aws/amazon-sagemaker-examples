@@ -22,6 +22,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 logger.addHandler(logging.StreamHandler(sys.stdout))
 
+
 if 'SAGEMAKER_METRICS_DIRECTORY' in os.environ:
     log_file_handler = logging.FileHandler(join(os.environ['SAGEMAKER_METRICS_DIRECTORY'], "metrics.json"))
     log_file_handler.setFormatter(
@@ -32,7 +33,7 @@ if 'SAGEMAKER_METRICS_DIRECTORY' in os.environ:
     
 # Based on https://github.com/pytorch/examples/blob/master/mnist/main.py
 class Net(nn.Module):
-    def __init__(self, hidden_channels, kernel_size=5, drop_out=.5):
+    def __init__(self, hidden_channels, kernel_size, drop_out):
         super(Net, self).__init__()
         self.conv1 = nn.Conv2d(1, hidden_channels, kernel_size=kernel_size)
         self.conv2 = nn.Conv2d(hidden_channels, 20, kernel_size=kernel_size)
@@ -168,10 +169,14 @@ def test(model, test_loader, device, tracker=None):
     
 def model_fn(model_dir):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model = torch.nn.DataParallel(Net())
+
+    hidden_channels=int(os.environ.get('hidden_channels', '5'))
+    kernel_size=int(os.environ.get('kernel_size', '5'))
+    dropout = float(os.environ.get('dropout', '0.5'))
+    model = torch.nn.DataParallel(Net(hidden_channels, kernel_size, dropout))
     with open(os.path.join(model_dir, 'model.pth'), 'rb') as f:
         model.load_state_dict(torch.load(f))
-    return model.to(device)
+        return model.to(device)
 
 def save_model(model, model_dir):
     logger.info("Saving the model.")
@@ -208,7 +213,7 @@ if __name__ == '__main__':
                         help='how many batches to wait before logging training status')
     parser.add_argument('--backend', type=str, default=None,
                         help='backend for distributed training (tcp, gloo on cpu and gloo, nccl on gpu)')
-    
+
     
     # Container environment
     parser.add_argument('--hosts', type=list, default=json.loads(os.environ['SM_HOSTS']))
