@@ -43,6 +43,7 @@ def model_fn(features, labels, mode, params):
 
     # Define operations
     if mode in (Modes.PREDICT, Modes.EVAL):
+        predicted_indices = tf.argmax(input=logits, axis=1)
         probabilities = tf.nn.softmax(logits, name='softmax_tensor')
 
     if mode in (Modes.TRAIN, Modes.EVAL):
@@ -54,6 +55,7 @@ def model_fn(features, labels, mode, params):
 
     if mode == Modes.PREDICT:
         predictions = {
+            'classes': predicted_indices,
             'probabilities': probabilities
         }
         export_outputs = {
@@ -69,7 +71,7 @@ def model_fn(features, labels, mode, params):
 
     if mode == Modes.EVAL:
         eval_metric_ops = {
-            'accuracy': tf.metrics.accuracy(label_indices, tf.argmax(input=logits, axis=1))
+            'accuracy': tf.metrics.accuracy(label_indices, predicted_indices)
         }
         return tf.estimator.EstimatorSpec(
             mode, loss=loss, eval_metric_ops=eval_metric_ops)
@@ -127,11 +129,11 @@ def neo_preprocess(payload, content_type):
 
     if content_type != 'application/x-image' and content_type != 'application/vnd+python.numpy+binary':
         raise RuntimeError('Content type must be application/x-image or application/vnd+python.numpy+binary')
-
+    
     f = io.BytesIO(payload)
     image = np.load(f)*255
 
-    return image
+    return np.reshape(image, (1, 784))
 
 ### NOTE: this function cannot use MXNet
 def neo_postprocess(result):
@@ -140,8 +142,12 @@ def neo_postprocess(result):
     import json
 
     logging.info('Invoking user-defined post-processing function')
-
+    
     # Softmax (assumes batch size 1)
+    for res in result:
+        if res.size > 1:
+            result = res
+            break
     result = np.squeeze(result)
     result_exp = np.exp(result - np.max(result))
     result = result_exp / np.sum(result_exp)
