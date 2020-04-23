@@ -12,7 +12,7 @@ from markov.track_geom.track_data import TrackData
 from markov.track_geom.utils import euler_to_quaternion
 from markov.cameras.abs_camera import AbstractCamera
 from markov.cameras.constants import CameraSettings
-from markov.utils import Logger
+from markov.log_handler.logger import Logger
 
 # Height value is determined from AWS track and is maintained to prevent z fighting in top down
 # view
@@ -36,7 +36,7 @@ class TopCamera(AbstractCamera):
         rospy.wait_for_service('/gazebo/set_model_state')
         self.model_state_client = ServiceProxyWrapper('/gazebo/set_model_state', SetModelState)
         self.track_data = TrackData.get_instance()
-        x_min, y_min, x_max, y_max = self.track_data._outer_border_.bounds
+        x_min, y_min, x_max, y_max = self.track_data.outer_border.bounds
         horizontal_width = (x_max - x_min) * (1.0 + PADDING_PCT)
         vertical_width = (y_max - y_min) * (1.0 + PADDING_PCT)
         horizontal_fov = DEFAULT_H_FOV
@@ -76,7 +76,7 @@ class TopCamera(AbstractCamera):
 
     def _get_initial_camera_pose(self, model_state):
         # get the bounds
-        x_min, y_min, x_max, y_max = self.track_data._outer_border_.bounds
+        x_min, y_min, x_max, y_max = self.track_data.outer_border.bounds
         # update camera position
         model_pose = Pose()
         model_pose.position.x = (x_min+x_max) / 2.0

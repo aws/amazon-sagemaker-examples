@@ -1,8 +1,11 @@
 '''This module is intended for any wrappers that are needed for rospy'''
 import time
 import rospy
-from markov.utils import log_and_exit, ROBOMAKER_CANCEL_JOB_WAIT_TIME, \
-                         SIMAPP_SIMULATION_WORKER_EXCEPTION, SIMAPP_EVENT_ERROR_CODE_500
+from markov.log_handler.exception_handler import log_and_exit
+from markov.log_handler.constants import (SIMAPP_SIMULATION_WORKER_EXCEPTION,
+                                          SIMAPP_EVENT_ERROR_CODE_500)
+from markov.constants import ROBOMAKER_CANCEL_JOB_WAIT_TIME
+
 class ServiceProxyWrapper(object):
     '''This class wraps rospy's ServiceProxy method so that we can wait
        5 minutes if a service throws an exception. This is required to prevent
@@ -25,9 +28,13 @@ class ServiceProxyWrapper(object):
         try:
             return self.client(*argv)
         except TypeError as err:
-            log_and_exit("Invalid arguments for client {}".format(err),
-                         SIMAPP_SIMULATION_WORKER_EXCEPTION, SIMAPP_EVENT_ERROR_CODE_500)
+            log_and_exit("Invalid arguments for client {}"
+                             .format(err),
+                         SIMAPP_SIMULATION_WORKER_EXCEPTION, 
+                         SIMAPP_EVENT_ERROR_CODE_500)
         except Exception as ex:
             time.sleep(ROBOMAKER_CANCEL_JOB_WAIT_TIME)
-            log_and_exit("Unable to call service {}".format(ex),
-                         SIMAPP_SIMULATION_WORKER_EXCEPTION, SIMAPP_EVENT_ERROR_CODE_500)
+            log_and_exit("Unable to call service {}"
+                             .format(ex),
+                         SIMAPP_SIMULATION_WORKER_EXCEPTION, 
+                         SIMAPP_EVENT_ERROR_CODE_500)

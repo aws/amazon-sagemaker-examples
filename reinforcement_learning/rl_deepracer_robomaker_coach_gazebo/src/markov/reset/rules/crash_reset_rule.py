@@ -10,7 +10,7 @@ class CrashResetRule(AbstractResetRule):
     name = EpisodeStatus.CRASHED.value
 
     def __init__(self, agent_name):
-        super(CrashResetRule, self).__init__(CrashResetRule.name) 
+        super(CrashResetRule, self).__init__(CrashResetRule.name)
         self._track_data = TrackData.get_instance()
         self._agent_name = agent_name
 
@@ -24,7 +24,8 @@ class CrashResetRule(AbstractResetRule):
             dict: dictionary contains the agent crash info
         '''
         pos_dict = agent_status[AgentCtrlStatus.POS_DICT.value]
-        is_crashed, crashed_object_name = self._track_data.is_racecar_collided(pos_dict[AgentPos.LINK_POINTS.value], \
-                                                          self._agent_name)
-        self._done = is_crashed
+        crashed_object_name = self._track_data.get_collided_object_name(
+            pos_dict[AgentPos.LINK_POINTS.value],
+            self._agent_name)
+        self._done = crashed_object_name is not ''
         return {AgentInfo.CRASHED_OBJECT_NAME.value: crashed_object_name}
