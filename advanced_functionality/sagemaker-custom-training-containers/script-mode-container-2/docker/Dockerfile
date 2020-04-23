@@ -3,7 +3,7 @@
 
 FROM ubuntu:16.04
 
-LABEL maintainer="Giuseppe A. Porcelli"
+LABEL maintainer="Amazon AI"
 
 # Defining some variables used at build time to install Python3
 ARG PYTHON=python3
