@@ -5,7 +5,7 @@ This folder contains skeleton implementations of Amazon SageMaker-compatible tra
 The purpose of these examples is to explain how to build a custom container for training using the Amazon SageMaker Training Toolkit. This toolkit facilitates the development of SageMaker-compatible training containers and enables dynamic loading of user scripts from Amazon S3, thus separating the execution environment (Docker container) from the script being executed. For additional info, please see: [https://github.com/aws/sagemaker-training-toolkit](https://github.com/aws/sagemaker-training-toolkit).
 
 
-By purpose, no specific ML science is applied in this context, and code is simulating training dummy models.
+These examples deliberately do not use any specific ML framework or algorithm. The custom training container functionality is demonstrated by training dummy models.
 
 Each example is structured as follows:
 
