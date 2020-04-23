@@ -1,6 +1,6 @@
 # Amazon SageMaker Custom Training containers
 
-This folder contains skelethon implementations of Amazon SageMaker-compatible training containers.
+This folder contains skeleton implementations of Amazon SageMaker-compatible training containers.
 
 The purpose of these examples is explaining how to build a custom container for training, with a relevant focus on the Amazon SageMaker Training Toolkit, a toolkit that facilitates the development of training containers for SageMaker, and enables dynamic loading of user scripts from Amazon S3, thus separating the execution environment (Docker container) from the script being executed. For additional info please see: [https://github.com/aws/sagemaker-training-toolkit](https://github.com/aws/sagemaker-training-toolkit).
 
