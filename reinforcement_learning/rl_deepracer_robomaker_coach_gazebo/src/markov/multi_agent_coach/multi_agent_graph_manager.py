@@ -22,7 +22,7 @@ from rl_coach.memories.backend.memory_impl import get_memory_backend
 from rl_coach.data_stores.data_store import SyncFiles
 from rl_coach.checkpoint import CheckpointStateReader
 
-import markov.deepracer_memory_multi as deepracer_memory
+import markov.deepracer_memory as deepracer_memory
 from markov.multi_agent_coach.multi_agent_level_manager import MultiAgentLevelManager
 
 

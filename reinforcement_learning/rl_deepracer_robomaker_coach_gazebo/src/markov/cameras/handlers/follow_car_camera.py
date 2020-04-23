@@ -21,7 +21,6 @@ class FollowCarCamera(AbstractCamera):
                                               topic_name=topic_name)
         rospy.wait_for_service('/gazebo/set_model_state')
         self.model_state_client = ServiceProxyWrapper('/gazebo/set_model_state', SetModelState)
-        self.track_data = TrackData.get_instance()
         # Camera configuration constants
         self.look_down_angle_rad = math.pi / 6.0  # 30 degree
         self.cam_dist_offset = 1.2

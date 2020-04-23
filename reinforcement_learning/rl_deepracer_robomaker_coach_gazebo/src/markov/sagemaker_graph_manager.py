@@ -1,5 +1,4 @@
 import json
-
 from markov.architecture.constants import Input
 from markov.architecture.embedder_factory import create_input_embedder, create_middle_embedder
 from markov.environments.deepracer_racetrack_env import DeepRacerRacetrackEnvParameters
@@ -30,7 +29,7 @@ class DeepRacerAgentParams(ClippedPPOAgentParameters):
         self.env_agent = None
 
 
-def get_graph_manager(hp_dict, agent_list, run_phase_subject):
+def get_graph_manager(hp_dict, agent_list, run_phase_subject, enable_domain_randomization=False):
     ####################
     # All Default Parameters #
     ####################
@@ -151,6 +150,7 @@ def get_graph_manager(hp_dict, agent_list, run_phase_subject):
     env_params.non_trainable_agents = non_trainable_agents_list
     env_params.level = 'DeepRacerRacetrackEnv-v0'
     env_params.run_phase_subject = run_phase_subject
+    env_params.enable_domain_randomization = enable_domain_randomization
 
     vis_params = VisualizationParameters()
     vis_params.dump_mp4 = False

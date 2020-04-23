@@ -80,13 +80,11 @@ def apply_orientation(q, v):
            + 2.0 * s * np.cross(u, v)
 
 
-def find_prev_next(a, x, reverse_dir):
-    if reverse_dir:
-        next_index = bisect.bisect_left(a, x) - 1
-        prev_index = next_index + 1
-        if next_index == -1: next_index = len(a) - 1
-    else:
-        next_index = bisect.bisect_right(a, x)
-        prev_index = next_index - 1
-        if next_index == len(a): next_index = 0
+def find_prev_next(a, x):
+    next_index = bisect.bisect_right(a, x)
+    prev_index = next_index - 1
+    if prev_index == -1:
+        prev_index = len(a) - 1
+    if next_index == len(a):
+        next_index = 0
     return prev_index, next_index

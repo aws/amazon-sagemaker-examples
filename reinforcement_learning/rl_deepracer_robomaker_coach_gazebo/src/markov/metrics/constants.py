@@ -3,7 +3,7 @@ from enum import Enum, unique
 from collections import OrderedDict
 import os
 import logging
-from markov.utils import Logger
+from markov.log_handler.logger import Logger
 
 LOG = Logger(__name__, logging.INFO).get_logger()
 
@@ -12,8 +12,6 @@ class MetricsS3Keys(Enum):
     REGION = 'aws_region'
     METRICS_BUCKET = 'metrics_bucket'
     METRICS_KEY = 'metrics_key'
-    STEP_BUCKET = 'step_bucket'
-    STEP_KEY = 'step_key'
 
 class EvalMetricsKeys(Enum):
     '''The shared metric key for eval metrics'''

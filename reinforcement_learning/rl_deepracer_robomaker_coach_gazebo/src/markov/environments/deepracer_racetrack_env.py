@@ -10,10 +10,12 @@ from markov.agents.agent import Agent
 from markov.agents.utils import RunPhaseSubject
 from markov.multi_agent_coach.multi_agent_environment \
     import MultiAgentEnvironment, MultiAgentEnvironmentParameters
-from markov.deepracer_exceptions import GenericRolloutException, GenericTrainerException, \
-                                        RewardFunctionError
-from markov.utils import log_and_exit, SIMAPP_SIMULATION_WORKER_EXCEPTION, \
-                         SIMAPP_EVENT_ERROR_CODE_500
+from markov.log_handler.deepracer_exceptions import (GenericRolloutException,
+                                                     GenericTrainerException, RewardFunctionError)
+from markov.log_handler.exception_handler import log_and_exit
+from markov.log_handler.constants import (SIMAPP_SIMULATION_WORKER_EXCEPTION,
+                                          SIMAPP_EVENT_ERROR_CODE_500)
+from markov.domain_randomizations.randomizer_manager import RandomizerManager
 
 # Max number of steps to allow per episode
 MAX_STEPS = 10000
@@ -31,6 +33,7 @@ class DeepRacerRacetrackEnvParameters(MultiAgentEnvironmentParameters):
         self.agents_params = None
         self.non_trainable_agents = None
         self.run_phase_subject = None
+        self.enable_domain_randomization = False
 
     @property
     def path(self):
@@ -46,6 +49,7 @@ class DeepRacerRacetrackEnv(MultiAgentEnvironment):
                  agents_params: List[AgentParameters],
                  non_trainable_agents: List[Agent],
                  run_phase_subject: RunPhaseSubject,
+                 enable_domain_randomization: bool,
                  target_success_rate: float = 1.0,  **kwargs):
         super().__init__(level, seed, frame_skip,
                          custom_reward_threshold, visualization_parameters,
@@ -64,16 +68,18 @@ class DeepRacerRacetrackEnv(MultiAgentEnvironment):
 
             # Set the phase subject to notify observers when phase changes
             self.run_phase_subject = run_phase_subject
+
+            # Enable domain randomization
+            self.enable_domain_randomization = enable_domain_randomization
             # Initialize step count
             self.steps = 0
-            # Initialize the state by getting a new state from the environment
-            self.reset_internal_state(True)
         except GenericTrainerException as ex:
             ex.log_except_and_exit()
         except GenericRolloutException as ex:
             ex.log_except_and_exit()
         except Exception as ex:
-            log_and_exit('Unclassified exception: {}'.format(ex),
+            log_and_exit('Unclassified exception: {}'
+                             .format(ex),
                          SIMAPP_SIMULATION_WORKER_EXCEPTION,
                          SIMAPP_EVENT_ERROR_CODE_500)
 
@@ -98,7 +104,8 @@ class DeepRacerRacetrackEnv(MultiAgentEnvironment):
         except GenericRolloutException as ex:
             ex.log_except_and_exit()
         except Exception as ex:
-            log_and_exit('Unclassified exception: {}'.format(ex),
+            log_and_exit('Unclassified exception: {}'
+                             .format(ex),
                          SIMAPP_SIMULATION_WORKER_EXCEPTION,
                          SIMAPP_EVENT_ERROR_CODE_500)
 
@@ -112,7 +119,7 @@ class DeepRacerRacetrackEnv(MultiAgentEnvironment):
                                                                                                self.action_list)]
             # non-trainable agent physics: update agent status
             [self._agents_info_map.update(agent.update_agent(None)) for agent in self.non_trainable_agents] 
-            # trainable agent judge: comparision between action and physics for reset
+            # trainable agent judge: comparison between action and physics for reset
             for agent, action in zip(self.agent_list, self.action_list):
                 next_state, reward, done = agent.judge_action(action, self._agents_info_map)
                 self.state.append(next_state)
@@ -135,7 +142,8 @@ class DeepRacerRacetrackEnv(MultiAgentEnvironment):
         except RewardFunctionError as err:
             err.log_except_and_exit()
         except Exception as ex:
-            log_and_exit('Unclassified exception: {}'.format(ex),
+            log_and_exit('Unclassified exception: {}'
+                             .format(ex),
                          SIMAPP_SIMULATION_WORKER_EXCEPTION,
                          SIMAPP_EVENT_ERROR_CODE_500)
 
@@ -147,12 +155,15 @@ class DeepRacerRacetrackEnv(MultiAgentEnvironment):
             # Reset state, reward, done flag
             self.reward = [0.0] * self.num_agents
             self.done = [False] * self.num_agents
+            if self.enable_domain_randomization:
+                RandomizerManager.get_instance().randomize()
         except GenericTrainerException as ex:
             ex.log_except_and_exit()
         except GenericRolloutException as ex:
             ex.log_except_and_exit()
         except Exception as ex:
-            log_and_exit('Unclassified exception: {}'.format(ex),
+            log_and_exit('Unclassified exception: {}'
+                             .format(ex),
                          SIMAPP_SIMULATION_WORKER_EXCEPTION,
                          SIMAPP_EVENT_ERROR_CODE_500)
 

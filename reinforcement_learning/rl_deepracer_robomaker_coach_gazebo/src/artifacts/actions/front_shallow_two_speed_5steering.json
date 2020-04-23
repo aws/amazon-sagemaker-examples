@@ -2,53 +2,45 @@
     "action_space": [
         {
             "steering_angle": -30,
-            "speed": 1.5,
-            "index": 0
+            "speed": 0.5
         },
         {
             "steering_angle": -30,
-            "speed": 3,
-            "index": 1
+            "speed": 1.0
         },
         {
             "steering_angle": -15,
-            "speed": 1.5,
-            "index": 2
+            "speed": 0.5
         },
         {
             "steering_angle": -15,
-            "speed": 3,
-            "index": 3
+            "speed": 1.0
         },
         {
             "steering_angle": 0,
-            "speed": 1.5,
-            "index": 4
+            "speed": 0.5
         },
         {
             "steering_angle": 0,
-            "speed": 3,
-            "index": 5
+            "speed": 1.0
         },
         {
             "steering_angle": 15,
-            "speed": 1.5,
-            "index": 6
+            "speed": 0.5
         },
         {
             "steering_angle": 15,
-            "speed": 3,
-            "index": 7
+            "speed": 1.0
         },
         {
             "steering_angle": 30,
-            "speed": 1.5,
-            "index": 8
+            "speed": 0.5
         },
         {
             "steering_angle": 30,
-            "speed": 3,
-            "index": 9
+            "speed": 1.0
         }
-    ]
+    ],
+    "sensor": ["FRONT_FACING_CAMERA"],
+    "neural_network": "DEEP_CONVOLUTIONAL_NETWORK_SHALLOW"
 }

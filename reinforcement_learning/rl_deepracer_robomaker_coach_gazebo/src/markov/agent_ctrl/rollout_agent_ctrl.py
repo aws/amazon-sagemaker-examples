@@ -20,16 +20,17 @@ from markov.agent_ctrl.utils import set_reward_and_metrics, \
                                     send_action, load_action_space, get_speed_factor, \
                                     Logger
 from markov.track_geom.constants import AgentPos, TrackNearDist, SET_MODEL_STATE, \
-                                        GET_MODEL_STATE, ObstacleDimensions
+                                        GET_MODEL_STATE, ObstacleDimensions, TrackLane
 from markov.track_geom.track_data import FiniteDifference, TrackData
 from markov.metrics.constants import StepMetrics, EpisodeStatus
 from markov.rospy_wrappers import ServiceProxyWrapper
 from markov.cameras.camera_manager import CameraManager
 from markov.common import ObserverInterface
-from markov.deepracer_exceptions import RewardFunctionError, GenericRolloutException
+from markov.log_handler.deepracer_exceptions import RewardFunctionError, GenericRolloutException
 from markov.reset.constants import AgentPhase, AgentCtrlStatus, AgentInfo
 from markov.reset.reset_rules_manager import ResetRulesManager
 from markov.reset.utils import construct_reset_rules_manager
+from markov.utils import get_racecar_idx
 from rl_coach.core_types import RunPhase
 
 logger = Logger(__name__, logging.INFO).get_logger()
@@ -60,11 +61,17 @@ class RolloutCtrl(AgentCtrlInterface, ObserverInterface):
         self._speed_scale_factor_ = get_speed_factor(config_dict[const.ConfigParams.VERSION.value])
         # Store the name of the agent used to set agents position on the track
         self._agent_name_ = config_dict[const.ConfigParams.AGENT_NAME.value]
+        # Set start lane. This only support for two agents H2H race
+        self._agent_idx_ = get_racecar_idx(self._agent_name_)
+        if self._agent_idx_ is not None:
+            self._start_lane_ = TrackLane.OUTER_LANE.value \
+                if self._agent_idx_ % 2 else TrackLane.INNER_LANE.value
+        else:
+            self._start_lane_ = TrackLane.CENTER_LINE.value
         # Store the name of the links in the agent, this should be const
         self._agent_link_name_list_ = config_dict[const.ConfigParams.LINK_NAME_LIST.value]
         # Store the reward function
         self._reward_ = config_dict[const.ConfigParams.REWARD.value]
-        self._track_data_ = TrackData.get_instance()
         # Create publishers for controlling the car
         self._velocity_pub_dict_ = OrderedDict()
         self._steering_pub_dict_ = OrderedDict()
@@ -76,8 +83,7 @@ class RolloutCtrl(AgentCtrlInterface, ObserverInterface):
         self._reward_params_ = const.RewardParam.make_default_param()
         #Creat the default metrics dictionary
         self._step_metrics_ = StepMetrics.make_default_metric()
-        # State variable to track if the car direction has been reversed
-        self._reverse_dir_ = False
+        self._track_data_ = TrackData.get_instance()
         # Dictionary of bools indicating starting position behavior
         self._start_pos_behavior_ = \
             {'change_start' : config_dict[const.ConfigParams.CHANGE_START.value],
@@ -112,12 +118,12 @@ class RolloutCtrl(AgentCtrlInterface, ObserverInterface):
         run_phase_sink.register(self)
         # Make sure velicty and angle are set to 0
         send_action(self._velocity_pub_dict_, self._steering_pub_dict_, 0.0, 0.0)
-        start_pose = self._track_data_._center_line_.interpolate_pose(self._data_dict_['start_ndist'] * self._track_data_.get_track_length(),
-                                                                      reverse_dir=self._reverse_dir_,
-                                                                      finite_difference=FiniteDifference.FORWARD_DIFFERENCE)
-        self._track_data_.initialize_object(self._agent_name_, start_pose, ObstacleDimensions.BOT_CAR_DIMENSION)
+        start_pose = self._track_data_.center_line.interpolate_pose(
+            self._data_dict_['start_ndist'] * self._track_data_.get_track_length(),
+            finite_difference=FiniteDifference.FORWARD_DIFFERENCE)
+        self._track_data_.initialize_object(self._agent_name_, start_pose, \
+                                            ObstacleDimensions.BOT_CAR_DIMENSION)
         self.car_model_state = self.get_model_client(self._agent_name_, '')
-        self._reset_agent(reset_pos=const.ResetPos.START_POS.value)
 
     def _update_sim_time(self, sim_time):
         '''Callback to rospy clock to update time, camera, and penalty second
@@ -174,6 +180,7 @@ class RolloutCtrl(AgentCtrlInterface, ObserverInterface):
             start_model_state = self._get_car_reset_model_state(start_dist)
         elif reset_pos == const.ResetPos.START_POS.value:
             self._track_data_.car_ndist = self._data_dict_['start_ndist']
+            # TODO: for more than 2 race cars, start_dist has to be modified accordingly
             start_dist = self._data_dict_['start_ndist'] * self._track_data_.get_track_length()
             start_model_state = self._get_car_start_model_state(start_dist)
         else:
@@ -212,13 +219,11 @@ class RolloutCtrl(AgentCtrlInterface, ObserverInterface):
         for object_name, object_pose in self._track_data_.object_poses.items():
             if object_name != self._agent_name_:
                 object_point = Point([object_pose.position.x, object_pose.position.y])
-                object_dist = self._track_data_._center_line_.project(object_point)
-                object_dist_ahead = (object_dist - start_dist) % self._track_data_.get_track_length()
-                object_dist_behind = (start_dist - object_dist) % self._track_data_.get_track_length()
-                if self._reverse_dir_:
-                    object_dist_ahead, object_dist_behind = object_dist_behind, object_dist_ahead
-                if min(object_dist_ahead, object_dist_behind) < closest_obj_gap:
-                    closest_obj_gap = min(object_dist_ahead, object_dist_behind)
+                object_dist = self._track_data_.center_line.project(object_point)
+                abs_object_gap = abs(object_dist - start_dist) % \
+                                 self._track_data_.get_track_length()
+                if abs_object_gap < closest_obj_gap:
+                    closest_obj_gap = abs_object_gap
                     closest_object_dist = object_dist
                     closest_object_pose = object_pose
         return closest_object_dist, closest_object_pose
@@ -237,9 +242,9 @@ class RolloutCtrl(AgentCtrlInterface, ObserverInterface):
         if closest_object_dist is not None:
             start_dist = closest_object_dist - const.RESET_BEHIND_DIST
         # Compute the start pose
-        start_pose = self._track_data_._center_line_.interpolate_pose(start_dist,
-                                                                      reverse_dir=self._reverse_dir_,
-                                                                      finite_difference=FiniteDifference.FORWARD_DIFFERENCE)
+        start_pose = self._track_data_.center_line.interpolate_pose(
+            start_dist,
+            finite_difference=FiniteDifference.FORWARD_DIFFERENCE)
         start_model_state = ModelState()
         start_model_state.model_name = self._agent_name_
         start_model_state.pose = start_pose
@@ -252,7 +257,7 @@ class RolloutCtrl(AgentCtrlInterface, ObserverInterface):
         return start_model_state
 
     def _get_car_start_model_state(self, start_dist):
-        '''get avaliable car start model state when starting a new lap
+        '''get available car start model state when starting a new lap
 
         Args:
             start_dist (float): start distance
@@ -260,28 +265,46 @@ class RolloutCtrl(AgentCtrlInterface, ObserverInterface):
         Returns:
             ModelState: start state
         '''
-        _, closest_object_pose = self._get_closest_obj(start_dist)
-        # Compute the start pose
-        start_pose = self._track_data_._center_line_.interpolate_pose(start_dist,
-                                                                      reverse_dir=self._reverse_dir_,
-                                                                      finite_difference=FiniteDifference.FORWARD_DIFFERENCE)
-        # Check to place in inner or outer lane
-        if closest_object_pose is not None:
-            object_point = Point([closest_object_pose.position.x, closest_object_pose.position.y])
-            object_nearest_pnts_dict = self._track_data_.get_nearest_points(object_point)
-            object_nearest_dist_dict = self._track_data_.get_nearest_dist(object_nearest_pnts_dict, object_point)
-            object_is_inner = object_nearest_dist_dict[TrackNearDist.NEAR_DIST_IN.value] < \
-                                object_nearest_dist_dict[TrackNearDist.NEAR_DIST_OUT.value]
-            if object_is_inner:
-                start_pose = self._track_data_._outer_lane_.interpolate_pose(
-                    self._track_data_._outer_lane_.project(Point(start_pose.position.x, start_pose.position.y)),
-                                                        reverse_dir=self._reverse_dir_,
-                                                        finite_difference=FiniteDifference.FORWARD_DIFFERENCE)
+        if self._is_training_:
+            _, closest_object_pose = self._get_closest_obj(start_dist)
+            # Compute the start pose based on start distance
+            start_pose = self._track_data_.center_line.interpolate_pose(
+                start_dist,
+                finite_difference=FiniteDifference.FORWARD_DIFFERENCE)
+            # If closest_object_pose is not None, for example bot car is around agent
+            # start position. The below logic checks for whether inner or outer lane
+            # is available for placement. Then, it updates start_pose accordingly.
+            if closest_object_pose is not None:
+                object_point = Point([closest_object_pose.position.x, closest_object_pose.position.y])
+                object_nearest_pnts_dict = self._track_data_.get_nearest_points(object_point)
+                object_nearest_dist_dict = self._track_data_.get_nearest_dist(object_nearest_pnts_dict, object_point)
+                object_is_inner = object_nearest_dist_dict[TrackNearDist.NEAR_DIST_IN.value] < \
+                                    object_nearest_dist_dict[TrackNearDist.NEAR_DIST_OUT.value]
+                if object_is_inner:
+                    start_pose = self._track_data_.outer_lane.interpolate_pose(
+                        self._track_data_.outer_lane.project(Point(start_pose.position.x,
+                                                                   start_pose.position.y)),
+                        finite_difference=FiniteDifference.FORWARD_DIFFERENCE)
+                else:
+                    start_pose = self._track_data_.inner_lane.interpolate_pose(
+                        self._track_data_.inner_lane.project(Point(start_pose.position.x,
+                                                                   start_pose.position.y)),
+                        finite_difference=FiniteDifference.FORWARD_DIFFERENCE)
+        else:
+            if self._start_lane_ == TrackLane.INNER_LANE.value:
+                start_pose = self._track_data_.inner_lane.interpolate_pose(
+                    start_dist,
+                    finite_difference=FiniteDifference.FORWARD_DIFFERENCE)
+                self._start_lane_ = TrackLane.OUTER_LANE.value
+            elif self._start_lane_ == TrackLane.OUTER_LANE.value:
+                start_pose = self._track_data_.outer_lane.interpolate_pose(
+                    start_dist,
+                    finite_difference=FiniteDifference.FORWARD_DIFFERENCE)
+                self._start_lane_ = TrackLane.INNER_LANE.value
             else:
-                start_pose = self._track_data_._inner_lane_.interpolate_pose(
-                    self._track_data_._inner_lane_.project(Point(start_pose.position.x, start_pose.position.y)),
-                                                        reverse_dir=self._reverse_dir_,
-                                                        finite_difference=FiniteDifference.FORWARD_DIFFERENCE)
+                start_pose = self._track_data_.center_line.interpolate_pose(
+                    start_dist,
+                    finite_difference=FiniteDifference.FORWARD_DIFFERENCE)
         start_model_state = ModelState()
         start_model_state.model_name = self._agent_name_
         start_model_state.pose = start_pose
@@ -327,7 +350,7 @@ class RolloutCtrl(AgentCtrlInterface, ObserverInterface):
         '''
         try:
             # Get the position of the agent
-            pos_dict = self._track_data_.get_agent_pos(self._agent_name_,
+            pos_dict = self._track_data_.get_agent_pos(self.car_model_state,
                                                        self._agent_link_name_list_,
                                                        const.RELATIVE_POSITION_OF_FRONT_OF_CAR)
             model_point = pos_dict[AgentPos.POINT.value]
@@ -337,7 +360,8 @@ class RolloutCtrl(AgentCtrlInterface, ObserverInterface):
         # Set the reward and training metrics
         set_reward_and_metrics(self._reward_params_, self._step_metrics_,
                                self._agent_name_, pos_dict, self._track_data_,
-                               self._reverse_dir_, self._data_dict_, action, self._json_actions_)
+                               self._data_dict_, action, self._json_actions_,
+                               self.car_model_state)
         prev_pnt_dist = min(model_point.distance(self._prev_waypoints_['prev_point']),
                             model_point.distance(self._prev_waypoints_['prev_point_2']))
         self._data_dict_['current_progress'] = self._reward_params_[const.RewardParam.PROG.value[0]]
@@ -484,16 +508,24 @@ class RolloutCtrl(AgentCtrlInterface, ObserverInterface):
         return done, pause
 
     def finish_episode(self):
+        '''finish episode by appending episode metrics, upload metrics, and alternate direction
+        if needed
+        '''
         if not self._is_continuous:
             self._metrics.append_episode_metrics()
         self._metrics.upload_episode_metrics()
         if self._start_pos_behavior_['change_start'] and self._is_training_:
             self._data_dict_['start_ndist'] = (self._data_dict_['start_ndist']
                                                + const.ROUND_ROBIN_ADVANCE_DIST) % 1.0
+        # For multi-agent case, alternating direction will NOT work!
+        # Reverse direction will be set multiple times
+        # However, we are not supporting multi-agent training for now
         if self._start_pos_behavior_['alternate_dir'] and self._is_training_:
-            self._reverse_dir_ = not self._reverse_dir_
+            self._track_data_.reverse_dir = not self._track_data_.reverse_dir
 
     def _clear_data(self):
+        '''clear data at the beginning of a new episode
+        '''
         self._is_reset = False
         self._last_crashed_object_name = None
         self._reset_count = 0
