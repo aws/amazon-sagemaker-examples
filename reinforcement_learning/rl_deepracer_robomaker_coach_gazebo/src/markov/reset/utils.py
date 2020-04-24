@@ -18,8 +18,9 @@ def construct_reset_rules_manager(config_dict):
         ResetRulesManager: reset rules manager class instance
     '''
     reset_rules_manager = ResetRulesManager()
-    reset_rules_manager.add(EpisodeCompleteResetRule(config_dict[ConfigParams.IS_CONTINUOUS.value],
-                                                     config_dict[ConfigParams.NUMBER_OF_TRIALS.value]))
+    reset_rules_manager.add(EpisodeCompleteResetRule(
+        config_dict[ConfigParams.IS_CONTINUOUS.value],
+        config_dict[ConfigParams.NUMBER_OF_TRIALS.value]))
     reset_rules_manager.add(ImmobilizedResetRule())
     reset_rules_manager.add(OffTrackResetRule())
     reset_rules_manager.add(CrashResetRule(config_dict[ConfigParams.AGENT_NAME.value]))

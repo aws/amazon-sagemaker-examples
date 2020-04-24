@@ -287,6 +287,8 @@ def transform_fn(net, data, content_type, output_content_type):
     #check if GPUs area available
     ctx = mx.gpu() if mx.context.num_gpus() > 0 else mx.cpu()
     
+    net.collect_params().reset_ctx(ctx)
+
     #load image onto right context
     x = x.as_in_context(ctx)
     

@@ -16,6 +16,11 @@ from rl_coach.memories.backend.redis import RedisPubSubMemoryBackendParameters
 from rl_coach.utils import short_dynamic_import
 
 from markov import utils
+from markov.log_handler.logger import Logger
+from markov.log_handler.exception_handler import log_and_exit
+from markov.log_handler.constants import (SIMAPP_EVENT_ERROR_CODE_400, SIMAPP_EVENT_ERROR_CODE_500,
+                                          SIMAPP_TRAINING_WORKER_EXCEPTION)
+from markov.constants import SIMAPP_VERSION
 from markov.agent_ctrl.constants import ConfigParams
 from markov.agents.training_agent_factory import create_training_agent
 from markov.s3_boto_data_store import S3BotoDataStore, S3BotoDataStoreParameters
@@ -27,7 +32,7 @@ from markov.samples.sample_collector import SampleCollector
 import tensorflow as tf
 tf.logging.set_verbosity(tf.logging.DEBUG)
 
-logger = utils.Logger(__name__, logging.INFO).get_logger()
+logger = Logger(__name__, logging.INFO).get_logger()
 
 PRETRAINED_MODEL_DIR = "./pretrained_checkpoint"
 SM_MODEL_OUTPUT_DIR = os.environ.get("ALGO_MODEL_DIR", "/opt/ml/model")
@@ -71,9 +76,9 @@ def training_worker(graph_manager, task_parameters, user_batch_size,
                 # Make sure we have enough data for the requested batches
                 rollout_steps = graph_manager.memory_backend.get_rollout_steps()
                 if any(rollout_steps.values()) <= 0:
-                    utils.log_and_exit("No rollout data retrieved from the rollout worker",
-                                       utils.SIMAPP_TRAINING_WORKER_EXCEPTION,
-                                       utils.SIMAPP_EVENT_ERROR_CODE_500)
+                    log_and_exit("No rollout data retrieved from the rollout worker",
+                                 SIMAPP_TRAINING_WORKER_EXCEPTION,
+                                 SIMAPP_EVENT_ERROR_CODE_500)
 
                 episode_batch_size = user_batch_size if min(rollout_steps.values()) > user_batch_size else 2**math.floor(math.log(min(rollout_steps.values()), 2))
                 # Set the batch size to the closest power of 2 such that we have at least two batches, this prevents coach from crashing
@@ -95,9 +100,9 @@ def training_worker(graph_manager, task_parameters, user_batch_size,
                         if np.isnan(agent.loss.get_mean()):
                             rollout_has_nan = True
                 if rollout_has_nan:
-                    utils.log_and_exit("NaN detected in loss function, aborting training.",
-                                       utils.SIMAPP_TRAINING_WORKER_EXCEPTION,
-                                       utils.SIMAPP_EVENT_ERROR_CODE_500)
+                    log_and_exit("NaN detected in loss function, aborting training.",
+                                 SIMAPP_TRAINING_WORKER_EXCEPTION,
+                                 SIMAPP_EVENT_ERROR_CODE_500)
 
                 if graph_manager.agent_params.algorithm.distributed_coach_synchronization_type == DistributedCoachSynchronizationType.SYNC:
                     graph_manager.save_checkpoint()
@@ -113,25 +118,28 @@ def training_worker(graph_manager, task_parameters, user_batch_size,
                     agent.ap.algorithm.num_steps_between_copying_online_weights_to_target.num_steps = user_episode_per_rollout
 
             if door_man.terminate_now:
-                utils.log_and_exit("Received SIGTERM. Checkpointing before exiting.",
-                                   utils.SIMAPP_TRAINING_WORKER_EXCEPTION,
-                                   utils.SIMAPP_EVENT_ERROR_CODE_500)
+                log_and_exit("Received SIGTERM. Checkpointing before exiting.",
+                             SIMAPP_TRAINING_WORKER_EXCEPTION,
+                             SIMAPP_EVENT_ERROR_CODE_500)
                 graph_manager.save_checkpoint()
                 break
 
     except ValueError as err:
         if utils.is_error_bad_ckpnt(err):
-            utils.log_and_exit("User modified model: {}".format(err),
-                               utils.SIMAPP_TRAINING_WORKER_EXCEPTION,
-                               utils.SIMAPP_EVENT_ERROR_CODE_400)
+            log_and_exit("User modified model: {}"
+                             .format(err),
+                         SIMAPP_TRAINING_WORKER_EXCEPTION,
+                         SIMAPP_EVENT_ERROR_CODE_400)
         else:
-            utils.log_and_exit("An error occured while training: {}".format(err),
-                               utils.SIMAPP_TRAINING_WORKER_EXCEPTION,
-                               utils.SIMAPP_EVENT_ERROR_CODE_500)
+            log_and_exit("An error occured while training: {}"
+                             .format(err),
+                         SIMAPP_TRAINING_WORKER_EXCEPTION,
+                         SIMAPP_EVENT_ERROR_CODE_500)
     except Exception as ex:
-        utils.log_and_exit("An error occured while training: {}".format(ex),
-                           utils.SIMAPP_TRAINING_WORKER_EXCEPTION,
-                           utils.SIMAPP_EVENT_ERROR_CODE_500)
+        log_and_exit("An error occured while training: {}"
+                         .format(ex),
+                     SIMAPP_TRAINING_WORKER_EXCEPTION,
+                     SIMAPP_EVENT_ERROR_CODE_500)
     finally:
         graph_manager.data_store.upload_finished_file()
 
@@ -262,7 +270,7 @@ def main():
     if use_pretrained_model:
         # Handle backward compatibility
         _, _, version = parse_model_metadata(model_metadata_local_path)
-        if float(version) < float(utils.SIMAPP_VERSION) and \
+        if float(version) < float(SIMAPP_VERSION) and \
         not utils.has_current_ckpnt_name(args.pretrained_s3_bucket, args.pretrained_s3_prefix, args.aws_region):
             utils.make_compatible(args.pretrained_s3_bucket, args.pretrained_s3_prefix,
                                   args.aws_region, SyncFiles.TRAINER_READY.value)
@@ -312,6 +320,7 @@ if __name__ == '__main__':
     try:
         main()
     except Exception as ex:
-        utils.log_and_exit("Training worker exited with exception: {}".format(ex),
-                           utils.SIMAPP_TRAINING_WORKER_EXCEPTION,
-                           utils.SIMAPP_EVENT_ERROR_CODE_500)
+        log_and_exit("Training worker exited with exception: {}"
+                         .format(ex),
+                     SIMAPP_TRAINING_WORKER_EXCEPTION,
+                     SIMAPP_EVENT_ERROR_CODE_500)

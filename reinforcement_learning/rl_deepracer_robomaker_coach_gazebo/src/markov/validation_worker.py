@@ -11,16 +11,23 @@ from rl_coach.rollout_worker import wait_for_checkpoint
 from rl_coach.core_types import EnvironmentSteps, RunPhase
 
 from markov import utils
+from markov.constants import (BEST_CHECKPOINT, LAST_CHECKPOINT,
+                              SIMAPP_VERSION)
+from markov.log_handler.logger import Logger
+from markov.log_handler.exception_handler import log_and_exit
+from markov.log_handler.constants import (SIMAPP_VALIDATION_WORKER_EXCEPTION,
+                                          SIMAPP_EVENT_ERROR_CODE_400,
+                                          SIMAPP_EVENT_ERROR_CODE_500)
 from markov.agent_ctrl.constants import ConfigParams
 from markov.agents.training_agent_factory import create_training_agent
 from markov.s3_boto_data_store import S3BotoDataStore, S3BotoDataStoreParameters
 from markov.s3_client import SageS3Client
 from markov.sagemaker_graph_manager import get_graph_manager
 from markov.utils_parse_model_metadata import parse_model_metadata
-from markov.deepracer_exceptions import GenericValidatorException, GenericValidatorError
+from markov.log_handler.deepracer_exceptions import GenericValidatorException, GenericValidatorError
 from markov.architecture.constants import Input
 
-logger = utils.Logger(__name__, logging.INFO).get_logger()
+logger = Logger(__name__, logging.INFO).get_logger()
 
 SAMPLE_PICKLE_PATH = '/opt/ml/code/sample_data'
 
@@ -33,7 +40,7 @@ def _validate(graph_manager, task_parameters, transitions,
     if utils.do_model_selection(s3_bucket=s3_bucket,
                                 s3_prefix=s3_prefix,
                                 region=aws_region,
-                                checkpoint_type=utils.LAST_CHECKPOINT):
+                                checkpoint_type=LAST_CHECKPOINT):
         logger.info("Test Last Checkpoint: %s", utils.get_best_checkpoint(s3_bucket, s3_prefix, aws_region))
         graph_manager.create_graph(task_parameters)
         graph_manager.phase = RunPhase.TEST
@@ -42,7 +49,7 @@ def _validate(graph_manager, task_parameters, transitions,
         utils.do_model_selection(s3_bucket=s3_bucket,
                                  s3_prefix=s3_prefix,
                                  region=aws_region,
-                                 checkpoint_type=utils.BEST_CHECKPOINT)
+                                 checkpoint_type=BEST_CHECKPOINT)
         graph_manager.data_store.load_from_store()
         graph_manager.restore_checkpoint()
         graph_manager.emulate_act_on_trainer(EnvironmentSteps(1), transitions=transitions)
@@ -74,7 +81,7 @@ def get_transition_data(observation_list):
 
 
 # validate function below can be directly used by model validation container,
-# if we fix preemptive termination with os._exit in utils.log_and_exit
+# if we fix preemptive termination with os._exit in log_and_exit
 # or simapp_exit_gracefully when error/exception is raised.
 def validate(s3_bucket, s3_prefix, custom_files_path, aws_region):
     screen.set_use_colors(False)
@@ -102,13 +109,14 @@ def validate(s3_bucket, s3_prefix, custom_files_path, aws_region):
         # Handle backward compatibility
         observation_list, _, version = parse_model_metadata(model_metadata_local_path)
     except Exception as ex:
-        utils.log_and_exit("Failed to parse model_metadata file: {}".format(ex),
-                           utils.SIMAPP_VALIDATION_WORKER_EXCEPTION,
-                           utils.SIMAPP_EVENT_ERROR_CODE_400)
+        log_and_exit("Failed to parse model_metadata file: {}"
+                        .format(ex),
+                     SIMAPP_VALIDATION_WORKER_EXCEPTION,
+                     SIMAPP_EVENT_ERROR_CODE_400)
 
     transitions = get_transition_data(observation_list)
 
-    if float(version) < float(utils.SIMAPP_VERSION) and \
+    if float(version) < float(SIMAPP_VERSION) and \
             not utils.has_current_ckpnt_name(s3_bucket, s3_prefix, aws_region):
         utils.make_compatible(s3_bucket, s3_prefix, aws_region, SyncFiles.TRAINER_READY.value)
 
@@ -174,20 +182,23 @@ if __name__ == '__main__':
         shutil.rmtree(args.custom_files_path, ignore_errors=True)
     except ValueError as err:
         # folder deletion needs to happen every flows.
-        # Since utils.log_and_exit uses os._exit, finally won't work.
+        # Since log_and_exit uses os._exit, finally won't work.
         shutil.rmtree(args.custom_files_path, ignore_errors=True)
         if utils.is_error_bad_ckpnt(err):
-            utils.log_and_exit("User modified model: {}".format(err),
-                               utils.SIMAPP_VALIDATION_WORKER_EXCEPTION,
-                               utils.SIMAPP_EVENT_ERROR_CODE_400)
+            log_and_exit("User modified model: {}"
+                             .format(err),
+                         SIMAPP_VALIDATION_WORKER_EXCEPTION,
+                         SIMAPP_EVENT_ERROR_CODE_400)
         else:
-            utils.log_and_exit("Validation worker value error: {}".format(err),
-                               utils.SIMAPP_VALIDATION_WORKER_EXCEPTION,
-                               utils.SIMAPP_EVENT_ERROR_CODE_500)
+            log_and_exit("Validation worker value error: {}"
+                             .format(err),
+                         SIMAPP_VALIDATION_WORKER_EXCEPTION,
+                         SIMAPP_EVENT_ERROR_CODE_500)
     except Exception as ex:
         # folder deletion needs to happen every flows.
-        # Since utils.log_and_exit uses os._exit, finally won't work.
+        # Since log_and_exit uses os._exit, finally won't work.
         shutil.rmtree(args.custom_files_path, ignore_errors=True)
-        utils.log_and_exit("Validation worker exited with exception: {}".format(ex),
-                           utils.SIMAPP_VALIDATION_WORKER_EXCEPTION,
-                           utils.SIMAPP_EVENT_ERROR_CODE_500)
+        log_and_exit("Validation worker exited with exception: {}"
+                         .format(ex),
+                      SIMAPP_VALIDATION_WORKER_EXCEPTION,
+                      SIMAPP_EVENT_ERROR_CODE_500)

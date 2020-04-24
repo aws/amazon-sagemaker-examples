@@ -2,7 +2,8 @@
 import json
 import logging
 from markov.architecture.constants import Input, NeuralNetwork
-from markov.utils import Logger, SIMAPP_VERSION
+from markov.log_handler.logger import Logger
+from markov.constants import SIMAPP_VERSION
 
 LOG = Logger(__name__, logging.INFO).get_logger()
 

@@ -6,6 +6,7 @@ sys.path.append('/tensorpack/examples/FasterRCNN')
 from modeling.generalized_rcnn import ResNetFPNModel
 from config import finalize_configs, config as cfg
 from eval import predict_image, DetectionResult
+from dataset import register_coco
 
 from tensorpack.predict.base import OfflinePredictor
 from tensorpack.tfutils.sessinit import get_model_loader
@@ -20,7 +21,6 @@ class MaskRCNNService:
 
     lock = Lock()
     predictor = None
-    pretrained_model = "/ImageNet-R50-AlignPadding.npz"
 
     # class method to load trained model and create an offline predictor
     @classmethod
@@ -39,11 +39,11 @@ class MaskRCNNService:
                 model_dir = os.environ['SM_MODEL_DIR']
             except KeyError:
                 model_dir = '/opt/ml/model'
-
+            
             try:
-                cls.pretrained_model = os.environ['PRETRAINED_MODEL']
+                resnet_arch = os.environ['RESNET_ARCH']
             except KeyError:
-                pass
+                resnet_arch = 'resnet50'
 
             # file path to previoulsy trained mask r-cnn model
             latest_trained_model = ""
@@ -55,11 +55,31 @@ class MaskRCNNService:
             trained_model = latest_trained_model[:-6]
             print(f'Using model: {trained_model}')
 
-            # fixed resnet50 backbone weights
-            cfg.BACKBONE.WEIGHTS = os.path.join(cls.pretrained_model)
             cfg.MODE_FPN = True
             cfg.MODE_MASK = True
+            if resnet_arch == 'resnet101':
+                cfg.BACKBONE.RESNET_NUM_BLOCKS = [3, 4, 23, 3]
+            else:
+                cfg.BACKBONE.RESNET_NUM_BLOCKS = [3, 4, 6, 3]
+        
+            cfg_prefix = "CONFIG__"
+            for key,value in dict(os.environ).items():
+                if key.startswith(cfg_prefix):
+                    attr_name = key[len(cfg_prefix):]
+                    attr_name = attr_name.replace('__', '.')
+                    value=eval(value)
+                    print(f"update config: {attr_name}={value}")
+                    nested_var = cfg
+                    attr_list = attr_name.split('.')
+                    for attr in attr_list[0:-1]:
+                        nested_var = getattr(nested_var, attr)
+                    setattr(nested_var, attr_list[-1], value)
+                    
             cfg.TEST.RESULT_SCORE_THRESH = cfg.TEST.RESULT_SCORE_THRESH_VIS
+            cfg.DATA.BASEDIR = '/data'
+            cfg.DATA.TRAIN='coco_train2017'
+            cfg.DATA.VAL='coco_val2017'
+            register_coco(cfg.DATA.BASEDIR)
             finalize_configs(is_training=False)
 
             # Create an inference model
