@@ -40,7 +40,7 @@ class Net(nn.Module):
 
 def _get_train_data_loader(batch_size, training_dir, is_distributed, **kwargs):
     logger.info("Get train data loader")
-    dataset = datasets.MNIST(training_dir, train=True, transform=transforms.Compose([
+    dataset = datasets.MNIST(training_dir, download=True, train=True, transform=transforms.Compose([
         transforms.ToTensor(),
         transforms.Normalize((0.1307,), (0.3081,))
     ]))
@@ -52,7 +52,7 @@ def _get_train_data_loader(batch_size, training_dir, is_distributed, **kwargs):
 def _get_test_data_loader(test_batch_size, training_dir, **kwargs):
     logger.info("Get test data loader")
     return torch.utils.data.DataLoader(
-        datasets.MNIST(training_dir, train=False, transform=transforms.Compose([
+        datasets.MNIST(training_dir, download=True, train=False, transform=transforms.Compose([
             transforms.ToTensor(),
             transforms.Normalize((0.1307,), (0.3081,))
         ])),
