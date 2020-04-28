@@ -7,59 +7,22 @@ import re
 import signal
 import socket
 import time
-import datetime
-import inspect
-from collections import OrderedDict
-import traceback
+from markov.log_handler.constants import (SIMAPP_ENVIRONMENT_EXCEPTION,
+                                          SIMAPP_EVENT_ERROR_CODE_500,
+                                          SIMAPP_S3_DATA_STORE_EXCEPTION,
+                                          SIMAPP_EVENT_ERROR_CODE_400,
+                                          SIMAPP_SIMULATION_WORKER_EXCEPTION, SIMAPP_DONE_EXIT)
+from markov.log_handler.logger import Logger
+from markov.log_handler.exception_handler import log_and_exit, simapp_exit_gracefully
+from markov.constants import (ROBOMAKER_CANCEL_JOB_WAIT_TIME,
+                              CHKPNT_KEY_SUFFIX, DEEPRACER_CHKPNT_KEY_SUFFIX,
+                              NUM_RETRIES, BEST_CHECKPOINT, LAST_CHECKPOINT,
+                              SAGEMAKER_S3_KMS_CMK_ARN, ROBOMAKER_S3_KMS_CMK_ARN,
+                              S3_KMS_CMK_ARN_ENV, HYPERPARAMETERS,
+                              S3KmsEncryption)
 import boto3
 import botocore
 import shutil
-
-SIMAPP_VERSION = "2.0"
-DEFAULT_COLOR = "Black"
-
-SIMAPP_SIMULATION_WORKER_EXCEPTION = "simulation_worker.exceptions"
-SIMAPP_TRAINING_WORKER_EXCEPTION = "training_worker.exceptions"
-SIMAPP_VALIDATION_WORKER_EXCEPTION = "validation_worker.exceptions"
-SIMAPP_S3_DATA_STORE_EXCEPTION = "s3_datastore.exceptions"
-SIMAPP_ENVIRONMENT_EXCEPTION = "environment.exceptions"
-SIMAPP_MEMORY_BACKEND_EXCEPTION = "memory_backend.exceptions"
-SIMAPP_SIMULATION_SAVE_TO_MP4_EXCEPTION = "save_to_mp4.exceptions"
-SIMAPP_SIMULATION_KINESIS_VIDEO_CAMERA_EXCEPTION = "kinesis_video_camera.exceptions"
-
-SIMAPP_EVENT_SYSTEM_ERROR = "system_error"
-SIMAPP_EVENT_USER_ERROR = "user_error"
-
-SIMAPP_EVENT_ERROR_CODE_500 = "500"
-SIMAPP_EVENT_ERROR_CODE_400 = "400"
-# The robomaker team has asked us to wait 5 minutes to let their workflow cancel
-# the simulation job
-ROBOMAKER_CANCEL_JOB_WAIT_TIME = 60 * 5
-# The current checkpoint key
-CHKPNT_KEY_SUFFIX = "model/.coach_checkpoint"
-# This is the key for the best checkpoint
-DEEPRACER_CHKPNT_KEY_SUFFIX = "model/deepracer_checkpoints.json"
-# The number of times to retry a failed boto call
-NUM_RETRIES = 5
-
-class Logger(object):
-    counter = 0
-    """
-    Logger class for all DeepRacer Simulation Application logging
-    """
-    def __init__(self, logger_name=__name__, log_level=logging.INFO):
-        self.logger = logging.getLogger(logger_name)
-        self.logger.setLevel(log_level)
-
-        handler = logging.StreamHandler()
-        handler.setLevel(log_level)
-        self.logger.addHandler(handler)
-
-    def get_logger(self):
-        """
-        Returns the logger object with all the required log settings.
-        """
-        return self.logger
 
 logger = Logger(__name__, logging.INFO).get_logger()
 
@@ -94,55 +57,6 @@ def str2bool(flag):
             flag = True
     return flag
 
-def json_format_logger(msg, *args, **kwargs):
-    dict_obj = OrderedDict()
-    json_format_log = dict()
-    log_error = False
-
-    message = msg.format(args)
-    dict_obj['version'] = SIMAPP_VERSION
-    dict_obj['date'] = str(datetime.datetime.now())
-    dict_obj['function'] = inspect.stack()[2][3]
-    dict_obj['message'] = message
-    for key, value in kwargs.items():
-        if key == "log_level":
-            log_error = kwargs[key] == "ERROR"
-        else:
-            dict_obj[key] = value
-    if log_error:
-        json_format_log["simapp_exception"] = dict_obj
-        logger.error(json.dumps(json_format_log))
-    else:
-        json_format_log["simapp_info"] = dict_obj
-        logger.info(json.dumps(json_format_log))
-
-def build_system_error_dict(exception_type, errcode):
-    """
-    Creates system exception dictionary to be printed in the logs
-    """
-    return {"exceptionType":exception_type,\
-            "eventType":SIMAPP_EVENT_SYSTEM_ERROR,\
-            "errorCode":errcode, "log_level":"ERROR"}
-
-def build_user_error_dict(exception_type, errcode):
-    """
-    Creates user exception dictionary to be printed in the logs
-    """
-    return {"exceptionType":exception_type,\
-            "eventType":SIMAPP_EVENT_USER_ERROR,\
-            "errorCode":errcode, "log_level":"ERROR"}
-
-def log_and_exit(msg, error_source, error_code):
-    ''' Helper method that logs an exception and exits the application
-        msg - The message to be logged
-        error_source - The source of the error, training worker, rolloutworker, etc
-        error_code - 4xx or 5xx error
-    '''
-    error_dict = build_user_error_dict(error_source, error_code) \
-        if error_code == SIMAPP_EVENT_ERROR_CODE_400 else build_system_error_dict(error_source, error_code)
-    json_format_logger(msg, **error_dict)
-    simapp_exit_gracefully()
-
 def get_ip_from_host(timeout=100):
     counter = 0
     ip_address = None
@@ -160,7 +74,9 @@ def get_ip_from_host(timeout=100):
     if counter == timeout and not ip_address:
         error_string = "Environment Error: Could not retrieve IP address \
         for %s in past %s seconds." % (host_name, timeout)
-        log_and_exit(error_string, SIMAPP_ENVIRONMENT_EXCEPTION, SIMAPP_EVENT_ERROR_CODE_500)
+        log_and_exit(error_string, 
+                     SIMAPP_ENVIRONMENT_EXCEPTION, 
+                     SIMAPP_EVENT_ERROR_CODE_500)
     return ip_address
 
 def load_model_metadata(s3_client, model_metadata_s3_key, model_metadata_local_path):
@@ -199,22 +115,7 @@ def load_model_metadata(s3_client, model_metadata_s3_key, model_metadata_local_p
             json.dump(model_metadata, f, indent=4)
         logger.info("Loaded default action space.")
 
-SIMAPP_DONE_EXIT = 0
-SIMAPP_ERROR_EXIT = -1
-def simapp_exit_gracefully(simapp_exit=SIMAPP_ERROR_EXIT):
-    #simapp exception leading to exiting the system
-    # -close the running processes
-    # -upload simtrace data to S3
-    logger.info("simapp_exit_gracefully: simapp_exit-{}".format(simapp_exit))
-    logger.info("Terminating simapp simulation...")
-    stack_trace = traceback.format_exc()
-    logger.info("deepracer_racetrack_env - callstack={}".format(stack_trace))
-    if simapp_exit == SIMAPP_ERROR_EXIT:
-        os._exit(1)
 
-
-BEST_CHECKPOINT = 'best_checkpoint'
-LAST_CHECKPOINT = 'last_checkpoint'
 
 
 def get_best_checkpoint_num(s3_bucket, s3_prefix, region):
@@ -295,10 +196,8 @@ def copy_best_frozen_model_to_sm_output_dir(s3_bucket, s3_prefix, region,
         shutil.copy(os.path.join(source_dir, source_dir_pb_files[0]), os.path.join(dest_dir, "model.pb"))
     else:
         # Delete the current .pb files in the destination direcory
-        """
         for filename in dest_dir_pb_files:
             os.remove(os.path.join(dest_dir, filename))
-        """
 
         # Copy the frozen model for the current best checkpoint to the destination directory
         logger.info("Copying the frozen checkpoint from {} to {}.".format(
@@ -307,7 +206,6 @@ def copy_best_frozen_model_to_sm_output_dir(s3_bucket, s3_prefix, region,
 
         # Loop through the current list of frozen models in source directory and
         # delete the iterations lower than last_checkpoint_iteration except best_model
-        """
         for filename in source_dir_pb_files:
             if filename not in [best_model_name, last_model_name]:
                 if len(filename.split("_")[1]) > 1 and len(filename.split("_")[1].split(".pb")):
@@ -317,7 +215,7 @@ def copy_best_frozen_model_to_sm_output_dir(s3_bucket, s3_prefix, region,
                 else:
                     logger.error("Frozen model name not in the right format in the source directory: {}, {}"
                                  .format(filename, source_dir))
-        """
+
 
 def get_best_checkpoint(s3_bucket, s3_prefix, region):
     return get_deepracer_checkpoint(s3_bucket=s3_bucket,
@@ -354,11 +252,14 @@ def get_deepracer_checkpoint(s3_bucket, s3_prefix, region, checkpoint_type):
             return None
         else:
             log_and_exit("Unable to download best checkpoint: {}, {}".\
-                         format(s3_bucket, err.response['Error']['Code']),
-                         SIMAPP_SIMULATION_WORKER_EXCEPTION, SIMAPP_EVENT_ERROR_CODE_400)
+                             format(s3_bucket, err.response['Error']['Code']),
+                         SIMAPP_SIMULATION_WORKER_EXCEPTION, 
+                         SIMAPP_EVENT_ERROR_CODE_400)
     except Exception as ex:
-        log_and_exit("Can't download best checkpoint {}".format(ex),
-                     SIMAPP_SIMULATION_WORKER_EXCEPTION, SIMAPP_EVENT_ERROR_CODE_500)
+        log_and_exit("Can't download best checkpoint: {}"
+                         .format(ex),
+                     SIMAPP_SIMULATION_WORKER_EXCEPTION, 
+                     SIMAPP_EVENT_ERROR_CODE_500)
     try:
         with open(deepracer_checkpoint_json) as deepracer_checkpoint_file:
             checkpoint = json.load(deepracer_checkpoint_file)[checkpoint_type]["name"]
@@ -381,6 +282,7 @@ def do_model_selection(s3_bucket, s3_prefix, region, checkpoint_type=BEST_CHECKP
        :returns status of model selection. True if successfully selected model otherwise false.
     '''
     try:
+        s3_extra_args = get_s3_kms_extra_args()
         model_checkpoint = get_deepracer_checkpoint(s3_bucket=s3_bucket,
                                                     s3_prefix=s3_prefix,
                                                     region=region,
@@ -393,16 +295,20 @@ def do_model_selection(s3_bucket, s3_prefix, region, checkpoint_type=BEST_CHECKP
         s3_client = boto3.Session().client('s3', region_name=region, config=get_boto_config())
         s3_client.upload_file(Filename=local_path,
                               Bucket=s3_bucket,
-                              Key=os.path.join(s3_prefix, CHKPNT_KEY_SUFFIX))
+                              Key=os.path.join(s3_prefix, CHKPNT_KEY_SUFFIX),
+                              ExtraArgs=s3_extra_args)
         os.remove(local_path)
         return True
     except botocore.exceptions.ClientError as err:
-        log_and_exit("Unable to upload checkpoint: {}, {}".format(s3_bucket,
-                                                                  err.response['Error']['Code']),
-                     SIMAPP_SIMULATION_WORKER_EXCEPTION, SIMAPP_EVENT_ERROR_CODE_400)
+        log_and_exit("Unable to upload checkpoint: {}, {}"
+                        .format(s3_bucket, err.response['Error']['Code']),
+                     SIMAPP_SIMULATION_WORKER_EXCEPTION, 
+                     SIMAPP_EVENT_ERROR_CODE_400)
     except Exception as ex:
-        log_and_exit("Unable to upload checkpoint: {}".format(ex),
-                     SIMAPP_SIMULATION_WORKER_EXCEPTION, SIMAPP_EVENT_ERROR_CODE_500)
+        log_and_exit("Exception in uploading checkpoint: {}"
+                         .format(ex),
+                     SIMAPP_SIMULATION_WORKER_EXCEPTION, 
+                     SIMAPP_EVENT_ERROR_CODE_500)
 
 def has_current_ckpnt_name(s3_bucket, s3_prefix, region):
     '''This method checks if a given s3 bucket contains the current checkpoint key
@@ -417,18 +323,24 @@ def has_current_ckpnt_name(s3_bucket, s3_prefix, region):
                                              Prefix=os.path.join(s3_prefix, "model"))
         if 'Contents' not in response:
             # Customer deleted checkpoint file.
-            log_and_exit("No objects found: {}".format(s3_bucket),
-                         SIMAPP_SIMULATION_WORKER_EXCEPTION, SIMAPP_EVENT_ERROR_CODE_400)
+            log_and_exit("No objects found: {}"
+                             .format(s3_bucket),
+                         SIMAPP_SIMULATION_WORKER_EXCEPTION, 
+                         SIMAPP_EVENT_ERROR_CODE_400)
 
         _, ckpnt_name = os.path.split(CHKPNT_KEY_SUFFIX)
         return any(list(map(lambda obj: os.path.split(obj['Key'])[1] == ckpnt_name,
                             response['Contents'])))
     except botocore.exceptions.ClientError as e:
-        log_and_exit("No objects found: {}, {}".format(s3_bucket, e.response['Error']['Code']),
-                     SIMAPP_SIMULATION_WORKER_EXCEPTION, SIMAPP_EVENT_ERROR_CODE_400)
+        log_and_exit("No objects found: {}, {}"
+                         .format(s3_bucket, e.response['Error']['Code']),
+                     SIMAPP_SIMULATION_WORKER_EXCEPTION, 
+                     SIMAPP_EVENT_ERROR_CODE_400)
     except Exception as e:
-        log_and_exit("No objects found: {}".format(e),
-                     SIMAPP_SIMULATION_WORKER_EXCEPTION, SIMAPP_EVENT_ERROR_CODE_500)
+        log_and_exit("Exception in checking for current checkpoint key: {}"
+                         .format(e),
+                     SIMAPP_SIMULATION_WORKER_EXCEPTION, 
+                     SIMAPP_EVENT_ERROR_CODE_500)
 
 def make_compatible(s3_bucket, s3_prefix, region, ready_file):
     '''Moves and creates all the necessary files to make models trained by coach 0.11
@@ -440,7 +352,7 @@ def make_compatible(s3_bucket, s3_prefix, region, ready_file):
     try:
         session = boto3.Session()
         s3_client = session.client('s3', region_name=region, config=get_boto_config())
-
+        s3_extra_args = get_s3_kms_extra_args()
         old_checkpoint = os.path.join(os.getcwd(), 'checkpoint')
         s3_client.download_file(Bucket=s3_bucket,
                                 Key=os.path.join(s3_prefix, 'model/checkpoint'),
@@ -449,27 +361,33 @@ def make_compatible(s3_bucket, s3_prefix, region, ready_file):
         with open(old_checkpoint) as old_checkpoint_file:
             chekpoint = re.findall(r'"(.*?)"', old_checkpoint_file.readline())
         if len(chekpoint) != 1:
-            log_and_exit("No checkpoint file found", SIMAPP_SIMULATION_WORKER_EXCEPTION,
+            log_and_exit("No checkpoint file found", 
+                         SIMAPP_SIMULATION_WORKER_EXCEPTION,
                          SIMAPP_EVENT_ERROR_CODE_400)
         os.remove(old_checkpoint)
         # Upload ready file so that the system can gab the checkpoints
         s3_client.upload_fileobj(Fileobj=io.BytesIO(b''),
                                  Bucket=s3_bucket,
-                                 Key=os.path.join(s3_prefix, "model/{}").format(ready_file))
+                                 Key=os.path.join(s3_prefix, "model/{}").format(ready_file),
+                                 ExtraArgs=s3_extra_args)
         # Upload the new checkpoint file
         new_checkpoint = os.path.join(os.getcwd(), 'coach_checkpoint')
         with open(new_checkpoint, 'w+') as new_checkpoint_file:
             new_checkpoint_file.write(chekpoint[0])
         s3_client.upload_file(Filename=new_checkpoint, Bucket=s3_bucket,
-                              Key=os.path.join(s3_prefix, CHKPNT_KEY_SUFFIX))
+                              Key=os.path.join(s3_prefix, CHKPNT_KEY_SUFFIX),
+                              ExtraArgs=s3_extra_args)
         os.remove(new_checkpoint)
     except botocore.exceptions.ClientError as e:
-        log_and_exit("Unable to make model compatible: {}, {}".format(s3_bucket,
-                                                                      e.response['Error']['Code']),
-                     SIMAPP_SIMULATION_WORKER_EXCEPTION, SIMAPP_EVENT_ERROR_CODE_400)
+        log_and_exit("Unable to make model compatible: {}, {}"
+                         .format(s3_bucket, e.response['Error']['Code']),
+                     SIMAPP_SIMULATION_WORKER_EXCEPTION, 
+                     SIMAPP_EVENT_ERROR_CODE_400)
     except Exception as e:
-        log_and_exit("Unable to make model compatible: {}".format(e),
-                     SIMAPP_SIMULATION_WORKER_EXCEPTION, SIMAPP_EVENT_ERROR_CODE_500)
+        log_and_exit("Exception in making model compatible: {}"
+                         .format(e),
+                     SIMAPP_SIMULATION_WORKER_EXCEPTION, 
+                     SIMAPP_EVENT_ERROR_CODE_500)
 
 def is_error_bad_ckpnt(error):
     ''' Helper method that determines whether a value error is caused by an invalid checkpoint
@@ -480,6 +398,133 @@ def is_error_bad_ckpnt(error):
     # to restore a checkpoint because it does not match the graph.
     keys = ['tensor', 'shape', 'checksum', 'checkpoint']
     return any(key in str(error).lower() for key in keys)
+
+def get_video_display_name():
+    """ Based on the job type display the appropriate name on the mp4.
+    For the RACING job type use the racer alias name and for others use the model name.
+
+    Returns:
+        list: List of the display name. In head2head there would be two values else one value.
+    """
+    #
+    # The import rospy statement is here because the util is used by the sagemaker and it fails because ROS is not installed.
+    # Also the rollout_utils.py fails because its PhaseObserver is python3 compatable and not python2.7 because of 
+    # def __init__(self, topic: str, sink: RunPhaseSubject) -> None:
+    #
+    import rospy
+    video_job_type = rospy.get_param("VIDEO_JOB_TYPE", "")
+    # TODO: This code should be removed when the cloud service starts providing VIDEO_JOB_TYPE YAML parameter
+    if not video_job_type:
+        return force_list(rospy.get_param("DISPLAY_NAME", ""))
+    if video_job_type == "RACING":
+        return force_list(rospy.get_param("RACER_NAME", ""))
+    return force_list(rospy.get_param("MODEL_NAME", ""))
+
+def get_racecar_names(racecar_num):
+    """Return the racer names based on the number of racecars given.
+
+    Arguments:
+        racecar_num (int): The number of race cars
+    Return:
+        [] - the list of race car names
+    """
+    racer_names = []
+    if racecar_num == 1:
+        racer_names.append('racecar')
+    else:
+        for idx in range(racecar_num):
+            racer_names.append('racecar_' + str(idx))
+    return racer_names
+
+def get_racecar_idx(racecar_name):
+    try:
+        racecar_name_list = racecar_name.split("_")
+        if len(racecar_name_list) == 1:
+            return None
+        racecar_num = racecar_name_list[1]
+        return int(racecar_num)
+    except Exception as ex:
+        log_and_exit("racecar name should be in format racecar_x. However, get {}".\
+                        format(racecar_name),
+                     SIMAPP_SIMULATION_WORKER_EXCEPTION,
+                     SIMAPP_EVENT_ERROR_CODE_500)
+
+def get_s3_kms_extra_args():
+    """ Since the SageS3Client class is called by both robomaker and sagemaker. One has to know
+    first if its coming from sagemaker or robomaker. Then alone I could decide to fetch the kms arn
+    to encrypt all the S3 upload object. Return the extra args that is required to encrypt the s3 object with KMS key
+    If the KMS key not passed then returns empty dict
+
+    Returns:
+        dict: With the kms encryption arn if passed else empty dict
+    """
+    #
+    # TODO:
+    # 1. I am avoiding using of os.environ.get("NODE_TYPE", "") because we can depricate this env which is hardcoded in
+    # training build image. This is currently used in the multi-part s3 upload.
+    # 2. After refactoring I hope there wont be need to check if run on sagemaker or robomaker.
+    # 3. For backward compatability and do not want to fail if the cloud team does not pass these kms arn
+    #
+    # SM_TRAINING_ENV env is only present in sagemaker
+    hyperparams = os.environ.get('SM_TRAINING_ENV', '')
+
+    # Validation worker will store KMS Arn to S3_KMS_CMK_ARN_ENV environment variable
+    # if value is passed from cloud service.
+    s3_kms_cmk_arn = os.environ.get(S3_KMS_CMK_ARN_ENV, None)
+    if not s3_kms_cmk_arn:
+        if hyperparams:
+            hyperparams_dict = json.loads(hyperparams)
+            if HYPERPARAMETERS in hyperparams_dict and SAGEMAKER_S3_KMS_CMK_ARN in hyperparams_dict[HYPERPARAMETERS]:
+                s3_kms_cmk_arn = hyperparams_dict[HYPERPARAMETERS][SAGEMAKER_S3_KMS_CMK_ARN]
+        else:
+            # Having a try catch block if sagemaker drops SM_TRAINING_ENV and for some reason this is empty in sagemaker
+            try:
+                # The import rospy statement will fail in sagemaker because ROS is not installed
+                import rospy
+                s3_kms_cmk_arn = rospy.get_param(ROBOMAKER_S3_KMS_CMK_ARN, None)
+            except Exception:
+                pass
+    s3_extra_args = {S3KmsEncryption.ACL.value: S3KmsEncryption.BUCKET_OWNER_FULL_CONTROL.value}
+    if s3_kms_cmk_arn:
+        s3_extra_args[S3KmsEncryption.SERVER_SIDE_ENCRYPTION.value] = S3KmsEncryption.AWS_KMS.value
+        s3_extra_args[S3KmsEncryption.SSE_KMS_KEY_ID.value] = s3_kms_cmk_arn
+    return s3_extra_args
+
+def test_internet_connection(aws_region):
+    """
+    Recently came across faults because of old VPC stacks trying to use the deepracer service.
+    When tried to download the model_metadata.json. The s3 fails with connection time out.
+    To avoid this and give the user proper message, having this logic.
+    """
+    try:
+        session = boto3.session.Session()
+        ec2_client = session.client('ec2', aws_region)
+        logger.info('Checking internet connection...')
+        response = ec2_client.describe_vpcs()
+        if not response['Vpcs']:
+            log_and_exit("No VPC attached to instance",
+                         SIMAPP_ENVIRONMENT_EXCEPTION,
+                         SIMAPP_EVENT_ERROR_CODE_500)
+        logger.info('Verified internet connection')
+    except botocore.exceptions.EndpointConnectionError:
+        log_and_exit("No Internet connection or ec2 service unavailable",
+                     SIMAPP_ENVIRONMENT_EXCEPTION,
+                     SIMAPP_EVENT_ERROR_CODE_500)
+    except botocore.exceptions.ClientError as ex:
+        log_and_exit("Issue with your current VPC stack and IAM roles.\
+                      You might need to reset your account resources: {}".format(ex),
+                     SIMAPP_ENVIRONMENT_EXCEPTION,
+                     SIMAPP_EVENT_ERROR_CODE_400)
+    except botocore.exceptions.ConnectTimeoutError as ex:
+        log_and_exit("Issue with your current VPC stack and IAM roles.\
+                      You might need to reset your account resources: {}".format(ex),
+                     SIMAPP_ENVIRONMENT_EXCEPTION,
+                     SIMAPP_EVENT_ERROR_CODE_400)
+    except Exception as ex:
+        log_and_exit("Issue with your current VPC stack and IAM roles.\
+                      You might need to reset your account resources: {}".format(ex),
+                     SIMAPP_ENVIRONMENT_EXCEPTION,
+                     SIMAPP_EVENT_ERROR_CODE_500)
 
 class DoorMan:
     def __init__(self):

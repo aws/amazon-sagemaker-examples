@@ -1,15 +1,11 @@
 import numpy as np
 import math
 import threading
-from markov.deepracer_exceptions import GenericRolloutException
-from markov.rospy_wrappers import ServiceProxyWrapper
+from markov.log_handler.deepracer_exceptions import GenericRolloutException
 from markov.architecture.constants import Input
 from markov.track_geom.utils import euler_to_quaternion, quaternion_to_euler, apply_orientation
 from markov.cameras.constants import GazeboWorld
 from markov.cameras.utils import normalize, project_to_2d, ray_plane_intersect
-
-import rospy
-from gazebo_msgs.srv import GetModelState
 
 
 class Frustum(object):
@@ -19,8 +15,6 @@ class Frustum(object):
         # define inward direction
         self.ccw = True
 
-        rospy.wait_for_service('/gazebo/get_model_state')
-        self.model_state_client = ServiceProxyWrapper('/gazebo/get_model_state', GetModelState)
         self.frustums = []
         self.cam_poses = []
         self.near_plane_infos = []
@@ -56,16 +50,18 @@ class Frustum(object):
     def get_right_vec(quaternion):
         return apply_orientation(quaternion, GazeboWorld.right)
 
-    def update(self):
+    def update(self, car_model_state):
         """
         Update the frustums
+
+        Args:
+            car_model_state (GetModelState): Gazebo ModelState of the agent
         """
         with self.lock:
             self.frustums = []
             self.cam_poses = []
             self.near_plane_infos = []
             # Retrieve car pose to calculate camera pose.
-            car_model_state = self.model_state_client(self.agent_name, '')
             car_pos = np.array([car_model_state.pose.position.x, car_model_state.pose.position.y,
                                 car_model_state.pose.position.z])
             car_quaternion = [car_model_state.pose.orientation.x,

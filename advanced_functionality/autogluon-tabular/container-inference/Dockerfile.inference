@@ -1,0 +1,9 @@
+ARG REGISTRY_URI
+FROM ${REGISTRY_URI}/mxnet-inference:1.6.0-cpu-py3
+
+RUN pip install --upgrade pip
+
+COPY package/ /opt/ml/code/package/
+
+# Defines inference.py as script entrypoint
+ENV SAGEMAKER_PROGRAM inference.py

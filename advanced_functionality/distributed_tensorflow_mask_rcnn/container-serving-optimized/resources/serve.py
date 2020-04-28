@@ -12,16 +12,14 @@
 # timeout                  MODEL_SERVER_TIMEOUT              70 seconds
 
 from __future__ import print_function
-import multiprocessing
 import os
 import signal
 import subprocess
 import sys
 
-cpu_count = multiprocessing.cpu_count()
 
 model_server_timeout = os.environ.get('MODEL_SERVER_TIMEOUT', 70)
-model_server_workers = int(os.environ.get('MODEL_SERVER_WORKERS', cpu_count))
+model_server_workers = int(os.environ.get('MODEL_SERVER_WORKERS', 1))
 
 def sigterm_handler(nginx_pid, gunicorn_pid):
     try:

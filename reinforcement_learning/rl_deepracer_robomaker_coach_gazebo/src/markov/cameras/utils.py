@@ -1,6 +1,6 @@
 import math
 import numpy as np
-from markov.deepracer_exceptions import GenericRolloutException
+from markov.log_handler.deepracer_exceptions import GenericRolloutException
 from markov.track_geom.utils import euler_to_quaternion, apply_orientation, inverse_quaternion
 
 

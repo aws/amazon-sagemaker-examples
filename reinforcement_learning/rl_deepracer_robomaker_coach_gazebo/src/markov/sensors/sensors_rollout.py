@@ -11,10 +11,13 @@ from markov.sensors.utils import get_observation_space, get_front_camera_embedde
 from markov.sensors.sensor_interface import SensorInterface
 from markov.environments.constants import TRAINING_IMAGE_SIZE
 from markov.architecture.constants import Input
-from markov.deepracer_exceptions import GenericRolloutException, GenericError
+from markov.log_handler.deepracer_exceptions import GenericRolloutException, GenericError
 from markov import utils
+from markov.log_handler.logger import Logger
+from markov.log_handler.constants import SIMAPP_SIMULATION_WORKER_EXCEPTION
+                                    
 
-LOGGER = utils.Logger(__name__, logging.INFO).get_logger()
+LOGGER = Logger(__name__, logging.INFO).get_logger()
 
 class SensorFactory(object):
     '''This class implements a sensot factory and is used to create sensors per
@@ -54,7 +57,7 @@ class Camera(SensorInterface):
         try:
             return get_observation_space(Input.CAMERA.value)
         except GenericError as ex:
-            ex.log_except_and_exit(utils.SIMAPP_SIMULATION_WORKER_EXCEPTION)
+            ex.log_except_and_exit(SIMAPP_SIMULATION_WORKER_EXCEPTION)
         except Exception as ex:
             raise GenericRolloutException('{}'.format(ex))
 
@@ -80,7 +83,7 @@ class Camera(SensorInterface):
         try:
             return get_front_camera_embedders(network_type)
         except GenericError as ex:
-            ex.log_except_and_exit(utils.SIMAPP_SIMULATION_WORKER_EXCEPTION)
+            ex.log_except_and_exit(SIMAPP_SIMULATION_WORKER_EXCEPTION)
         except Exception as ex:
             raise GenericRolloutException('{}'.format(ex))
 
@@ -105,7 +108,7 @@ class Observation(SensorInterface):
         try:
             return get_observation_space(Input.OBSERVATION.value)
         except GenericError as ex:
-            ex.log_except_and_exit(utils.SIMAPP_SIMULATION_WORKER_EXCEPTION)
+            ex.log_except_and_exit(SIMAPP_SIMULATION_WORKER_EXCEPTION)
         except Exception as ex:
             raise GenericRolloutException('{}'.format(ex))
 
@@ -131,7 +134,7 @@ class Observation(SensorInterface):
         try:
             return get_observation_embedder()
         except GenericError as ex:
-            ex.log_except_and_exit(utils.SIMAPP_SIMULATION_WORKER_EXCEPTION)
+            ex.log_except_and_exit(SIMAPP_SIMULATION_WORKER_EXCEPTION)
         except Exception as ex:
             raise GenericRolloutException('{}'.format(ex))
 
@@ -159,7 +162,7 @@ class LeftCamera(SensorInterface):
         try:
             return get_observation_space(Input.LEFT_CAMERA.value)
         except GenericError as ex:
-            ex.log_except_and_exit(utils.SIMAPP_SIMULATION_WORKER_EXCEPTION)
+            ex.log_except_and_exit(SIMAPP_SIMULATION_WORKER_EXCEPTION)
         except Exception as ex:
             raise GenericRolloutException('{}'.format(ex))
 
@@ -185,7 +188,7 @@ class LeftCamera(SensorInterface):
         try:
             return get_left_camera_embedders(network_type)
         except GenericError as ex:
-            ex.log_except_and_exit(utils.SIMAPP_SIMULATION_WORKER_EXCEPTION)
+            ex.log_except_and_exit(SIMAPP_SIMULATION_WORKER_EXCEPTION)
         except Exception as ex:
             raise GenericRolloutException('{}'.format(ex))
 
@@ -217,7 +220,7 @@ class DualCamera(SensorInterface):
         try:
             return get_observation_space(Input.STEREO.value)
         except GenericError as ex:
-            ex.log_except_and_exit(utils.SIMAPP_SIMULATION_WORKER_EXCEPTION)
+            ex.log_except_and_exit(SIMAPP_SIMULATION_WORKER_EXCEPTION)
         except Exception as ex:
             raise GenericRolloutException('{}'.format(ex))
 
@@ -247,7 +250,7 @@ class DualCamera(SensorInterface):
         try:
             return get_stereo_camera_embedders(network_type)
         except GenericError as ex:
-            ex.log_except_and_exit(utils.SIMAPP_SIMULATION_WORKER_EXCEPTION)
+            ex.log_except_and_exit(SIMAPP_SIMULATION_WORKER_EXCEPTION)
         except Exception as ex:
             raise GenericRolloutException('{}'.format(ex))
 
@@ -280,7 +283,7 @@ class Lidar(SensorInterface):
         try:
             return get_observation_space(self.sensor_type)
         except GenericError as ex:
-            ex.log_except_and_exit(utils.SIMAPP_SIMULATION_WORKER_EXCEPTION)
+            ex.log_except_and_exit(SIMAPP_SIMULATION_WORKER_EXCEPTION)
         except Exception as ex:
             raise GenericRolloutException('{}'.format(ex))
 
@@ -299,7 +302,7 @@ class Lidar(SensorInterface):
         try:
             return get_lidar_embedders(network_type, self.sensor_type)
         except GenericError as ex:
-            ex.log_except_and_exit(utils.SIMAPP_SIMULATION_WORKER_EXCEPTION)
+            ex.log_except_and_exit(SIMAPP_SIMULATION_WORKER_EXCEPTION)
         except Exception as ex:
             raise GenericRolloutException('{}'.format(ex))
 
@@ -320,7 +323,7 @@ class SectorLidar(SensorInterface):
         try:
             return get_observation_space(self.sensor_type)
         except GenericError as ex:
-            ex.log_except_and_exit(utils.SIMAPP_SIMULATION_WORKER_EXCEPTION)
+            ex.log_except_and_exit(SIMAPP_SIMULATION_WORKER_EXCEPTION)
         except Exception as ex:
             raise GenericRolloutException('{}'.format(ex))
 
@@ -339,7 +342,7 @@ class SectorLidar(SensorInterface):
         try:
             return get_lidar_embedders(network_type, self.sensor_type)
         except GenericError as ex:
-            ex.log_except_and_exit(utils.SIMAPP_SIMULATION_WORKER_EXCEPTION)
+            ex.log_except_and_exit(SIMAPP_SIMULATION_WORKER_EXCEPTION)
         except Exception as ex:
             raise GenericRolloutException('{}'.format(ex))
 

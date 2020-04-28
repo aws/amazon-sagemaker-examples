@@ -4,7 +4,9 @@ import re
 from multiprocessing import Pool
 
 from markov.s3_client import SageS3Client
-from markov.utils import log_and_exit, SIMAPP_SIMULATION_WORKER_EXCEPTION, SIMAPP_EVENT_ERROR_CODE_500
+from markov.log_handler.exception_handler import log_and_exit
+from markov.log_handler.constants import (SIMAPP_SIMULATION_WORKER_EXCEPTION,
+                                          SIMAPP_EVENT_ERROR_CODE_500)
 from markov.metrics.constants import MULTIPROCESS_S3WRITER_POOL
 
 class S3Writer(object):
@@ -38,5 +40,7 @@ class S3Writer(object):
             _ = [os.remove(job.local_file) for job in self.job_info]
             self.upload_num += 1
         except Exception as ex:
-            log_and_exit('Unclassified exception: {}'.format(ex), SIMAPP_SIMULATION_WORKER_EXCEPTION,
+            log_and_exit('S3 writer exception: {}'
+                             .format(ex), 
+                         SIMAPP_SIMULATION_WORKER_EXCEPTION,
                          SIMAPP_EVENT_ERROR_CODE_500)

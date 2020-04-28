@@ -11,11 +11,17 @@ from rl_coach.base_parameters import TaskParameters
 from rl_coach.core_types import EnvironmentSteps
 from rl_coach.data_stores.data_store import SyncFiles
 from markov import utils
+from markov.log_handler.logger import Logger
+from markov.log_handler.exception_handler import log_and_exit
+from markov.log_handler.constants import (SIMAPP_SIMULATION_WORKER_EXCEPTION,
+                                          SIMAPP_EVENT_ERROR_CODE_500,
+                                          SIMAPP_EVENT_ERROR_CODE_400)
+from markov.constants import SIMAPP_VERSION
 from markov.agent_ctrl.constants import ConfigParams
 from markov.agents.rollout_agent_factory import create_rollout_agent, create_obstacles_agent, create_bot_cars_agent
 from markov.agents.utils import RunPhaseSubject
 from markov.defaults import reward_function
-from markov.deepracer_exceptions import GenericRolloutError, GenericRolloutException
+from markov.log_handler.deepracer_exceptions import GenericRolloutError, GenericRolloutException
 from markov.environments.constants import VELOCITY_TOPICS, STEERING_TOPICS, LINK_NAMES
 from markov.metrics.s3_metrics import EvalMetrics
 from markov.metrics.s3_writer import S3Writer
@@ -24,7 +30,8 @@ from markov.metrics.constants import MetricsS3Keys, IterationDataLocalFileNames,
 from markov.s3_boto_data_store import S3BotoDataStore, S3BotoDataStoreParameters
 from markov.s3_client import SageS3Client
 from markov.sagemaker_graph_manager import get_graph_manager
-from markov.rollout_utils import PhaseObserver, signal_robomaker_markov_package_ready
+from markov.rollout_utils import (PhaseObserver, signal_robomaker_markov_package_ready,
+                                  configure_environment_randomizer)
 from markov.rospy_wrappers import ServiceProxyWrapper
 from markov.camera_utils import configure_camera
 from markov.utils_parse_model_metadata import parse_model_metadata
@@ -33,9 +40,8 @@ from markov.reset.constants import AgentInfo
 
 from std_srvs.srv import Empty, EmptyRequest
 
-logger = utils.Logger(__name__, logging.INFO).get_logger()
+logger = Logger(__name__, logging.INFO).get_logger()
 
-EVALUATION_SIMTRACE_DATA_S3_OBJECT_KEY = "sim_inference_logs/EvaluationSimTraceData.csv"
 MIN_RESET_COUNT = 10000 #TODO: change when console passes float("inf")
 
 CUSTOM_FILES_PATH = "./custom_files"
@@ -88,12 +94,14 @@ def tournament_worker(graph_manager, number_of_trials, task_parameters, s3_write
     graph_manager.create_graph(task_parameters=task_parameters, stop_physics=pause_physics,
                                start_physics=unpause_physics, empty_service_call=EmptyRequest)
     unpause_physics(EmptyRequest())
-    graph_manager.reset_internal_state(True)
 
     is_save_mp4_enabled = rospy.get_param('MP4_S3_BUCKET', None)
     if is_save_mp4_enabled:
         for subscribe_mp4 in subscribe_to_save_mp4:
             subscribe_mp4(EmptyRequest())
+
+    configure_environment_randomizer()
+
     if is_continuous:
         graph_manager.evaluate(EnvironmentSteps(1))
     else:
@@ -113,17 +121,48 @@ def tournament_worker(graph_manager, number_of_trials, task_parameters, s3_write
     #                            rospy.get_param('AWS_REGION'))
 
 
+# tournament_worker: The order of list will be the order that ros node gets killed.
+ROS_NODE_PREFIX_LIST_TO_TERMINATE = [
+    # '/save_to_mp4',
+    # '/kinesis_video_camera_node',
+    # '/car_reset_node',
+    # '/visualization_node',
+    '/tournament_race_node',
+    # '/racecar_0/controller_manager',
+    # '/racecar_0/robot_state_publisher',
+    # '/racecar_1/controller_manager',
+    # '/racecar_1/robot_state_publisher',
+    # '/rl_coach',
+    # '/robomaker/srv',
+    # '/rosout',
+    # '/rqt_gui_cpp_node',
+    # '/rviz',
+    # '/gazebo'
+]
+ROS_NODE_PREFIX_TO_INDEX_MAP = {ros_node_prefix: idx
+                                for idx, ros_node_prefix in enumerate(ROS_NODE_PREFIX_LIST_TO_TERMINATE)}
+
+
 # tournament_worker: terminate tournament_race_node
 # this will cause `tournament_node` to restart the RoboMaker job for next race.
 def terminate_tournament_race():
     # Terminate tournament_race_node
-    nodes = os.popen("rosnode list").readlines()
-    for i in range(len(nodes)):
-        nodes[i] = nodes[i].replace("\n", "")
-    for node in nodes:
-        if node.startswith('/tournament_race_node'):
-            os.system("rosnode kill {}".format(node))
-            break
+    node_names = os.popen("rosnode list").readlines()
+    for i in range(len(node_names)):
+        node_names[i] = node_names[i].replace("\n", "")
+    logger.info("ROS nodes running: {}".format(node_names))
+
+    # Map the termination index to actual node name
+    terminate_index_to_node_map = {}
+    for node_name in node_names:
+        for node_prefix_to_terminate in ROS_NODE_PREFIX_TO_INDEX_MAP:
+            if node_name.startswith(node_prefix_to_terminate):
+                terminate_index_to_node_map[ROS_NODE_PREFIX_TO_INDEX_MAP[node_prefix_to_terminate]] = node_name
+                break
+    # Sort by key and kill node in order.
+    for index in sorted(terminate_index_to_node_map):
+        logger.info("Killing ROS node ({})...".format(terminate_index_to_node_map[index]))
+        os.system("rosnode kill {}".format(terminate_index_to_node_map[index]))
 
 
 # tournament_worker: write race report before exiting the node.
@@ -139,7 +178,7 @@ def write_race_report(graph_manager,
     best_racecar_name = None
     best_agent_lap = None
     best_agent_progress = None
-    racecar_names = agents_info_map.keys()
+    racecar_names = sorted(agents_info_map.keys())
     for racecar_name, agent_info in agents_info_map.items():
         if best_racecar_name is None:
             best_racecar_name = racecar_name
@@ -165,7 +204,7 @@ def write_race_report(graph_manager,
                 "s3_bucket": model_s3_bucket_map[agent_name],
                 "s3_prefix": model_s3_prefix_map[agent_name],
             },
-            "metrics": {
+            "metric": {
                 "s3_bucket": metrics_s3_bucket_map[agent_name],
                 "s3_key": metrics_s3_key_map[agent_name]
             },
@@ -251,7 +290,7 @@ def main():
 
     # tournament_worker: names to be displayed in MP4.
     # This is racer alias in tournament worker case.
-    display_names = rospy.get_param('DISPLAY_NAME', "")
+    display_names = utils.get_video_display_name()
 
     metrics_s3_buckets = rospy.get_param('METRICS_S3_BUCKET')
     metrics_s3_object_keys = rospy.get_param('METRICS_S3_OBJECT_KEY')
@@ -276,9 +315,10 @@ def main():
         validate_list.extend([mp4_s3_bucket, mp4_s3_object_prefix])
 
     if not all([lambda x: len(x) == len(validate_list[0]), validate_list]):
-        utils.log_and_exit("Eval worker error: Incorrect arguments passed: {}".format(validate_list),
-                           utils.SIMAPP_SIMULATION_WORKER_EXCEPTION,
-                           utils.SIMAPP_EVENT_ERROR_CODE_500)
+        log_and_exit("Tournament worker error: Incorrect arguments passed: {}"
+                         .format(validate_list),
+                     SIMAPP_SIMULATION_WORKER_EXCEPTION,
+                     SIMAPP_EVENT_ERROR_CODE_500)
     if args.number_of_resets != 0 and args.number_of_resets < MIN_RESET_COUNT:
         raise GenericRolloutException("number of resets is less than {}".format(MIN_RESET_COUNT))
 
@@ -329,7 +369,7 @@ def main():
                                   model_metadata_local_path)
         # Handle backward compatibility
         _, _, version = parse_model_metadata(model_metadata_local_path)
-        if float(version) < float(utils.SIMAPP_VERSION) and \
+        if float(version) < float(SIMAPP_VERSION) and \
         not utils.has_current_ckpnt_name(arg_s3_bucket[agent_index], arg_s3_prefix[agent_index], args.aws_region):
             utils.make_compatible(arg_s3_bucket[agent_index], arg_s3_prefix[agent_index], args.aws_region,
                                   SyncFiles.TRAINER_READY.value)
@@ -382,14 +422,7 @@ def main():
                              MetricsS3Keys.METRICS_KEY.value: metrics_s3_object_keys[agent_index],
                              # Replaced rospy.get_param('AWS_REGION') to be equal to the argument being passed
                              # or default argument set
-                             MetricsS3Keys.REGION.value: args.aws_region,
-                             # Replaced rospy.get_param('MODEL_S3_BUCKET') to be equal to the argument being passed
-                             # or default argument set
-                             MetricsS3Keys.STEP_BUCKET.value: arg_s3_bucket[agent_index],
-                             # Replaced rospy.get_param('MODEL_S3_PREFIX') to be equal to the argument being passed
-                             # or default argument set
-                             MetricsS3Keys.STEP_KEY.value: os.path.join(arg_s3_prefix[agent_index],
-                                                                        EVALUATION_SIMTRACE_DATA_S3_OBJECT_KEY)}
+                             MetricsS3Keys.REGION.value: args.aws_region}
         aws_region = rospy.get_param('AWS_REGION', args.aws_region)
         s3_writer_job_info = []
         if simtrace_s3_bucket:
@@ -423,9 +456,11 @@ def main():
     signal_robomaker_markov_package_ready()
 
     PhaseObserver('/agent/training_phase', run_phase_subject)
+    enable_domain_randomization = utils.str2bool(rospy.get_param('ENABLE_DOMAIN_RANDOMIZATION', False))
 
     graph_manager, _ = get_graph_manager(hp_dict=sm_hyperparams_dict, agent_list=agent_list,
-                                         run_phase_subject=run_phase_subject)
+                                         run_phase_subject=run_phase_subject,
+                                         enable_domain_randomization=enable_domain_randomization)
 
     ds_params_instance = S3BotoDataStoreParameters(aws_region=args.aws_region,
                                                    bucket_names=s3_bucket_dict,
@@ -465,18 +500,21 @@ if __name__ == '__main__':
         main()
     except ValueError as err:
         if utils.is_error_bad_ckpnt(err):
-            utils.log_and_exit("User modified model: {}".format(err),
-                               utils.SIMAPP_SIMULATION_WORKER_EXCEPTION,
-                               utils.SIMAPP_EVENT_ERROR_CODE_400)
+            log_and_exit("User modified model: {}"
+                             .format(err),
+                         SIMAPP_SIMULATION_WORKER_EXCEPTION,
+                         SIMAPP_EVENT_ERROR_CODE_400)
         else:
-            utils.log_and_exit("Eval worker value error: {}".format(err),
-                               utils.SIMAPP_SIMULATION_WORKER_EXCEPTION,
-                               utils.SIMAPP_EVENT_ERROR_CODE_500)
+            log_and_exit("Tournament worker value error: {}"
+                             .format(err),
+                         SIMAPP_SIMULATION_WORKER_EXCEPTION,
+                         SIMAPP_EVENT_ERROR_CODE_500)
     except GenericRolloutError as ex:
         ex.log_except_and_exit()
     except GenericRolloutException as ex:
         ex.log_except_and_exit()
     except Exception as ex:
-        utils.log_and_exit("Eval worker error: {}".format(ex),
-                           utils.SIMAPP_SIMULATION_WORKER_EXCEPTION,
-                           utils.SIMAPP_EVENT_ERROR_CODE_500)
+        log_and_exit("Tournament worker error: {}"
+                         .format(ex),
+                     SIMAPP_SIMULATION_WORKER_EXCEPTION,
+                     SIMAPP_EVENT_ERROR_CODE_500)
