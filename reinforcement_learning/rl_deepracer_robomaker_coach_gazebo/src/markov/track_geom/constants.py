@@ -7,6 +7,15 @@ SET_MODEL_STATE = '/gazebo/set_model_state'
 SPAWN_SDF_MODEL = '/gazebo/spawn_sdf_model'
 SPAWN_URDF_MODEL = '/gazebo/spawn_urdf_model'
 
+SPLINE_DEGREE = 3
+
+DIST_THRESHOLD = 0.02
+
+class TrackLane(Enum):
+    INNER_LANE = "inner_lane"
+    OUTER_LANE = "outer_lane"
+    CENTER_LINE = "center_line"
+
 class TrackNearPnts(Enum):
     '''Keys for nearest points dictionary'''
     NEAR_PNT_CENT = 'near_pnt_cent'

@@ -1,7 +1,7 @@
 import rospy
 import threading
 from markov.cameras.camera_factory import CameraFactory
-from markov.deepracer_exceptions import GenericRolloutException
+from markov.log_handler.deepracer_exceptions import GenericRolloutException
 from markov.defaults import DEFAULT_MAIN_CAMERA, DEFAULT_SUB_CAMERA
 
 

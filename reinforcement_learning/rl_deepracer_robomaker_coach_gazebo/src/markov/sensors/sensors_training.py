@@ -4,8 +4,8 @@ from markov.sensors.sensor_interface import SensorInterface
 from markov.sensors.utils import get_observation_space, get_front_camera_embedders, \
                                  get_left_camera_embedders, get_stereo_camera_embedders, \
                                  get_lidar_embedders, get_observation_embedder
-from markov.deepracer_exceptions import GenericTrainerException, GenericError
-from markov.utils import SIMAPP_TRAINING_WORKER_EXCEPTION
+from markov.log_handler.deepracer_exceptions import GenericTrainerException, GenericError
+from markov.log_handler.constants import SIMAPP_TRAINING_WORKER_EXCEPTION
 
 class SensorFactory(object):
     '''This class implements a sensot factory and is used to create sensors per

@@ -1,7 +1,7 @@
 '''This class defines an interface for how agents reset with the environment.
 '''
 import abc
-from markov.deepracer_exceptions import GenericRolloutException
+from markov.log_handler.deepracer_exceptions import GenericRolloutException
 class AbstractResetRule(object, metaclass=abc.ABCMeta):
     def __init__(self, name):
         if not name or not isinstance(name, str):

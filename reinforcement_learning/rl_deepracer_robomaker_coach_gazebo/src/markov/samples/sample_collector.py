@@ -1,6 +1,6 @@
 import pickle
 import os
-from markov.deepracer_exceptions import GenericTrainerException
+from markov.log_handler.deepracer_exceptions import GenericTrainerException
 
 class SampleCollector:
     """

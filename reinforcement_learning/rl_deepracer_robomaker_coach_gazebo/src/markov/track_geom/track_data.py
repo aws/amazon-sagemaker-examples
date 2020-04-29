@@ -20,8 +20,8 @@ from markov.track_geom.constants import TrackNearPnts, TrackNearDist, AgentPos, 
                                         GET_LINK_STATE, GET_MODEL_STATE
 from markov.track_geom.utils import euler_to_quaternion, apply_orientation, find_prev_next, quaternion_to_euler
 from markov.rospy_wrappers import ServiceProxyWrapper
-from markov.deepracer_exceptions import GenericRolloutException
-
+from markov.log_handler.deepracer_exceptions import GenericRolloutException
+from markov import utils
 
 @unique
 class FiniteDifference(Enum):
@@ -37,13 +37,13 @@ class TrackLine(object):
     def __getattr__(self, name):
         return getattr(self.line, name)
 
-    def find_prev_next_waypoints(self, distance, normalized=False, reverse_dir=False):
+    def find_prev_next_waypoints(self, distance, normalized=False):
         ndist = distance if normalized else distance / self.line.length
-        return find_prev_next(self.ndists, ndist, reverse_dir)
+        return find_prev_next(self.ndists, ndist)
 
-    def interpolate_yaw(self, distance, normalized=False, reverse_dir=False, position=None,
+    def interpolate_yaw(self, distance, normalized=False, position=None,
                         finite_difference=FiniteDifference.CENTRAL_DIFFERENCE):
-        prev_index, next_index = self.find_prev_next_waypoints(distance, normalized, reverse_dir)
+        prev_index, next_index = self.find_prev_next_waypoints(distance, normalized)
         if finite_difference == FiniteDifference.CENTRAL_DIFFERENCE:
             yaw = math.atan2(self.line.coords[next_index][1] - self.line.coords[prev_index][1],
                              self.line.coords[next_index][0] - self.line.coords[prev_index][0])
@@ -55,11 +55,11 @@ class TrackLine(object):
             raise ValueError("Unrecognized FiniteDifference enum value")
         return yaw
 
-    def interpolate_pose(self, distance, normalized=False, reverse_dir=False,
+    def interpolate_pose(self, distance, normalized=False,
                          finite_difference=FiniteDifference.CENTRAL_DIFFERENCE):
         pose = Pose()
         position = self.interpolate(distance, normalized)
-        yaw = self.interpolate_yaw(distance, normalized, reverse_dir, position, finite_difference)
+        yaw = self.interpolate_yaw(distance, normalized, position, finite_difference)
         orientation = euler_to_quaternion(yaw=yaw)
         pose.position.x = position.x
         pose.position.y = position.y
@@ -85,11 +85,63 @@ class TrackData(object):
             TrackData()
         return TrackData._instance_
 
+    @property
+    def center_line(self):
+        '''center line property depending on direction
+        '''
+        if self._reverse_dir_:
+            return self._center_line_reverse_
+        return self._center_line_forward_
+
+    @property
+    def inner_border(self):
+        '''inner board property depending on direction
+        '''
+        if self._reverse_dir_:
+            return self._inner_border_reverse_
+        return self._inner_border_forward_
+
+    @property
+    def outer_border(self):
+        '''outer board property depending on direction
+        '''
+        if self._reverse_dir_:
+            return self._outer_border_reverse_
+        return self._outer_border_forward_
+
+    @property
+    def inner_lane(self):
+        '''inner lane property depending on direction
+        '''
+        if self._reverse_dir_:
+            return self._inner_lane_reverse_
+        return self._inner_lane_forward_
+
+    @property
+    def outer_lane(self):
+        '''outer lane property depending on direction
+        '''
+        if self._reverse_dir_:
+            return self._outer_lane_reverse_
+        return self._outer_lane_forward_
+
+    @property
+    def reverse_dir(self):
+        '''reverse direction getter
+        '''
+        return self._reverse_dir_
+
+    @reverse_dir.setter
+    def reverse_dir(self, val):
+        '''reverse direction setter
+        '''
+        self._reverse_dir_ = val
+
     def __init__(self):
         '''Instantiates the class and creates clients for the relevant ROS services'''
+        self._reverse_dir_ = utils.str2bool(rospy.get_param("REVERSE_DIR", False))
         if TrackData._instance_ is not None:
-            raise GenericRolloutException("Attempting to construct multiple tack data objects")
-
+            raise GenericRolloutException("Attempting to construct multiple TrackData objects")
         rospy.wait_for_service(GET_LINK_STATE)
         rospy.wait_for_service(GET_MODEL_STATE)
 
@@ -104,21 +156,32 @@ class TrackData(object):
             self._bot_car_speed_ = float(rospy.get_param("BOT_CAR_SPEED", 0.0))
             waypoints = np.load(waypoints_path)
 
-            self.is_loop = np.all(waypoints[0,:] == waypoints[-1,:])
+            self.is_loop = np.all(waypoints[0, :] == waypoints[-1, :])
             poly_func = LinearRing if self.is_loop else LineString
-            self._center_line_ = TrackLine(poly_func(waypoints[:, 0:2]))
-            self._inner_border_ = TrackLine(poly_func(waypoints[:, 2:4]))
-            self._outer_border_ = TrackLine(poly_func(waypoints[:, 4:6]))
-            self._inner_lane_ = TrackLine(poly_func((waypoints[:,2:4] + waypoints[:,0:2])/2))
-            self._outer_lane_ = TrackLine(poly_func((waypoints[:,4:6] + waypoints[:,0:2])/2))
+            # forward direction
+            self._center_line_forward_ = TrackLine(poly_func(waypoints[:, 0:2]))
+            self._inner_border_forward_ = TrackLine(poly_func(waypoints[:, 2:4]))
+            self._outer_border_forward_ = TrackLine(poly_func(waypoints[:, 4:6]))
+            self._inner_lane_forward_ = TrackLine(poly_func((waypoints[:, 2:4] + \
+                                                             waypoints[:, 0:2])/2))
+            self._outer_lane_forward_ = TrackLine(poly_func((waypoints[:, 4:6] + \
+                                                             waypoints[:, 0:2])/2))
+            # reversed direction
+            self._center_line_reverse_ = TrackLine(poly_func(waypoints[:, 0:2][::-1]))
+            self._inner_border_reverse_ = TrackLine(poly_func(waypoints[:, 2:4][::-1]))
+            self._outer_border_reverse_ = TrackLine(poly_func(waypoints[:, 4:6][::-1]))
+            self._inner_lane_reverse_ = TrackLine(poly_func((waypoints[:, 2:4][::-1] + \
+                                                             waypoints[:, 0:2][::-1]) / 2))
+            self._outer_lane_reverse_ = TrackLine(poly_func((waypoints[:, 4:6][::-1] + \
+                                                             waypoints[:, 0:2][::-1]) / 2))
             if self.is_loop:
-                self._left_poly_ = Polygon(self._center_line_, [self._inner_border_])
-                self._road_poly_ = Polygon(self._outer_border_, [self._inner_border_])
+                self._left_poly_ = Polygon(self.center_line, [self.inner_border])
+                self._road_poly_ = Polygon(self.outer_border, [self.inner_border])
             else:
-                self._left_poly_ = Polygon(np.vstack((self._center_line_.line,
-                                                      np.flipud(self._inner_border_))))
-                self._road_poly_ = Polygon(np.vstack((self._outer_border_,
-                                                      np.flipud(self._inner_border_))))
+                self._left_poly_ = Polygon(np.vstack((self.center_line.line,
+                                                      np.flipud(self.inner_border))))
+                self._road_poly_ = Polygon(np.vstack((self.outer_border,
+                                                      np.flipud(self.inner_border))))
 
             self.car_ndist = 0.0 # TEMPORARY -- REMOVE THIS
             self.object_poses = OrderedDict()
@@ -127,7 +190,6 @@ class TrackData(object):
 
             # There should only be one track data object
             TrackData._instance_ = self
-
             # declare a lock to prevent read and write at the same time
             self._lock_ = threading.Lock()
 
@@ -150,8 +212,8 @@ class TrackData(object):
         else:
             raise GenericRolloutException('Failed to reset unrecognized object: {}'.format(name))
 
-    def find_prev_next_waypoints(self, distance, normalized=False, reverse_dir=False):
-        return self._center_line_.find_prev_next_waypoints(distance, normalized, reverse_dir)
+    def find_prev_next_waypoints(self, distance, normalized=False):
+        return self.center_line.find_prev_next_waypoints(distance, normalized)
 
     @staticmethod
     def get_nearest_dist(near_pnt_dict, model_point):
@@ -172,19 +234,18 @@ class TrackData(object):
         except Exception as ex:
             raise GenericRolloutException("Unable to compute nearest distance: {}".format(ex))
 
-    def get_agent_pos(self, agent_name, link_name_list, relative_pos):
+    def get_agent_pos(self, car_model_state, link_name_list, relative_pos):
         '''Returns a dictionary with the keys defined in AgentPos which contains
            the position of the agent on the track, the location of the desired
            links, and the orientation of the agent.
-           agent_name - String with the name of the agent
+           car_model_state - Gazebo ModelState of the agent
            link_name_list - List of strings containing the name of the links whose
                             positions are to be retrieved.
             relative_pos - List containing the x-y relative position of the front of
                            the agent
         '''
         try:
-            #Request the model state from gazebo
-            model_state = self._get_model_state_(agent_name, '')
+            model_state = car_model_state
             #Compute the model's orientation
             model_orientation = np.array([model_state.pose.orientation.x,
                                           model_state.pose.orientation.y,
@@ -201,7 +262,7 @@ class TrackData(object):
                                                   link.link_state.pose.position.y)
             link_points = [make_link_points(self._get_link_state_(name, ''))
                            for name in link_name_list]
-   
+
             return {AgentPos.ORIENTATION.value : model_orientation,
                     AgentPos.POINT.value : model_point,
                     AgentPos.LINK_POINTS.value :link_points}
@@ -211,14 +272,14 @@ class TrackData(object):
     def get_track_length(self):
         '''Returns the length of the track'''
         try:
-            return self._center_line_.length
+            return self.center_line.length
         except  Exception as ex:
             raise GenericRolloutException("Unable to get track lenght: {}".format(ex))
 
     def get_way_pnts(self):
         '''Returns a list containing all the way points'''
         try:
-            return list(self._center_line_.coords)
+            return list(self.center_line.coords)
         except  Exception as ex:
             raise GenericRolloutException("Unable to get way points: {}".format(ex))
 
@@ -228,7 +289,7 @@ class TrackData(object):
                          the position data for the agent
         '''
         try:
-            return self._center_line_.project(model_point, normalized=True)
+            return self.center_line.project(model_point, normalized=True)
         except Exception as ex:
             raise GenericRolloutException("Unable to get norm dist: {}".format(ex))
 
@@ -240,11 +301,11 @@ class TrackData(object):
         '''
         try:
             near_pnt_ctr = \
-                self._center_line_.interpolate(self.get_norm_dist(model_point), normalized=True)
+                self.center_line.interpolate(self.get_norm_dist(model_point), normalized=True)
             near_pnt_in = \
-                self._inner_border_.interpolate(self._inner_border_.project(near_pnt_ctr))
+                self.inner_border.interpolate(self.inner_border.project(near_pnt_ctr))
             near_pnt_out = \
-                self._outer_border_.interpolate(self._outer_border_.project(near_pnt_ctr))
+                self.outer_border.interpolate(self.outer_border.project(near_pnt_ctr))
 
             return {TrackNearPnts.NEAR_PNT_CENT.value : near_pnt_ctr,
                     TrackNearPnts.NEAR_PNT_IN.value : near_pnt_in,
@@ -252,7 +313,7 @@ class TrackData(object):
         except Exception as ex:
             raise GenericRolloutException("Unable to get nearest points: {}".format(ex))
 
-    def get_object_reward_params(self, racecar_name, model_point, model_heading, current_progress, reverse_dir):
+    def get_object_reward_params(self, racecar_name, model_point, reverse_dir, car_model_state):
         '''Returns a dictionary with object-related reward function params.'''
         with self._lock_:
             try:
@@ -263,7 +324,7 @@ class TrackData(object):
                     return {}
 
                 # Sort the object locations based on projected distance
-                object_pdists = [self._center_line_.project(Point(p)) for p in object_locations]
+                object_pdists = [self.center_line.project(Point(p)) for p in object_locations]
                 object_order = np.argsort(object_pdists)
                 object_pdists = [object_pdists[i] for i in object_order]
                 object_locations = [object_locations[i] for i in object_order]
@@ -282,9 +343,8 @@ class TrackData(object):
                         object_speeds[i] = self._bot_car_speed_
 
                 # Find the prev/next objects
-                model_pdist = self._center_line_.project(model_point)
-                prev_object_index, next_object_index = find_prev_next(object_pdists, model_pdist,
-                                                                      reverse_dir)
+                model_pdist = self.center_line.project(model_point)
+                prev_object_index, next_object_index = find_prev_next(object_pdists, model_pdist)
 
                 # Figure out which one is the closest
                 object_points = [Point([object_location[0], object_location[1]])
@@ -317,6 +377,7 @@ class TrackData(object):
                     closest_object_nearest_dist_dict[TrackNearDist.NEAR_DIST_IN.value] < \
                     closest_object_nearest_dist_dict[TrackNearDist.NEAR_DIST_OUT.value]
                 objects_in_camera = self.get_objects_in_camera_frustums(agent_name=racecar_name,
+                                                                        car_model_state=car_model_state,
                                                                         object_order=object_order)
                 is_next_object_in_camera = any(object_in_camera_idx == next_object_index
                                             for object_in_camera_idx, _ in objects_in_camera)
@@ -341,8 +402,8 @@ class TrackData(object):
            next_index - Integer representing the index of the next point
         '''
         try:
-            dist_from_prev = model_point.distance(Point(self._center_line_.coords[prev_index]))
-            dist_from_next = model_point.distance(Point(self._center_line_.coords[next_index]))
+            dist_from_prev = model_point.distance(Point(self.center_line.coords[prev_index]))
+            dist_from_next = model_point.distance(Point(self.center_line.coords[next_index]))
             return dist_from_prev, dist_from_next
         except Exception as ex:
             raise GenericRolloutException("Unable to get distance to prev and next points: {}".format(ex))
@@ -383,9 +444,19 @@ class TrackData(object):
                 + apply_orientation(object_orientation, p)
                 for p in local_verts]
 
-    def is_racecar_collided(self, racecar_wheel_points, racecar_name):
-        '''Returns a true if there is a collision between the racecar and an object
-           racecar_wheel_points - List of points that specifies the wheels of the training car
+    def get_collided_object_name(self, racecar_wheel_points, racecar_name):
+        '''Get object name that racecar collide into
+        
+        Args:
+            racecar_wheel_points (list): List of points that specifies
+                the wheels of the training car
+            racecar_name (string): racecar name
+        
+        Returns:
+            string: Crashed object name if there is a crashed object. Otherwise ''
+        
+        Raises:
+            GenericRolloutException: Unable to detect collision
         '''
         try:
             for object_name in self.object_poses.keys():
@@ -394,17 +465,17 @@ class TrackData(object):
                     object_dims = self.object_dims[object_name]
                     object_boundary = Polygon(TrackData.get_object_bounding_rect(object_pose, object_dims))
                     if any([object_boundary.contains(p) for p in racecar_wheel_points]):
-                        return True, object_name
-            return False, None
+                        return object_name
+            return ''
         except Exception as ex:
             raise GenericRolloutException("Unable to detect collision {}".format(ex))
 
-    def get_objects_in_camera_frustums(self, agent_name, object_order=None):
+    def get_objects_in_camera_frustums(self, agent_name, car_model_state, object_order=None):
         """Returns list of tuple (idx, object.pose) for the objects
         that are in camera frustums"""
 
         frustum = FrustumManager.get_instance().get(agent_name=agent_name)
-        frustum.update()
+        frustum.update(car_model_state)
         objects_in_frustum = []
 
         object_order = object_order if object_order is not None else range(len(self.object_poses.values()))

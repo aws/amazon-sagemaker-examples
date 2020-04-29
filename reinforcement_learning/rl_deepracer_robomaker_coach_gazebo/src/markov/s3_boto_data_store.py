@@ -10,17 +10,19 @@ import boto3
 from rl_coach.checkpoint import CheckpointStateFile, _filter_checkpoint_files
 from rl_coach.data_stores.data_store import DataStore, DataStoreParameters, SyncFiles
 from markov.multi_agent_coach.multi_agent_graph_manager import MultiAgentGraphManager
-from markov.utils import log_and_exit, Logger, get_best_checkpoint, get_boto_config, \
-                         copy_best_frozen_model_to_sm_output_dir, \
-                         SIMAPP_EVENT_ERROR_CODE_500, SIMAPP_EVENT_ERROR_CODE_400, \
-                         SIMAPP_S3_DATA_STORE_EXCEPTION
+from markov.utils import get_best_checkpoint, get_boto_config, \
+                         copy_best_frozen_model_to_sm_output_dir, get_s3_kms_extra_args
+from markov.log_handler.logger import Logger
+from markov.log_handler.exception_handler import log_and_exit
+from markov.log_handler.constants import (SIMAPP_EVENT_ERROR_CODE_500, SIMAPP_EVENT_ERROR_CODE_400,
+                                          SIMAPP_S3_DATA_STORE_EXCEPTION)
 import tensorflow as tf
 
 LOG = Logger(__name__, logging.INFO).get_logger()
 
 # The number of models to keep in S3
 #! TODO discuss with product team if this number should be configurable
-NUM_MODELS_TO_KEEP = 50
+NUM_MODELS_TO_KEEP = 4
 
 SLEEP_TIME_WHILE_WAITING_FOR_DATA_FROM_TRAINER_IN_SECOND = 1
 SM_MODEL_OUTPUT_DIR = os.environ.get("ALGO_MODEL_DIR", "/opt/ml/model")
@@ -63,6 +65,7 @@ class S3BotoDataStore(DataStore):
 
         self.graph_manager = graph_manager
         self.ignore_lock = ignore_lock
+        self.s3_extra_args = get_s3_kms_extra_args()
 
     def _get_s3_key(self, key, agent_key):
         return os.path.join(self.key_prefixes[agent_key], key)
@@ -87,13 +90,14 @@ class S3BotoDataStore(DataStore):
             for agent_key, bucket in self.params.buckets.items():
                 s3_client.upload_fileobj(Fileobj=io.BytesIO(b''),
                                          Bucket=bucket,
-                                         Key=self._get_s3_key(SyncFiles.FINISHED.value, agent_key))
+                                         Key=self._get_s3_key(SyncFiles.FINISHED.value, agent_key),
+                                         ExtraArgs=self.s3_extra_args)
         except botocore.exceptions.ClientError:
             log_and_exit("Unable to upload finish file",
                          SIMAPP_S3_DATA_STORE_EXCEPTION,
                          SIMAPP_EVENT_ERROR_CODE_400)
-        except Exception:
-            log_and_exit("Unable to upload finish file",
+        except Exception as ex:
+            log_and_exit("Exception in uploading finish file {}".format(ex),
                          SIMAPP_S3_DATA_STORE_EXCEPTION,
                          SIMAPP_EVENT_ERROR_CODE_500)
 
@@ -108,7 +112,8 @@ class S3BotoDataStore(DataStore):
                 # acquire lock
                 s3_client.upload_fileobj(Fileobj=io.BytesIO(b''),
                                          Bucket=bucket,
-                                         Key=self._get_s3_key(SyncFiles.LOCKFILE.value, agent_key))
+                                         Key=self._get_s3_key(SyncFiles.LOCKFILE.value, agent_key),
+                                         ExtraArgs=self.s3_extra_args)
 
                 checkpoint_dir = base_checkpoint_dir if len(self.graph_manager.agents_params) == 1 else \
                     os.path.join(base_checkpoint_dir, agent_key)
@@ -130,7 +135,8 @@ class S3BotoDataStore(DataStore):
                                 rel_name = os.path.relpath(abs_name, checkpoint_dir)
                                 s3_client.upload_file(Filename=abs_name,
                                                       Bucket=bucket,
-                                                      Key=self._get_s3_key(rel_name, agent_key))
+                                                      Key=self._get_s3_key(rel_name, agent_key),
+                                                      ExtraArgs=self.s3_extra_args)
                                 check_point_key_list.append(self._get_s3_key(rel_name, agent_key))
                                 num_files_uploaded += 1
                     LOG.info("Uploaded %s files for checkpoint %s", num_files_uploaded, ckpt_state.num)
@@ -141,19 +147,22 @@ class S3BotoDataStore(DataStore):
                     rel_name = os.path.relpath(abs_name, checkpoint_dir)
                     s3_client.upload_file(Filename=abs_name,
                                           Bucket=bucket,
-                                          Key=self._get_s3_key(rel_name, agent_key))
+                                          Key=self._get_s3_key(rel_name, agent_key),
+                                          ExtraArgs=self.s3_extra_args)
 
                 # upload Finished if present
                 if os.path.exists(os.path.join(checkpoint_dir, SyncFiles.FINISHED.value)):
                     s3_client.upload_fileobj(Fileobj=io.BytesIO(b''),
                                              Bucket=bucket,
-                                             Key=self._get_s3_key(SyncFiles.FINISHED.value, agent_key))
+                                             Key=self._get_s3_key(SyncFiles.FINISHED.value, agent_key),
+                                             ExtraArgs=self.s3_extra_args)
 
                 # upload Ready if present
                 if os.path.exists(os.path.join(checkpoint_dir, SyncFiles.TRAINER_READY.value)):
                     s3_client.upload_fileobj(Fileobj=io.BytesIO(b''),
                                              Bucket=bucket,
-                                             Key=self._get_s3_key(SyncFiles.TRAINER_READY.value, agent_key))
+                                             Key=self._get_s3_key(SyncFiles.TRAINER_READY.value, agent_key),
+                                             ExtraArgs=self.s3_extra_args)
 
                 # release lock
                 s3_client.delete_object(Bucket=bucket,
@@ -173,7 +182,8 @@ class S3BotoDataStore(DataStore):
                     # upload the model_<ID>.pb to S3.
                     s3_client.upload_file(Filename=frozen_graph_fpath,
                                           Bucket=bucket,
-                                          Key=self._get_s3_key(frozen_graph_s3_name, agent_key))
+                                          Key=self._get_s3_key(frozen_graph_s3_name, agent_key),
+                                          ExtraArgs=self.s3_extra_args)
                     LOG.info("saved intermediate frozen graph: %s", self._get_s3_key(frozen_graph_s3_name, agent_key))
 
                     # Copy the best checkpoint to the SM_MODEL_OUTPUT_DIR
@@ -215,8 +225,8 @@ class S3BotoDataStore(DataStore):
             log_and_exit("Unable to upload checkpoint",
                          SIMAPP_S3_DATA_STORE_EXCEPTION,
                          SIMAPP_EVENT_ERROR_CODE_400)
-        except Exception:
-            log_and_exit("Unable to upload checkpoint",
+        except Exception as ex:
+            log_and_exit("Exception in uploading checkpoint: {}".format(ex),
                          SIMAPP_S3_DATA_STORE_EXCEPTION,
                          SIMAPP_EVENT_ERROR_CODE_500)
 
@@ -261,8 +271,8 @@ class S3BotoDataStore(DataStore):
             log_and_exit("Unable to download checkpoint",
                          SIMAPP_S3_DATA_STORE_EXCEPTION,
                          SIMAPP_EVENT_ERROR_CODE_400)
-        except Exception:
-            log_and_exit("Unable to download checkpoint",
+        except Exception as ex:
+            log_and_exit("Exception in downloading checkpoint: {}".format(ex),
                          SIMAPP_S3_DATA_STORE_EXCEPTION,
                          SIMAPP_EVENT_ERROR_CODE_500)
 
@@ -385,7 +395,7 @@ class S3BotoDataStore(DataStore):
             log_and_exit("Unable to download checkpoint",
                          SIMAPP_S3_DATA_STORE_EXCEPTION,
                          SIMAPP_EVENT_ERROR_CODE_400)
-        except Exception:
-            log_and_exit("Unable to download checkpoint",
+        except Exception as ex:
+            log_and_exit("Exception in downloading checkpoint: {}".format(ex),
                          SIMAPP_S3_DATA_STORE_EXCEPTION,
                          SIMAPP_EVENT_ERROR_CODE_500)

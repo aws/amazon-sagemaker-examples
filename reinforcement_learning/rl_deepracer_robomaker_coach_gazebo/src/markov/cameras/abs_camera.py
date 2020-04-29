@@ -1,7 +1,7 @@
 import abc
 import threading
 
-from markov.deepracer_exceptions import GenericRolloutException
+from markov.log_handler.deepracer_exceptions import GenericRolloutException
 from markov.rospy_wrappers import ServiceProxyWrapper
 from markov.track_geom.constants import SPAWN_SDF_MODEL
 from markov.cameras.camera_manager import CameraManager

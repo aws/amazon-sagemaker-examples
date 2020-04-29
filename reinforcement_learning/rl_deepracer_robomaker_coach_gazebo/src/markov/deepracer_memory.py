@@ -3,11 +3,13 @@ import pickle
 import queue
 import logging
 import redis
+import uuid
 
 from rl_coach.memories.backend.memory import MemoryBackend
+from rl_coach.memories.backend.redis import RedisPubSubMemoryBackendParameters
 from rl_coach.core_types import Episode
 
-from markov.utils import Logger
+from markov.log_handler.logger import Logger
 
 LOG = Logger(__name__, logging.INFO).get_logger()
 
@@ -26,6 +28,28 @@ POLL_TIME = 10.0
 # - We should be able to handle 6000, but reducing to 5000 to be safe.
 # TODO: We need better approach to handle this memory cap.
 MAX_MEMORY_STEPS = 5000
+
+
+class DeepRacerRedisPubSubMemoryBackendParameters(RedisPubSubMemoryBackendParameters):
+    """
+    DeepRacer Redis PubSub Memory Backend Parameters that subclasses RedisPubSubMemoryBackendParameters
+    to extend to support num_workers and rollout_idx parameters.
+    """
+    def __init__(self, redis_address: str = "", redis_port: int = 6379,
+                 channel: str = "channel-{}".format(uuid.uuid4()),
+                 orchestrator_params: dict = None, run_type='trainer', orchestrator_type: str = "kubernetes",
+                 deployed: str = False,
+                 num_workers: int = 1, rollout_idx: int = 0):
+        super().__init__(redis_address=redis_address,
+                         redis_port=redis_port,
+                         channel=channel,
+                         orchestrator_params=orchestrator_params,
+                         run_type=run_type,
+                         orchestrator_type=orchestrator_type,
+                         deployed=deployed)
+        self.num_workers = num_workers
+        self.rollout_idx = rollout_idx
+
 
 def get_endpoint_helper(redis_address, redis_port):
     '''Helper method that returns a dict with the address and port
@@ -46,14 +70,18 @@ class DeepRacerRolloutBackEnd(MemoryBackend):
         self.agent_name = agent_name
         # List of tuples containing the episode number and the episode data
         self.data = list()
-        # The episode number of the last episode produced by the rollout worker
-        self.last_episode_num = 0
         # The last episode number requested by trainer worker
         self.last_request_episode_num = -1
         # The max number of episodes to collect before performing a training iteration
         self.total_episodes = num_consecutive_playing_steps.num_steps
         # Redis params
         self.params = params
+        # The episode number of the last episode produced by the rollout worker
+        self.last_episode_num = self.params.rollout_idx
+        # The total number of rollout worker
+        self.num_workers = self.params.num_workers
+        # The rollout worker index
+        self.rollout_idx = self.params.rollout_idx
         # Redis topic name
         self.topic_name = self.params.channel + '_' + self.agent_name
         # thread lock
@@ -72,7 +100,6 @@ class DeepRacerRolloutBackEnd(MemoryBackend):
         ''' Message handler for training worker request
             message - Request from trainer worker containing the desired episode number
         '''
-        episode = -1
         try:
             episode = pickle.loads(message['data'])
 
@@ -82,20 +109,37 @@ class DeepRacerRolloutBackEnd(MemoryBackend):
 
             with self._lock:
                 self.last_request_episode_num = episode
-                if episode < len(self.data):
-                    self.data_client.publish(self.topic_name,
-                                             pickle.dumps(self.data[episode]))
+                # Due to the multiple rollout workers, index of self.data array does not reflect actual episode index.
+                # The way that episode index (0 based) is distributed throughout rollout workers are as below:
+                # - If there are 5 episodes per rollout and 2 rollout workers, then each rollout workers are
+                #   responsible for:
+                #   - Rollout worker with index 0: 0, 2, 4
+                #   - Rollout worker with index 1: 1, 3
+                # Thus, (episode < len(self.data) * self.num_workers + self.rollout_idx) condition confirms that
+                # this rollout worker already passed the episode index requested, and to confirm that episode
+                # is actually executed by this rollout worker, it checks the following condition:
+                # - ((episode - self.rollout_idx) % self.num_workers == 0)
+                if episode < len(self.data) * self.num_workers + self.rollout_idx:
+                    # If episode belongs to current rollout_worker and episode data is ready then,
+                    # publish episode data.
+                    if (episode - self.rollout_idx) % self.num_workers == 0:
+                        # Find actual index in self.data for the requested episode
+                        episode_idx_in_data = int((episode - self.rollout_idx) / self.num_workers)
+                        self.data_client.publish(self.topic_name,
+                                                 pickle.dumps(self.data[episode_idx_in_data]))
 
                 # If the trainer requests the total episodes we know that the trainer has all the
                 # episodes so we will reset the data
                 if episode == self.total_episodes:
                     del self.data[:]
-                    self.last_episode_num = 0
+                    self.last_episode_num = self.rollout_idx
                     self.last_request_episode_num = -1
-                    # Send an ACK letting the trainer know we have reset the data and it is safe
-                    # to train
-                    self.data_client.publish(self.topic_name,
-                                             pickle.dumps((self.total_episodes + 1, "")))
+                    # rollout worker, simulating last episode, is responsible to send ACK
+                    if ((self.total_episodes - 1) - self.rollout_idx) % self.num_workers == 0:
+                        # Send an ACK letting the trainer know we have reset the data and it is safe
+                        # to train
+                        self.data_client.publish(self.topic_name,
+                                                 pickle.dumps((self.total_episodes + 1, "")))
 
         except redis.ConnectionError as ex:
             LOG.info("Redis connection error: %s", ex)
@@ -114,9 +158,10 @@ class DeepRacerRolloutBackEnd(MemoryBackend):
             # the data isn't ready at the time. But since we know trainer is waiting
             # send the data as soon as it becomes ready.
             if self.last_episode_num <= self.last_request_episode_num:
+                episode_idx_in_data = int((self.last_episode_num - self.rollout_idx) / self.num_workers)
                 self.data_client.publish(self.topic_name,
-                                         pickle.dumps(self.data[self.last_episode_num]))
-            self.last_episode_num += 1
+                                         pickle.dumps(self.data[episode_idx_in_data]))
+            self.last_episode_num += self.num_workers
 
     def get_endpoint(self):
         '''Returns a dict with the redis address and port '''

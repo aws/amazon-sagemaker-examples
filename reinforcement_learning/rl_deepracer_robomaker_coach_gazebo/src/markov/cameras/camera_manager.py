@@ -1,5 +1,5 @@
 import threading
-from markov.deepracer_exceptions import GenericRolloutException
+from markov.log_handler.deepracer_exceptions import GenericRolloutException
 
 
 class CameraManager(object):
