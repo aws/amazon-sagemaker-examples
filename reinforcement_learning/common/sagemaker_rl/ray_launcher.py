@@ -212,7 +212,7 @@ class SageMakerRayLauncher(object):
             copyfile(source_path, destination_path)
             print("Saved the checkpoint file %s as %s" % (source_path, destination_path))
 
-    def save_experiment_config(self, config):
+    def save_experiment_config(self):
         config_found = False
         for root, directories, filenames in os.walk(INTERMEDIATE_DIR):
             if config_found:
@@ -225,13 +225,16 @@ class SageMakerRayLauncher(object):
         copyfile(source, os.path.join(MODEL_OUTPUT_DIR, "params.json"))
         print("Saved model configuration.")
 
-    def create_tf_serving_model(self, algorithm=None, env_string=None, config=None):
+    def create_tf_serving_model(self, algorithm=None, env_string=None):
         self.register_env_creator()
         if ray.__version__ >= "0.6.5":
             from ray.rllib.agents.registry import get_agent_class
         else:
             from ray.rllib.agents.agent import get_agent_class
         cls = get_agent_class(algorithm)
+        with open(os.path.join(MODEL_OUTPUT_DIR, "params.json")) as config_json:
+            config = json.load(config_json)
+        print("Loaded config for TensorFlow serving.")
         config["monitor"] = False
         config["num_workers"] = 1
         config["num_gpus"] = 0
@@ -240,10 +243,10 @@ class SageMakerRayLauncher(object):
         agent.restore(checkpoint)
         export_tf_serving(agent, MODEL_OUTPUT_DIR)
 
-    def save_checkpoint_and_serving_model(self, algorithm=None, env_string=None, config=None):
-        self.save_experiment_config(config)
+    def save_checkpoint_and_serving_model(self, algorithm=None, env_string=None):
+        self.save_experiment_config()
         self.copy_checkpoints_to_model_output()
-        self.create_tf_serving_model(algorithm, env_string, config)
+        self.create_tf_serving_model(algorithm, env_string)
 
         # To ensure SageMaker local mode works fine
         change_permissions_recursive(INTERMEDIATE_DIR, 0o777)
@@ -332,11 +335,8 @@ class SageMakerRayLauncher(object):
 
         algo = experiment_config["training"]["run"]
         env_string = experiment_config["training"]["config"]["env"]
-        config = experiment_config["training"]["config"]
         self.save_checkpoint_and_serving_model(algorithm=algo,
-                                               env_string=env_string,
-                                               config=config)
-
+                                               env_string=env_string)
 
     @classmethod
     def train_main(cls):
