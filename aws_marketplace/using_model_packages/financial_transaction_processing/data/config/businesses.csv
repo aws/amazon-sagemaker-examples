@@ -1,0 +1,77 @@
+name,merchant_type,sub_type
+amazon,retail,online retail
+amazon prime,retail,online retail
+amazon.com,retail,online retail
+amzn.com/bill,retail,online retail
+cinemark.com,entertainment,cinemas
+aramark,food,restaurent
+burlington stores,retail,home supplies
+chipotle,food,restaurent
+cmsvend,food,food-vending
+usa canteen,food,food-vending
+corner bakery,food,bakery
+sweet alchemy ice,food,ice cream
+pizza hut,food,fast-food restaurent
+dollartre,retail,hobby
+expedia,misc,travel
+mosaic,charity,charity-donation
+solace,charity,charity-donation
+expedia.com,misc,travel
+express market,food,food-retail
+patel brothers,food,food-ethnic
+ghirardelli,food,restaurent
+hobbylobby,retail,hobby
+hudson,retail,airport-store
+joann stores,retail,hobby
+kaya,misc,salon
+kohls,retail,apparel
+kroger,retail,home supplies
+marshalls,retail,home supplies
+metro ma,retail,retail-food
+mgm grand,misc,hotel
+michaels stores,retail,hobby
+mighty ape limited,retail,gifts
+mosaic,misc,ngo
+nestle tollhouse,food,restaurent
+netflix.com,entertainment,online-entertainment
+google,entertainment,online-entertainment
+panchos mexican,food,restaurent
+patel brothers,retail,retail-food
+paypal,misc,money-transfer
+pegasus,food,restaurent
+funnel cakes,food,restaurent
+anakeesta,entertainment,theme park
+galveston-seawall,entertainment,theme park
+conch tour train,entertainment,theme park
+prime video,entertainment,online-entertainment
+yupptv,entertainment,online-entertainment
+redbubble.com,retail,hobby
+www.redbubble.com,retail,hobby
+ross stores,retail,home supplies
+ross,retail,home supplies
+rushmed,misc,hospitality
+salon,misc,hospitality
+dollar tree,retail,home supplies
+sandal factory,retail,online-retail
+shell service,misc,oil & gas
+starbucks,food,cafe
+subway,food,fast food
+the home depot,retail, home supplies
+tinypieces.my,retail,retail-hobby
+uber,transportation,taxi
+help.uber.com,transportation,taxi
+lyft.com,transportation,taxi
+usa inc,utilities,utilities
+usps,misc,government agency-mail
+utd,misc,education
+walgreens,misc,healthcare
+walmart.com,retail,home supplies
+skype.com/go/bill,misc,communications
+whole foods,retail,retail-food
+trader joes,retail,retail-food
+southwest airlines,travel,travel-air
+yolk,food,restaurent
+olive garden,food,restaurent
+luke parking,misc,parking
+lukas parking,misc,parking
+youtube,entertainment,online-entertainment

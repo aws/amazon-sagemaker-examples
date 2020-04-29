@@ -1,6 +1,9 @@
 from __future__ import print_function
 
+import argparse
 import logging
+import os
+
 import mxnet as mx
 from mxnet import gluon, autograd
 from mxnet.gluon import nn
@@ -16,22 +19,29 @@ logging.basicConfig(level=logging.DEBUG)
 # ------------------------------------------------------------ #
 
 
-def train(channel_input_dirs, hyperparameters, hosts, num_gpus, **kwargs):
+def train(args):
     # SageMaker passes num_cpus, num_gpus and other args we can use to tailor training to
     # the current container environment, but here we just use simple cpu context.
     ctx = mx.cpu()
 
     # retrieve the hyperparameters we set in notebook (with some defaults)
-    batch_size = hyperparameters.get('batch_size', 100)
-    epochs = hyperparameters.get('epochs', 10)
-    learning_rate = hyperparameters.get('learning_rate', 0.1)
-    momentum = hyperparameters.get('momentum', 0.9)
-    log_interval = hyperparameters.get('log_interval', 100)
+    batch_size = args.batch_size
+    epochs = args.epochs
+    learning_rate = args.learning_rate
+    momentum = args.momentum
+    log_interval = args.log_interval
+
+    num_gpus = int(os.environ['SM_NUM_GPUS'])
+    current_host = args.current_host
+    hosts = args.hosts
+    model_dir = args.model_dir
+    CHECKPOINTS_DIR = '/opt/ml/checkpoints'
+    checkpoints_enabled = os.path.exists(CHECKPOINTS_DIR)
 
     # load training and validation data
     # we use the gluon.data.vision.MNIST class because of its built in mnist pre-processing logic,
     # but point it at the location where SageMaker placed the data files, so it doesn't download them again.
-    training_dir = channel_input_dirs['training']
+    training_dir = args.train
     train_data = get_train_data(training_dir + '/train', batch_size)
     val_data = get_val_data(training_dir + '/test', batch_size)
 
@@ -53,6 +63,22 @@ def train(channel_input_dirs, hyperparameters, hosts, num_gpus, **kwargs):
     metric = mx.metric.Accuracy()
     loss = gluon.loss.SoftmaxCrossEntropyLoss()
 
+    # shard the training data in case we are doing distributed training. Alternatively to splitting in memory,
+    # the data could be pre-split in S3 and use ShardedByS3Key to do distributed training.
+    if len(hosts) > 1:
+        train_data = [x for x in train_data]
+        shard_size = len(train_data) // len(hosts)
+        for i, host in enumerate(hosts):
+            if host == current_host:
+                start = shard_size * i
+                end = start + shard_size
+                break
+
+        train_data = train_data[start:end]
+
+    net.hybridize()
+
+    best_val_score = 0.0
     for epoch in range(epochs):
         # reset data iterator and metric at begining of epoch.
         metric.reset()
@@ -84,19 +110,24 @@ def train(channel_input_dirs, hyperparameters, hosts, num_gpus, **kwargs):
 
         name, val_acc = test(ctx, net, val_data)
         print('[Epoch %d] Validation: %s=%f' % (epoch, name, val_acc))
+        # checkpoint the model, params and optimizer states in the folder /opt/ml/checkpoints
+        if checkpoints_enabled and val_acc > best_val_score:
+            best_val_score = val_acc
+            logging.info('Saving the model, params and optimizer state.')
+            net.export(CHECKPOINTS_DIR + "/%.4f-gluon_mnist"%(best_val_score), epoch)
+            trainer.save_states(CHECKPOINTS_DIR + '/%.4f-gluon_mnist-%d.states'%(best_val_score, epoch))
 
-    return net
+    if current_host == hosts[0]:
+        save(net, model_dir)
 
 
 def save(net, model_dir):
     # save the model
-    y = net(mx.sym.var('data'))
-    y.save('%s/model.json' % model_dir)
-    net.collect_params().save('%s/model.params' % model_dir)
+    net.export('%s/model'% model_dir)
 
 
 def define_network():
-    net = nn.Sequential()
+    net = nn.HybridSequential()
     with net.name_scope():
         net.add(nn.Dense(128, activation='relu'))
         net.add(nn.Dense(64, activation='relu'))
@@ -105,14 +136,14 @@ def define_network():
 
 
 def input_transformer(data, label):
-    data = data.reshape((-1,)).astype(np.float32) / 255
+    data = data.reshape((-1,)).astype(np.float32) / 255.
     return data, label
 
 
 def get_train_data(data_dir, batch_size):
     return gluon.data.DataLoader(
         gluon.data.vision.MNIST(data_dir, train=True, transform=input_transformer),
-        batch_size=batch_size, shuffle=True, last_batch='discard')
+        batch_size=batch_size, shuffle=True, last_batch='rollover')
 
 
 def get_val_data(data_dir, batch_size):
@@ -142,12 +173,11 @@ def model_fn(model_dir):
     :param: model_dir The directory where model files are stored.
     :return: a model (in this case a Gluon network)
     """
-    symbol = mx.sym.load('%s/model.json' % model_dir)
-    outputs = mx.symbol.softmax(data=symbol, name='softmax_label')
-    inputs = mx.sym.var('data')
-    param_dict = gluon.ParameterDict('model_')
-    net = gluon.SymbolBlock(outputs, inputs, param_dict)
-    net.load_params('%s/model.params' % model_dir, ctx=mx.cpu())
+    net = gluon.SymbolBlock.imports(
+        '%s/model-symbol.json' % model_dir,
+        ['data'],
+        '%s/model-0000.params' % model_dir,
+    )
     return net
 
 
@@ -169,3 +199,31 @@ def transform_fn(net, data, input_content_type, output_content_type):
     prediction = mx.nd.argmax(output, axis=1)
     response_body = json.dumps(prediction.asnumpy().tolist()[0])
     return response_body, output_content_type
+
+
+# ------------------------------------------------------------ #
+# Training execution                                           #
+# ------------------------------------------------------------ #
+
+def parse_args():
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument('--batch-size', type=int, default=100)
+    parser.add_argument('--epochs', type=int, default=10)
+    parser.add_argument('--learning-rate', type=float, default=0.1)
+    parser.add_argument('--momentum', type=float, default=0.9)
+    parser.add_argument('--log-interval', type=float, default=100)
+
+    parser.add_argument('--model-dir', type=str, default=os.environ['SM_MODEL_DIR'])
+    parser.add_argument('--train', type=str, default=os.environ['SM_CHANNEL_TRAINING'])
+
+    parser.add_argument('--current-host', type=str, default=os.environ['SM_CURRENT_HOST'])
+    parser.add_argument('--hosts', type=list, default=json.loads(os.environ['SM_HOSTS']))
+
+    return parser.parse_args()
+
+
+if __name__ == '__main__':
+    args = parse_args()
+
+    train(args)
