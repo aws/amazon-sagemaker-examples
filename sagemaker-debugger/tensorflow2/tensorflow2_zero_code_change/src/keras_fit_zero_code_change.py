@@ -1,8 +1,8 @@
 """
 This script is a ResNet training script which uses Tensorflow's keras fit() API.
 Using this script with the official SageMaker Framework container (i.e. AWS Deep Learning Container), enables you to make use of the SageMaker Debugger without any Debugger related
-additions to the training script.
-For more information, please refer to https://github.com/awslabs/sagemaker-debugger/blob/master/docs/sagemaker.md
+additions to the training script. Hooks will automatically be added. This experience is termed as "Zero Script Change". For more information, please refer to https://github.com/awslabs/sagemaker-debugger/blob/master/docs/sagemaker.md#zero-script-change.
+In Zero Script Change experience, a deafult set of collections are saved: https://github.com/awslabs/sagemaker-debugger/blob/master/docs/api.md#default-collections-saved. For information on how to customize the list of collections that are saved, please refer to https://github.com/awslabs/sagemaker-debugger/blob/master/docs/sagemaker.md#saving-reductions-for-a-custom-collection.
 """
 
 
