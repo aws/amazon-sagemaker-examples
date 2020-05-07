@@ -131,7 +131,7 @@ def get_dataloader(net, data_shape, batch_size, num_workers, ctx):
     """Get dataloader."""
     import os
 
-    os.system('pip3 install gluoncv --pre')
+    os.system('pip3 install gluoncv')
 
     from gluoncv import data as gdata
     from gluoncv.data.batchify import Tuple, Stack, Pad
@@ -153,7 +153,7 @@ def train(net, train_data, ctx, args):
     """Training pipeline"""
     import os
 
-    os.system('pip3 install gluoncv --pre')
+    os.system('pip3 install gluoncv')
 
     import gluoncv as gcv
     
@@ -235,7 +235,7 @@ def train(net, train_data, ctx, args):
 if __name__ == '__main__':
     import os
 
-    os.system('pip3 install gluoncv --pre')
+    os.system('pip3 install gluoncv')
 
     from gluoncv import model_zoo
     
@@ -274,7 +274,7 @@ def transform_fn(net, data, content_type, output_content_type):
     """
     import os
 
-    os.system('pip3 install gluoncv --pre')
+    os.system('pip3 install gluoncv')
 
     import gluoncv as gcv
     
