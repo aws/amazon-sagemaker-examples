@@ -111,7 +111,8 @@ class SageS3Client():
             if err.response['Error']['Code'] == "404":
                 return False
             else:
-                log_and_exit("Unable to download file",
+                log_and_exit("Unable to download file (s3bucket: {} s3_key: {})".format(self.bucket,
+                                                                                        s3_key),
                              SIMAPP_S3_DATA_STORE_EXCEPTION,
                              SIMAPP_EVENT_ERROR_CODE_400)
         except botocore.exceptions.ConnectTimeoutError as ex:
@@ -120,7 +121,9 @@ class SageS3Client():
                          SIMAPP_S3_DATA_STORE_EXCEPTION,
                          SIMAPP_EVENT_ERROR_CODE_400)
         except Exception as ex:
-            log_and_exit("Exception in downloading file: {}".format(ex),
+            log_and_exit("Exception in downloading file (s3bucket: {} s3_key: {}): {}".format(self.bucket,
+                                                                                              s3_key,
+                                                                                              ex),
                          SIMAPP_S3_DATA_STORE_EXCEPTION,
                          SIMAPP_EVENT_ERROR_CODE_500)
 

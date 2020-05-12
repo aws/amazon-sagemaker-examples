@@ -101,8 +101,8 @@ class TrainingMetrics(MetricsInterface, ObserverInterface):
         self._eval_trials_ = 0
         self._checkpoint_state_ = CheckpointStateFile(ckpnt_dir)
         self._use_model_picker = use_model_picker
-        self._eval_stats_dict_ = {'chkpnt_name': None, 'avg_comp_pct': 0.0}
-        self._best_chkpnt_stats = {'name': None, 'avg_comp_pct': 0.0, 'time_stamp': time.time()}
+        self._eval_stats_dict_ = {'chkpnt_name': None, 'avg_comp_pct': -1.0}
+        self._best_chkpnt_stats = {'name': None, 'avg_comp_pct': -1.0, 'time_stamp': time.time()}
         self._current_eval_pct_list_ = list()
         self.is_save_simtrace_enabled = rospy.get_param('SIMTRACE_S3_BUCKET', None)
         run_phase_sink.register(self)
@@ -165,7 +165,7 @@ class TrainingMetrics(MetricsInterface, ObserverInterface):
 
             self._eval_trials_ = 0
             mean_pct = statistics.mean(self._current_eval_pct_list_ if \
-                                       self._current_eval_pct_list_ else [-1])
+                                       self._current_eval_pct_list_ else [0.0])
             LOGGER.info('Number of evaluations: {} Evaluation progresses: {}'.format(len(self._current_eval_pct_list_),
                                                                                      self._current_eval_pct_list_))
             LOGGER.info('Evaluation progresses mean: {}'.format(mean_pct))

@@ -12,6 +12,8 @@ from markov.rospy_wrappers import ServiceProxyWrapper
 from markov.domain_randomizations.randomizer_manager import RandomizerManager
 from markov.domain_randomizations.visual.light_randomizer import LightRandomizer
 from markov.domain_randomizations.constants import GazeboServiceName
+from markov.constants import (ROBOMAKER_IS_PROFILER_ON, ROBOMAKER_PROFILER_S3_BUCKET,
+                              ROBOMAKER_PROFILER_S3_PREFIX)
 from deepracer_msgs.srv import (GetLightNames, GetLightNamesRequest)
 
 from rl_coach.core_types import RunPhase
@@ -90,4 +92,9 @@ def configure_environment_randomizer(light_name_filter=None):
             continue
         RandomizerManager.get_instance().add(LightRandomizer(light_name=light_name))
 
-
+def get_robomaker_profiler_env():
+    """ Read robomaker profiler environment """
+    is_profiler_on = rospy.get_param(ROBOMAKER_IS_PROFILER_ON, False)
+    profiler_s3_bucker = rospy.get_param(ROBOMAKER_PROFILER_S3_BUCKET, None)
+    profiler_s3_prefix = rospy.get_param(ROBOMAKER_PROFILER_S3_PREFIX, None)
+    return (is_profiler_on, profiler_s3_bucker, profiler_s3_prefix)

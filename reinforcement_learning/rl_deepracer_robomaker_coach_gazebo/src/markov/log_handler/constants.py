@@ -85,7 +85,10 @@ FAULT_MAP = {
     58: "Iconography image does not exists or corrupt image:",
     59: "S3 writer exception:",
     60: "No checkpoint found:",
-    61: "User modified ckpt, unrecoverable dataloss or corruption:"
+    61: "User modified ckpt, unrecoverable dataloss or corruption:",
+    62: "ValueError in rename checkpoint",
+    63: "Unable to upload profiler data",
+    64: "Tracker raised Exception"
 }
 
 # New error yet to be mapped

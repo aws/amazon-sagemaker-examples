@@ -16,7 +16,7 @@ from scipy.spatial.transform import Rotation
 LOGGER = Logger(__name__, logging.INFO).get_logger()
 
 def set_reward_and_metrics(reward_params, step_metrics, agent_name, pos_dict, track_data,
-                           data_dict, action, json_actions, car_model_state):
+                           data_dict, action, json_actions, car_pose):
     '''Populates the reward_params and step_metrics dictionaries with the common
        metrics and parameters.
        reward_params - Dictionary containing the input parameters to the reward function
@@ -27,7 +27,7 @@ def set_reward_and_metrics(reward_params, step_metrics, agent_name, pos_dict, tr
        data_dict - Dictionary containing previous progress, steps, and start distance
        action - Integer containing the action to take
        json_actions - Dictionary that maps action into steering and angle
-       car_model_state - Gazebo ModelState of the agent
+       car_pose - Gazebo Pose of the agent
     '''
     try:
         # Check that the required keys are present in the dicts that are being
@@ -99,7 +99,7 @@ def set_reward_and_metrics(reward_params, step_metrics, agent_name, pos_dict, tr
         obstacle_reward_params = track_data.get_object_reward_params(agent_name,
                                                                      model_point,
                                                                      reverse_dir,
-                                                                     car_model_state)
+                                                                     car_pose)
         if obstacle_reward_params:
             reward_params.update(obstacle_reward_params)
     except KeyError as ex:

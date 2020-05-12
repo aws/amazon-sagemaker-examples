@@ -15,11 +15,12 @@ class ServiceProxyWrapper(object):
        sim app is shutting down we have to wait 5 minutes prior logging the exception
        and exiting.
     '''
-    def __init__(self, service_name, object_type):
+    def __init__(self, service_name, object_type, persistent=False):
         '''service_name - Name of the service to create a client for
            object_type - The object type for making a service request
+           persistent - flag to whether keep the connection open or not
         '''
-        self.client = rospy.ServiceProxy(service_name, object_type)
+        self.client = rospy.ServiceProxy(service_name, object_type, persistent)
 
     def __call__(self, *argv):
         ''' Makes a client call for the stored service
