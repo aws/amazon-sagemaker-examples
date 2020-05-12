@@ -5,6 +5,8 @@ import tensorflow as tf
 import glob
 import shutil
 import re
+
+from markov import utils
 from markov.log_handler.logger import Logger
 from markov.log_handler.exception_handler import log_and_exit
 from markov.log_handler.constants import (SIMAPP_SIMULATION_WORKER_EXCEPTION,
@@ -68,6 +70,16 @@ def rename_checkpoints(checkpoint_dir, agent_name):
                      .format(err),
                      SIMAPP_SIMULATION_WORKER_EXCEPTION,
                      SIMAPP_EVENT_ERROR_CODE_400)
+    except ValueError as err:
+        if utils.is_error_bad_ckpnt(err):
+            log_and_exit("Couldn't find 'checkpoint' file or checkpoints in given \
+                            directory ./checkpoint: {}".format(err),
+                         SIMAPP_SIMULATION_WORKER_EXCEPTION,
+                         SIMAPP_EVENT_ERROR_CODE_400)
+        else:
+            log_and_exit("ValueError in rename checkpoint: {}".format(err),
+                         SIMAPP_SIMULATION_WORKER_EXCEPTION,
+                         SIMAPP_EVENT_ERROR_CODE_500)
     except Exception as ex:
         log_and_exit("Exception in rename checkpoint: {}".format(ex),
                      SIMAPP_SIMULATION_WORKER_EXCEPTION,

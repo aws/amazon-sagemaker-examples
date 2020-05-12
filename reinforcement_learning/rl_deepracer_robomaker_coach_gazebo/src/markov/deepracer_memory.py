@@ -10,6 +10,7 @@ from rl_coach.memories.backend.redis import RedisPubSubMemoryBackendParameters
 from rl_coach.core_types import Episode
 
 from markov.log_handler.logger import Logger
+from markov.architecture.constants import NeuralNetwork
 
 LOG = Logger(__name__, logging.INFO).get_logger()
 
@@ -23,11 +24,10 @@ POLL_TIME = 10.0
 # as it seems rl_coach is making
 # a bunch of hard copies of the transitions
 #
-# Cutting down to 5000 from 10000 as the state size is increased:
-# - front-facing-camera -> stereo + left_camera + lidar
-# - We should be able to handle 6000, but reducing to 5000 to be safe.
-# TODO: We need better approach to handle this memory cap.
-MAX_MEMORY_STEPS = 5000
+# 3-layer NN (Deep CNN Shallow): 10000 max steps on c4.2xlarge
+# 5-layer NN (Deep CNN): 3000 max steps on c4.4xlarge
+MAX_MEMORY_STEPS_SHALLOW = 10000
+MAX_MEMORY_STEPS = 3000
 
 
 class DeepRacerRedisPubSubMemoryBackendParameters(RedisPubSubMemoryBackendParameters):
@@ -39,7 +39,8 @@ class DeepRacerRedisPubSubMemoryBackendParameters(RedisPubSubMemoryBackendParame
                  channel: str = "channel-{}".format(uuid.uuid4()),
                  orchestrator_params: dict = None, run_type='trainer', orchestrator_type: str = "kubernetes",
                  deployed: str = False,
-                 num_workers: int = 1, rollout_idx: int = 0):
+                 num_workers: int = 1, rollout_idx: int = 0,
+                 network_type: str = NeuralNetwork.DEEP_CONVOLUTIONAL_NETWORK_SHALLOW.value):
         super().__init__(redis_address=redis_address,
                          redis_port=redis_port,
                          channel=channel,
@@ -49,6 +50,7 @@ class DeepRacerRedisPubSubMemoryBackendParameters(RedisPubSubMemoryBackendParame
                          deployed=deployed)
         self.num_workers = num_workers
         self.rollout_idx = rollout_idx
+        self.network_type = network_type
 
 
 def get_endpoint_helper(redis_address, redis_port):
@@ -157,7 +159,7 @@ class DeepRacerRolloutBackEnd(MemoryBackend):
             # DeepRacerRolloutBackEnd ignores the trainer's request if
             # the data isn't ready at the time. But since we know trainer is waiting
             # send the data as soon as it becomes ready.
-            if self.last_episode_num <= self.last_request_episode_num:
+            if self.last_episode_num == self.last_request_episode_num:
                 episode_idx_in_data = int((self.last_episode_num - self.rollout_idx) / self.num_workers)
                 self.data_client.publish(self.topic_name,
                                          pickle.dumps(self.data[episode_idx_in_data]))
@@ -192,6 +194,9 @@ class DeepRacerTrainerBackEnd(MemoryBackend):
         # Pubsub object that will allow us to subscribe to the data channel and request data
         self.data_pubsubs = dict()
         self.request_events = dict()
+        self.max_step = MAX_MEMORY_STEPS_SHALLOW \
+            if self.params.network_type == NeuralNetwork.DEEP_CONVOLUTIONAL_NETWORK_SHALLOW.value \
+            else MAX_MEMORY_STEPS
 
         for agent_param in agents_params:
             self.rollout_steps[agent_param.name] = 0
@@ -272,10 +277,8 @@ class DeepRacerTrainerBackEnd(MemoryBackend):
                 objs = {k: v.get() for k, v in self.data_queues.items()}
 
                 if all(obj[0] == episode_counter and isinstance(obj[1], Episode) for obj in objs.values()):
-                    episode_counter += 1
                     step_counter += sum(obj[1].length() for obj in objs.values())
-                    self.episode_req = episode_counter
-                    if step_counter <= MAX_MEMORY_STEPS:
+                    if step_counter <= self.max_step:
                         self.rollout_steps = {k: self.rollout_steps[k] + objs[k][1].length() for k in self.rollout_steps.keys()}
                         self.total_episodes_in_rollout += 1
                         transition_iters = {k: iter(v[1].transitions) for k, v in objs.items()}
@@ -283,6 +286,19 @@ class DeepRacerTrainerBackEnd(MemoryBackend):
                         while any(transition.values()):
                             yield transition
                             transition = {k: next(v, None) for k, v in transition_iters.items()}
+                    elif episode_counter != num_consecutive_playing_steps.num_steps - 1:
+                        # If step_counter goes over self.max_step, then directly request
+                        # last episode (index of last episode: num_consecutive_playing_steps.num - 1).
+                        # If we just increment the episode one by one till the last one, then it will basically fill up
+                        # Redis memory that resides in training worker.
+                        # When rollout worker actually returns last episode, then we safely increment episode_counter
+                        # to num_consecutive_playing_steps.num, so both rollout worker and training worker can finish
+                        # the epoch gracefully.
+                        episode_counter = num_consecutive_playing_steps.num_steps - 1
+                        self.episode_req = episode_counter
+                        continue
+                    episode_counter += 1
+                    self.episode_req = episode_counter
                 # When we request num_consecutive_playing_steps.num we will get back
                 # 1 more than the requested index this lets us know the rollout worker
                 # has given us all available data

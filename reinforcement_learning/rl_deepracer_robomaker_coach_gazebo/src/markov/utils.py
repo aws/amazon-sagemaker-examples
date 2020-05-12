@@ -7,6 +7,9 @@ import re
 import signal
 import socket
 import time
+import cProfile
+import pstats
+from itertools import count
 from markov.log_handler.constants import (SIMAPP_ENVIRONMENT_EXCEPTION,
                                           SIMAPP_EVENT_ERROR_CODE_500,
                                           SIMAPP_S3_DATA_STORE_EXCEPTION,
@@ -14,11 +17,13 @@ from markov.log_handler.constants import (SIMAPP_ENVIRONMENT_EXCEPTION,
                                           SIMAPP_SIMULATION_WORKER_EXCEPTION, SIMAPP_DONE_EXIT)
 from markov.log_handler.logger import Logger
 from markov.log_handler.exception_handler import log_and_exit, simapp_exit_gracefully
+from markov.log_handler.deepracer_exceptions import GenericException
 from markov.constants import (ROBOMAKER_CANCEL_JOB_WAIT_TIME,
                               CHKPNT_KEY_SUFFIX, DEEPRACER_CHKPNT_KEY_SUFFIX,
                               NUM_RETRIES, BEST_CHECKPOINT, LAST_CHECKPOINT,
                               SAGEMAKER_S3_KMS_CMK_ARN, ROBOMAKER_S3_KMS_CMK_ARN,
-                              S3_KMS_CMK_ARN_ENV, HYPERPARAMETERS,
+                              S3_KMS_CMK_ARN_ENV, HYPERPARAMETERS, SAGEMAKER_IS_PROFILER_ON,
+                              SAGEMAKER_PROFILER_S3_BUCKET, SAGEMAKER_PROFILER_S3_PREFIX,
                               S3KmsEncryption)
 import boto3
 import botocore
@@ -37,16 +42,22 @@ def get_boto_config():
 
 def cancel_simulation_job(simulation_job_arn, aws_region):
     logger.info("cancel_simulation_job: make sure to shutdown simapp first")
-    session = boto3.session.Session()
-    robomaker_client = session.client('robomaker', region_name=aws_region)
-    robomaker_client.cancel_simulation_job(job=simulation_job_arn)
-    time.sleep(ROBOMAKER_CANCEL_JOB_WAIT_TIME)
+    if simulation_job_arn:
+        session = boto3.session.Session()
+        robomaker_client = session.client('robomaker', region_name=aws_region)
+        robomaker_client.cancel_simulation_job(job=simulation_job_arn)
+        time.sleep(ROBOMAKER_CANCEL_JOB_WAIT_TIME)
+    else:
+        simapp_exit_gracefully()
 
 def restart_simulation_job(simulation_job_arn, aws_region):
     logger.info("restart_simulation_job: make sure to shutdown simapp first")
-    session = boto3.session.Session()
-    robomaker_client = session.client('robomaker', region_name=aws_region)
-    robomaker_client.restart_simulation_job(job=simulation_job_arn)
+    if simulation_job_arn:
+        session = boto3.session.Session()
+        robomaker_client = session.client('robomaker', region_name=aws_region)
+        robomaker_client.restart_simulation_job(job=simulation_job_arn)
+    else:
+        simapp_exit_gracefully()
 
 def str2bool(flag):
     """ bool: convert flag to boolean if it is string and return it else return its initial bool value """
@@ -56,6 +67,18 @@ def str2bool(flag):
         elif flag.lower() == 'true':
             flag = True
     return flag
+
+def str_to_done_condition(done_condition):
+    if done_condition == any or done_condition == all:
+        return done_condition
+    elif done_condition.lower().strip() == 'all':
+        return all
+    return any
+
+def pos_2d_str_to_list(list_pos_str):
+    if list_pos_str and isinstance(list_pos_str[0], str):
+        return [tuple(map(float, pos_str.split(","))) for pos_str in list_pos_str]
+    return list_pos_str
 
 def get_ip_from_host(timeout=100):
     counter = 0
@@ -185,36 +208,41 @@ def copy_best_frozen_model_to_sm_output_dir(s3_bucket, s3_prefix, region,
         log_and_exit("Could not find any frozen model file in the local directory",
                      SIMAPP_S3_DATA_STORE_EXCEPTION,
                      SIMAPP_EVENT_ERROR_CODE_500)
-    # Could not find the deepracer_checkpoints.json file or there are no model.pb files in destination
-    if best_checkpoint_num_s3 == -1 or len(dest_dir_pb_files) == 0:
-        if len(source_dir_pb_files) > 1:
-            logger.info("More than one model.pb found in the source directory. Choosing the "
-                        "first one to copy to destination: {}".format(source_dir_pb_files[0]))
-        # copy the frozen model present in the source directory
-        logger.info("Copying the frozen checkpoint from {} to {}.".format(
-                    os.path.join(source_dir, source_dir_pb_files[0]), os.path.join(dest_dir, "model.pb")))
-        shutil.copy(os.path.join(source_dir, source_dir_pb_files[0]), os.path.join(dest_dir, "model.pb"))
-    else:
-        # Delete the current .pb files in the destination direcory
-        for filename in dest_dir_pb_files:
-            os.remove(os.path.join(dest_dir, filename))
+    try:
+        # Could not find the deepracer_checkpoints.json file or there are no model.pb files in destination
+        if best_checkpoint_num_s3 == -1 or len(dest_dir_pb_files) == 0:
+            if len(source_dir_pb_files) > 1:
+                logger.info("More than one model.pb found in the source directory. Choosing the "
+                            "first one to copy to destination: {}".format(source_dir_pb_files[0]))
+            # copy the frozen model present in the source directory
+            logger.info("Copying the frozen checkpoint from {} to {}.".format(
+                        os.path.join(source_dir, source_dir_pb_files[0]), os.path.join(dest_dir, "model.pb")))
+            shutil.copy(os.path.join(source_dir, source_dir_pb_files[0]), os.path.join(dest_dir, "model.pb"))
+        else:
+            # Delete the current .pb files in the destination direcory
+            for filename in dest_dir_pb_files:
+                os.remove(os.path.join(dest_dir, filename))
 
-        # Copy the frozen model for the current best checkpoint to the destination directory
-        logger.info("Copying the frozen checkpoint from {} to {}.".format(
-                    os.path.join(source_dir, best_model_name), os.path.join(dest_dir, "model.pb")))
-        shutil.copy(os.path.join(source_dir, best_model_name), os.path.join(dest_dir, "model.pb"))
+            # Copy the frozen model for the current best checkpoint to the destination directory
+            logger.info("Copying the frozen checkpoint from {} to {}.".format(
+                        os.path.join(source_dir, best_model_name), os.path.join(dest_dir, "model.pb")))
+            shutil.copy(os.path.join(source_dir, best_model_name), os.path.join(dest_dir, "model.pb"))
 
-        # Loop through the current list of frozen models in source directory and
-        # delete the iterations lower than last_checkpoint_iteration except best_model
-        for filename in source_dir_pb_files:
-            if filename not in [best_model_name, last_model_name]:
-                if len(filename.split("_")[1]) > 1 and len(filename.split("_")[1].split(".pb")):
-                    file_iteration = int(filename.split("_")[1].split(".pb")[0])
-                    if file_iteration < last_checkpoint_num_s3:
-                        os.remove(os.path.join(source_dir, filename))
-                else:
-                    logger.error("Frozen model name not in the right format in the source directory: {}, {}"
-                                 .format(filename, source_dir))
+            # Loop through the current list of frozen models in source directory and
+            # delete the iterations lower than last_checkpoint_iteration except best_model
+            for filename in source_dir_pb_files:
+                if filename not in [best_model_name, last_model_name]:
+                    if len(filename.split("_")[1]) > 1 and len(filename.split("_")[1].split(".pb")):
+                        file_iteration = int(filename.split("_")[1].split(".pb")[0])
+                        if file_iteration < last_checkpoint_num_s3:
+                            os.remove(os.path.join(source_dir, filename))
+                    else:
+                        logger.error("Frozen model name not in the right format in the source directory: {}, {}"
+                                     .format(filename, source_dir))
+    except FileNotFoundError as err:
+        log_and_exit("No such file or directory: {}".format(err),
+                     SIMAPP_S3_DATA_STORE_EXCEPTION,
+                     SIMAPP_EVENT_ERROR_CODE_400)
 
 
 def get_best_checkpoint(s3_bucket, s3_prefix, region):
@@ -526,6 +554,17 @@ def test_internet_connection(aws_region):
                      SIMAPP_ENVIRONMENT_EXCEPTION,
                      SIMAPP_EVENT_ERROR_CODE_500)
 
+def get_sagemaker_profiler_env():
+    """ Read the sagemaker profiler environment variables """
+    is_profiler_on, profiler_s3_bucker, profiler_s3_prefix = False, None, None
+    hyperparams = os.environ.get('SM_TRAINING_ENV', '')
+    hyperparams_dict = json.loads(hyperparams)
+    if HYPERPARAMETERS in hyperparams_dict and SAGEMAKER_IS_PROFILER_ON in hyperparams_dict[HYPERPARAMETERS]:
+        is_profiler_on = hyperparams_dict[HYPERPARAMETERS][SAGEMAKER_IS_PROFILER_ON]
+        profiler_s3_bucker = hyperparams_dict[HYPERPARAMETERS][SAGEMAKER_PROFILER_S3_BUCKET]
+        profiler_s3_prefix = hyperparams_dict[HYPERPARAMETERS][SAGEMAKER_PROFILER_S3_PREFIX]
+    return (is_profiler_on, profiler_s3_bucker, profiler_s3_prefix)
+
 class DoorMan:
     def __init__(self):
         self.terminate_now = False
@@ -574,3 +613,85 @@ class DoubleBuffer(object):
 
     class Empty(Exception):
         pass
+
+class Profiler(object):
+    """ Class to profile the specific code.
+    """
+    _file_count = count(0)
+    _profiler = None
+    _profiler_owner = None
+
+    def __init__(self, s3_bucket, s3_prefix, output_local_path, enable_profiling=False):
+        self._enable_profiling = enable_profiling
+        self.s3_bucket = s3_bucket
+        self.s3_prefix = s3_prefix
+        self.output_local_path = output_local_path
+        self.file_count = next(self._file_count)
+
+    def __enter__(self):
+        self.start()
+
+    def __exit__(self, type_val, value, traceback):
+        self.stop()
+
+    @property
+    def enable_profiling(self):
+        """ Property to enable profiling
+
+        Returns:
+            (bool): True if profiler is enabled
+        """
+        return self._enable_profiling
+
+    @enable_profiling.setter
+    def enable_profiling(self, val):
+        self._enable_profiling = val
+
+    def start(self):
+        """ Start the profiler """
+        if self.enable_profiling:
+            if not self._profiler:
+                self._profiler = cProfile.Profile()
+                self._profiler.enable()
+                self._profiler_owner = self
+            else:
+                raise GenericException('Profiler is in use!')
+
+    def stop(self):
+        """ Stop the profiler and upload the data to S3 """
+        if self._profiler_owner == self:
+            if self._profiler:
+                self._profiler.disable()
+                self._profiler.dump_stats(self.output_local_path)
+                s3_file_name = "{}-{}.txt".format(os.path.splitext(os.path.basename(self.output_local_path))[0],
+                                                  self.file_count)
+                with open(s3_file_name, 'w') as filepointer:
+                    pstat_obj = pstats.Stats(self.output_local_path, stream=filepointer)
+                    pstat_obj.sort_stats('cumulative')
+                    pstat_obj.print_stats()
+                self._upload_profile_stats_to_s3(s3_file_name)
+            self._profiler = None
+            self._profiler_owner = None
+
+    def _upload_profile_stats_to_s3(self, s3_file_name):
+        """ Upload the profiler information to s3 bucket
+
+        Arguments:
+            s3_file_name (str): File name of the profiler in S3
+        """
+        try:
+            session = boto3.Session()
+            s3_client = session.client('s3', config=get_boto_config())
+            s3_extra_args = get_s3_kms_extra_args()
+            s3_client.upload_file(Filename=s3_file_name, Bucket=self.s3_bucket,
+                                  Key=os.path.join(self.s3_prefix, s3_file_name),
+                                  ExtraArgs=s3_extra_args)
+        except botocore.exceptions.ClientError as ex:
+            log_and_exit("Unable to upload profiler data: {}, {}".format(self.s3_prefix,
+                                                                         ex.response['Error']['Code']),
+                         SIMAPP_SIMULATION_WORKER_EXCEPTION,
+                         SIMAPP_EVENT_ERROR_CODE_400)
+        except Exception as ex:
+            log_and_exit("Unable to upload profiler data: {}".format(ex),
+                         SIMAPP_SIMULATION_WORKER_EXCEPTION,
+                         SIMAPP_EVENT_ERROR_CODE_500)

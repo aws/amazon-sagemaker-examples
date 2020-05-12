@@ -8,12 +8,14 @@ class RaceType(Enum):
     OBJECT_AVOIDANCE = "OBJECT_AVOIDANCE"
     HEAD_TO_BOT = "HEAD_TO_BOT"
     HEAD_TO_MODEL = "HEAD_TO_MODEL"
+    F1 = "F1"
 
 class AgentPhase(Enum):
     '''Enum containing the keys for agent phase
     '''
     PAUSE = "pause"
     RUN = "run"
+    PARK = "park"
 
 class AgentCtrlStatus(Enum):
     '''Enum containing the keys for agent control status

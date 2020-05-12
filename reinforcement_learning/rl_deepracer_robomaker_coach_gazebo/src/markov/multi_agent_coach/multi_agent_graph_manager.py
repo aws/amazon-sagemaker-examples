@@ -33,7 +33,9 @@ class MultiAgentGraphManager(object):
     def __init__(self, agents_params: List[AgentParameters], env_params: EnvironmentParameters,
                  schedule_params: ScheduleParameters,
                  vis_params: VisualizationParameters = VisualizationParameters(),
-                 preset_validation_params: PresetValidationParameters = PresetValidationParameters()):
+                 preset_validation_params: PresetValidationParameters = PresetValidationParameters(),
+                 done_condition=any):
+        self.done_condition = done_condition
         self.sess = {agent_params.name: None for agent_params in agents_params}
         self.level_managers = []  # type: List[MultiAgentLevelManager]
         self.top_level_manager = None
@@ -147,7 +149,7 @@ class MultiAgentGraphManager(object):
                                                                                        agent_params.name)
 
         # set level manager
-        level_manager = MultiAgentLevelManager(agents=agents, environment=env, name="main_level")
+        level_manager = MultiAgentLevelManager(agents=agents, environment=env, name="main_level", done_condition=self.done_condition)
         return [level_manager], [env]
 
     @staticmethod

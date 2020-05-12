@@ -28,7 +28,7 @@ class EpisodeCompleteResetRule(AbstractResetRule):
         if is_lap_complete:
             self._lap_count += 1
         if self._is_continuous:
-            self._done = (self._lap_count == self._number_of_trials)
+            self._done = (self._lap_count >= self._number_of_trials)
         else:
             self._done = is_lap_complete
         return {AgentInfo.LAP_COUNT.value: self._lap_count,

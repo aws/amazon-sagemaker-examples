@@ -50,24 +50,24 @@ class Frustum(object):
     def get_right_vec(quaternion):
         return apply_orientation(quaternion, GazeboWorld.right)
 
-    def update(self, car_model_state):
+    def update(self, car_pose):
         """
         Update the frustums
 
         Args:
-            car_model_state (GetModelState): Gazebo ModelState of the agent
+            car_pose (Pose): Gazebo Pose of the agent
         """
         with self.lock:
             self.frustums = []
             self.cam_poses = []
             self.near_plane_infos = []
             # Retrieve car pose to calculate camera pose.
-            car_pos = np.array([car_model_state.pose.position.x, car_model_state.pose.position.y,
-                                car_model_state.pose.position.z])
-            car_quaternion = [car_model_state.pose.orientation.x,
-                              car_model_state.pose.orientation.y,
-                              car_model_state.pose.orientation.z,
-                              car_model_state.pose.orientation.w]
+            car_pos = np.array([car_pose.position.x, car_pose.position.y,
+                                car_pose.position.z])
+            car_quaternion = [car_pose.orientation.x,
+                              car_pose.orientation.y,
+                              car_pose.orientation.z,
+                              car_pose.orientation.w]
             for camera_offset in self.camera_offsets:
                 # Get camera position by applying position offset from the car position.
                 cam_pos = car_pos + apply_orientation(car_quaternion, camera_offset)
