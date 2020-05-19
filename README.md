@@ -132,7 +132,7 @@ These examples that showcase unique functionality available in Amazon SageMaker.
 
 These examples provide you an introduction to how to use Neo to optimizes deep learning model
 
-- [GluonCV SSD Mobilenet](sagemaker_neo_compilation_jobs/gluoncv_ssd_mobilenet) shows how to train gluoncv ssd mobilenet and use Amazon Sagemaker Neo to compile and optimize the trained model. 
+- [GluonCV SSD Mobilenet](sagemaker_neo_compilation_jobs/gluoncv_ssd_mobilenet) shows how to train gluoncv ssd mobilenet and use Amazon Sagemaker Neo to compile and optimize the trained model.
 - [Image Classification](sagemaker_neo_compilation_jobs/imageclassification_caltech) Adapts form [image classification](introduction_to_amazon_algorithms/imageclassification_caltech) including Neo API and comparsion between the baseline
 - [MNIST with MXNet](sagemaker_neo_compilation_jobs/mxnet_mnist) Adapts form [mxnet mnist](sagemaker-python-sdk/mxnet_mnist) including Neo API and comparsion between the baseline
 - [Deploying pre-trained PyTorch vision models](sagemaker_neo_compilation_jobs/pytorch_torchvision) shows how to use Amazon SageMaker Neo to compile and optimize pre-trained PyTorch models from TorchVision.
@@ -150,7 +150,7 @@ These examples show you how to use SageMaker Processing jobs to run data process
 
 #### Pre-Built Deep Learning Framework Containers
 
-These examples show you to write idiomatic TensorFlow or MXNet and then train or host in pre-built containers using SageMaker Python SDK.
+These examples show you how to train and host in pre-built deep learning framework containers using the SageMaker Python SDK.
 
 - [Chainer CIFAR-10](sagemaker-python-sdk/chainer_cifar10) trains a VGG image classification network on CIFAR-10 using Chainer (both single machine and multi-machine versions are included)
 - [Chainer MNIST](sagemaker-python-sdk/chainer_mnist) trains a basic neural network on MNIST using Chainer (shows how to use local mode)
@@ -159,11 +159,9 @@ These examples show you to write idiomatic TensorFlow or MXNet and then train or
 - [MNIST with MXNet Gluon](sagemaker-python-sdk/mxnet_gluon_mnist) trains a basic neural network on the MNIST handwritten digit dataset using MXNet Gluon
 - [MNIST with MXNet](sagemaker-python-sdk/mxnet_mnist) trains a basic neural network on the MNIST handwritten digit data using MXNet's symbolic syntax
 - [Sentiment Analysis with MXNet Gluon](sagemaker-python-sdk/mxnet_gluon_sentiment) trains a text classifier using embeddings with MXNet Gluon
-- [TensorFlow Neural Networks with Layers](sagemaker-python-sdk/tensorflow_abalone_age_predictor_using_layers) trains a basic neural network on the abalone dataset using TensorFlow layers
-- [TensorFlow Networks with Keras](sagemaker-python-sdk/tensorflow_abalone_age_predictor_using_keras) trains a basic neural network on the abalone dataset using TensorFlow and Keras
-- [Introduction to Estimators in TensorFlow](sagemaker-python-sdk/tensorflow_iris_dnn_classifier_using_estimators) trains a DNN classifier estimator on the Iris dataset using TensorFlow
-- [TensorFlow and TensorBoard](sagemaker-python-sdk/tensorflow_resnet_cifar10_with_tensorboard) trains a ResNet image classification model on CIFAR-10 using TensorFlow and showcases how to track results using TensorBoard
-- [Distributed TensorFlow](sagemaker-python-sdk/tensorflow_distributed_mnist) trains a simple convolutional neural network on MNIST using TensorFlow
+- [TensorFlow training and serving](sagemaker-python-sdk/tensorflow_script_mode_training_and_serving) trains a basic neural network on MNIST
+- [TensorFlow with Horovod](sagemaker-python-sdk/tensorflow_script_mode_horovod) trains on MNIST using Horovod for distributed training
+- [TensorFlow using shell commands](sagemaker-python-sdk/tensorflow_script_mode_using_shell_commands) shows how to use a shell script for the container's entry point
 
 #### Pre-Built Machine Learning Framework Containers
 
