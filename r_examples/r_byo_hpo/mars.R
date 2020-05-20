@@ -23,6 +23,8 @@ prefix <- '/opt/ml'
 input_path <- paste(prefix, 'input/data', sep='/')
 output_path <- paste(prefix, 'output', sep='/')
 model_path <- paste(prefix, 'model', sep='/')
+
+# This is where the hyperparamters are saved by the estimator on the container instance
 param_path <- paste(prefix, 'input/config/hyperparameters.json', sep='/')
 
 # Channel holding training data
@@ -36,7 +38,8 @@ train <- function() {
     # Read in hyperparameters
     training_params <- read_json(param_path)
 
-    target <- training_params$target
+    # Setting the tarhet
+    target <- 'Sepal.Length'
 
     if (!is.null(training_params$degree)) {
         degree <- as.numeric(training_params$degree)}
