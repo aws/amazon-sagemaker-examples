@@ -1,0 +1,39 @@
+
+pid /tmp/nginx.pid;
+error_log /var/log/nginx/error.log;
+
+events {
+  # defaults
+}
+
+http {
+  include /etc/nginx/mime.types;
+  default_type application/octet-stream;
+  access_log /var/log/nginx/access.log combined;
+
+  upstream gunicorn {
+    server unix:/tmp/gunicorn.sock fail_timeout=3600;
+  }
+
+  server {
+    listen $NGINX_PORT deferred;
+    client_max_body_size 20m;
+
+    keepalive_timeout 36000;
+    proxy_read_timeout 36000s;
+    proxy_connect_timeout 36000s;
+    proxy_send_timeout 36000s;
+
+    location ~ ^/(ping|invocations) {
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header Host $http_host;
+      proxy_ignore_client_abort on;
+      proxy_redirect off;
+      proxy_pass http://gunicorn;
+    }
+
+    location / {
+      return 404 "{}";
+    }
+  }
+}

@@ -11,8 +11,6 @@ import numpy as np
 import gym
 from gym import wrappers
 import ray
-from ray.rllib.agents.agent import get_agent_class
-from ray.rllib.agents.dqn.common.wrappers import wrap_dqn
 from ray.rllib.models import ModelCatalog
 from ray.tune.registry import register_env
 
@@ -70,6 +68,11 @@ def run(args, parser):
 
     register_env(args.env, create_environment)
 
+    if ray.__version__ >= "0.6.5":
+        from ray.rllib.agents.registry import get_agent_class
+    else:
+        from ray.rllib.agents.agent import get_agent_class
+
     cls = get_agent_class(args.algorithm)
     config = args.config
     config["monitor"] = False
@@ -79,11 +82,16 @@ def run(args, parser):
     agent.restore(args.checkpoint)
     num_episodes = int(args.evaluate_episodes)
 
-    if args.algorithm == "DQN":
+    if ray.__version__ >= "0.6.5":
         env = gym.make(args.env)
-        env = wrap_dqn(env, args.config.get("model", {}))
     else:
-        env = ModelCatalog.get_preprocessor_as_wrapper(gym.make(args.env))
+        from ray.rllib.agents.dqn.common.wrappers import wrap_dqn
+        if args.algorithm == "DQN":
+            env = gym.make(args.env)
+            env = wrap_dqn(env, args.config.get("model", {}))
+        else:
+            env = ModelCatalog.get_preprocessor_as_wrapper(gym.make(args.env))
+
     env = wrappers.Monitor(env, OUTPUT_DIR, force=True, video_callable=lambda episode_id: True)
     all_rewards = []
     for episode in range(num_episodes):

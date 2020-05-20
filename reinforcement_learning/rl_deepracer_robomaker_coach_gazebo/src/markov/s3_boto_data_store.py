@@ -1,257 +1,401 @@
 import io
-import os
-import sys
-import time
-import json
 import logging
-import traceback
-
+import os
+import time
+import queue
+from typing import Dict
+import botocore
 import boto3
-from google.protobuf import text_format
-from tensorflow.python.training.checkpoint_state_pb2 import CheckpointState
 
+from rl_coach.checkpoint import CheckpointStateFile, _filter_checkpoint_files
 from rl_coach.data_stores.data_store import DataStore, DataStoreParameters, SyncFiles
-from markov import utils
+from markov.multi_agent_coach.multi_agent_graph_manager import MultiAgentGraphManager
+from markov.utils import get_best_checkpoint, get_boto_config, \
+                         copy_best_frozen_model_to_sm_output_dir, get_s3_kms_extra_args
+from markov.log_handler.logger import Logger
+from markov.log_handler.exception_handler import log_and_exit
+from markov.log_handler.constants import (SIMAPP_EVENT_ERROR_CODE_500, SIMAPP_EVENT_ERROR_CODE_400,
+                                          SIMAPP_S3_DATA_STORE_EXCEPTION)
+import tensorflow as tf
 
-logger = utils.Logger(__name__, logging.INFO).get_logger()
+LOG = Logger(__name__, logging.INFO).get_logger()
 
-CHECKPOINT_METADATA_FILENAME = "checkpoint"
+# The number of models to keep in S3
+#! TODO discuss with product team if this number should be configurable
+NUM_MODELS_TO_KEEP = 4
+
 SLEEP_TIME_WHILE_WAITING_FOR_DATA_FROM_TRAINER_IN_SECOND = 1
-IP_KEY = "IP"
+SM_MODEL_OUTPUT_DIR = os.environ.get("ALGO_MODEL_DIR", "/opt/ml/model")
+# Temporary folder where the model_{}.pb for best_checkpoint_iteration, last_checkpoint_iteration
+# and other iterations > last_checkpoint_iteration are stored
+SM_MODEL_PB_TEMP_FOLDER = './frozen_models'
 
 
 class S3BotoDataStoreParameters(DataStoreParameters):
-    def __init__(self, aws_region: str = "us-west-2", bucket_name: str = None, s3_folder: str = None,
-                 checkpoint_dir: str = None):
+    def __init__(self, aws_region: str = "us-west-2", bucket_names: Dict[str, str] = {"agent": None},
+                 s3_folders: Dict[str, str] = {"agent": None},
+                 base_checkpoint_dir: str = None):
         super().__init__("s3", "", "")
         self.aws_region = aws_region
-        self.bucket = bucket_name
-        self.s3_folder = s3_folder
-        self.checkpoint_dir = checkpoint_dir
-        self.lock_file = ".lock"
+        self.buckets = bucket_names
+        self.s3_folders = s3_folders
+        self.base_checkpoint_dir = base_checkpoint_dir
 
 
 class S3BotoDataStore(DataStore):
-    def __init__(self, params: S3BotoDataStoreParameters):
+    #! TODO remove ignore_lock after refactoring this class
+    def __init__(self, params: S3BotoDataStoreParameters, graph_manager: MultiAgentGraphManager,
+                 ignore_lock: bool = False):
         self.params = params
-        self.key_prefix = os.path.normpath(self.params.s3_folder + "/model")
-        self.ip_data_key = os.path.normpath(self.params.s3_folder + "/ip/ip.json")
-        self.ip_done_key = os.path.normpath(self.params.s3_folder + "/ip/done")
-        self.preset_data_key = os.path.normpath(self.params.s3_folder + "/presets/preset.py")
-        self.graph_manager = None
+        self.key_prefixes = dict()
+        self.ip_data_keys = dict()
+        self.ip_done_keys = dict()
+        self.preset_data_keys = dict()
+        self.delete_queues = dict()
+        for agent_key, s3_folder in self.params.s3_folders.items():
+            self.key_prefixes[agent_key] = os.path.join(s3_folder, "model")
+            self.ip_data_keys[agent_key] = os.path.join(s3_folder, "ip/ip.json")
+            self.ip_done_keys[agent_key] = os.path.join(s3_folder, "ip/done")
+            self.preset_data_keys[agent_key] = os.path.join(s3_folder, "presets/preset.py")
+            self.delete_queues[agent_key] = queue.Queue()
+        if not graph_manager:
+            log_and_exit("None type for graph manager",
+                         SIMAPP_S3_DATA_STORE_EXCEPTION,
+                         SIMAPP_EVENT_ERROR_CODE_500)
 
-    def _get_s3_key(self, key):
-        return os.path.normpath(self.key_prefix + "/" + key)
+        self.graph_manager = graph_manager
+        self.ignore_lock = ignore_lock
+        self.s3_extra_args = get_s3_kms_extra_args()
+
+    def _get_s3_key(self, key, agent_key):
+        return os.path.join(self.key_prefixes[agent_key], key)
 
     def _get_client(self):
         session = boto3.session.Session()
-        return session.client('s3', region_name=self.params.aws_region)
+        return session.client('s3', region_name=self.params.aws_region,
+                              config=get_boto_config())
 
     def deploy(self) -> bool:
         return True
 
-    def get_info(self):
-        return "s3://{}/{}".format(self.params.bucket, self.params.s3_folder)
+    def get_info(self, agent_key):
+        return "s3://{}/{}".format(self.params.buckets[agent_key], self.params.s3_folder[agent_key])
 
     def undeploy(self) -> bool:
         return True
 
     def upload_finished_file(self):
-        s3_client = self._get_client()
-        s3_client.upload_fileobj(Fileobj=io.BytesIO(b''),
-                                 Bucket=self.params.bucket,
-                                 Key=self._get_s3_key(SyncFiles.FINISHED.value))
+        try:
+            s3_client = self._get_client()
+            for agent_key, bucket in self.params.buckets.items():
+                s3_client.upload_fileobj(Fileobj=io.BytesIO(b''),
+                                         Bucket=bucket,
+                                         Key=self._get_s3_key(SyncFiles.FINISHED.value, agent_key),
+                                         ExtraArgs=self.s3_extra_args)
+        except botocore.exceptions.ClientError:
+            log_and_exit("Unable to upload finish file",
+                         SIMAPP_S3_DATA_STORE_EXCEPTION,
+                         SIMAPP_EVENT_ERROR_CODE_400)
+        except Exception as ex:
+            log_and_exit("Exception in uploading finish file {}".format(ex),
+                         SIMAPP_S3_DATA_STORE_EXCEPTION,
+                         SIMAPP_EVENT_ERROR_CODE_500)
 
     def save_to_store(self):
         try:
             s3_client = self._get_client()
+            base_checkpoint_dir = self.params.base_checkpoint_dir
+            for agent_key, bucket in self.params.buckets.items():
+                # remove lock file if it exists
+                s3_client.delete_object(Bucket=bucket, Key=self._get_s3_key(SyncFiles.LOCKFILE.value, agent_key))
 
-            # Delete any existing lock file
-            s3_client.delete_object(Bucket=self.params.bucket, Key=self._get_s3_key(self.params.lock_file))
+                # acquire lock
+                s3_client.upload_fileobj(Fileobj=io.BytesIO(b''),
+                                         Bucket=bucket,
+                                         Key=self._get_s3_key(SyncFiles.LOCKFILE.value, agent_key),
+                                         ExtraArgs=self.s3_extra_args)
 
-            # We take a lock by writing a lock file to the same location in S3
-            s3_client.upload_fileobj(Fileobj=io.BytesIO(b''),
-                                     Bucket=self.params.bucket,
-                                     Key=self._get_s3_key(self.params.lock_file))
+                checkpoint_dir = base_checkpoint_dir if len(self.graph_manager.agents_params) == 1 else \
+                    os.path.join(base_checkpoint_dir, agent_key)
 
-            # Start writing the model checkpoints to S3
-            checkpoint = self._get_current_checkpoint()
-            if checkpoint:
-                checkpoint_number = self._get_checkpoint_number(checkpoint)
+                state_file = CheckpointStateFile(os.path.abspath(checkpoint_dir))
+                ckpt_state = None
+                check_point_key_list = []
+                if state_file.exists():
+                    ckpt_state = state_file.read()
+                    checkpoint_file = None
+                    num_files_uploaded = 0
+                    for root, _, files in os.walk(checkpoint_dir):
+                        for filename in files:
+                            if filename == CheckpointStateFile.checkpoint_state_filename:
+                                checkpoint_file = (root, filename)
+                                continue
+                            if filename.startswith(ckpt_state.name):
+                                abs_name = os.path.abspath(os.path.join(root, filename))
+                                rel_name = os.path.relpath(abs_name, checkpoint_dir)
+                                s3_client.upload_file(Filename=abs_name,
+                                                      Bucket=bucket,
+                                                      Key=self._get_s3_key(rel_name, agent_key),
+                                                      ExtraArgs=self.s3_extra_args)
+                                check_point_key_list.append(self._get_s3_key(rel_name, agent_key))
+                                num_files_uploaded += 1
+                    LOG.info("Uploaded %s files for checkpoint %s", num_files_uploaded, ckpt_state.num)
+                    if check_point_key_list:
+                        self.delete_queues[agent_key].put(check_point_key_list)
 
-            checkpoint_file = None
-            for root, dirs, files in os.walk(self.params.checkpoint_dir):
-                num_files_uploaded = 0
-                for filename in files:
-                    # Skip the checkpoint file that has the latest checkpoint number
-                    if filename == CHECKPOINT_METADATA_FILENAME:
-                        checkpoint_file = (root, filename)
-                        continue
-
-                    if not filename.startswith(str(checkpoint_number)):
-                        continue
-
-                    # Upload all the other files from the checkpoint directory
-                    abs_name = os.path.abspath(os.path.join(root, filename))
-                    rel_name = os.path.relpath(abs_name, self.params.checkpoint_dir)
+                    abs_name = os.path.abspath(os.path.join(checkpoint_file[0], checkpoint_file[1]))
+                    rel_name = os.path.relpath(abs_name, checkpoint_dir)
                     s3_client.upload_file(Filename=abs_name,
-                                          Bucket=self.params.bucket,
-                                          Key=self._get_s3_key(rel_name))
-                    num_files_uploaded += 1
-            logger.info("Uploaded {} files for checkpoint {}".format(num_files_uploaded, checkpoint_number))
+                                          Bucket=bucket,
+                                          Key=self._get_s3_key(rel_name, agent_key),
+                                          ExtraArgs=self.s3_extra_args)
 
-            # After all the checkpoint files have been uploaded, we upload the version file.
-            abs_name = os.path.abspath(os.path.join(checkpoint_file[0], checkpoint_file[1]))
-            rel_name = os.path.relpath(abs_name, self.params.checkpoint_dir)
-            s3_client.upload_file(Filename=abs_name,
-                                  Bucket=self.params.bucket,
-                                  Key=self._get_s3_key(rel_name))
+                # upload Finished if present
+                if os.path.exists(os.path.join(checkpoint_dir, SyncFiles.FINISHED.value)):
+                    s3_client.upload_fileobj(Fileobj=io.BytesIO(b''),
+                                             Bucket=bucket,
+                                             Key=self._get_s3_key(SyncFiles.FINISHED.value, agent_key),
+                                             ExtraArgs=self.s3_extra_args)
 
-            # Release the lock by deleting the lock file from S3
-            s3_client.delete_object(Bucket=self.params.bucket, Key=self._get_s3_key(self.params.lock_file))
+                # upload Ready if present
+                if os.path.exists(os.path.join(checkpoint_dir, SyncFiles.TRAINER_READY.value)):
+                    s3_client.upload_fileobj(Fileobj=io.BytesIO(b''),
+                                             Bucket=bucket,
+                                             Key=self._get_s3_key(SyncFiles.TRAINER_READY.value, agent_key),
+                                             ExtraArgs=self.s3_extra_args)
 
-            # Upload the frozen graph which is used for deployment
-            if self.graph_manager:
-                utils.write_frozen_graph(self.graph_manager)
-                # upload the model_<ID>.pb to S3. NOTE: there's no cleanup as we don't know the best checkpoint
-                iteration_id = self.graph_manager.level_managers[0].agents['agent'].training_iteration
-                frozen_graph_fpath = utils.SM_MODEL_OUTPUT_DIR + "/model.pb"
-                frozen_graph_s3_name = "model_%s.pb" % iteration_id
-                s3_client.upload_file(Filename=frozen_graph_fpath,
-                                  Bucket=self.params.bucket,
-                                  Key=self._get_s3_key(frozen_graph_s3_name))
-                logger.info("saved intermediate frozen graph: {}".format(self._get_s3_key(frozen_graph_s3_name)))
+                # release lock
+                s3_client.delete_object(Bucket=bucket,
+                                        Key=self._get_s3_key(SyncFiles.LOCKFILE.value, agent_key))
 
-            # Clean up old checkpoints
-            checkpoint = self._get_current_checkpoint()
-            if checkpoint:
-                checkpoint_number = self._get_checkpoint_number(checkpoint)
-                checkpoint_number_to_delete = checkpoint_number - 4
+                # Upload the frozen graph which is used for deployment
+                if self.graph_manager:
+                    # checkpoint state is always present for the checkpoint dir passed.
+                    # We make same assumption while we get the best checkpoint in s3_metrics
+                    checkpoint_num = ckpt_state.num
+                    self.write_frozen_graph(self.graph_manager, agent_key, checkpoint_num)
+                    frozen_name = "model_{}.pb".format(checkpoint_num)
+                    frozen_graph_fpath = os.path.join(SM_MODEL_PB_TEMP_FOLDER, agent_key,
+                                                      frozen_name)
+                    frozen_graph_s3_name = frozen_name if len(self.graph_manager.agents_params) == 1 \
+                        else os.path.join(agent_key, frozen_name)
+                    # upload the model_<ID>.pb to S3.
+                    s3_client.upload_file(Filename=frozen_graph_fpath,
+                                          Bucket=bucket,
+                                          Key=self._get_s3_key(frozen_graph_s3_name, agent_key),
+                                          ExtraArgs=self.s3_extra_args)
+                    LOG.info("saved intermediate frozen graph: %s", self._get_s3_key(frozen_graph_s3_name, agent_key))
 
-                # List all the old checkpoint files to be deleted
-                response = s3_client.list_objects_v2(Bucket=self.params.bucket,
-                                                     Prefix=self._get_s3_key(str(checkpoint_number_to_delete) + "_"))
-                if "Contents" in response:
-                    num_files = 0
-                    for obj in response["Contents"]:
-                        s3_client.delete_object(Bucket=self.params.bucket,
-                                                Key=obj["Key"])
-                        num_files += 1
-        except Exception as e:
-            utils.json_format_logger("Exception [{}] occured while uploading files on S3 for checkpoint".format(e),
-                      **utils.build_system_error_dict(utils.SIMAPP_S3_DATA_STORE_EXCEPTION, utils.SIMAPP_EVENT_ERROR_CODE_500))
-            raise e
+                    # Copy the best checkpoint to the SM_MODEL_OUTPUT_DIR
+                    copy_best_frozen_model_to_sm_output_dir(bucket,
+                                                            self.params.s3_folders[agent_key],
+                                                            self.params.aws_region,
+                                                            os.path.join(SM_MODEL_PB_TEMP_FOLDER, agent_key),
+                                                            os.path.join(SM_MODEL_OUTPUT_DIR, agent_key))
+
+                # Clean up old checkpoints
+                if ckpt_state and self.delete_queues[agent_key].qsize() > NUM_MODELS_TO_KEEP:
+                    best_checkpoint = get_best_checkpoint(bucket,
+                                                          self.params.s3_folders[agent_key],
+                                                          self.params.aws_region)
+                    while self.delete_queues[agent_key].qsize() > NUM_MODELS_TO_KEEP:
+                        key_list = self.delete_queues[agent_key].get()
+                        if best_checkpoint and all(list(map(lambda file_name: best_checkpoint in file_name,
+                                                            [os.path.split(file)[-1] for file in key_list]))):
+                            self.delete_queues[agent_key].put(key_list)
+                        else:
+                            delete_iteration_ids = set()
+                            for key in key_list:
+                                s3_client.delete_object(Bucket=bucket, Key=key)
+                                # Get the name of the file in the checkpoint directory that has to be deleted
+                                # and extract the iteration id out of the name
+                                file_in_checkpoint_dir = os.path.split(key)[-1]
+                                if len(file_in_checkpoint_dir.split("_Step")) > 0:
+                                    delete_iteration_ids.add(file_in_checkpoint_dir.split("_Step")[0])
+                            LOG.info("Deleting the frozen models in s3 for the iterations: %s",
+                                     delete_iteration_ids)
+                            # Delete the model_{}.pb files from the s3 bucket for the previous iterations
+                            for iteration_id in list(delete_iteration_ids):
+                                frozen_name = "model_{}.pb".format(iteration_id)
+                                frozen_graph_s3_name = frozen_name if len(self.graph_manager.agents_params) == 1 \
+                                    else os.path.join(agent_key, frozen_name)
+                                s3_client.delete_object(Bucket=bucket,
+                                                        Key=self._get_s3_key(frozen_graph_s3_name, agent_key))
+        except botocore.exceptions.ClientError:
+            log_and_exit("Unable to upload checkpoint",
+                         SIMAPP_S3_DATA_STORE_EXCEPTION,
+                         SIMAPP_EVENT_ERROR_CODE_400)
+        except Exception as ex:
+            log_and_exit("Exception in uploading checkpoint: {}".format(ex),
+                         SIMAPP_S3_DATA_STORE_EXCEPTION,
+                         SIMAPP_EVENT_ERROR_CODE_500)
+
+    def write_frozen_graph(self, graph_manager, agent_name, iteration_id):
+        """Write the frozen graph to the temporary folder with a name model_{}.pb for the iteration_id passed
+        Args:
+            graph_manager (MultiAgentGraphManager): MultiAgentGraphManager object
+            agent_name (str): Name of the agent
+            iteration_id (int): Iteration id for which we are saving the model_{}.pb
+        """
+        if not os.path.exists(os.path.join(SM_MODEL_PB_TEMP_FOLDER, agent_name)):
+            os.makedirs(os.path.join(SM_MODEL_PB_TEMP_FOLDER, agent_name))
+        if not os.path.exists(os.path.join(SM_MODEL_OUTPUT_DIR, agent_name)):
+            os.makedirs(os.path.join(SM_MODEL_OUTPUT_DIR, agent_name))
+        output_head = ['main_level/{}/main/online/network_1/ppo_head_0/policy'.format(agent_name)]
+        frozen = tf.graph_util.convert_variables_to_constants(graph_manager.sess[agent_name],
+                                                              graph_manager.sess[agent_name].graph_def, output_head)
+        tf.train.write_graph(frozen, os.path.join(SM_MODEL_PB_TEMP_FOLDER, agent_name),
+                             'model_{}.pb'.format(iteration_id), as_text=False)
+
+    def get_chkpoint_num(self, agent_key):
+        try:
+            s3_client = self._get_client()
+            # If there is a lock file return -1 since it means the trainer has the lock
+            response = s3_client.list_objects_v2(Bucket=self.params.buckets[agent_key],
+                                                 Prefix=self._get_s3_key(SyncFiles.LOCKFILE.value, agent_key))
+            chkpoint_num = -1
+            if "Contents" not in response:
+                base_checkpoint_dir = self.params.base_checkpoint_dir
+                checkpoint_dir = base_checkpoint_dir if len(self.graph_manager.agents_params) == 1 else os.path.join(base_checkpoint_dir, agent_key)
+                if not os.path.exists(checkpoint_dir):
+                    os.makedirs(checkpoint_dir)
+                state_file = CheckpointStateFile(os.path.abspath(checkpoint_dir))
+                s3_client.download_file(Bucket=self.params.buckets[agent_key],
+                                        Key=self._get_s3_key(state_file.filename, agent_key),
+                                        Filename=state_file.path)
+                checkpoint_state = state_file.read()
+                if checkpoint_state is not None:
+                    chkpoint_num = checkpoint_state.num
+            return chkpoint_num
+        except botocore.exceptions.ClientError:
+            log_and_exit("Unable to download checkpoint",
+                         SIMAPP_S3_DATA_STORE_EXCEPTION,
+                         SIMAPP_EVENT_ERROR_CODE_400)
+        except Exception as ex:
+            log_and_exit("Exception in downloading checkpoint: {}".format(ex),
+                         SIMAPP_S3_DATA_STORE_EXCEPTION,
+                         SIMAPP_EVENT_ERROR_CODE_500)
 
     def load_from_store(self, expected_checkpoint_number=-1):
         try:
-            filename = os.path.abspath(os.path.join(self.params.checkpoint_dir, CHECKPOINT_METADATA_FILENAME))
-            if not os.path.exists(self.params.checkpoint_dir):
-                os.makedirs(self.params.checkpoint_dir)
+            s3_client = self._get_client()
+            base_checkpoint_dir = self.params.base_checkpoint_dir
+            for agent_key, bucket in self.params.buckets.items():
+                checkpoint_dir = base_checkpoint_dir if len(self.graph_manager.agents_params) == 1 else os.path.join(base_checkpoint_dir, agent_key)
+                if not os.path.exists(checkpoint_dir):
+                    os.makedirs(checkpoint_dir)
+                while True:
+                    s3_client = self._get_client()
+                    state_file = CheckpointStateFile(os.path.abspath(checkpoint_dir))
 
-            while True:
-                s3_client = self._get_client()
-                # Check if there's a finished file
-                response = s3_client.list_objects_v2(Bucket=self.params.bucket,
-                                                     Prefix=self._get_s3_key(SyncFiles.FINISHED.value))
-                if "Contents" in response:
-                    finished_file_path = os.path.abspath(os.path.join(self.params.checkpoint_dir,
-                                                                      SyncFiles.FINISHED.value))
-                    s3_client.download_file(Bucket=self.params.bucket,
-                                            Key=self._get_s3_key(SyncFiles.FINISHED.value),
-                                            Filename=finished_file_path)
-                    return False
-
-                # Check if there's a lock file
-                response = s3_client.list_objects_v2(Bucket=self.params.bucket,
-                                                     Prefix=self._get_s3_key(self.params.lock_file))
-
-                if "Contents" not in response:
-                    try:
-                        # If no lock is found, try getting the checkpoint
-                        s3_client.download_file(Bucket=self.params.bucket,
-                                                Key=self._get_s3_key(CHECKPOINT_METADATA_FILENAME),
-                                                Filename=filename)
-                    except Exception as e:
-                        time.sleep(SLEEP_TIME_WHILE_WAITING_FOR_DATA_FROM_TRAINER_IN_SECOND)
-                        continue
-                else:
-                    time.sleep(SLEEP_TIME_WHILE_WAITING_FOR_DATA_FROM_TRAINER_IN_SECOND)
-                    continue
-
-                checkpoint = self._get_current_checkpoint()
-                if checkpoint:
-                    checkpoint_number = self._get_checkpoint_number(checkpoint)
-
-                    # if we get a checkpoint that is older that the expected checkpoint, we wait for
-                    #  the new checkpoint to arrive.
-                    if checkpoint_number < expected_checkpoint_number:
-                        logger.info("Expecting checkpoint >= %s. Waiting." % expected_checkpoint_number)
+                    # wait until lock is removed
+                    response = s3_client.list_objects_v2(Bucket=bucket,
+                                                         Prefix=self._get_s3_key(SyncFiles.LOCKFILE.value, agent_key))
+                    if "Contents" not in response or self.ignore_lock:
+                        try:
+                            checkpoint_file_path = os.path.abspath(os.path.join(checkpoint_dir,
+                                                                                state_file.path))
+                            # fetch checkpoint state file from S3
+                            s3_client.download_file(Bucket=bucket,
+                                                    Key=self._get_s3_key(state_file.filename, agent_key),
+                                                    Filename=checkpoint_file_path)
+                        except botocore.exceptions.ClientError:
+                            if self.ignore_lock:
+                                log_and_exit("Checkpoint not found",
+                                             SIMAPP_S3_DATA_STORE_EXCEPTION,
+                                             SIMAPP_EVENT_ERROR_CODE_400)
+                            time.sleep(SLEEP_TIME_WHILE_WAITING_FOR_DATA_FROM_TRAINER_IN_SECOND)
+                            continue
+                        except Exception:
+                            if self.ignore_lock:
+                                log_and_exit("Checkpoint not found",
+                                             SIMAPP_S3_DATA_STORE_EXCEPTION,
+                                             SIMAPP_EVENT_ERROR_CODE_500)
+                            time.sleep(SLEEP_TIME_WHILE_WAITING_FOR_DATA_FROM_TRAINER_IN_SECOND)
+                            continue
+                    else:
                         time.sleep(SLEEP_TIME_WHILE_WAITING_FOR_DATA_FROM_TRAINER_IN_SECOND)
                         continue
 
-                    # Found a checkpoint to be downloaded
-                    response = s3_client.list_objects_v2(Bucket=self.params.bucket,
-                                                         Prefix=self._get_s3_key(checkpoint.model_checkpoint_path))
+                    # check if there's a Finished file
+                    response = s3_client.list_objects_v2(Bucket=bucket,
+                                                         Prefix=self._get_s3_key(SyncFiles.FINISHED.value, agent_key))
                     if "Contents" in response:
-                        num_files = 0
-                        for obj in response["Contents"]:
-                            # Get the local filename of the checkpoint file
-                            full_key_prefix = os.path.normpath(self.key_prefix) + "/"
-                            filename = os.path.abspath(os.path.join(self.params.checkpoint_dir,
-                                                                    obj["Key"].replace(full_key_prefix, "")))
-                            s3_client.download_file(Bucket=self.params.bucket,
-                                                    Key=obj["Key"],
-                                                    Filename=filename)
-                            num_files += 1
-                        return True
+                        try:
+                            finished_file_path = os.path.abspath(os.path.join(checkpoint_dir,
+                                                                              SyncFiles.FINISHED.value))
+                            s3_client.download_file(Bucket=bucket,
+                                                    Key=self._get_s3_key(SyncFiles.FINISHED.value, agent_key),
+                                                    Filename=finished_file_path)
+                        except Exception:
+                            pass
 
-        except Exception as e:
-            utils.json_format_logger("Exception [{}] occured while loading checkpoint from S3. Job failed!".format(e),
-                                     **utils.build_system_error_dict(utils.SIMAPP_S3_DATA_STORE_EXCEPTION, utils.SIMAPP_EVENT_ERROR_CODE_503))
-            traceback.print_exc()
-            sys.exit(1)
+                    # check if there's a Ready file
+                    response = s3_client.list_objects_v2(Bucket=bucket,
+                                                         Prefix=self._get_s3_key(SyncFiles.TRAINER_READY.value, agent_key))
+                    if "Contents" in response:
+                        try:
+                            ready_file_path = os.path.abspath(os.path.join(checkpoint_dir,
+                                                                           SyncFiles.TRAINER_READY.value))
+                            s3_client.download_file(Bucket=bucket,
+                                                    Key=self._get_s3_key(SyncFiles.TRAINER_READY.value, agent_key),
+                                                    Filename=ready_file_path)
+                        except Exception:
+                            pass
 
-    def store_ip(self, ip_address):
-        s3_client = self._get_client()
-        ip_data = {IP_KEY: ip_address}
-        ip_data_json_blob = json.dumps(ip_data)
-        ip_data_file_object = io.BytesIO(ip_data_json_blob.encode())
-        ip_done_file_object = io.BytesIO(b'done')
-        s3_client.upload_fileobj(ip_data_file_object, self.params.bucket, self.ip_data_key)
-        s3_client.upload_fileobj(ip_done_file_object, self.params.bucket, self.ip_done_key)
+                    checkpoint_state = state_file.read()
+                    if checkpoint_state is not None:
 
-    def download_preset_if_present(self, local_path):
-        s3_client = self._get_client()
-        response = s3_client.list_objects(Bucket=self.params.bucket, Prefix=self.preset_data_key)
+                        # if we get a checkpoint that is older that the expected checkpoint, we wait for
+                        #  the new checkpoint to arrive.
 
-        # If we don't find a preset, return false
-        if "Contents" not in response:
-            return False
+                        if checkpoint_state.num < expected_checkpoint_number:
+                            time.sleep(SLEEP_TIME_WHILE_WAITING_FOR_DATA_FROM_TRAINER_IN_SECOND)
+                            continue
 
-        success = s3_client.download_file(Bucket=self.params.bucket,
-                                          Key=self.preset_data_key,
-                                          Filename=local_path)
-        return success
+                        response = s3_client.list_objects_v2(Bucket=bucket,
+                                                             Prefix=self._get_s3_key("", agent_key))
+                        if "Contents" in response:
+                            # Check to see if the desired checkpoint is in the bucket
+                            has_chkpnt = any(list(map(lambda obj: os.path.split(obj['Key'])[1].\
+                                                                startswith(checkpoint_state.name),
+                                                      response['Contents'])))
+                            for obj in response["Contents"]:
+                                full_key_prefix = os.path.normpath(self.key_prefixes[agent_key]) + "/"
+                                filename = os.path.abspath(os.path.join(checkpoint_dir,
+                                                                        obj["Key"].\
+                                                                        replace(full_key_prefix, "")))
+                                dirname, basename = os.path.split(filename)
+                                # Download all the checkpoints but not the frozen models since they
+                                # are not necessary
+                                _, file_extension = os.path.splitext(obj["Key"])
+                                if file_extension != '.pb' \
+                                and (basename.startswith(checkpoint_state.name) or not has_chkpnt):
+                                    if not os.path.exists(dirname):
+                                        os.makedirs(dirname)
+                                    s3_client.download_file(Bucket=bucket,
+                                                            Key=obj["Key"],
+                                                            Filename=filename)
+                            # Change the coach checkpoint file to point to the latest available checkpoint,
+                            # also log that we are changing the checkpoint.
+                            if not has_chkpnt:
+                                all_ckpnts = _filter_checkpoint_files(os.listdir(checkpoint_dir))
+                                if all_ckpnts:
+                                    LOG.info("%s not in s3 bucket, downloading all checkpoints \
+                                                and using %s", checkpoint_state.name, all_ckpnts[-1])
+                                    state_file.write(all_ckpnts[-1])
+                                else:
+                                    log_and_exit("No checkpoint files",
+                                                 SIMAPP_S3_DATA_STORE_EXCEPTION,
+                                                 SIMAPP_EVENT_ERROR_CODE_400)
+                    break
+            return True
 
-    def get_current_checkpoint_number(self):
-        return self._get_checkpoint_number(self._get_current_checkpoint())
-
-    def _get_current_checkpoint(self):
-        try:
-            checkpoint_metadata_filepath = os.path.abspath(
-                os.path.join(self.params.checkpoint_dir, CHECKPOINT_METADATA_FILENAME))
-            checkpoint = CheckpointState()
-            if os.path.exists(checkpoint_metadata_filepath) == False:
-                return None
-
-            contents = open(checkpoint_metadata_filepath, 'r').read()
-            text_format.Merge(contents, checkpoint)
-            return checkpoint
-        except Exception as e:
-            utils.json_format_logger("Exception[{}] occured while reading checkpoint metadata".format(e),
-                                     **utils.build_system_error_dict(utils.SIMAPP_S3_DATA_STORE_EXCEPTION, utils.SIMAPP_EVENT_ERROR_CODE_500))
-            raise e
-
-    def _get_checkpoint_number(self, checkpoint):
-        checkpoint_relative_path = checkpoint.model_checkpoint_path
-        return int(checkpoint_relative_path.split('_Step')[0])
+        except botocore.exceptions.ClientError:
+            log_and_exit("Unable to download checkpoint",
+                         SIMAPP_S3_DATA_STORE_EXCEPTION,
+                         SIMAPP_EVENT_ERROR_CODE_400)
+        except Exception as ex:
+            log_and_exit("Exception in downloading checkpoint: {}".format(ex),
+                         SIMAPP_S3_DATA_STORE_EXCEPTION,
+                         SIMAPP_EVENT_ERROR_CODE_500)

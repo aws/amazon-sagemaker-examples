@@ -10,8 +10,6 @@ import boto3
 
 import ray
 from ray.tune import run_experiments
-from ray.rllib.agents.agent import get_agent_class
-
 from .tf_serving_utils import export_tf_serving, natural_keys, change_permissions_recursive
 from .configuration_list import ConfigurationList
 from .sage_cluster_communicator import SageClusterCommunicator
@@ -19,6 +17,7 @@ from .docker_utils import get_ip_from_host
 
 TERMINATION_SIGNAL = "JOB_TERMINATED"
 INTERMEDIATE_DIR = "/opt/ml/output/intermediate"
+CHECKPOINT_DIR = "/opt/ml/input/data/checkpoint"
 MODEL_OUTPUT_DIR = "/opt/ml/model"
 
 
@@ -99,7 +98,8 @@ class SageMakerRayLauncher(object):
         # TODO: move this to before customer-specified so they can override
         hyperparams_dict["rl.training.local_dir"] = INTERMEDIATE_DIR
         hyperparams_dict["rl.training.checkpoint_at_end"] = True
-        hyperparams_dict["rl.training.checkpoint_freq"] = 10
+        hyperparams_dict["rl.training.checkpoint_freq"] = config['training'].get('checkpoint_freq', 10)
+
         self.hyperparameters = ConfigurationList()  # TODO: move to shared
         for name, value in hyperparams_dict.items():
             # self.map_hyperparameter(name, val) #TODO
@@ -139,7 +139,10 @@ class SageMakerRayLauncher(object):
             print("Waiting for %s worker nodes to join!" % (len(all_wokers_host_names)))
             self.sage_cluster_communicator.wait_for_signals(all_wokers_host_names)
             print("All worker nodes have joined the cluster. Now training...")
-            config = {"redis_address": "%s:6379" % master_ip}
+            if ray.__version__ >= "0.8.2":
+                config = {"address": "%s:6379" % master_ip}
+            else:
+                config = {"redis_address": "%s:6379" % master_ip}
         else:
             master_ip, master_hostname = self.sage_cluster_communicator.get_master_config()
             node_ip = get_ip_from_host(host_name=self.host_name)
@@ -154,46 +157,84 @@ class SageMakerRayLauncher(object):
         return config
 
     def start_ray_cluster(self, master_ip):
-        p = subprocess.Popen("ray start --head --redis-port=6379 --no-ui --node-ip-address=%s" % master_ip,
-                             shell=True,
-                             stderr=subprocess.STDOUT)
+        if ray.__version__ >= "0.6.5":
+            p = subprocess.Popen("ray start --head --redis-port=6379 --node-ip-address=%s" % master_ip,
+                                 shell=True,
+                                 stderr=subprocess.STDOUT)
+        else:
+            p = subprocess.Popen("ray start --head --redis-port=6379 --no-ui --node-ip-address=%s" % master_ip,
+                                 shell=True,
+                                 stderr=subprocess.STDOUT)
+
         time.sleep(3)
         if p.poll() != 0:
             raise RuntimeError("Could not start Ray server.")
 
     def join_ray_cluster(self, master_ip, node_ip):
-        p = subprocess.Popen("ray start --redis-address=%s:6379 --node-ip-address=%s" % (master_ip, node_ip),
-                             shell=True, stderr=subprocess.STDOUT)
+        if ray.__version__ >= "0.8.2":
+            p = subprocess.Popen("ray start --address=%s:6379" % (master_ip),
+                             shell=True, stderr=subprocess.STDOUT, stdout=subprocess.PIPE)
+        else:
+            p = subprocess.Popen("ray start --redis-address=%s:6379 --node-ip-address=%s" % (master_ip, node_ip),
+                                shell=True, stderr=subprocess.STDOUT)
         time.sleep(3)
         if p.poll() != 0:
             raise RuntimeError("Could not join Ray server running at %s:6379" % master_ip)
 
     def copy_checkpoints_to_model_output(self):
         checkpoints = []
-        for root, directories, filenames in os.walk(INTERMEDIATE_DIR):
-            for filename in filenames:
-                if filename.startswith("checkpoint"):
-                    checkpoints.append(os.path.join(root, filename))
+        count = 0
+        while not checkpoints:
+            count += 1
+            for root, directories, filenames in os.walk(INTERMEDIATE_DIR):
+                for filename in filenames:
+                    if filename.startswith("checkpoint"):
+                        checkpoints.append(os.path.join(root, filename))
+            time.sleep(5)
+            if count >= 6:
+                raise RuntimeError("Failed to find checkpoint files")
+
         checkpoints.sort(key=natural_keys)
         latest_checkpoints = checkpoints[-2:]
         validation = sum(1 if x.endswith("tune_metadata") or x.endswith("extra_data") else 0 for x in
                          latest_checkpoints)
-        if validation is not 2:
-            raise RuntimeError("Failed to save checkpoint files - .tune_metadata or .extra_data")
+
+        if ray.__version__ >= "0.6.5":
+            if validation is not 1:
+                raise RuntimeError("Failed to save checkpoint files - .tune_metadata")
+        else:
+            if validation is not 2:
+                raise RuntimeError("Failed to save checkpoint files - .tune_metadata or .extra_data")
+
         for source_path in latest_checkpoints:
             _, ext = os.path.splitext(source_path)
             destination_path = os.path.join(MODEL_OUTPUT_DIR, "checkpoint%s" % ext)
             copyfile(source_path, destination_path)
             print("Saved the checkpoint file %s as %s" % (source_path, destination_path))
 
-    def save_experiment_config(self, config):
-        with open(os.path.join(MODEL_OUTPUT_DIR, "params.json"), "w") as f:
-            json.dump(config, f, indent=2)
+    def save_experiment_config(self):
+        config_found = False
+        for root, directories, filenames in os.walk(INTERMEDIATE_DIR):
+            if config_found:
+                break
+            else:
+                for filename in filenames:
+                    if filename == "params.json":
+                        source = os.path.join(root, filename)
+                        config_found = True
+        copyfile(source, os.path.join(MODEL_OUTPUT_DIR, "params.json"))
         print("Saved model configuration.")
 
-    def create_tf_serving_model(self, algorithm=None, env_string=None, config=None):
+    def create_tf_serving_model(self, algorithm=None, env_string=None):
         self.register_env_creator()
+        if ray.__version__ >= "0.6.5":
+            from ray.rllib.agents.registry import get_agent_class
+        else:
+            from ray.rllib.agents.agent import get_agent_class
         cls = get_agent_class(algorithm)
+        with open(os.path.join(MODEL_OUTPUT_DIR, "params.json")) as config_json:
+            config = json.load(config_json)
+        print("Loaded config for TensorFlow serving.")
         config["monitor"] = False
         config["num_workers"] = 1
         config["num_gpus"] = 0
@@ -202,14 +243,68 @@ class SageMakerRayLauncher(object):
         agent.restore(checkpoint)
         export_tf_serving(agent, MODEL_OUTPUT_DIR)
 
-    def save_checkpoint_and_serving_model(self, algorithm=None, env_string=None, config=None):
-        self.save_experiment_config(config)
+    def save_checkpoint_and_serving_model(self, algorithm=None, env_string=None):
+        self.save_experiment_config()
         self.copy_checkpoints_to_model_output()
-        self.create_tf_serving_model(algorithm, env_string, config)
+        self.create_tf_serving_model(algorithm, env_string)
 
         # To ensure SageMaker local mode works fine
         change_permissions_recursive(INTERMEDIATE_DIR, 0o777)
         change_permissions_recursive(MODEL_OUTPUT_DIR, 0o777)
+
+    def set_up_checkpoint(self, config=None):
+        try:
+            checkpoint_dir = config['training']['restore']
+            print("Found checkpoint dir %s in user config." %checkpoint_dir)
+            return config
+        except KeyError:
+            pass
+
+        if not os.path.exists(CHECKPOINT_DIR):
+            print("No checkpoint path specified. Training from scratch.")
+            return config
+
+        checkpoint_dir = self._checkpoint_dir_finder(CHECKPOINT_DIR)
+        # validate the contents
+        print("checkpoint_dir is {}".format(checkpoint_dir))
+        checkpoint_dir_contents = os.listdir(checkpoint_dir)
+        if len(checkpoint_dir_contents) not in [2, 3]:
+            raise RuntimeError(f"Unexpected files {checkpoint_dir_contents} in checkpoint dir. "
+                                    "Please check ray documents for the correct checkpoint format.")
+
+        validation = 0
+        checkpoint_file_in_container = ""
+        for filename in checkpoint_dir_contents:
+            is_tune_metadata= filename.endswith("tune_metadata")
+            is_extra_data = filename.endswith("extra_data")
+            is_checkpoint_meta = is_tune_metadata + is_extra_data
+            validation += is_checkpoint_meta
+            if not is_checkpoint_meta:
+                checkpoint_file_in_container = os.path.join(checkpoint_dir, filename)
+
+        if ray.__version__ >= "0.6.5":
+            if validation is not 1:
+                raise RuntimeError("Failed to find .tune_metadata to restore checkpoint.")
+        else:
+            if validation is not 2:
+                raise RuntimeError("Failed to find .tune_metadata or .extra_data to restore checkpoint")
+                
+        if checkpoint_file_in_container:
+            print("Found checkpoint: %s. Setting `restore` path in ray config." %checkpoint_file_in_container)
+            config['training']['restore'] = checkpoint_file_in_container
+        else:
+            print("No valid checkpoint found in %s. Training from scratch." %checkpoint_dir)
+
+        return config
+    
+    def _checkpoint_dir_finder(self, current_dir=None):
+        current_dir_subfolders = os.walk(current_dir).__next__()[1]
+        if len(current_dir_subfolders) > 1:
+            raise RuntimeError(f"Multiple folders detected: '{current_dir_subfolders}'."
+                                "Please provide one checkpoint only." )
+        elif not current_dir_subfolders:
+            return current_dir
+        return self._checkpoint_dir_finder(os.path.join(current_dir, *current_dir_subfolders))
 
     def launch(self):
         """Actual entry point into the class instance where everything happens.
@@ -226,7 +321,12 @@ class SageMakerRayLauncher(object):
         ray.init(**ray_cluster_config)
         experiment_config = self.get_experiment_config()
         experiment_config = self.customize_experiment_config(experiment_config)
-        print("Running experiment with config %s" % json.dumps(experiment_config, indent=2))
+        experiment_config = self.set_up_checkpoint(experiment_config)
+        
+        print("Important! Ray with version <=7.2 may report \"Did not find checkpoint file\" even if the",
+              "experiment is actually restored successfully. If restoration is expected, please check",
+              "\"training_iteration\" in the experiment info to confirm."
+             )
         run_experiments(experiment_config)
         all_wokers_host_names = self.get_all_host_names()[1:]
         # If distributed job, send TERMINATION_SIGNAL to all workers.
@@ -235,11 +335,8 @@ class SageMakerRayLauncher(object):
 
         algo = experiment_config["training"]["run"]
         env_string = experiment_config["training"]["config"]["env"]
-        config = experiment_config["training"]["config"]
         self.save_checkpoint_and_serving_model(algorithm=algo,
-                                               env_string=env_string,
-                                               config=config)
-
+                                               env_string=env_string)
 
     @classmethod
     def train_main(cls):
