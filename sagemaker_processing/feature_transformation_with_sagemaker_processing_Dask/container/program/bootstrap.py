@@ -2,14 +2,11 @@
 import os
 import socket
 import json
-import psutil
 import subprocess
 import sys
 import time
-from dask.distributed import Scheduler, Worker, Client
 from shutil import copyfile
 from subprocess import Popen, PIPE
-
 DASK_PATH = "/opt/conda/bin/"
 
 
@@ -17,8 +14,6 @@ def get_resource_config():
     resource_config_path = "/opt/ml/config/resourceconfig.json"
     with open(resource_config_path, "r") as f:
         return json.load(f)
-
-
 
 def start_daemons(master_ip):
     resource_config = get_resource_config()
@@ -33,7 +28,6 @@ def start_daemons(master_ip):
         Popen([cmd_start_worker, "tcp://" + str(master_ip) + ":8786"])
     else:
         worker_process = Popen([cmd_start_worker, "tcp://" + str(master_ip) + ":8786"])
-
 
 def get_ip_from_host(host_name):
     IP_WAIT_TIME = 100
@@ -53,7 +47,6 @@ def get_ip_from_host(host_name):
 
     return ip
 
-
 if __name__ == "__main__":
     ips = []
     resource_config = get_resource_config()
@@ -64,7 +57,7 @@ if __name__ == "__main__":
 
     #Start Dask cluster in all nodes
     start_daemons(scheduler_ip)
-    
+
     if current_host == master_host:
         cmd_string = ["/opt/conda/bin/python", str(sys.argv[1])]
         cmd_string.extend(sys.argv[2:])
