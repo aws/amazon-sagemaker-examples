@@ -29,7 +29,8 @@ class DeepRacerAgentParams(ClippedPPOAgentParameters):
         self.env_agent = None
 
 
-def get_graph_manager(hp_dict, agent_list, run_phase_subject, enable_domain_randomization=False):
+def get_graph_manager(hp_dict, agent_list, run_phase_subject, enable_domain_randomization=False,
+                      done_condition=any):
     ####################
     # All Default Parameters #
     ####################
@@ -151,7 +152,7 @@ def get_graph_manager(hp_dict, agent_list, run_phase_subject, enable_domain_rand
     env_params.level = 'DeepRacerRacetrackEnv-v0'
     env_params.run_phase_subject = run_phase_subject
     env_params.enable_domain_randomization = enable_domain_randomization
-
+    env_params.done_condition = done_condition
     vis_params = VisualizationParameters()
     vis_params.dump_mp4 = False
 
@@ -166,5 +167,6 @@ def get_graph_manager(hp_dict, agent_list, run_phase_subject, enable_domain_rand
     graph_manager = MultiAgentGraphManager(agents_params=trainable_agents_list,
                                            env_params=env_params,
                                            schedule_params=schedule_params, vis_params=vis_params,
-                                           preset_validation_params=preset_validation_params)
+                                           preset_validation_params=preset_validation_params,
+                                           done_condition=done_condition)
     return graph_manager, params_json

@@ -19,7 +19,7 @@ class FrustumManager(object):
     def __init__(self):
         if FrustumManager._instance_ is not None:
             raise GenericRolloutException("Attempting to construct multiple frustum manager")
-        self.lock = threading.Lock()
+        self.lock = threading.RLock()
         self.frustum_map = {}
 
         # there should be only one camera manager instance
@@ -45,7 +45,7 @@ class FrustumManager(object):
         with self.lock:
             del self.frustum_map[agent_name]
 
-    def update(self, agent_name, car_model_state):
+    def update(self, agent_name, car_pose):
         """Update given agent's frustum
 
         Args:
@@ -53,7 +53,7 @@ class FrustumManager(object):
             car_model_state (GetModelState): Gazebo ModelState of the agent
         """
         with self.lock:
-            self.frustum_map[agent_name].update(car_model_state)
+            self.frustum_map[agent_name].update(car_pose)
 
     def get(self, agent_name):
         """Return given agent's frustum

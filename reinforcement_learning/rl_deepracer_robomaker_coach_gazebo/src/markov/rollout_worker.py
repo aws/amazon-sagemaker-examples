@@ -23,7 +23,7 @@ from rl_coach.utils import short_dynamic_import
 from rl_coach.core_types import EnvironmentEpisodes
 
 from markov import utils, utils_parse_model_metadata
-from markov.constants import DEEPRACER_CHKPNT_KEY_SUFFIX
+from markov.constants import DEEPRACER_CHKPNT_KEY_SUFFIX, ROLLOUT_WORKER_PROFILER_PATH
 from markov.log_handler.logger import Logger
 from markov.log_handler.exception_handler import log_and_exit, simapp_exit_gracefully
 from markov.log_handler.constants import (SIMAPP_SIMULATION_WORKER_EXCEPTION,
@@ -36,7 +36,7 @@ from markov.log_handler.deepracer_exceptions import GenericRolloutError, Generic
 from markov.environments.constants import VELOCITY_TOPICS, STEERING_TOPICS, LINK_NAMES
 from markov.metrics.s3_metrics import TrainingMetrics
 from markov.rollout_utils import (PhaseObserver, signal_robomaker_markov_package_ready,
-                                  configure_environment_randomizer)
+                                  configure_environment_randomizer, get_robomaker_profiler_env)
 from markov.metrics.s3_writer import S3Writer
 from markov.metrics.iteration_data import IterationData
 from markov.metrics.constants import MetricsS3Keys, IterationDataLocalFileNames, ITERATION_DATA_LOCAL_FILE_PATH
@@ -56,6 +56,8 @@ MIN_EVAL_TRIALS = 5
 CUSTOM_FILES_PATH = "./custom_files"
 if not os.path.exists(CUSTOM_FILES_PATH):
     os.makedirs(CUSTOM_FILES_PATH)
+
+IS_PROFILER_ON, PROFILER_S3_BUCKET, PROFILER_S3_PREFIX = get_robomaker_profiler_env()
 
 def fstring_decoded_reward_function(reward_function_local_path_preprocessed):
     """ python 3.6 supports fstring and console lambda function validates using python3.6.
@@ -156,46 +158,49 @@ def rollout_worker(graph_manager, num_workers, rollout_idx, task_parameters, s3_
     configure_environment_randomizer()
 
     for _ in range((graph_manager.improve_steps / act_steps.num_steps).num_steps):
-        graph_manager.phase = RunPhase.TRAIN
-        exit_if_trainer_done(checkpoint_dir, s3_writer, rollout_idx)
-        unpause_physics(EmptyRequest())
-        graph_manager.reset_internal_state(True)
-        graph_manager.act(act_steps, wait_for_full_episodes=graph_manager.agent_params.algorithm.act_for_full_episodes)
-        graph_manager.reset_internal_state(True)
-        time.sleep(1)
-        pause_physics(EmptyRequest())
-
-        graph_manager.phase = RunPhase.UNDEFINED
-        new_checkpoint = -1
-        if graph_manager.agent_params.algorithm.distributed_coach_synchronization_type\
-                == DistributedCoachSynchronizationType.SYNC:
+        # Collect profiler information only IS_PROFILER_ON is true
+        with utils.Profiler(s3_bucket=PROFILER_S3_BUCKET, s3_prefix=PROFILER_S3_PREFIX,
+                            output_local_path=ROLLOUT_WORKER_PROFILER_PATH, enable_profiling=IS_PROFILER_ON):
+            graph_manager.phase = RunPhase.TRAIN
+            exit_if_trainer_done(checkpoint_dir, s3_writer, rollout_idx)
             unpause_physics(EmptyRequest())
-            is_save_mp4_enabled = rospy.get_param('MP4_S3_BUCKET', None) and rollout_idx == 0
-            if is_save_mp4_enabled:
-                subscribe_to_save_mp4(EmptyRequest())
-            if rollout_idx == 0:
-                for _ in range(MIN_EVAL_TRIALS):
-                    graph_manager.evaluate(EnvironmentSteps(1))
-
-            while new_checkpoint < last_checkpoint + 1:
-                exit_if_trainer_done(checkpoint_dir, s3_writer, rollout_idx)
-                if rollout_idx == 0:
-                    graph_manager.evaluate(EnvironmentSteps(1))
-                new_checkpoint = data_store.get_chkpoint_num('agent')
-            if is_save_mp4_enabled:
-                unsubscribe_from_save_mp4(EmptyRequest())
-            s3_writer.upload_to_s3()
-
+            graph_manager.reset_internal_state(True)
+            graph_manager.act(act_steps, wait_for_full_episodes=graph_manager.agent_params.algorithm.act_for_full_episodes)
+            graph_manager.reset_internal_state(True)
+            time.sleep(1)
             pause_physics(EmptyRequest())
-            data_store.load_from_store(expected_checkpoint_number=last_checkpoint+1)
-            graph_manager.restore_checkpoint()
 
-        if graph_manager.agent_params.algorithm.distributed_coach_synchronization_type\
-                == DistributedCoachSynchronizationType.ASYNC:
-            if new_checkpoint > last_checkpoint:
+            graph_manager.phase = RunPhase.UNDEFINED
+            new_checkpoint = -1
+            if graph_manager.agent_params.algorithm.distributed_coach_synchronization_type\
+                    == DistributedCoachSynchronizationType.SYNC:
+                unpause_physics(EmptyRequest())
+                is_save_mp4_enabled = rospy.get_param('MP4_S3_BUCKET', None) and rollout_idx == 0
+                if is_save_mp4_enabled:
+                    subscribe_to_save_mp4(EmptyRequest())
+                if rollout_idx == 0:
+                    for _ in range(MIN_EVAL_TRIALS):
+                        graph_manager.evaluate(EnvironmentSteps(1))
+
+                while new_checkpoint < last_checkpoint + 1:
+                    exit_if_trainer_done(checkpoint_dir, s3_writer, rollout_idx)
+                    if rollout_idx == 0:
+                        graph_manager.evaluate(EnvironmentSteps(1))
+                    new_checkpoint = data_store.get_chkpoint_num('agent')
+                if is_save_mp4_enabled:
+                    unsubscribe_from_save_mp4(EmptyRequest())
+                s3_writer.upload_to_s3()
+
+                pause_physics(EmptyRequest())
+                data_store.load_from_store(expected_checkpoint_number=last_checkpoint+1)
                 graph_manager.restore_checkpoint()
 
-        last_checkpoint = new_checkpoint
+            if graph_manager.agent_params.algorithm.distributed_coach_synchronization_type\
+                    == DistributedCoachSynchronizationType.ASYNC:
+                if new_checkpoint > last_checkpoint:
+                    graph_manager.restore_checkpoint()
+
+            last_checkpoint = new_checkpoint
 
 def main():
     screen.set_use_colors(False)
@@ -463,13 +468,11 @@ if __name__ == '__main__':
         main()
     except ValueError as err:
         if utils.is_error_bad_ckpnt(err):
-            log_and_exit("User modified model: {}"
-                             .format(err),
+            log_and_exit("User modified model: {}".format(err),
                          SIMAPP_SIMULATION_WORKER_EXCEPTION,
                          SIMAPP_EVENT_ERROR_CODE_400)
         else:
-            log_and_exit("Rollout worker value error: {}"
-                             .format(err),
+            log_and_exit("Rollout worker value error: {}".format(err),
                          SIMAPP_SIMULATION_WORKER_EXCEPTION,
                          SIMAPP_EVENT_ERROR_CODE_500)
     except GenericRolloutError as ex:
@@ -477,7 +480,6 @@ if __name__ == '__main__':
     except GenericRolloutException as ex:
         ex.log_except_and_exit()
     except Exception as ex:
-        log_and_exit("Rollout worker exited with exception: {}"
-                         .format(ex),
+        log_and_exit("Rollout worker exited with exception: {}".format(ex),
                      SIMAPP_SIMULATION_WORKER_EXCEPTION,
                      SIMAPP_EVENT_ERROR_CODE_500)

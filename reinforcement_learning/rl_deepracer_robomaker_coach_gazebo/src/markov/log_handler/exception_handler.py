@@ -31,37 +31,37 @@ def log_and_exit(msg, error_source, error_code):
         JSON string data format: Consists of the error log dumped (if sync file not present)
     '''
     try:
+        #TODO: Find an atomic way to check if file is present else create
         # If the sync file is already present, skip logging
         if os.path.isfile(EXCEPTION_HANDLER_SYNC_FILE):
             simapp_exit_gracefully()
         else:
             # Create a sync file ERROR.txt in the environment and log the exception
             with open(EXCEPTION_HANDLER_SYNC_FILE, 'w') as sync_file:
-                pass
-            dict_obj = OrderedDict()
-            json_format_log = dict()
-            fault_code = get_fault_code_for_error(msg)
-            file_name = inspect.stack()[1][1].split("/")[-1]
-            function_name = inspect.stack()[1][3]
-            line_number = inspect.stack()[1][2]
-            dict_obj['version'] = SIMAPP_VERSION
-            dict_obj['date'] = str(datetime.datetime.now())
-            dict_obj['function'] = "{}::{}::{}".format(file_name, function_name, line_number)
-            dict_obj['message'] = msg
-            dict_obj["exceptionType"] = error_source
-            if error_code == SIMAPP_EVENT_ERROR_CODE_400:
-                dict_obj["eventType"] = SIMAPP_EVENT_USER_ERROR
-            else:
-                dict_obj["eventType"] = SIMAPP_EVENT_SYSTEM_ERROR
-            dict_obj["errorCode"] = error_code
-            #TODO: Include fault_code in the json schema to track faults - pending cloud team assistance
-            #dict_obj["faultCode"] = fault_code
-            json_format_log["simapp_exception"] = dict_obj
-            logger.error(json.dumps(json_format_log))
-            # Temporary fault code log
-            logger.error("ERROR: FAULT_CODE: {}".format(fault_code))
-            simapp_exit_gracefully()# Generated exception has been caused due to failure outside SIMAPP
-
+                dict_obj = OrderedDict()
+                json_format_log = dict()
+                fault_code = get_fault_code_for_error(msg)
+                file_name = inspect.stack()[1][1].split("/")[-1]
+                function_name = inspect.stack()[1][3]
+                line_number = inspect.stack()[1][2]
+                dict_obj['version'] = SIMAPP_VERSION
+                dict_obj['date'] = str(datetime.datetime.now())
+                dict_obj['function'] = "{}::{}::{}".format(file_name, function_name, line_number)
+                dict_obj['message'] = msg
+                dict_obj["exceptionType"] = error_source
+                if error_code == SIMAPP_EVENT_ERROR_CODE_400:
+                    dict_obj["eventType"] = SIMAPP_EVENT_USER_ERROR
+                else:
+                    dict_obj["eventType"] = SIMAPP_EVENT_SYSTEM_ERROR
+                dict_obj["errorCode"] = error_code
+                #TODO: Include fault_code in the json schema to track faults - pending cloud team assistance
+                #dict_obj["faultCode"] = fault_code
+                json_format_log["simapp_exception"] = dict_obj
+                logger.error(json.dumps(json_format_log))
+                # Temporary fault code log
+                logger.error("ERROR: FAULT_CODE: {}".format(fault_code))
+                sync_file.write(json.dumps(json_format_log))
+            simapp_exit_gracefully()
 
     except Exception as ex:
         msg = "Exception thrown in logger - log_and_exit: {}".format(ex)
@@ -89,8 +89,11 @@ def simapp_exit_gracefully(simapp_exit=SIMAPP_ERROR_EXIT):
     # -upload simtrace data to S3
     logger.info("simapp_exit_gracefully: simapp_exit-{}".format(simapp_exit))
     logger.info("Terminating simapp simulation...")
-    stack_trace = traceback.format_exc()
-    logger.info("deepracer_racetrack_env - callstack={}".format(stack_trace))
+    callstack_trace = ''.join(traceback.format_stack())
+    logger.info("simapp_exit_gracefully - callstack trace=Traceback (callstack)\n{}".format(callstack_trace))
+    exception_trace = traceback.format_exc()
+    logger.info("simapp_exit_gracefully - exception trace={}".format(exception_trace))
+
     if simapp_exit == SIMAPP_ERROR_EXIT:
         os._exit(1)
 

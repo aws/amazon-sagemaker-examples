@@ -61,6 +61,7 @@ class EpisodeStatus(Enum):
     IMMOBILIZED = 'immobilized'
     PAUSE = 'pause'
     REVERSED = 'reversed'
+    PARK = 'park'
 
     @classmethod
     def get_episode_status(cls, is_done_dict):
@@ -88,7 +89,8 @@ EPISODE_STATUS_LABEL_MAP = {
     EpisodeStatus.IMMOBILIZED.value: 'Immobilized',
     EpisodeStatus.IN_PROGRESS.value: 'In progress',
     EpisodeStatus.PAUSE.value: 'Pause',
-    EpisodeStatus.REVERSED.value: 'Reversed'
+    EpisodeStatus.REVERSED.value: 'Reversed',
+    EpisodeStatus.PARK.value: 'Park'
 }
 
 #

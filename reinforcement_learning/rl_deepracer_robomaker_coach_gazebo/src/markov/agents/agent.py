@@ -2,7 +2,6 @@
 from markov.architecture.constants import Input
 
 class Agent(object):
-    PAUSE_REWARD = 0.0
     '''Concrete class for agents running in the rollout worker'''
     def __init__(self, network_settings, sensor, ctrl):
         '''network_settings - Dictionary containing the desired
