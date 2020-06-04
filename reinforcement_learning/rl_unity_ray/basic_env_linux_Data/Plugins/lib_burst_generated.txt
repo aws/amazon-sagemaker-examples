@@ -1,0 +1,50 @@
+--platform=Linux
+--backend=burst-llvm-8
+--target=X64_SSE4
+--dump=Function
+--float-precision=Standard
+--output=/Users/zhuayiji/Workspace/ml-agents/Project/Temp/StagingArea/Data/Plugins/lib_burst_generated
+--root-assembly=/Users/zhuayiji/Workspace/ml-agents/Project/Temp/StagingArea/Data/Managed/Unity.Barracuda.dll
+--root-assembly=/Users/zhuayiji/Workspace/ml-agents/Project/Temp/StagingArea/Data/Managed/UnityEngine.UI.dll
+--root-assembly=/Users/zhuayiji/Workspace/ml-agents/Project/Temp/StagingArea/Data/Managed/com.unity.multiplayer-hlapi.Runtime.dll
+--root-assembly=/Users/zhuayiji/Workspace/ml-agents/Project/Temp/StagingArea/Data/Managed/Unity.TextMeshPro.dll
+--root-assembly=/Users/zhuayiji/Workspace/ml-agents/Project/Temp/StagingArea/Data/Managed/Unity.Timeline.dll
+--root-assembly=/Users/zhuayiji/Workspace/ml-agents/Project/Temp/StagingArea/Data/Managed/Unity.Mathematics.dll
+--root-assembly=/Users/zhuayiji/Workspace/ml-agents/Project/Temp/StagingArea/Data/Managed/UnityEngine.Advertisements.dll
+--root-assembly=/Users/zhuayiji/Workspace/ml-agents/Project/Temp/StagingArea/Data/Managed/Unity.Analytics.DataPrivacy.dll
+--root-assembly=/Users/zhuayiji/Workspace/ml-agents/Project/Temp/StagingArea/Data/Managed/Unity.ML-Agents.dll
+--root-assembly=/Users/zhuayiji/Workspace/ml-agents/Project/Temp/StagingArea/Data/Managed/Assembly-CSharp.dll
+--root-assembly=/Users/zhuayiji/Workspace/ml-agents/Project/Temp/StagingArea/Data/Managed/Unity.ML-Agents.CommunicatorObjects.dll
+--root-assembly=/Users/zhuayiji/Workspace/ml-agents/Project/Temp/StagingArea/Data/Managed/UnityEngine.Monetization.dll
+--root-assembly=/Users/zhuayiji/Workspace/ml-agents/Project/Temp/StagingArea/Data/Managed/UnityEngine.XR.LegacyInputHelpers.dll
+--root-assembly=/Users/zhuayiji/Workspace/ml-agents/Project/Temp/StagingArea/Data/Managed/Unity.Burst.dll
+--root-assembly=/Users/zhuayiji/Workspace/ml-agents/Project/Temp/StagingArea/Data/Managed/UnityEngine.SpatialTracking.dll
+--root-assembly=/Users/zhuayiji/Workspace/ml-agents/Project/Temp/StagingArea/Data/Managed/Unity.Barracuda.BurstBLAS.dll
+--assembly-folder=/Users/zhuayiji/Workspace/ml-agents/Project/Temp/StagingArea/Data/Managed/
+--method=Unity.Burst.BurstCompiler+BurstCompilerHelper, Unity.Burst, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null::IsBurstEnabled()--8c2be93e18276203cbd918daa2748a10
+--method=Unity.Jobs.IJobParallelForExtensions+ParallelForJobStruct`1[[Unity.Barracuda.UnsafeMatrixBlockMultiplyUnrolled8xhJob, Unity.Barracuda.BurstBLAS, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]], UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null::Execute(Unity.Barracuda.UnsafeMatrixBlockMultiplyUnrolled8xhJob&, Unity.Barracuda.BurstBLAS, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null|System.IntPtr, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089|System.IntPtr, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089|Unity.Jobs.LowLevel.Unsafe.JobRanges&, UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null|System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089)--ee34a7dd1b8659539d2d5ec51926763d
+--platform=Linux
+--backend=burst-llvm-8
+--target=X64_SSE2
+--dump=Function
+--float-precision=Standard
+--output=/Users/zhuayiji/Workspace/ml-agents/Project/Temp/StagingArea/Data/Plugins/lib_burst_generated
+--root-assembly=/Users/zhuayiji/Workspace/ml-agents/Project/Temp/StagingArea/Data/Managed/Unity.Barracuda.dll
+--root-assembly=/Users/zhuayiji/Workspace/ml-agents/Project/Temp/StagingArea/Data/Managed/UnityEngine.UI.dll
+--root-assembly=/Users/zhuayiji/Workspace/ml-agents/Project/Temp/StagingArea/Data/Managed/com.unity.multiplayer-hlapi.Runtime.dll
+--root-assembly=/Users/zhuayiji/Workspace/ml-agents/Project/Temp/StagingArea/Data/Managed/Unity.TextMeshPro.dll
+--root-assembly=/Users/zhuayiji/Workspace/ml-agents/Project/Temp/StagingArea/Data/Managed/Unity.Timeline.dll
+--root-assembly=/Users/zhuayiji/Workspace/ml-agents/Project/Temp/StagingArea/Data/Managed/Unity.Mathematics.dll
+--root-assembly=/Users/zhuayiji/Workspace/ml-agents/Project/Temp/StagingArea/Data/Managed/UnityEngine.Advertisements.dll
+--root-assembly=/Users/zhuayiji/Workspace/ml-agents/Project/Temp/StagingArea/Data/Managed/Unity.Analytics.DataPrivacy.dll
+--root-assembly=/Users/zhuayiji/Workspace/ml-agents/Project/Temp/StagingArea/Data/Managed/Unity.ML-Agents.dll
+--root-assembly=/Users/zhuayiji/Workspace/ml-agents/Project/Temp/StagingArea/Data/Managed/Assembly-CSharp.dll
+--root-assembly=/Users/zhuayiji/Workspace/ml-agents/Project/Temp/StagingArea/Data/Managed/Unity.ML-Agents.CommunicatorObjects.dll
+--root-assembly=/Users/zhuayiji/Workspace/ml-agents/Project/Temp/StagingArea/Data/Managed/UnityEngine.Monetization.dll
+--root-assembly=/Users/zhuayiji/Workspace/ml-agents/Project/Temp/StagingArea/Data/Managed/UnityEngine.XR.LegacyInputHelpers.dll
+--root-assembly=/Users/zhuayiji/Workspace/ml-agents/Project/Temp/StagingArea/Data/Managed/Unity.Burst.dll
+--root-assembly=/Users/zhuayiji/Workspace/ml-agents/Project/Temp/StagingArea/Data/Managed/UnityEngine.SpatialTracking.dll
+--root-assembly=/Users/zhuayiji/Workspace/ml-agents/Project/Temp/StagingArea/Data/Managed/Unity.Barracuda.BurstBLAS.dll
+--assembly-folder=/Users/zhuayiji/Workspace/ml-agents/Project/Temp/StagingArea/Data/Managed/
+--method=Unity.Burst.BurstCompiler+BurstCompilerHelper, Unity.Burst, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null::IsBurstEnabled()--8c2be93e18276203cbd918daa2748a10
+--method=Unity.Jobs.IJobParallelForExtensions+ParallelForJobStruct`1[[Unity.Barracuda.UnsafeMatrixBlockMultiplyUnrolled8xhJob, Unity.Barracuda.BurstBLAS, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]], UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null::Execute(Unity.Barracuda.UnsafeMatrixBlockMultiplyUnrolled8xhJob&, Unity.Barracuda.BurstBLAS, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null|System.IntPtr, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089|System.IntPtr, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089|Unity.Jobs.LowLevel.Unsafe.JobRanges&, UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null|System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089)--ee34a7dd1b8659539d2d5ec51926763d
