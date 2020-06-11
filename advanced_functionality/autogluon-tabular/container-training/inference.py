@@ -75,11 +75,12 @@ def transform_fn(net, data, input_content_type, output_content_type):
         if target in ds:
             print(f'Label column ({target}) found in input data. '
                   'Therefore, evaluating prediction performance...')
-
-            performance = net.evaluate_predictions(y_true=ds[target], y_pred=predictions, 
-                                                   auxiliary_metrics=True)
-            print(json.dumps(performance, indent=4))       
-             
+            try:
+              performance = net.evaluate_predictions(y_true=ds[target], y_pred=predictions, 
+                                                     auxiliary_metrics=True)
+              print(json.dumps(performance, indent=4))
+            except Exception as e:
+              print(f'Exception: {e}')
     else: 
         raise NotImplementedError("content_type must be 'text/csv'")
 

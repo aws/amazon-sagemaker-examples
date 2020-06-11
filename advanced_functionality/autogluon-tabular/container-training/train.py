@@ -57,10 +57,12 @@ def train(args):
     train_data = __load_input_data(args.train)
     print(f'Label counts: {dict(Counter(train_data[args.label]))}')
     print(f'hp: {args.hyperparameters}')
+    print(f'presets: {args.presets}')
     predictor = task.fit(
         train_data=train_data,
         label=args.label,            
         output_directory=args.model_dir,
+        presets=args.presets,
         problem_type=args.problem_type,
         eval_metric=args.eval_metric,
         stopping_metric=args.stopping_metric,
@@ -87,7 +89,7 @@ def train(args):
     # Leaderboard on optional test data
     if args.test:
         print(f'Test files: {os.listdir(args.test)}')
-        test_data = __load_input_data(args.test)    
+        test_data = __load_input_data(args.test)
         print('Running model on test data and getting Leaderboard...')
         leaderboard = predictor.leaderboard(dataset=test_data, silent=True)
         def format_for_print(df):
@@ -150,7 +152,11 @@ def parse_args():
     parser.add_argument('--stopping_metric', type=str, default=None,
                         help=("Metric which models use to early stop to avoid overfitting. "
                               "`stopping_metric` is not used by weighted ensembles, instead weighted ensembles maximize `eval_metric`. "
-                              "Defaults to `eval_metric` value except when `eval_metric='roc_auc'`, where it defaults to `log_loss`."))      
+                              "Defaults to `eval_metric` value except when `eval_metric='roc_auc'`, where it defaults to `log_loss`."))
+    parser.add_argument('--presets', type=lambda s: ast.literal_eval(s), 
+                        default="['optimize_for_deployment', 'good_quality_faster_inference_only_refit']",
+                        help=("Optionally pass in a list of preset settings. "
+                              "More detail here: https://autogluon.mxnet.io/api/autogluon.task.html"))
     parser.add_argument('--auto_stack', type='bool', default=False,
                         help=("Whether to have AutoGluon automatically attempt to select optimal "
                               "num_bagging_folds and stack_ensemble_levels based on data properties. "
@@ -160,7 +166,7 @@ def parse_args():
     parser.add_argument('--hyperparameter_tune', type='bool', default=False,
                         help=("Whether to tune hyperparameters or just use fixed hyperparameter values "
                               "for each model. Setting as True will increase `fit()` runtimes."))
-    parser.add_argument('--feature_prune', type='bool', default=False,
+    parser.add_argument('--feature_prune', type='bool', default=True,
                         help="Whether or not to perform feature selection.")
     parser.add_argument('--holdout_frac', type=float, default=None, 
                         help=("Fraction of train_data to holdout as tuning data for optimizing hyperparameters "
