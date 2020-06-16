@@ -164,6 +164,7 @@ These examples show you how to train and host in pre-built deep learning framewo
 - [TensorFlow training and serving](sagemaker-python-sdk/tensorflow_script_mode_training_and_serving) trains a basic neural network on MNIST
 - [TensorFlow with Horovod](sagemaker-python-sdk/tensorflow_script_mode_horovod) trains on MNIST using Horovod for distributed training
 - [TensorFlow using shell commands](sagemaker-python-sdk/tensorflow_script_mode_using_shell_commands) shows how to use a shell script for the container's entry point
+- [PyTorch with Horovod using OpenMPI](sagemaker-python-sdk/pytorch_horovod_mpi) shows how to run Horovod training directly using OpenMPI
 
 #### Pre-Built Machine Learning Framework Containers
 
