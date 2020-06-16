@@ -34,4 +34,3 @@ These examples focus on building standard Machine Learning models powered by fra
 
 - [Inference with SparkML Serving](sparkml_serving_emr_mleap_abalone)
 - [Pipeline Inference with Scikit-learn and LinearLearner](scikit_learn_inference_pipeline)
-- [Training PyTorch Models with Horovod using OpenMPI](pytorch_horovod_mpi)
