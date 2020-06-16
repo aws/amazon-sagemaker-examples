@@ -112,6 +112,8 @@ def save(model, directory):
         model (nn.Module): A PyTorch model.
         directory (str): Path to the directory where the model will be saved.
     """
+    if hvd.rank() != 0:
+        return
     state_dict = model.cpu().state_dict()
     file_path = os.path.join(directory, "model.pth")
     torch.save(state_dict, file_path)
