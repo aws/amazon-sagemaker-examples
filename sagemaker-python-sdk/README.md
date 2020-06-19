@@ -17,7 +17,7 @@ These examples focus on the Amazon SageMaker Python SDK which allows you to writ
 - [TensorFlow Neural Networks with Layers](tensorflow_abalone_age_predictor_using_layers)
 - [TensorFlow Networks with Keras](tensorflow_abalone_age_predictor_using_keras)
 - [Introduction to Estimators in TensorFlow](tensorflow_iris_dnn_classifier_using_estimators)
-- [TensorFlow and TensorBoard](tensorflow_resnet_cifar10_with_tensorboard)
+- [Visualize Amazon SageMaker Training Jobs with TensorBoard (CIFAR-10, TensorFlow 2.2)](tensorboard_keras)
 - [Distributed TensorFlow](tensorflow_distributed_mnist)
 - [Managed Spot Training on MXNet](managed_spot_training_mxnet)
 - [Managed Spot Training on TensorFlow](managed_spot_training_tensorflow_estimator)
