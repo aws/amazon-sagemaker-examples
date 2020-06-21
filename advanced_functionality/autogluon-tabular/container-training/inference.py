@@ -3,30 +3,36 @@ import os
 import argparse
 import logging
 import warnings
-import os
+import time
 import json
 import subprocess
 
-warnings.filterwarnings("ignore",category=FutureWarning)
+warnings.filterwarnings('ignore', category=FutureWarning)
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '/opt/ml/code/package'))
 
+import numpy as np
 import pandas as pd
 import pickle
 from io import StringIO
 from timeit import default_timer as timer
+from itertools import islice
 from collections import Counter
 
 with warnings.catch_warnings():
-    warnings.filterwarnings("ignore",category=DeprecationWarning)
+    warnings.filterwarnings('ignore', category=DeprecationWarning)
     from prettytable import PrettyTable
     from autogluon import TabularPrediction as task
 
-def make_str_table(df):   
+def make_str_table(df):
     table = PrettyTable(['index']+list(df.columns))
     for row in df.itertuples():
         table.add_row(row)
     return str(table)
+
+def take(n, iterable):
+    "Return first n items of the iterable as a list"
+    return list(islice(iterable, n))
 
 # ------------------------------------------------------------ #
 # Hosting methods                                              #
@@ -39,7 +45,7 @@ def model_fn(model_dir):
     :return: a model (in this case a Gluon network)
     """
     print(f'Loading model from {model_dir} with contents {os.listdir(model_dir)}')
-    net = task.load(model_dir, verbosity=True)    
+    net = task.load(model_dir, verbosity=True)
     return net
 
 
@@ -53,34 +59,53 @@ def transform_fn(net, data, input_content_type, output_content_type):
     :return: response payload and content type.
     """
     start = timer()
-    
+
     # text/csv
     if input_content_type == 'text/csv':
-        
+
         # Load dataset
         df = pd.read_csv(StringIO(data))
         ds = task.Dataset(df=df)
-
-        # Predict
-        predictions = net.predict(ds)
-        print(f'Prediction counts: {Counter(predictions.tolist())}')
         
+        try:
+            predictions = net.predict(ds)
+        except:
+            try:
+                predictions = net.predict(ds.fillna(0.0))
+                warnings.warn('Filled NaN\'s with 0.0 in order to predict.')
+            except Exception as e:
+                response_body = e
+                return response_body, output_content_type
+        
+        # Print prediction counts, limit in case of regression problem
+        pred_counts = Counter(predictions.tolist())
+        n_display_items = 30
+        if len(pred_counts) > n_display_items:
+            print(f'Top {n_display_items} prediction counts: '
+                  f'{dict(take(n_display_items, pred_counts.items()))}')
+        else:
+            print(f'Prediction counts: {pred_counts}')
+
         # Form response
         output = StringIO()
         pd.DataFrame(predictions).to_csv(output, header=False, index=False)
-        response_body = output.getvalue()        
-        
+        response_body = output.getvalue() 
+
         # If target column passed, evaluate predictions performance
         target = net.label_column
         if target in ds:
             print(f'Label column ({target}) found in input data. '
-                  'Therefore, evaluating prediction performance...')
-
-            performance = net.evaluate_predictions(y_true=ds[target], y_pred=predictions, 
-                                                   auxiliary_metrics=True)
-            print(json.dumps(performance, indent=4))       
-             
-    else: 
+                  'Therefore, evaluating prediction performance...')    
+            try:
+                performance = net.evaluate_predictions(y_true=ds[target], 
+                                                       y_pred=predictions, 
+                                                       auxiliary_metrics=True)                
+                print(json.dumps(performance, indent=4))
+                time.sleep(0.1)
+            except Exception as e:
+                # Print exceptions on evaluate, continue to return predictions
+                print(f'Exception: {e}')
+    else:
         raise NotImplementedError("content_type must be 'text/csv'")
 
     elapsed_time = round(timer()-start,3)
