@@ -1,0 +1,10 @@
+# Each line is a file pattern followed by one or more owners (@username or
+# email@address).
+#
+# Order is important. The last matching pattern has the most precedence.
+# So if a pull request only touches a specific folder, only the respective owners
+# will be requested to review.
+#
+# @See https://help.github.com/articles/about-codeowners/
+
+/sagemaker-experiments/* @aws/sagemakerexperimentsadmin

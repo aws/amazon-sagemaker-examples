@@ -1,5 +1,13 @@
 #!/bin/bash
 
+sudo -n true
+if [ $? -eq 0 ]; then
+  echo "The user has root access."
+else
+  echo "The user does not have root access. Everything required to run the notebook is already installed and setup. We are good to go!"
+  exit 0
+fi
+
 # Do we have GPU support?
 nvidia-smi > /dev/null 2>&1
 if [ $? -eq 0 ]; then

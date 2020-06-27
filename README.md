@@ -8,10 +8,12 @@ This repository contains example notebooks that show how to apply machine learni
 
 These examples provide quick walkthroughs to get you up and running with the labeling job workflow for Amazon SageMaker Ground Truth.
 
+- [Bring your own model for sagemaker labeling workflows with active learning](ground_truth_labeling_jobs/bring_your_own_model_for_sagemaker_labeling_workflows_with_active_learning) is an end-to-end example that shows how to bring your custom training, inference logic and active learning to the Amazon SageMaker ecosystem.
 - [From Unlabeled Data to a Deployed Machine Learning Model: A SageMaker Ground Truth Demonstration for Image Classification](ground_truth_labeling_jobs/from_unlabeled_data_to_deployed_machine_learning_model_ground_truth_demo_image_classification) is an end-to-end example that starts with an unlabeled dataset, labels it using the Ground Truth API, analyzes the results, trains an image classification neural net using the annotated dataset, and finally uses the trained model to perform batch and online inference.
 - [Ground Truth Object Detection Tutorial](ground_truth_labeling_jobs/ground_truth_object_detection_tutorial) is a similar end-to-end example but for an object detection task.
 - [Basic Data Analysis of an Image Classification Output Manifest](ground_truth_labeling_jobs/data_analysis_of_ground_truth_image_classification_output) presents charts to visualize the number of annotations for each class, differentiating between human annotations and automatic labels (if your job used auto-labeling). It also displays sample images in each class, and creates a pdf which concisely displays the full results.
 - [Training a Machine Learning Model Using an Output Manifest](ground_truth_labeling_jobs/object_detection_augmented_manifest_training) introduces the concept of an "augmented manifest" and demonstrates that the output file of a labeling job can be immediately used as the input file to train a SageMaker machine learning model.
+- [Annotation Consolidation](ground_truth_labeling_jobs/annotation_consolidation) demonstrates Amazon SageMaker Ground Truth annotation consolidation techniques for image classification for a completed labeling job.
 
 
 ### Introduction to Applying Machine Learning
@@ -27,7 +29,9 @@ These examples provide a gentle introduction to machine learning concepts as the
 - [MXNet Gluon Recommender System](introduction_to_applying_machine_learning/gluon_recommender_system) uses neural network embeddings for non-linear matrix factorization to predict user movie ratings on Amazon digital reviews.
 - [Fair Linear Learner](introduction_to_applying_machine_learning/fair_linear_learner) is an example of an effective way to create fair linear models with respect to sensitive features.
 - [Population Segmentation of US Census Data using PCA and Kmeans](introduction_to_applying_machine_learning/US-census_population_segmentation_PCA_Kmeans) analyzes US census data and reduces dimensionality using PCA then clusters US counties using KMeans to identify segments of similar counties.
-
+- [Document Embedding using Object2Vec](introduction_to_applying_machine_learning/object2vec_document_embedding) is an example to embed a large collection of documents in a common low-dimensional space, so that the semantic distances between these documents are preserved.
+- [Traffic violations forecasting using DeepAR](introduction_to_applying_machine_learning/deepar_chicago_traffic_violations) is an example to use daily traffic violation data to predict pattern and seasonality to use Amazon DeepAR alogorithm.
+ 
 ### SageMaker Automatic Model Tuning
 
 These examples introduce SageMaker's hyperparameter tuning functionality which helps deliver the best possible predictions by running a large number of training jobs to determine which hyperparameter values are the most impactful.
@@ -79,6 +83,7 @@ The following provide examples demonstrating different capabilities of Amazon Sa
 - [Roboschool](reinforcement_learning/rl_roboschool_ray) is an open source physics simulator that is commonly used to train RL policies for robotic systems. This notebook demonstrates training a few agents using it.
 - [Stable Baselines](reinforcement_learning/rl_roboschool_stable_baselines) In this notebook example, we will make the HalfCheetah agent learn to walk using the stable-baselines, which are a set of improved implementations of Reinforcement Learning (RL) algorithms based on OpenAI Baselines.
 - [Travelling Salesman](reinforcement_learning/rl_traveling_salesman_vehicle_routing_coach) is a classic NP hard problem, which this notebook solves with AWS SageMaker RL.
+- [Tic-tac-toe](reinforcement_learning/rl_tic_tac_toe_coach_customEnv) is a simple implementation of a custom Gym environment to train and deploy an RL agent in Coach that then plays tic-tac-toe interactively in a Jupyter Notebook.
 
 ### Scientific Details of Algorithms
 
@@ -87,6 +92,20 @@ These examples provide more thorough mathematical treatment on a select group of
 - [Streaming Median](scientific_details_of_algorithms/streaming_median) sequentially introduces concepts used in streaming algorithms, which many SageMaker algorithms rely on to deliver speed and scalability.
 - [Latent Dirichlet Allocation (LDA)](scientific_details_of_algorithms/lda_topic_modeling) dives into Amazon SageMaker's spectral decomposition approach to LDA.
 - [Linear Learner features](scientific_details_of_algorithms/linear_learner_class_weights_loss_functions) shows how to use the class weights and loss functions features of the SageMaker Linear Learner algorithm to improve performance on a credit card fraud prediction task
+
+### Amazon SageMaker Debugger
+These examples provide and introduction to SageMaker Debugger which allows debugging and monitoring capabilities for training of machine learning and deep learning algorithms. Note that although these notebooks focus on a specific framework, the same approach works with all the frameworks that Amazon SageMaker Debugger supports. The notebooks below are listed in the order in which we recommend you review them.
+
+- [Using a built-in rule with TensorFlow](sagemaker-debugger/tensorflow_builtin_rule/)
+- [Using a custom rule with TensorFlow Keras](sagemaker-debugger/tensorflow_keras_custom_rule/)
+- [Interactive tensor analysis in notebook with MXNet](sagemaker-debugger/mnist_tensor_analysis/)
+- [Visualizing Debugging Tensors of MXNet training](sagemaker-debugger/mnist_tensor_plot/)
+- [Real-time analysis in notebook with MXNet](sagemaker-debugger/mxnet_realtime_analysis/)
+- [Using a built in rule with XGBoost](sagemaker-debugger/xgboost_builtin_rules/)
+- [Real-time analysis in notebook with XGBoost](sagemaker-debugger/xgboost_realtime_analysis/)
+- [Using SageMaker Debugger with Managed Spot Training and MXNet](sagemaker-debugger/mxnet_spot_training/)
+- [Reacting to CloudWatch Events from Rules to take an action based on status with TensorFlow](sagemaker-debugger/tensorflow_action_on_rule/)
+- [Using SageMaker Debugger with a custom PyTorch container](sagemaker-debugger/pytorch_custom_container/)
 
 ### Advanced Amazon SageMaker Functionality
 
@@ -106,28 +125,45 @@ These examples that showcase unique functionality available in Amazon SageMaker.
 - [Inference Pipeline with SparkML and XGBoost](advanced_functionality/inference_pipeline_sparkml_xgboost_abalone) shows how to deploy an Inference Pipeline with SparkML for data pre-processing and XGBoost for training on the Abalone dataset. The pre-processing code is written once and used between training and inference.
 - [Inference Pipeline with SparkML and BlazingText](advanced_functionality/inference_pipeline_sparkml_blazingtext_dbpedia) shows how to deploy an Inference Pipeline with SparkML for data pre-processing and BlazingText for training on the DBPedia dataset. The pre-processing code is written once and used between training and inference.
 - [Experiment Management Capabilities with Search](advanced_functionality/search) shows how to organize Training Jobs into projects, and track relationships between Models, Endpoints, and Training Jobs.
-- [Creating Algorithm and Model Package - Listing on AWS Marketplace](advanced_functionality/creating_marketplace_products) provides a detailed walkthrough on how to package a scikit learn algorithm to create SageMaker Algorithm and SageMaker Model Package entities that can be used with the enhanced SageMaker Train/Transform/Hosting/Tuning APIs and listed on AWS Marketplace.
-- [Using Algorithm and Model Packages - From AWS Marketplace](advanced_functionality/using_marketplace_products) provides a detailed walkthrough on how to use Algorithm and Model Package entities with the enhanced SageMaker Train/Transform/Hosting/Tuning APIs by choosing a canonical product listed on AWS Marketplace.
+- [Host Multiple Models with Your Own Algorithm](advanced_functionality/multi_model_bring_your_own) shows how to deploy multiple models to a realtime hosted endpoint with your own custom algorithm.
+- [Host Multiple Models with XGBoost](advanced_functionality/multi_model_xgboost_home_value) shows how to deploy multiple models to a realtime hosted endpoint using a multi-model enabled XGBoost container.
+- [Host Multiple Models with SKLearn](advanced_functionality/multi_model_sklearn_home_value) shows how to deploy multiple models to a realtime hosted endpoint using a multi-model enabled SKLearn container.
+
+### Amazon SageMaker Neo Compilation Jobs
+
+These examples provide you an introduction to how to use Neo to optimizes deep learning model
+
+- [GluonCV SSD Mobilenet](sagemaker_neo_compilation_jobs/gluoncv_ssd_mobilenet) shows how to train gluoncv ssd mobilenet and use Amazon Sagemaker Neo to compile and optimize the trained model.
+- [Image Classification](sagemaker_neo_compilation_jobs/imageclassification_caltech) Adapts form [image classification](introduction_to_amazon_algorithms/imageclassification_caltech) including Neo API and comparsion between the baseline
+- [MNIST with MXNet](sagemaker_neo_compilation_jobs/mxnet_mnist) Adapts form [mxnet mnist](sagemaker-python-sdk/mxnet_mnist) including Neo API and comparsion between the baseline
+- [Deploying pre-trained PyTorch vision models](sagemaker_neo_compilation_jobs/pytorch_torchvision) shows how to use Amazon SageMaker Neo to compile and optimize pre-trained PyTorch models from TorchVision.
+- [Distributed TensorFlow](sagemaker_neo_compilation_jobs/tensorflow_distributed_mnist) Adapts form [tensorflow mnist](sagemaker-python-sdk/tensorflow_distributed_mnist) including Neo API and comparsion between the baseline
+- [Predicting Customer Churn](sagemaker_neo_compilation_jobs/xgboost_customer_churn) Adapts form [xgboost customer churn](introduction_to_applying_machine_learning/xgboost_customer_churn) including Neo API and comparsion between the baseline
+
+### Amazon SageMaker Procesing
+
+These examples show you how to use SageMaker Processing jobs to run data processing workloads.
+
+- [Scikit-Learn Data Processing and Model Evaluation](sagemaker_processing/scikit_learn_data_processing_and_model_evaluation) shows how to use SageMaker Processing and the Scikit-Learn container to run data preprocessing and model evaluation workloads.
+- [Feature transformation with Amazon SageMaker Processing and SparkML](sagemaker_processing/feature_transformation_with_sagemaker_processing) shows how to use SageMaker Processing to run data processing workloads using SparkML prior to training.
+- [Feature transformation with Amazon SageMaker Processing and Dask](sagemaker_processing/feature_transformation_with_sagemaker_processing_dask) shows how to use SageMaker Processing to transform data using Dask distributed clusters
 
 ### Amazon SageMaker Pre-Built Framework Containers and the Python SDK
 
 #### Pre-Built Deep Learning Framework Containers
 
-These examples show you to write idiomatic TensorFlow or MXNet and then train or host in pre-built containers using SageMaker Python SDK.
+These examples show you how to train and host in pre-built deep learning framework containers using the SageMaker Python SDK.
 
 - [Chainer CIFAR-10](sagemaker-python-sdk/chainer_cifar10) trains a VGG image classification network on CIFAR-10 using Chainer (both single machine and multi-machine versions are included)
 - [Chainer MNIST](sagemaker-python-sdk/chainer_mnist) trains a basic neural network on MNIST using Chainer (shows how to use local mode)
 - [Chainer sentiment analysis](sagemaker-python-sdk/chainer_sentiment_analysis) trains a LSTM network with embeddings to predict text sentiment using Chainer
 - [IRIS with Scikit-learn](sagemaker-python-sdk/scikit_learn_iris) trains a Scikit-learn classifier on IRIS data
-- [CIFAR-10 with MXNet Gluon](sagemaker-python-sdk/mxnet_gluon_cifar10) trains a ResNet-34  image classification model using MXNet Gluon
 - [MNIST with MXNet Gluon](sagemaker-python-sdk/mxnet_gluon_mnist) trains a basic neural network on the MNIST handwritten digit dataset using MXNet Gluon
 - [MNIST with MXNet](sagemaker-python-sdk/mxnet_mnist) trains a basic neural network on the MNIST handwritten digit data using MXNet's symbolic syntax
 - [Sentiment Analysis with MXNet Gluon](sagemaker-python-sdk/mxnet_gluon_sentiment) trains a text classifier using embeddings with MXNet Gluon
-- [TensorFlow Neural Networks with Layers](sagemaker-python-sdk/tensorflow_abalone_age_predictor_using_layers) trains a basic neural network on the abalone dataset using TensorFlow layers
-- [TensorFlow Networks with Keras](sagemaker-python-sdk/tensorflow_abalone_age_predictor_using_keras) trains a basic neural network on the abalone dataset using TensorFlow and Keras
-- [Introduction to Estimators in TensorFlow](sagemaker-python-sdk/tensorflow_iris_dnn_classifier_using_estimators) trains a DNN classifier estimator on the Iris dataset using TensorFlow
-- [TensorFlow and TensorBoard](sagemaker-python-sdk/tensorflow_resnet_cifar10_with_tensorboard) trains a ResNet image classification model on CIFAR-10 using TensorFlow and showcases how to track results using TensorBoard
-- [Distributed TensorFlow](sagemaker-python-sdk/tensorflow_distributed_mnist) trains a simple convolutional neural network on MNIST using TensorFlow
+- [TensorFlow training and serving](sagemaker-python-sdk/tensorflow_script_mode_training_and_serving) trains a basic neural network on MNIST
+- [TensorFlow with Horovod](sagemaker-python-sdk/tensorflow_script_mode_horovod) trains on MNIST using Horovod for distributed training
+- [TensorFlow using shell commands](sagemaker-python-sdk/tensorflow_script_mode_using_shell_commands) shows how to use a shell script for the container's entry point
 
 #### Pre-Built Machine Learning Framework Containers
 
@@ -140,6 +176,31 @@ These examples show you how to build Machine Learning models with frameworks lik
 These examples show how to use Amazon SageMaker for model training, hosting, and inference through Apache Spark using [SageMaker Spark](https://github.com/aws/sagemaker-spark). SageMaker Spark allows you to interleave Spark Pipeline stages with Pipeline stages that interact with Amazon SageMaker.
 
 - [MNIST with SageMaker PySpark](sagemaker-spark/pyspark_mnist)
+
+### AWS Marketplace
+
+#### Create algorithms/model packages for listing in AWS Marketplace for machine learning.
+
+This example shows you how to package a model-package/algorithm for listing in AWS Marketplace for machine learning.
+
+- [Creating Algorithm and Model Package - Listing on AWS Marketplace](aws_marketplace/creating_marketplace_products) provides a detailed walkthrough on how to package a scikit learn algorithm to create SageMaker Algorithm and SageMaker Model Package entities that can be used with the enhanced SageMaker Train/Transform/Hosting/Tuning APIs and listed on AWS Marketplace.
+
+#### Use algorithms and model packages from AWS Marketplace for machine learning.
+
+These examples show you how to use model-packages and algorithms from AWS Marketplace for machine learning.
+
+- [Using Algorithms](aws_marketplace/using_algorithms)
+	- [Using Algorithm From AWS Marketplace](aws_marketplace/using_algorithms/amazon_demo_product) provides a detailed walkthrough on how to use Algorithm with the enhanced SageMaker Train/Transform/Hosting/Tuning APIs by choosing a canonical product listed on AWS Marketplace.
+	- [Using AutoML algorithm](aws_marketplace/using_algorithms/automl) provides a detailed walkthrough on how to use AutoML algorithm from AWS Marketplace.
+
+- [Using Model Packages](aws_marketplace/using_model_packages)
+	- [Using Model Packages From AWS Marketplace](aws_marketplace/using_model_packages/generic_sample_notebook) is a generic notebook which provides sample code snippets you can modify and use for performing inference on Model Packages from AWS Marketplace, using Amazon SageMaker.
+	- [Using Amazon Demo product From AWS Marketplace](aws_marketplace/using_model_packages/amazon_demo_product) provides a detailed walkthrough on how to use Model Package entities with the enhanced SageMaker Transform/Hosting APIs by choosing a canonical product listed on AWS Marketplace.
+	- [Using models for extracting vehicle metadata](aws_marketplace/using_model_packages/auto_insurance) provides a detailed walkthrough on how to use pre-trained models from AWS Marketplace for extracting metadata for a sample use-case of auto-insurance claim processing.
+	- [Using models for identifying non-compliance at a workplace](aws_marketplace/using_model_packages/improving_industrial_workplace_safety) provides a detailed walkthrough on how to use pre-trained models from AWS Marketplace for extracting metadata for a sample use-case of generating summary reports for identifying non-compliance at a construction/industrial workplace.
+	- [Extracting insights from your credit card statements](aws_marketplace/using_model_packages/financial_transaction_processing) provides a detailed walkthrough on how to use pre-trained models from AWS Marketplace for efficiently processing financial transaction logs.
+
+
 
 ### Under Development
 
