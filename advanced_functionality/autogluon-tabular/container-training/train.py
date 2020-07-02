@@ -60,6 +60,13 @@ def train(args):
     print(f'Train files: {os.listdir(args.train)}')
     train_data = __load_input_data(args.train)
     
+    # Extract column info
+    target = args.fit_args['label']
+    columns = train_data.columns.tolist()
+    column_dict = {"columns":columns}
+    with open('columns.pkl', 'wb') as f:
+        pickle.dump(column_dict, f)
+    
     # Train models
     predictor = task.fit(
         train_data=train_data,
@@ -155,6 +162,7 @@ if __name__ == "__main__":
     # Package inference code with model export
     subprocess.call('mkdir /opt/ml/model/code'.split())
     subprocess.call('cp /opt/ml/code/inference.py /opt/ml/model/code/'.split())
+    subprocess.call('cp columns.pkl /opt/ml/model/code/'.split())
 
     elapsed_time = round(timer()-start,3)
     print(f'Elapsed time: {elapsed_time} seconds. Training Completed!')

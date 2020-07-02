@@ -34,6 +34,20 @@ def take(n, iterable):
     "Return first n items of the iterable as a list"
     return list(islice(iterable, n))
 
+def preprocess(df, columns, target):
+    features = columns
+    features.remove(target)
+    first_row_list = df.iloc[0].tolist() 
+
+    if set(first_row_list) >= set(features):
+        df.drop(0, inplace=True)
+    if len(first_row_list) == len(columns):
+        df.columns = columns
+    if len(first_row_list) == len(features):
+        df.columns = features
+        
+    return df
+
 # ------------------------------------------------------------ #
 # Hosting methods                                              #
 # ------------------------------------------------------------ #
@@ -42,30 +56,36 @@ def model_fn(model_dir):
     """
     Load the gluon model. Called once when hosting service starts.
     :param: model_dir The directory where model files are stored.
-    :return: a model (in this case a Gluon network)
+    :return: a model (in this case a Gluon network) and the column info.
     """
     print(f'Loading model from {model_dir} with contents {os.listdir(model_dir)}')
     net = task.load(model_dir, verbosity=True)
-    return net
+    with open(f'{model_dir}/code/columns.pkl', 'rb') as f:
+        column_dict = pickle.load(f)
+    return net, column_dict
 
 
-def transform_fn(net, data, input_content_type, output_content_type):
+def transform_fn(models, data, input_content_type, output_content_type):
     """
     Transform a request using the Gluon model. Called once per request.
-    :param net: The Gluon model.
+    :param models: The Gluon model and the column info.
     :param data: The request payload.
     :param input_content_type: The request content type. ('text/csv')
     :param output_content_type: The (desired) response content type. ('text/csv')
     :return: response payload and content type.
     """
     start = timer()
+    net = models[0]
+    column_dict = models[1]
 
     # text/csv
     if input_content_type == 'text/csv':
-
+        
         # Load dataset
-        df = pd.read_csv(StringIO(data))
-        ds = task.Dataset(df=df)
+        columns = column_dict['columns']
+        df = pd.read_csv(StringIO(data), header=None)
+        df_preprosessed = preprocess(df, columns, net.label_column)
+        ds = task.Dataset(df=df_preprosessed)
         
         try:
             predictions = net.predict(ds)
