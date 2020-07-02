@@ -6,6 +6,7 @@ import warnings
 import time
 import json
 import subprocess
+import copy
 
 warnings.filterwarnings('ignore', category=FutureWarning)
 
@@ -35,7 +36,7 @@ def take(n, iterable):
     return list(islice(iterable, n))
 
 def preprocess(df, columns, target):
-    features = columns
+    features = copy.deepcopy(columns)
     features.remove(target)
     first_row_list = df.iloc[0].tolist() 
 
