@@ -61,10 +61,10 @@ if __name__ == '__main__':
     # Take the set of files and read them all into a single pandas dataframe
     input_files = [os.path.join(args.train, file) for file in os.listdir(args.train)]
     if len(input_files) == 0:
-        raise ValueError(('There are no files in train.\n' +
-                          'This usually indicates that the channel ({}) was incorrectly specified,\n' +
+        raise ValueError(('There are no files in {}.\n' +
+                          'This usually indicates that the train channel was incorrectly specified,\n' +
                           'the data specification in S3 was incorrectly specified or the role specified\n' +
-                          'does not have permission to access the data.'))
+                          'does not have permission to access the data.'.format(args.train)))
 
     
     for file in input_files:
