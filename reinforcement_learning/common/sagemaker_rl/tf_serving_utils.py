@@ -1,8 +1,9 @@
-import tensorflow as tf
 import ray
 import os
 import re
+from ray.rllib.utils.framework import try_import_tf
 
+tf = try_import_tf()
 
 def atoi(text):
     return int(text) if text.isdigit() else text
