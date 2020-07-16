@@ -1,12 +1,12 @@
 ### Curating AWS Marketplace Model Package listing and Sample notebook
 
-It is important to make it easy for users of different levels of expertise to use your ML model package from AWS Marketplace. To do so, we recommend you to reuse the instructions and code available as part of [Sample Notebook template](#Sample-Notebook-template) to create a sample notebook that executes end-to-end seamlessly without expecting any user input except ModelPackageArn and an AWS Marketplace subscription to your ML model Package.
+It is important to make it easy for users of different levels of expertise to use your ML model package from AWS Marketplace. To do so, we recommend you to reuse the instructions and code available as part of [Sample_Notebook_template](#Sample_Notebook_template) to create a sample notebook that executes end-to-end seamlessly without expecting any user input except ModelPackageArn and an AWS Marketplace subscription to your ML model Package.
 
 For each listing, we recommend you to create a separate custom sample notebook as soon as you have published your listing in AWS Marketplace and host it in a separate public code repository. 
 
-To create a custom sample notebook using [Sample Notebook template](#Sample-Notebook-template), follow these instructions:
-In <title_of_your_product>-Model.ipynb, make following changes:
-1. Rename the <title_of_your_product>-Model.ipynb file to something appropriate. Please keep the file extension as ipynb, i.e. a notebook document.
+To create a custom sample notebook using [Sample_Notebook_template](#Sample_Notebook_template), follow these instructions:
+In **title_of_your_produc**-Model.ipynb, make following changes:
+1. Rename the **title_of_your_product**-Model.ipynb file to something appropriate. Please keep the file extension as ipynb, i.e. a notebook document.
 2. Open the notebook document and specify appropriate title and add overview of the ML Model.
 3. Look for "[Title_of_your_ML Model](Provide link to your marketplace listing of your product)", and update the link to your marketplace listing (four different occurances).
 4. Update imports, several inputs in sections 1 and 2 and start writing code required to demonstrate real-time and batch inference.
