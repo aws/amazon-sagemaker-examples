@@ -9,14 +9,21 @@ from ray.tune.registry import register_env
 from sagemaker_rl.ray_launcher import SageMakerRayLauncher
 from mlagents_envs.environment import UnityEnvironment
 from gym_unity.envs import UnityToGymWrapper
+from mlagents_envs.registry import default_registry
 
 
 class UnityEnvWrapper(gym.Env):
     def __init__(self, env_config):
         self.worker_index = env_config.worker_index
-        env_name = '/opt/code/' + env_config['env_name']
-        unity_env = UnityEnvironment(env_name, no_graphics=True, worker_id=self.worker_index)
-        self.env = UnityToGymWrapper(unity_env, use_visual=False) #
+        if 'SM_CHANNEL_TRAIN' in os.environ:
+            print(os.environ['SM_CHANNEL_TRAIN'])
+            print(os.listdir(os.environ['SM_CHANNEL_TRAIN']))
+            env_name = os.environ['SM_CHANNEL_TRAIN'] + env_config['env_name']
+            unity_env = UnityEnvironment(env_name, no_graphics=True, worker_id=self.worker_index)
+        else:
+            unity_env = default_registry[env_config['env_name']].make(no_graphics=True, worker_id=self.worker_index) 
+            
+        self.env = UnityToGymWrapper(unity_env) 
         self.action_space = self.env.action_space
         self.observation_space = self.env.observation_space
 
@@ -52,7 +59,7 @@ class MyLauncher(SageMakerRayLauncher):
                 "free_log_std": True
               },
               "env_config":{
-                "env_name": "basic_env_linux"
+                "env_name": "Basic"
               },
               "num_workers": (self.num_cpus-1),
               # "num_workers": 0,

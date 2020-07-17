@@ -32,11 +32,6 @@ RUN pip install --upgrade \
     gym-unity \
     mlagents-envs
 
-# Copy environment binary into container
-ADD UnityPlayer.so /opt/code/UnityPlayer.so
-ADD basic_env_linux.x86_64 /opt/code/basic_env_linux.x86_64
-ADD basic_env_linux_Data /opt/code/basic_env_linux_Data
-
 RUN pip install sagemaker-containers --upgrade
 
 ENV PYTHONUNBUFFERED 1
