@@ -20,4 +20,4 @@ In **title_of_your_produc**-Model.ipynb, make following changes:
 Once ready, host your sample notebook on your public GitHUB/Bitbucket/Gitlab repository and link the repository with your AWS Marketplace listing, under additional resources section. Ensure that repository is accessible to public.
 
     
-Next step is to curate your AWS Markeplace listing. For more details, please see the guidance and an example for curating a good AWS Marketplce Model Package listing in "Model Package Listing - Checklist.xlsx" Excel sheet.
+Next step is to curate your AWS Markeplace listing. For more details, please see the guidance and an example for curating a good AWS Marketplce Model Package listing in [curating_good_model_package_listing.md](#curating_good_model_package_listing.md).
