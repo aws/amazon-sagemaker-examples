@@ -12,6 +12,13 @@ This example notebook shows you how to package a model-package/algorithm for lis
 
 - [Creating Algorithm and Model Package - Listing on AWS Marketplace](creating_marketplace_products) provides a detailed walkthrough on how to package a scikit learn algorithm to create SageMaker Algorithm and SageMaker Model Package entities that can be used with the enhanced SageMaker Train/Transform/Hosting/Tuning APIs and listed on AWS Marketplace.
 
+Once you have created an algorithm or a model package to be listed in the AWS Marketplace, the next step is to list it in AWS Marketplace, and provide a sample notebook that users can use to try your algorithm or model package. 
+
+* [Curate your AWS Marketplace algorithm listing and sample notebook](curating_aws_marketplace_listing_and_sample_notebook/Algorithm) provides instructions on how to craft a sample notebook to be associated with your listing and how to curate a good AWS Marketplace listing that makes it easy for your customers to consume your algorithm.
+
+* [Curate your AWS Marketplace algorithm listing and sample notebook](curating_aws_marketplace_listing_and_sample_notebook/Algorithm) provides instructions on how to craft a sample notebook to be associated with your listing and how to curate a good AWS Marketplace listing that makes it easy for your customers to consume your algorithm. 
+
+
 #### Use algorithms and model packages from AWS Marketplace for machine learning.
 
 These examples show you how to use model-packages and algorithms from AWS Marketplace for machine learning.
@@ -37,4 +44,3 @@ These examples show you how to use model-packages and algorithms from AWS Market
   - An [Amazon SageMaker Notebook Instance](http://docs.aws.amazon.com/sagemaker/latest/dg/gs-setup-working-env.html)
   - An [S3 bucket](http://docs.aws.amazon.com/sagemaker/latest/dg/gs-config-permissions.html)
   - [AWS Marketplace Subscription](https://aws.amazon.com/marketplace/help/200799470#topic1) to the algorithm/model you wish to use.
-
