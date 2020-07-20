@@ -8,20 +8,29 @@ from ray.tune.registry import register_env
 
 from sagemaker_rl.ray_launcher import SageMakerRayLauncher
 from mlagents_envs.environment import UnityEnvironment
-from gym_unity.envs import UnityToGymWrapper
 from mlagents_envs.registry import default_registry
+from gym_unity.envs import UnityToGymWrapper
 
 
 class UnityEnvWrapper(gym.Env):
     def __init__(self, env_config):
         self.worker_index = env_config.worker_index
-        if 'SM_CHANNEL_TRAIN' in os.environ:
-            print(os.environ['SM_CHANNEL_TRAIN'])
-            print(os.listdir(os.environ['SM_CHANNEL_TRAIN']))
-            env_name = os.environ['SM_CHANNEL_TRAIN'] + env_config['env_name']
-            unity_env = UnityEnvironment(env_name, no_graphics=True, worker_id=self.worker_index)
+
+        code_path = '/opt/ml/code'
+        files_code_path = os.listdir(code_path)
+        if env_config['env_name'] in files_code_path:
+            env_name = code_path + '/' + env_config['env_name']
+            unity_env = UnityEnvironment(
+                      env_name, 
+                      no_graphics=True, 
+                      worker_id=self.worker_index, 
+                      additional_args=['-logFile', 'unity.log'])
         else:
-            unity_env = default_registry[env_config['env_name']].make(no_graphics=True, worker_id=self.worker_index) 
+            env_name = env_config['env_name']
+            unity_env = default_registry[env_name].make(
+              no_graphics=True,
+              worker_id=self.worker_index,
+              additional_args=['-logFile', 'unity.log'])
             
         self.env = UnityToGymWrapper(unity_env) 
         self.action_space = self.env.action_space
@@ -32,6 +41,15 @@ class UnityEnvWrapper(gym.Env):
 
     def step(self, action):
         return self.env.step(action)
+
+    def render(self):
+        return self.env.render()
+
+    def close(self):
+        self.env.close()
+
+    def __del__(self): 
+        self.close()
 
 
 class MyLauncher(SageMakerRayLauncher):
@@ -68,6 +86,4 @@ class MyLauncher(SageMakerRayLauncher):
         }
 
 if __name__ == "__main__":
-    # import time
-    # time.sleep(10000)
     MyLauncher().train_main()
