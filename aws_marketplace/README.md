@@ -14,9 +14,9 @@ This example notebook shows you how to package a model-package/algorithm for lis
 
 Once you have created an algorithm or a model package to be listed in the AWS Marketplace, the next step is to list it in the marketplace, and provide a sample notebook that users can use to try your algorithm or model package. 
 
-* [Curate your AWS Marketplace algorithm listing and sample notebook](aws_marketplace/curating_aws_marketplace_listing_and_sample_notebook/Algorithm) provides instructions on how to craft a sample notebook to be associated with your listing and how to curate a good AWS Marketplace listing that makes it easy for your customers to consume your algorithm.
+* [Curate your AWS Marketplace algorithm listing and sample notebook](curating_aws_marketplace_listing_and_sample_notebook/Algorithm) provides instructions on how to craft a sample notebook to be associated with your listing and how to curate a good AWS Marketplace listing that makes it easy for your customers to consume your algorithm.
 
-* [Curate your AWS Marketplace algorithm listing and sample notebook](aws_marketplace/curating_aws_marketplace_listing_and_sample_notebook/Algorithm) provides instructions on how to craft a sample notebook to be associated with your listing and how to curate a good AWS Marketplace listing that makes it easy for your customers to consume your algorithm. 
+* [Curate your AWS Marketplace algorithm listing and sample notebook](curating_aws_marketplace_listing_and_sample_notebook/Algorithm) provides instructions on how to craft a sample notebook to be associated with your listing and how to curate a good AWS Marketplace listing that makes it easy for your customers to consume your algorithm. 
 
 
 #### Use algorithms and model packages from AWS Marketplace for machine learning.
