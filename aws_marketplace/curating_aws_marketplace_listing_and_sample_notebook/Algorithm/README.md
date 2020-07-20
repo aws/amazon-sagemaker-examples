@@ -7,13 +7,13 @@ For each listing, we recommend you to create a separate custom sample notebook r
 To create a custom sample notebook using [Sample_Notebook_template](#Sample_Notebook_template), follow these instructions:
 
 In **title_of_your_product**-Algorithm.ipynb, make following changes:
-1. Rename the **title_of_your_product**-Algorithm.ipynb file to something appropriate. Please keep the file extension as ipynb, i.e. a notebook document.
+1. Rename the **title_of_your_product**-Algorithm.ipynb file to something appropriate. Keep the file extension as ipynb, i.e. a notebook document.
 2. Open the notebook document in Amazon SageMaker or other Jupyter notebook editor, specify an appropriate title, and add overview of the algorithm.
 3. Look for "[Title_of_your_Algorithm](Provide link to your marketplace listing of your product)", and replace it with a link to your marketplace listing.
 4. The sample notebook template has multiple placeholders which you need to update to create a high-quality notebook.
-5. Please retain the data/input, data/output folder structure, and provide multiple input/output files to demonstrate your algorithm for different scenarios that demonstrate different features of your ML model.
+5. Retain the data/input, data/output folder structure, and provide multiple input/output files to demonstrate your algorithm for different scenarios that demonstrate different features of your ML model.
 6. Ensure that your sample notebook executes without asking user to provide any input except for `algo_arn` and an AWS Marketplace subscription to your model listing.
-7. Ensure that `algo_arn`  has a placeholder with a value `<Customer to specify Model package ARN corresponding to their AWS region>`
+7. Ensure that `algo_arn` has a placeholder with a value `<Customer to specify Model package ARN corresponding to their AWS region>`.
 8. Ensure that you have removed all notes provided for you in red color from the sample notebook template. 
 9. Review the table of contents of your notebook and ensure that all links work.
 10. Once ready, host the sample notebook on your public GitHUB/Bitbucket/Gitlab repository and link the repository with your AWS Marketplace listing, under additional resources section. 
