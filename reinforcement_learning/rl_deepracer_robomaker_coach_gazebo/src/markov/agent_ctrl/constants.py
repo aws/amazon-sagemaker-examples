@@ -10,15 +10,44 @@ RELATIVE_POSITION_OF_FRONT_OF_CAR = [0.14, 0, 0]
 # Normalized track distance to move with each reset
 ROUND_ROBIN_ADVANCE_DIST = 0.05
 
+# Reward to give the car when it paused and parked
+ZERO_REWARD = 0.0
+
 # Reward to give the car when it "crashes"
 CRASHED = 1e-8
 # The number of steps to wait before checking if the car is stuck
-# This number should corespond to the camera FPS, since it is pacing the
+# This number should correspond to the camera FPS, since it is pacing the
 # step rate.
 NUM_STEPS_TO_CHECK_STUCK = 15
 
 # Radius of the wheels of the car in meters
 WHEEL_RADIUS = 0.1
+
+# Allowed closest object distance
+CLOSEST_OBJ_GAP = 1.00
+
+# Reset behind object distance
+RESET_BEHIND_DIST = 1.00
+
+# Bot car z
+BOT_CAR_Z = 0.0
+
+# Obstacle z
+OBSTACLE_Z = 0.1
+
+# Obstacle
+OBSTACLE_NAME_PREFIX = "obstacle"
+
+BLINK_MIN_ALPHA = 0.3
+# Single Blink interval in sec
+BLINK_INTERVAL = 0.5
+
+class ResetPos(Enum):
+    '''This enum defines the keys for the input keys for the rollout
+       reset position dict
+    '''
+    START_POS = 'start_pos'
+    LAST_POS = 'last_pos'
 
 class ConfigParams(Enum):
     '''This enum defines the keys for the input keys for the rollout
@@ -33,6 +62,17 @@ class ConfigParams(Enum):
     CHANGE_START = 'change_start'
     ALT_DIR = 'alternate_dir'
     VERSION = 'version'
+    CAR_CTRL_CONFIG = 'car_ctrl_config'
+    NUMBER_OF_RESETS = 'number_of_resets'
+    PENALTY_SECONDS = 'penalty_seconds'
+    IS_CONTINUOUS = 'is_continuous'
+    NUMBER_OF_TRIALS = 'number_of_trials'
+    RACE_TYPE = 'race_type'
+    COLLISION_PENALTY = 'collision_penalty'
+    OFF_TRACK_PENALTY = 'off_track_penalty'
+    START_POSITION = 'start_position'
+    PARK_POSITIONS = 'park_positions'
+    DONE_CONDITION = 'done_condition'
 
 class RewardParam(Enum):
     '''This enum contains the keys and default values for the parameters to be
@@ -53,7 +93,7 @@ class RewardParam(Enum):
     WAYPNTS = ['waypoints', 0]                                          # list of tuple: list of waypoints (x, y) tuple
     CLS_WAYPNY = ['closest_waypoints', [0, 0]]                          # list of int: list of int with size 2 containing closest prev and next waypoint indexes
     LEFT_CENT = ['is_left_of_center', False]                            # boolean: race car left of centerline
-    REVERSE = ['is_reversed', False]                                    # boolean: race car direction. True (clockwise), False (counterclockwise)
+    REVERSE = ['is_reversed', False]                                    # boolean: race car direction
     CLOSEST_OBJECTS = ['closest_objects', [0, 0]]                       # list of int: list of int with size 2 containing closest prev and next object indexes
     OBJECT_LOCATIONS = ['objects_location', []]                         # list of tuple: list of all object (x, y) locations
     OBJECTS_LEFT_OF_CENTER = ['objects_left_of_center', []]             # list of boolean: list of all object to the left of centerline or not

@@ -1,5 +1,4 @@
 import json
-
 from markov.architecture.constants import Input
 from markov.architecture.embedder_factory import create_input_embedder, create_middle_embedder
 from markov.environments.deepracer_racetrack_env import DeepRacerRacetrackEnvParameters
@@ -16,6 +15,8 @@ from rl_coach.filters.observation.observation_rgb_to_y_filter import Observation
 from rl_coach.filters.observation.observation_stacking_filter import ObservationStackingFilter
 from rl_coach.filters.observation.observation_to_uint8_filter import ObservationToUInt8Filter
 from rl_coach.filters.observation.observation_clipping_filter import ObservationClippingFilter
+from markov.filters.observation.observation_binary_filter import ObservationBinarySectorFilter
+from markov.environments.constants import SECTOR_LIDAR_CLIPPING_DIST
 from rl_coach.graph_managers.graph_manager import ScheduleParameters
 from rl_coach.schedules import LinearSchedule
 
@@ -28,7 +29,8 @@ class DeepRacerAgentParams(ClippedPPOAgentParameters):
         self.env_agent = None
 
 
-def get_graph_manager(hp_dict, agent_list):
+def get_graph_manager(hp_dict, agent_list, run_phase_subject, enable_domain_randomization=False,
+                      done_condition=any):
     ####################
     # All Default Parameters #
     ####################
@@ -101,6 +103,10 @@ def get_graph_manager(hp_dict, agent_list):
                     input_filter.add_observation_filter(observation,
                                                         'clipping',
                                                         ObservationClippingFilter(0.15, 1.0))
+                if observation == Input.SECTOR_LIDAR.value:
+                    input_filter.add_observation_filter(observation,
+                                                        'binary',
+                                                        ObservationBinarySectorFilter())
             agent_params.input_filter = input_filter()
 
             agent_params.network_wrappers['main'].batch_size = params["batch_size"]
@@ -144,7 +150,9 @@ def get_graph_manager(hp_dict, agent_list):
     env_params.agents_params = trainable_agents_list
     env_params.non_trainable_agents = non_trainable_agents_list
     env_params.level = 'DeepRacerRacetrackEnv-v0'
-
+    env_params.run_phase_subject = run_phase_subject
+    env_params.enable_domain_randomization = enable_domain_randomization
+    env_params.done_condition = done_condition
     vis_params = VisualizationParameters()
     vis_params.dump_mp4 = False
 
@@ -159,5 +167,6 @@ def get_graph_manager(hp_dict, agent_list):
     graph_manager = MultiAgentGraphManager(agents_params=trainable_agents_list,
                                            env_params=env_params,
                                            schedule_params=schedule_params, vis_params=vis_params,
-                                           preset_validation_params=preset_validation_params)
+                                           preset_validation_params=preset_validation_params,
+                                           done_condition=done_condition)
     return graph_manager, params_json

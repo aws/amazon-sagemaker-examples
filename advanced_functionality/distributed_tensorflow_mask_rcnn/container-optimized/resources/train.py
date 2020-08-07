@@ -1,5 +1,6 @@
 import json
 import os
+import shutil
 import subprocess
 import sys
 import time
@@ -114,13 +115,29 @@ def build_host_arg(host_list, gpu_per_host):
         arg += f'{host}:{gpu_per_host}'
     return arg
 
-
+def copy_files(src, dest):
+    src_files = os.listdir(src)
+    for file in src_files:
+        path = os.path.join(src, file)
+        if os.path.isfile(path):
+            shutil.copy(path, dest)
+            
 def train():
 
     import pprint
     pprint.pprint(dict(os.environ), width = 1) 
 
     model_dir = os.environ['SM_MODEL_DIR']
+    log_dir = None
+    
+    copy_logs_to_model_dir = False
+    
+    try:
+        log_dir = os.environ['SM_CHANNEL_LOG']
+        copy_logs_to_model_dir = True
+    except KeyError:
+        log_dir = model_dir
+        
     train_data_dir = os.environ['SM_CHANNEL_TRAIN']
     
     print("pre-setup check")
@@ -203,6 +220,26 @@ def train():
     except KeyError:
         images_per_epoch = 120000
         
+    try:
+        backbone_weights = hyperparamters['backbone_weights']
+    except KeyError:
+        backbone_weights = 'ImageNet-R50-AlignPadding.npz'
+    
+    try:
+        resnet_arch = hyperparamters['resnet_arch']
+    except KeyError:
+        resnet_arch = 'resnet50'
+    
+    load_model = None
+    try:
+        load_model = hyperparamters['load_model']
+    except KeyError:
+        pass
+    
+    resnet_num_blocks = '[3, 4, 6, 3]'
+    if resnet_arch == 'resnet101':
+        resnet_num_blocks = '[3, 4, 23, 3]'
+        
     gpus_per_host = int(os.environ['SM_NUM_GPUS'])
     numprocesses = len(all_hosts) * int(gpus_per_host)
 
@@ -226,7 +263,7 @@ mpirun -np {numprocesses} \\
 -x LD_LIBRARY_PATH -x PATH \\
 --output-filename {model_dir}  \\
 /usr/local/bin/python3.6 /mask-rcnn-tensorflow/MaskRCNN/train.py \
---logdir {model_dir} \
+--logdir {log_dir} \
 --fp16 \
 --throughput_log_freq=2000 \
 --images_per_epoch {images_per_epoch} \
@@ -234,7 +271,8 @@ mpirun -np {numprocesses} \\
 MODE_FPN={mode_fpn} \
 MODE_MASK={mode_mask} \
 DATA.BASEDIR={train_data_dir} \
-BACKBONE.WEIGHTS={train_data_dir}/pretrained-models/ImageNet-R50-AlignPadding.npz \
+BACKBONE.RESNET_NUM_BLOCKS='{resnet_num_blocks}' \
+BACKBONE.WEIGHTS={train_data_dir}/pretrained-models/{backbone_weights} \
 BACKBONE.NORM={batch_norm} \
 DATA.TRAIN='["{data_train}"]' \
 DATA.VAL='("{data_val}",)' \
@@ -246,6 +284,14 @@ PREPROC.PREDEFINED_PADDING=True \
 TRAIN.GRADIENT_CLIP=0 \
 TRAINER=horovod"""
 
+    for key,item in hyperparamters.items():
+        if key.startswith("config:"):
+            hp=f" {key[7:]}={item}"
+            mpirun_cmd+=hp
+    
+    if load_model:
+        mpirun_cmd += f' --load {train_data_dir}/pretrained-models/{load_model}'
+        
     print("--------Begin MPI Run Command----------")
     print(mpirun_cmd)
     print("--------End MPI Run Comamnd------------")
@@ -269,6 +315,9 @@ TRAINER=horovod"""
         print("train exception occured", file=sys.stderr)
         exitcode = 1
         print(str(e), file=sys.stderr)
+    finally:
+        if copy_logs_to_model_dir:
+            copy_files(log_dir, model_dir)
 
     sys.stdout.flush()
     sys.stderr.flush()

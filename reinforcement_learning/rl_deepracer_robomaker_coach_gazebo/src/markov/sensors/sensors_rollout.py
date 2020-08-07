@@ -11,46 +11,53 @@ from markov.sensors.utils import get_observation_space, get_front_camera_embedde
 from markov.sensors.sensor_interface import SensorInterface
 from markov.environments.constants import TRAINING_IMAGE_SIZE
 from markov.architecture.constants import Input
-from markov.deepracer_exceptions import GenericRolloutException
+from markov.log_handler.deepracer_exceptions import GenericRolloutException, GenericError
 from markov import utils
+from markov.log_handler.logger import Logger
+from markov.log_handler.constants import SIMAPP_SIMULATION_WORKER_EXCEPTION
+                                    
 
-LOGGER = utils.Logger(__name__, logging.INFO).get_logger()
+LOGGER = Logger(__name__, logging.INFO).get_logger()
 
 class SensorFactory(object):
     '''This class implements a sensot factory and is used to create sensors per
        agent.
     '''
     @staticmethod
-    def create_sensor(sensor_type, config_dict):
+    def create_sensor(racecar_name, sensor_type, config_dict):
         '''Factory method for creating sensors
             type - String containing the desired sensor type
             kwargs - Meta data, usually containing the topics to subscribe to, the
                      concrete sensor classes are responsible for checking the topics.
         '''
         if sensor_type == Input.CAMERA.value:
-            return Camera()
+            return Camera(racecar_name)
         elif sensor_type == Input.LEFT_CAMERA.value:
-            return LeftCamera()
+            return LeftCamera(racecar_name)
         elif sensor_type == Input.STEREO.value:
-            return DualCamera()
+            return DualCamera(racecar_name)
         elif sensor_type == Input.LIDAR.value:
-            return Lidar()
+            return Lidar(racecar_name)
+        elif sensor_type == Input.SECTOR_LIDAR.value:
+            return SectorLidar(racecar_name)
         elif sensor_type == Input.OBSERVATION.value:
-            return Observation()
+            return Observation(racecar_name)
         else:
             raise GenericRolloutException("Unknown sensor")
 
 class Camera(SensorInterface):
     '''Single camera sensor'''
-    def __init__(self):
+    def __init__(self, racecar_name):
         self.image_buffer = utils.DoubleBuffer()
-        rospy.Subscriber('/camera/zed/rgb/image_rect_color', sensor_image, self._camera_cb_)
+        rospy.Subscriber('/{}/camera/zed/rgb/image_rect_color'.format(racecar_name), sensor_image, self._camera_cb_)
         self.raw_data = None
         self.sensor_type = Input.CAMERA.value
 
     def get_observation_space(self):
         try:
             return get_observation_space(Input.CAMERA.value)
+        except GenericError as ex:
+            ex.log_except_and_exit(SIMAPP_SIMULATION_WORKER_EXCEPTION)
         except Exception as ex:
             raise GenericRolloutException('{}'.format(ex))
 
@@ -75,6 +82,8 @@ class Camera(SensorInterface):
     def get_input_embedders(self, network_type):
         try:
             return get_front_camera_embedders(network_type)
+        except GenericError as ex:
+            ex.log_except_and_exit(SIMAPP_SIMULATION_WORKER_EXCEPTION)
         except Exception as ex:
             raise GenericRolloutException('{}'.format(ex))
 
@@ -89,15 +98,17 @@ class Camera(SensorInterface):
 
 class Observation(SensorInterface):
     '''Single camera sensor that is compatible with simapp v1'''
-    def __init__(self):
+    def __init__(self, racecar_name):
         self.image_buffer = utils.DoubleBuffer()
-        rospy.Subscriber('/camera/zed/rgb/image_rect_color', sensor_image, self._camera_cb_)
+        rospy.Subscriber('/{}/camera/zed/rgb/image_rect_color'.format(racecar_name), sensor_image, self._camera_cb_)
         self.sensor_type = Input.OBSERVATION.value
         self.raw_data = None
     
     def get_observation_space(self):
         try:
             return get_observation_space(Input.OBSERVATION.value)
+        except GenericError as ex:
+            ex.log_except_and_exit(SIMAPP_SIMULATION_WORKER_EXCEPTION)
         except Exception as ex:
             raise GenericRolloutException('{}'.format(ex))
 
@@ -122,6 +133,8 @@ class Observation(SensorInterface):
     def get_input_embedders(self, network_type):
         try:
             return get_observation_embedder()
+        except GenericError as ex:
+            ex.log_except_and_exit(SIMAPP_SIMULATION_WORKER_EXCEPTION)
         except Exception as ex:
             raise GenericRolloutException('{}'.format(ex))
 
@@ -139,15 +152,17 @@ class LeftCamera(SensorInterface):
        the camera class but has a different observation space. If this changes in
        the future this class should be updated.
     '''
-    def __init__(self):
+    def __init__(self, racecar_name):
         self.image_buffer = utils.DoubleBuffer()
-        rospy.Subscriber('/camera/zed/rgb/image_rect_color', sensor_image, self._camera_cb_)
+        rospy.Subscriber('/{}/camera/zed/rgb/image_rect_color'.format(racecar_name), sensor_image, self._camera_cb_)
         self.sensor_type = Input.LEFT_CAMERA.value
         self.raw_data = None
 
     def get_observation_space(self):
         try:
             return get_observation_space(Input.LEFT_CAMERA.value)
+        except GenericError as ex:
+            ex.log_except_and_exit(SIMAPP_SIMULATION_WORKER_EXCEPTION)
         except Exception as ex:
             raise GenericRolloutException('{}'.format(ex))
 
@@ -172,6 +187,8 @@ class LeftCamera(SensorInterface):
     def get_input_embedders(self, network_type):
         try:
             return get_left_camera_embedders(network_type)
+        except GenericError as ex:
+            ex.log_except_and_exit(SIMAPP_SIMULATION_WORKER_EXCEPTION)
         except Exception as ex:
             raise GenericRolloutException('{}'.format(ex))
 
@@ -186,15 +203,15 @@ class LeftCamera(SensorInterface):
 
 class DualCamera(SensorInterface):
     '''This class handles the data for dual cameras'''
-    def __init__(self):
+    def __init__(self, racecar_name):
         # Queue used to maintain image consumption synchronicity
         self.image_buffer_left = utils.DoubleBuffer()
         self.image_buffer_right = utils.DoubleBuffer()
         # Set up the subscribers
-        rospy.Subscriber('/camera/zed/rgb/image_rect_color',
+        rospy.Subscriber('/{}/camera/zed/rgb/image_rect_color'.format(racecar_name),
                          sensor_image,
                          self._left_camera_cb_)
-        rospy.Subscriber('/camera/zed_right/rgb/image_rect_color_right',
+        rospy.Subscriber('/{}/camera/zed_right/rgb/image_rect_color_right'.format(racecar_name),
                          sensor_image,
                          self._right_camera_cb_)
         self.sensor_type = Input.STEREO.value
@@ -202,6 +219,8 @@ class DualCamera(SensorInterface):
     def get_observation_space(self):
         try:
             return get_observation_space(Input.STEREO.value)
+        except GenericError as ex:
+            ex.log_except_and_exit(SIMAPP_SIMULATION_WORKER_EXCEPTION)
         except Exception as ex:
             raise GenericRolloutException('{}'.format(ex))
 
@@ -230,6 +249,8 @@ class DualCamera(SensorInterface):
     def get_input_embedders(self, network_type):
         try:
             return get_stereo_camera_embedders(network_type)
+        except GenericError as ex:
+            ex.log_except_and_exit(SIMAPP_SIMULATION_WORKER_EXCEPTION)
         except Exception as ex:
             raise GenericRolloutException('{}'.format(ex))
 
@@ -253,20 +274,22 @@ class DualCamera(SensorInterface):
 
 class Lidar(SensorInterface):
     '''This class handles the data collection for lidar'''
-    def __init__(self):
+    def __init__(self, racecar_name):
         self.data_buffer = utils.DoubleBuffer()
-        rospy.Subscriber('/scan', LaserScan, self._scan_cb)
+        rospy.Subscriber('/{}/scan'.format(racecar_name), LaserScan, self._scan_cb)
         self.sensor_type = Input.LIDAR.value
 
     def get_observation_space(self):
         try:
-            return get_observation_space(Input.LIDAR.value)
+            return get_observation_space(self.sensor_type)
+        except GenericError as ex:
+            ex.log_except_and_exit(SIMAPP_SIMULATION_WORKER_EXCEPTION)
         except Exception as ex:
             raise GenericRolloutException('{}'.format(ex))
 
     def get_state(self, block=True):
         try:
-            return {Input.LIDAR.value: self.data_buffer.get(block=block)}
+            return {self.sensor_type: self.data_buffer.get(block=block)}
         except utils.DoubleBuffer.Empty:
             return {}
         except Exception as ex:
@@ -277,7 +300,49 @@ class Lidar(SensorInterface):
 
     def get_input_embedders(self, network_type):
         try:
-            return get_lidar_embedders(network_type)
+            return get_lidar_embedders(network_type, self.sensor_type)
+        except GenericError as ex:
+            ex.log_except_and_exit(SIMAPP_SIMULATION_WORKER_EXCEPTION)
+        except Exception as ex:
+            raise GenericRolloutException('{}'.format(ex))
+
+    def _scan_cb(self, data):
+        try:
+            self.data_buffer.put(np.array(data.ranges))
+        except Exception as ex:
+            LOGGER.info("Unable to retrieve state: %s", ex)
+
+class SectorLidar(SensorInterface):
+    '''This class handles the data collection for sector lidar'''
+    def __init__(self, racecar_name):
+        self.data_buffer = utils.DoubleBuffer()
+        rospy.Subscriber('/{}/scan'.format(racecar_name), LaserScan, self._scan_cb)
+        self.sensor_type = Input.SECTOR_LIDAR.value
+
+    def get_observation_space(self):
+        try:
+            return get_observation_space(self.sensor_type)
+        except GenericError as ex:
+            ex.log_except_and_exit(SIMAPP_SIMULATION_WORKER_EXCEPTION)
+        except Exception as ex:
+            raise GenericRolloutException('{}'.format(ex))
+
+    def get_state(self, block=True):
+        try:
+            return {self.sensor_type: self.data_buffer.get(block=block)}
+        except utils.DoubleBuffer.Empty:
+            return {}
+        except Exception as ex:
+            raise GenericRolloutException("Unable to set state: {}".format(ex))
+
+    def reset(self):
+        self.data_buffer.clear()
+
+    def get_input_embedders(self, network_type):
+        try:
+            return get_lidar_embedders(network_type, self.sensor_type)
+        except GenericError as ex:
+            ex.log_except_and_exit(SIMAPP_SIMULATION_WORKER_EXCEPTION)
         except Exception as ex:
             raise GenericRolloutException('{}'.format(ex))
 

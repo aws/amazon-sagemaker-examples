@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 if [ "$#" -ne 1 ]; then
     echo "usage: $0 <s3-bucket-name>"
     exit 1

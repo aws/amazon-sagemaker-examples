@@ -1,8 +1,9 @@
 '''This module houses all utility methods for the sensor module'''
 import numpy as np
 
-from markov.environments.constants import TRAINING_IMAGE_SIZE
+from markov.environments.constants import TRAINING_IMAGE_SIZE, TRAINING_LIDAR_SIZE, SECTOR_LIDAR_CLIPPING_DIST
 from markov.architecture.constants import SchemeInfo, Input, ActivationFunctions, NeuralNetwork
+from markov.log_handler.deepracer_exceptions import GenericError
 from rl_coach.spaces import StateSpace, ImageObservationSpace, \
                             VectorObservationSpace, PlanarMapsObservationSpace
 
@@ -12,6 +13,10 @@ def get_observation_space(sensor):
                 observation space
     '''
     obs = StateSpace({})
+
+    if not isinstance(sensor, str):
+        raise GenericError("None string type for sensor type: {}".format(type(sensor)))
+
     if sensor == Input.CAMERA.value or sensor == Input.OBSERVATION.value or \
     sensor == Input.LEFT_CAMERA.value:
         obs[sensor] = ImageObservationSpace(shape=np.array((TRAINING_IMAGE_SIZE[1],
@@ -27,7 +32,9 @@ def get_observation_space(sensor):
                                                  high=255,
                                                  channels_axis=-1)
     elif sensor == Input.LIDAR.value:
-        obs[sensor] = VectorObservationSpace(shape=64, low=0.15, high=1.0)
+        obs[sensor] = VectorObservationSpace(shape=TRAINING_LIDAR_SIZE, low=0.15, high=1.0)
+    elif sensor == Input.SECTOR_LIDAR.value:
+        obs[sensor] = VectorObservationSpace(shape=TRAINING_LIDAR_SIZE, low=0.15, high=SECTOR_LIDAR_CLIPPING_DIST)
     else:
         raise Exception("Unable to set observation space for sensor {}".format(sensor))
     return obs
@@ -39,6 +46,9 @@ def get_front_camera_embedders(network_type):
        needs to be in the util module due to the sagemaker/robomaker incompatibility
        network_type - The type of network for which to return the embedder for
     '''
+    if not isinstance(network_type, str):
+        raise GenericError("None string type for network type: {}".format(type(network_type)))
+
     input_embedder = dict()
     if network_type == NeuralNetwork.DEEP_CONVOLUTIONAL_NETWORK_SHALLOW.value:
         input_embedder = {Input.CAMERA.value:
@@ -87,6 +97,9 @@ def get_left_camera_embedders(network_type):
        needs to be in the util module due to the sagemaker/robomaker incompatibility
        network_type - The type of network for which to return the embedder for
     '''
+    if not isinstance(network_type, str):
+        raise GenericError("None string type for network type: {}".format(type(network_type)))
+
     input_embedder = dict()
     if network_type == NeuralNetwork.DEEP_CONVOLUTIONAL_NETWORK_SHALLOW.value:
         input_embedder = {Input.LEFT_CAMERA.value:
@@ -126,6 +139,8 @@ def get_stereo_camera_embedders(network_type):
        needs to be in the util module due to the sagemaker/robomaker incompatibility
        network_type - The type of network for which to return the embedder for
     '''
+    if not isinstance(network_type, str):
+        raise GenericError("None string type for network type: {}".format(type(network_type)))
     input_embedder = dict()
     if network_type == NeuralNetwork.DEEP_CONVOLUTIONAL_NETWORK_SHALLOW.value:
         input_embedder = {Input.STEREO.value:
@@ -152,13 +167,13 @@ def get_stereo_camera_embedders(network_type):
         raise Exception("Stereo camera sensor has no embedder for topology {}".format(network_type))
     return input_embedder
 
-def get_lidar_embedders(network_type):
+def get_lidar_embedders(network_type, lidar_type):
     '''Utility method for retrieving the input embedder for the lidar camera sensor, this
        needs to be in the util module due to the sagemaker/robomaker incompatibility
        network_type - The type of network for which to return the embedder for
     '''
     #! TODO decide whether we need lidar layers for different network types
-    input_embedder = {Input.LIDAR.value:
+    input_embedder = {lidar_type:
                       {SchemeInfo.CONV_INFO_LIST.value: [],
                        SchemeInfo.DENSE_LAYER_INFO_LIST.value: [256, 256],
                        SchemeInfo.BN_INFO_CONV.value: [False, ActivationFunctions.RELU.value, 0.0],

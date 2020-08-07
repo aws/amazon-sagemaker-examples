@@ -46,11 +46,11 @@ def get_training_context(num_gpus):
 
 def train(batch_size, epochs, learning_rate, num_gpus, training_channel, testing_channel,
           hosts, current_host, model_dir):
+    checkpoints_dir = '/opt/ml/checkpoints'
+    checkpoints_enabled = os.path.exists(checkpoints_dir)
+
     (train_labels, train_images) = load_data(training_channel)
     (test_labels, test_images) = load_data(testing_channel)
-    CHECKPOINTS_DIR = '/opt/ml/checkpoints'
-    checkpoints_enabled = os.path.exists(CHECKPOINTS_DIR)
-
     # Data parallel training - shard the data so each host
     # only trains on a subset of the total data.
     shard_size = len(train_images) // len(hosts)
@@ -73,9 +73,10 @@ def train(batch_size, epochs, learning_rate, num_gpus, training_channel, testing
 
     checkpoint_callback = None
     if checkpoints_enabled:
-        # Create a checkpoint callback that checkpoints the model params and the optimizer state after every epoch at the given path.
+        # Create a checkpoint callback that checkpoints the model params and
+        # the optimizer state at the given path after every epoch.
         checkpoint_callback = mx.callback.module_checkpoint(mlp_model,
-                                                            CHECKPOINTS_DIR + "/mnist",
+                                                            os.path.join(checkpoints_dir, "mnist"),
                                                             period=1,
                                                             save_optimizer_states=True)
     mlp_model.fit(train_iter,
@@ -84,7 +85,7 @@ def train(batch_size, epochs, learning_rate, num_gpus, training_channel, testing
                   optimizer='sgd',
                   optimizer_params={'learning_rate': learning_rate},
                   eval_metric='acc',
-                  epoch_end_callback = checkpoint_callback,
+                  epoch_end_callback=checkpoint_callback,
                   batch_end_callback=mx.callback.Speedometer(batch_size, 100),
                   num_epoch=epochs)
 
@@ -118,6 +119,7 @@ def parse_args():
 
     return parser.parse_args()
 
+
 ### NOTE: this function cannot use MXNet
 def neo_preprocess(payload, content_type):
     import logging
@@ -131,6 +133,7 @@ def neo_preprocess(payload, content_type):
 
     f = io.BytesIO(payload)
     return np.load(f)
+
 
 ### NOTE: this function cannot use MXNet
 def neo_postprocess(result):

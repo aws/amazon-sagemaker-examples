@@ -4,8 +4,22 @@ from enum import Enum, unique
 GET_LINK_STATE = '/gazebo/get_link_state'
 GET_MODEL_STATE = '/gazebo/get_model_state'
 SET_MODEL_STATE = '/gazebo/set_model_state'
+GET_LINK_STATES = '/gazebo/get_link_states'
+GET_MODEL_STATES = '/gazebo/get_model_states'
+SET_MODEL_STATES = '/gazebo/set_model_states'
 SPAWN_SDF_MODEL = '/gazebo/spawn_sdf_model'
 SPAWN_URDF_MODEL = '/gazebo/spawn_urdf_model'
+
+SPLINE_DEGREE = 3
+
+DIST_THRESHOLD = 0.02
+
+START_POS_OFFSET = 0.5
+
+class TrackLane(Enum):
+    INNER_LANE = "inner_lane"
+    OUTER_LANE = "outer_lane"
+    CENTER_LINE = "center_line"
 
 class TrackNearPnts(Enum):
     '''Keys for nearest points dictionary'''
@@ -28,4 +42,5 @@ class AgentPos(Enum):
 class ObstacleDimensions(Enum):
     ''' The dimensions of different obstacle '''
     BOX_OBSTACLE_DIMENSION = (0.4, 0.5) # Length(x), width(y) + 0.1 buffer for each
+    # TODO: Fix the bot car dimension so that all collisions are detected
     BOT_CAR_DIMENSION = (0.296, 0.422) # Length(x), width(y) + 0.1 buffer for each
