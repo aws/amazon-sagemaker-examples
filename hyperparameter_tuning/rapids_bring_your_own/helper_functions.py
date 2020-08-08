@@ -11,6 +11,11 @@ def get_notebook_path():
     except NameError: working_directory = os.getcwd()
     return working_directory
 
+def validate_region ( region ):
+    """ Check that the current [compute] region is one of the two regions where the demo data is hosted """
+    if region not in ['us-east-1', 'us-west-2']:
+        raise Exception ( 'Unsupported region, please switch to us-east-1 or us-west-2' )
+
 def new_job_name_from_config ( dataset_directory, code_choice, 
                                algorithm_choice, cv_folds,
                                instance_type, trim_limit = 32 ):
@@ -58,12 +63,12 @@ def recommend_instance_type ( code_choice, dataset_directory  ):
         recommended_instance_type = 'ml.m5.24xlarge'
 
     if code_choice == 'singleGPU': 
-        detail_str =  '1x V100, 16GB GPU memory, 61GB CPU memory'
+        detail_str =  '1x GPU [ V100 ], 16GB GPU memory, 61GB CPU memory'
         recommended_instance_type = 'ml.p3.2xlarge' 
         assert( dataset_directory not in [ '10_year'] ) # ! switch to multi-GPU
 
     elif code_choice == 'multiGPU':
-        detail_str =  '4x V100, 64GB GPU memory,  244GB CPU memory'
+        detail_str =  '4x GPUs [ V100 ], 64GB GPU memory,  244GB CPU memory'
         recommended_instance_type = 'ml.p3.8xlarge'
     
     print( f'recommended instance type : {recommended_instance_type} \n'\
@@ -115,7 +120,7 @@ def download_best_model( bucket, s3_model_output, hpo_results, local_directory )
         objects = target_bucket.objects.filter( Prefix = path_prefix )    
         for obj in objects:                
             path, filename = os.path.split( obj.key )
-            local_filename = 'best_' + filename
+            local_filename = local_directory + '/' + 'best_' + filename
             full_url = 's3://' + bucket + '/' + path_prefix + obj.key
             target_bucket.download_file( obj.key, local_filename )
             print(f'Successfully downloaded best model\n'
