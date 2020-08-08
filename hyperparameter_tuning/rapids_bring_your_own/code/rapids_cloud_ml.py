@@ -92,7 +92,7 @@ class RapidsCloudML ( object ):
     # -------------------------------------------------------------------------------------------------------------
     def parse_hyper_parameter_inputs ( self, input_args ):
         """ Parse hyperparmeters that are fed in by the HPO orchestrator [e.g., SageMaker ]. """
-        print('parsing model hyper-parameters from command line arguments...\n')
+        print('parsing model hyperparameters from command line arguments...\n')
         parser = argparse.ArgumentParser ()
 
         if 'XGBoost' in self.model_type:
