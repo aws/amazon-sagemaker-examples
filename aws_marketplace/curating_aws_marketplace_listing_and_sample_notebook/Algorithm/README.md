@@ -18,5 +18,6 @@ In **title_of_your_product**-Algorithm.ipynb, make following changes:
 9. Review the table of contents of your notebook and ensure that all links work.
 10. Once ready, host the sample notebook on your public GitHUB/Bitbucket/Gitlab repository and link the repository with your AWS Marketplace listing, under additional resources section. 
 11. Ensure that repository is accessible to public.
+12. Next step is to curate your AWS Markeplace listing. Follow the guidance provided for curating a good AWS Marketplce Algorithm listing in [curating_good_algorithm_listing.md](#curating_good_algorithm_listing.md).
 
     
