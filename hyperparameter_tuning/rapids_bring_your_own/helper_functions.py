@@ -116,12 +116,12 @@ def download_best_model( bucket, s3_model_output, hpo_results, local_directory )
     """ Download best model from S3"""
     try:
         target_bucket = boto3.resource('s3').Bucket( bucket )
-        path_prefix = s3_model_output.split('/')[3] + '/' + hpo_results['BestTrainingJob']['TrainingJobName'] + '/output/'
+        path_prefix = s3_model_output.split('/')[-1] + '/' + hpo_results['BestTrainingJob']['TrainingJobName'] + '/output/'
         objects = target_bucket.objects.filter( Prefix = path_prefix )    
         for obj in objects:                
             path, filename = os.path.split( obj.key )
             local_filename = local_directory + '/' + 'best_' + filename
-            full_url = 's3://' + bucket + '/' + path_prefix + obj.key
+            full_url = 's3://' + bucket + '/' + path_prefix + filename
             target_bucket.download_file( obj.key, local_filename )
             print(f'Successfully downloaded best model\n'
                   f'> filename: {local_filename}\n'
