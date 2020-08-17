@@ -64,19 +64,15 @@
    },
    "outputs": [],
    "source": [
-    "import re\n",
+    "bucket = '<your_s3_bucket_name_here>'\n",
+    "prefix = 'sagemaker/DEMO-fm-mnist'\n",
+    " \n",
+    "# Define IAM role\n",
     "import boto3\n",
-    "import sagemaker\n",
+    "import re\n",
     "from sagemaker import get_execution_role\n",
-    "import json\n",
-    "role = get_execution_role()\n",
     "\n",
-    "print(role)\n",
-    "sess = sagemaker.Session()\n",
-    "bucket = sess.default_bucket()\n",
-    "print(bucket)\n",
-    "\n",
-    "prefix = 'sagemaker/DEMO-fm-mnist'\n"
+    "role = get_execution_role()"
    ]
   },
   {
