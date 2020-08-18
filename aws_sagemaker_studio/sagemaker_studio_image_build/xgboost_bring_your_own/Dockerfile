@@ -38,11 +38,15 @@ RUN wget https://bootstrap.pypa.io/3.3/get-pip.py && python3.6 get-pip.py && \
 
 ENV PYTHONUNBUFFERED=TRUE
 ENV PYTHONDONTWRITEBYTECODE=TRUE
-ENV PATH="/opt/program:${PATH}"
 
-# Set up the program in the image
-COPY xgboost /opt/program
-WORKDIR /opt/program
-RUN chmod +x /opt/program/train
-RUN chmod +x /opt/program/serve
+ENV PATH="/opt/ml/code:${PATH}"
+
+# /opt/ml and all subdirectories are utilized by SageMaker, we use the /code subdirectory to store our user code.
+
+COPY xgboost /opt/ml/code
+WORKDIR /opt/ml/code
+RUN chmod +x /opt/ml/code/train
+RUN chmod +x /opt/ml/code/serve
+
+
 
