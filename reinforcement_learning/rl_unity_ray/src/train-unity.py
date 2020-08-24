@@ -1,5 +1,6 @@
 import json
 import os
+import subprocess
 
 import gym
 import ray
@@ -16,10 +17,9 @@ class UnityEnvWrapper(gym.Env):
     def __init__(self, env_config):
         self.worker_index = env_config.worker_index
 
-        code_path = '/opt/ml/code'
-        files_code_path = os.listdir(code_path)
-        if env_config['env_name'] in files_code_path:
-            env_name = code_path + '/' + env_config['env_name']
+        if 'SM_CHANNEL_TRAIN' in os.environ:
+            env_name = os.environ['SM_CHANNEL_TRAIN'] +'/'+ env_config['env_name']
+            subprocess.call(f'chmod 755 {env_name}'.split())
             unity_env = UnityEnvironment(
                       env_name, 
                       no_graphics=True, 

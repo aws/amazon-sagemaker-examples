@@ -5,6 +5,7 @@ from __future__ import print_function
 import argparse
 import json
 import os
+import subprocess
 
 import numpy as np
 
@@ -24,10 +25,20 @@ class UnityEnvWrapper(gym.Env):
     def __init__(self, env_config):
         env_name = env_config['env_name']
         worker_id = env_config['worker_id']
-        unity_env = default_registry[env_name].make(
-            no_graphics=True,
-            worker_id=worker_id,
-            additional_args=['-logFile', 'unity.log'])
+        if 'SM_CHANNEL_TRAIN' in os.environ:
+            env_name = os.environ['SM_CHANNEL_TRAIN'] +'/'+ env_config['env_name']
+            subprocess.call(f'chmod 755 {env_name}'.split())
+            unity_env = UnityEnvironment(
+                      env_name, 
+                      no_graphics=True, 
+                      worker_id=worker_id, 
+                      additional_args=['-logFile', 'unity.log'])
+        else:
+            unity_env = default_registry[env_name].make(
+                no_graphics=True,
+                worker_id=worker_id,
+                additional_args=['-logFile', 'unity.log'])
+            
         self.env = UnityToGymWrapper(unity_env, allow_multiple_obs=True)
         self.action_space = self.env.action_space
         self.observation_space = self.env.observation_space
