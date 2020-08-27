@@ -15,11 +15,12 @@ RUN pip install markdown==3.1
 RUN pip install numba==0.38.0
 
 RUN pip uninstall pycocotools
-RUN pip install pybind11
-RUN pip install scikit-image
-RUN git clone https://github.com/NVIDIA/cocoapi && \
-    cd cocoapi/PythonAPI && \
-    make install
+RUN pip install pybind11==2.5.0
+RUN pip install scikit-image==0.17.2
+RUN git clone https://github.com/NVIDIA/cocoapi
+RUN cd cocoapi && git fetch origin 6ac4a93058202603f36fd1ce47228e7d81119e5a
+RUN cd cocoapi && git reset --hard 6ac4a93058202603f36fd1ce47228e7d81119e5a
+RUN cd cocoapi/PythonAPI && make install
 RUN pip install -U llvmlite==0.32.1
 
 RUN git clone https://github.com/aws-samples/mask-rcnn-tensorflow
