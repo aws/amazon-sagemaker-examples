@@ -1,5 +1,5 @@
 import threading
-from markov.deepracer_exceptions import GenericRolloutException
+from markov.log_handler.deepracer_exceptions import GenericRolloutException
 from markov.cameras.frustum import Frustum
 
 
@@ -19,8 +19,8 @@ class FrustumManager(object):
     def __init__(self):
         if FrustumManager._instance_ is not None:
             raise GenericRolloutException("Attempting to construct multiple frustum manager")
-        self.lock = threading.Lock()
-        self.camera_namespaces = {}
+        self.lock = threading.RLock()
+        self.frustum_map = {}
 
         # there should be only one camera manager instance
         FrustumManager._instance_ = self
@@ -33,7 +33,7 @@ class FrustumManager(object):
             observation_list (list): observation list
         """
         with self.lock:
-            self.camera_namespaces[agent_name] = Frustum(agent_name=agent_name,
+            self.frustum_map[agent_name] = Frustum(agent_name=agent_name,
                                                          observation_list=observation_list)
 
     def remove(self, agent_name):
@@ -43,16 +43,17 @@ class FrustumManager(object):
             agent_name (str): agent name
         """
         with self.lock:
-            del self.camera_namespaces[agent_name]
+            del self.frustum_map[agent_name]
 
-    def update(self, agent_name):
+    def update(self, agent_name, car_pose):
         """Update given agent's frustum
 
         Args:
             agent_name (str): agent name
+            car_model_state (GetModelState): Gazebo ModelState of the agent
         """
         with self.lock:
-            self.camera_namespaces[agent_name].update()
+            self.frustum_map[agent_name].update(car_pose)
 
     def get(self, agent_name):
         """Return given agent's frustum
@@ -61,5 +62,5 @@ class FrustumManager(object):
             agent_name (str): agent name
         """
         with self.lock:
-            return self.camera_namespaces[agent_name]
+            return self.frustum_map[agent_name]
 

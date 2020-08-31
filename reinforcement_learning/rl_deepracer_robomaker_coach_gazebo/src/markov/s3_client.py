@@ -5,9 +5,11 @@ import json
 import time
 import boto3
 import botocore
-from markov.utils import log_and_exit, Logger, get_boto_config, \
-                         SIMAPP_EVENT_ERROR_CODE_500, SIMAPP_EVENT_ERROR_CODE_400, \
-                         SIMAPP_S3_DATA_STORE_EXCEPTION
+from markov.utils import get_boto_config, get_s3_kms_extra_args, test_internet_connection
+from markov.log_handler.logger import Logger
+from markov.log_handler.exception_handler import log_and_exit
+from markov.log_handler.constants import (SIMAPP_EVENT_ERROR_CODE_500, SIMAPP_EVENT_ERROR_CODE_400,
+                                          SIMAPP_S3_DATA_STORE_EXCEPTION)
 
 LOG = Logger(__name__, logging.INFO).get_logger()
 
@@ -24,6 +26,7 @@ class SageS3Client():
         self.hyperparameters_key = os.path.normpath(s3_prefix + "/ip/hyperparameters.json")
         self.done_file_key = os.path.normpath(s3_prefix + "/ip/done")
         self.model_checkpoints_prefix = os.path.normpath(s3_prefix + "/model/") + "/"
+        self.s3_extra_args = get_s3_kms_extra_args()
         LOG.info("Initializing SageS3Client...")
 
     def get_client(self):
@@ -40,14 +43,14 @@ class SageS3Client():
             json_blob = json.dumps(data)
             file_handle = io.BytesIO(json_blob.encode())
             file_handle_done = io.BytesIO(b'done')
-            s3_client.upload_fileobj(file_handle, self.bucket, self.config_key)
-            s3_client.upload_fileobj(file_handle_done, self.bucket, self.done_file_key)
+            s3_client.upload_fileobj(file_handle, self.bucket, self.config_key, ExtraArgs=self.s3_extra_args)
+            s3_client.upload_fileobj(file_handle_done, self.bucket, self.done_file_key, ExtraArgs=self.s3_extra_args)
         except botocore.exceptions.ClientError:
             log_and_exit("Write ip config failed to upload",
                          SIMAPP_S3_DATA_STORE_EXCEPTION,
                          SIMAPP_EVENT_ERROR_CODE_400)
-        except Exception:
-            log_and_exit("Write ip config failed to upload",
+        except Exception as ex:
+            log_and_exit("Exception in write ip config: {}".format(ex),
                          SIMAPP_S3_DATA_STORE_EXCEPTION,
                          SIMAPP_EVENT_ERROR_CODE_500)
 
@@ -55,13 +58,13 @@ class SageS3Client():
         try:
             s3_client = self.get_client()
             file_handle = io.BytesIO(hyperparams_json.encode())
-            s3_client.upload_fileobj(file_handle, self.bucket, self.hyperparameters_key)
+            s3_client.upload_fileobj(file_handle, self.bucket, self.hyperparameters_key, ExtraArgs=self.s3_extra_args)
         except botocore.exceptions.ClientError:
             log_and_exit("Hyperparameters failed to upload",
                          SIMAPP_S3_DATA_STORE_EXCEPTION,
                          SIMAPP_EVENT_ERROR_CODE_400)
-        except Exception:
-            log_and_exit("Hyperparameters failed to upload",
+        except Exception as ex:
+            log_and_exit("Exception in uploading hyperparameters: {}".format(ex),
                          SIMAPP_S3_DATA_STORE_EXCEPTION,
                          SIMAPP_EVENT_ERROR_CODE_500)
 
@@ -81,7 +84,8 @@ class SageS3Client():
                              time_elapsed)
             if time_elapsed >= SAGEMAKER_WAIT_TIME:
                 log_and_exit("Timed out while attempting to retrieve the Redis IP",
-                             SIMAPP_S3_DATA_STORE_EXCEPTION, SIMAPP_EVENT_ERROR_CODE_500)
+                             SIMAPP_S3_DATA_STORE_EXCEPTION, 
+                             SIMAPP_EVENT_ERROR_CODE_500)
             # Download the ip file
             s3_client.download_file(self.bucket, self.config_key, 'ip.json')
             with open("ip.json") as file:
@@ -91,8 +95,8 @@ class SageS3Client():
             log_and_exit("Unable to retrieve redis ip",
                          SIMAPP_S3_DATA_STORE_EXCEPTION,
                          SIMAPP_EVENT_ERROR_CODE_400)
-        except Exception:
-            log_and_exit("Unable to retrieve redis ip",
+        except Exception as ex:
+            log_and_exit("Exception in retrieving redis ip: {}".format(ex),
                          SIMAPP_S3_DATA_STORE_EXCEPTION,
                          SIMAPP_EVENT_ERROR_CODE_500)
 
@@ -107,26 +111,33 @@ class SageS3Client():
             if err.response['Error']['Code'] == "404":
                 return False
             else:
-                log_and_exit("Unable to download file",
+                log_and_exit("Unable to download file (s3bucket: {} s3_key: {})".format(self.bucket,
+                                                                                        s3_key),
                              SIMAPP_S3_DATA_STORE_EXCEPTION,
                              SIMAPP_EVENT_ERROR_CODE_400)
-        except Exception:
-            log_and_exit("Unable to download file",
+        except botocore.exceptions.ConnectTimeoutError as ex:
+            log_and_exit("Issue with your current VPC stack and IAM roles.\
+                          You might need to reset your account resources: {}".format(ex),
+                         SIMAPP_S3_DATA_STORE_EXCEPTION,
+                         SIMAPP_EVENT_ERROR_CODE_400)
+        except Exception as ex:
+            log_and_exit("Exception in downloading file (s3bucket: {} s3_key: {}): {}".format(self.bucket,
+                                                                                              s3_key,
+                                                                                              ex),
                          SIMAPP_S3_DATA_STORE_EXCEPTION,
                          SIMAPP_EVENT_ERROR_CODE_500)
 
     def upload_file(self, s3_key, local_path):
         s3_client = self.get_client()
         try:
-            s3_client.upload_file(Filename=local_path,
-                                  Bucket=self.bucket,
-                                  Key=s3_key)
+            s3_client.upload_file(Filename=local_path, Bucket=self.bucket, Key=s3_key,
+                                  ExtraArgs=self.s3_extra_args)
             return True
         except botocore.exceptions.ClientError:
             log_and_exit("Unable to upload file",
                          SIMAPP_S3_DATA_STORE_EXCEPTION,
                          SIMAPP_EVENT_ERROR_CODE_400)
-        except Exception:
-            log_and_exit("Unable to upload file",
+        except Exception as ex:
+            log_and_exit("Exception in uploading file: {}".format(ex),
                          SIMAPP_S3_DATA_STORE_EXCEPTION,
                          SIMAPP_EVENT_ERROR_CODE_500)

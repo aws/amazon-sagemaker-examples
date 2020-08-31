@@ -436,14 +436,10 @@ Resources:
                 - lambda.amazonaws.com
         Version: '2012-10-17'
       Path: /
+      ManagedPolicyArns:
+        - 'arn:aws:iam::aws:policy/CloudWatchEventsFullAccess'
       Policies:
         - PolicyDocument:
-            Statement:
-              - Action:
-                  - 'logs:*'
-                Effect: Allow
-                Resource: 'arn:aws:logs:*:*:*'
-            Version: '2012-10-17'
             Statement:
               - Action:
                   - 's3:GetObject'

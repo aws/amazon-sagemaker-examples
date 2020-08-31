@@ -10,20 +10,23 @@ import boto3
 import botocore
 import rospy
 from deepracer_simulation_environment.srv import VideoMetricsSrvResponse, VideoMetricsSrv
-from markov import utils
+from markov.constants import BEST_CHECKPOINT, LAST_CHECKPOINT
 from markov.common import ObserverInterface
 from markov.metrics.constants import (MetricsS3Keys, StepMetrics, EpisodeStatus,
                                       IterationDataLocalFileNames, ITERATION_DATA_LOCAL_FILE_PATH,
                                       Mp4VideoMetrics)
 from markov.metrics.metrics_interface import MetricsInterface
-from markov.s3_simdata_upload import DeepRacerRacetrackSimTraceData
-from markov.utils import log_and_exit, get_boto_config, SIMAPP_SIMULATION_WORKER_EXCEPTION, \
-                         SIMAPP_EVENT_ERROR_CODE_400, SIMAPP_EVENT_ERROR_CODE_500
+from markov.utils import get_boto_config, get_s3_kms_extra_args
+from markov.log_handler.logger import Logger
+from markov.log_handler.exception_handler import log_and_exit
+from markov.log_handler.constants import (SIMAPP_SIMULATION_WORKER_EXCEPTION,
+                                          SIMAPP_EVENT_ERROR_CODE_400,
+                                          SIMAPP_EVENT_ERROR_CODE_500)
 from rl_coach.checkpoint import CheckpointStateFile
 from rl_coach.core_types import RunPhase
 
 
-LOGGER = utils.Logger(__name__, logging.INFO).get_logger()
+LOGGER = Logger(__name__, logging.INFO).get_logger()
 
 #! TODO this needs to be removed after muti part is fixed, note we don't have
 # agent name here, but we can add it to the step metrics if needed
@@ -43,18 +46,21 @@ def write_metrics_to_s3(bucket, key, region, metrics):
        metrics - Dictionary with metrics to write to s3
     '''
     try:
+        s3_extra_args = get_s3_kms_extra_args()
         session = boto3.session.Session()
         s3_client = session.client('s3', region_name=region, config=get_boto_config())
         s3_client.put_object(Bucket=bucket,
-                             Key=key,
-                             Body=bytes(json.dumps(metrics), encoding='utf-8'))
+                             Key=key, Body=bytes(json.dumps(metrics), encoding='utf-8'), **s3_extra_args)
     except botocore.exceptions.ClientError as err:
-        log_and_exit("Unable to write metrics to s3: bucket: \
-                      {}, error: {}".format(bucket, err.response['Error']['Code']),
-                     SIMAPP_SIMULATION_WORKER_EXCEPTION, SIMAPP_EVENT_ERROR_CODE_400)
+        log_and_exit("Unable to write metrics to s3: bucket: {}, error: {}"
+                         .format(bucket, err.response['Error']['Code']),
+                     SIMAPP_SIMULATION_WORKER_EXCEPTION, 
+                     SIMAPP_EVENT_ERROR_CODE_400)
     except Exception as ex:
-        log_and_exit("Unable to write metrics to s3, exception: {}".format(ex),
-                     SIMAPP_SIMULATION_WORKER_EXCEPTION, SIMAPP_EVENT_ERROR_CODE_500)
+        log_and_exit("Unable to write metrics to s3, exception: {}"
+                         .format(ex),
+                     SIMAPP_SIMULATION_WORKER_EXCEPTION, 
+                     SIMAPP_EVENT_ERROR_CODE_500)
 
 def write_simtrace_to_local_file(file_path: str, metrics_data: OrderedDict):
     """ Write the metrics data to s3
@@ -72,7 +78,7 @@ def write_simtrace_to_local_file(file_path: str, metrics_data: OrderedDict):
 
 class TrainingMetrics(MetricsInterface, ObserverInterface):
     '''This class is responsible for uploading training metrics to s3'''
-    def __init__(self, agent_name, s3_dict_metrics, s3_dict_model, ckpnt_dir, run_phase_sink):
+    def __init__(self, agent_name, s3_dict_metrics, s3_dict_model, ckpnt_dir, run_phase_sink, use_model_picker=True):
         '''s3_dict_metrics - Dictionary containing the required s3 info for the metrics
                              bucket with keys specified by MetricsS3Keys
            s3_dict_model - Dictionary containing the required s3 info for the model
@@ -80,6 +86,7 @@ class TrainingMetrics(MetricsInterface, ObserverInterface):
                            keys specified by MetricsS3Keys
            ckpnt_dir - Directory where the current checkpont is to be stored
            run_phase_sink - Sink to recieve notification of a change in run phase
+           use_model_picker - Flag to whether to use model picker or not.
         '''
         self._agent_name_ = agent_name
         self._s3_dict_metrics_ = s3_dict_metrics
@@ -93,12 +100,11 @@ class TrainingMetrics(MetricsInterface, ObserverInterface):
         self._is_eval_ = True
         self._eval_trials_ = 0
         self._checkpoint_state_ = CheckpointStateFile(ckpnt_dir)
-        self._eval_stats_dict_ = {'chkpnt_name': None, 'avg_comp_pct': 0.0}
-        self._best_chkpnt_stats = {'name': None, 'avg_comp_pct': 0.0, 'time_stamp': time.time()}
+        self._use_model_picker = use_model_picker
+        self._eval_stats_dict_ = {'chkpnt_name': None, 'avg_comp_pct': -1.0}
+        self._best_chkpnt_stats = {'name': None, 'avg_comp_pct': -1.0, 'time_stamp': time.time()}
         self._current_eval_pct_list_ = list()
-        self._simtrace_data_ = \
-            DeepRacerRacetrackSimTraceData(self._s3_dict_metrics_[MetricsS3Keys.STEP_BUCKET.value],
-                                           self._s3_dict_metrics_[MetricsS3Keys.STEP_KEY.value])
+        self.is_save_simtrace_enabled = rospy.get_param('SIMTRACE_S3_BUCKET', None)
         run_phase_sink.register(self)
         # Create the agent specific directories needed for storing the metric files
         simtrace_dirname = os.path.dirname(IterationDataLocalFileNames.SIM_TRACE_TRAINING_LOCAL_FILE.value)
@@ -144,28 +150,33 @@ class TrainingMetrics(MetricsInterface, ObserverInterface):
             self._episode_reward_ += metrics[StepMetrics.REWARD.value]
             StepMetrics.validate_dict(metrics)
             sim_trace_log(metrics)
-            is_save_simtrace_enabled = rospy.get_param('SIMTRACE_S3_BUCKET', None)
-            if is_save_simtrace_enabled:
+            if self.is_save_simtrace_enabled:
                 write_simtrace_to_local_file(
                     os.path.join(os.path.join(ITERATION_DATA_LOCAL_FILE_PATH, self._agent_name_),
                                  IterationDataLocalFileNames.SIM_TRACE_TRAINING_LOCAL_FILE.value),
                     metrics)
-            self._simtrace_data_.write_simtrace_data(metrics)
 
     def update(self, data):
         self._is_eval_ = data != RunPhase.TRAIN
 
-        if not self._is_eval_:
+        if not self._is_eval_ and self._use_model_picker:
             if self._eval_stats_dict_['chkpnt_name'] is None:
                 self._eval_stats_dict_['chkpnt_name'] = self._checkpoint_state_.read().name
 
             self._eval_trials_ = 0
             mean_pct = statistics.mean(self._current_eval_pct_list_ if \
-                                       self._current_eval_pct_list_ else [-1])
+                                       self._current_eval_pct_list_ else [0.0])
+            LOGGER.info('Number of evaluations: {} Evaluation progresses: {}'.format(len(self._current_eval_pct_list_),
+                                                                                     self._current_eval_pct_list_))
+            LOGGER.info('Evaluation progresses mean: {}'.format(mean_pct))
             self._current_eval_pct_list_.clear()
 
             time_stamp = time.time()
             if mean_pct >= self._eval_stats_dict_['avg_comp_pct']:
+                LOGGER.info('Current mean: {} >= Current best mean: {}'.format(mean_pct,
+                                                                               self._eval_stats_dict_['avg_comp_pct']))
+                LOGGER.info('Updating the best checkpoint to "{}" from "{}".'.format(self._eval_stats_dict_['chkpnt_name'],
+                                                                                     self._best_chkpnt_stats['name']))
                 self._eval_stats_dict_['avg_comp_pct'] = mean_pct
                 self._best_chkpnt_stats = {'name': self._eval_stats_dict_['chkpnt_name'],
                                            'avg_comp_pct': mean_pct,
@@ -176,8 +187,8 @@ class TrainingMetrics(MetricsInterface, ObserverInterface):
             write_metrics_to_s3(self._s3_dict_model_[MetricsS3Keys.METRICS_BUCKET.value],
                                 self._s3_dict_model_[MetricsS3Keys.METRICS_KEY.value],
                                 self._s3_dict_model_[MetricsS3Keys.REGION.value],
-                                {utils.BEST_CHECKPOINT: self._best_chkpnt_stats,
-                                 utils.LAST_CHECKPOINT: last_chkpnt_stats})
+                                {BEST_CHECKPOINT: self._best_chkpnt_stats,
+                                 LAST_CHECKPOINT: last_chkpnt_stats})
             # Update the checkpoint name to the new checkpoint being used for training that will
             # then be evaluated, note this class gets notfied when the system is put into a
             # training phase and assumes that a training phase only starts when a new check point
@@ -186,23 +197,27 @@ class TrainingMetrics(MetricsInterface, ObserverInterface):
 
 class EvalMetrics(MetricsInterface):
     '''This class is responsible for uploading eval metrics to s3'''
-    def __init__(self, agent_name, s3_dict_metrics):
-        '''s3_dict_metrics - Dictionary containing the required s3 info for the metrics
-                             bucket with keys specified by MetricsS3Keys
+    def __init__(self, agent_name, s3_dict_metrics, is_continuous):
+        '''Init eval metrics
+
+        Args:
+            agent_name (string): agent name
+            s3_dict_metrics (dict): Dictionary containing the required
+                s3 info for the metrics bucket with keys specified by MetricsS3Keys
+            is_continuous (bool): True if continuous race, False otherwise
         '''
         self._agent_name_ = agent_name
         self._s3_dict_metrics_ = s3_dict_metrics
+        self._is_continuous = is_continuous
         self._start_time_ = time.time()
         self._number_of_trials_ = 0
         self._progress_ = 0.0
         self._episode_status = ''
         self._metrics_ = list()
-        # This is used to calculate the actual distance travelled by the car
+        # This is used to calculate the actual distance traveled by the car
         self._agent_xy = list()
         self._prev_step_time = None
-        self._simtrace_data_ = \
-            DeepRacerRacetrackSimTraceData(self._s3_dict_metrics_[MetricsS3Keys.STEP_BUCKET.value],
-                                           self._s3_dict_metrics_[MetricsS3Keys.STEP_KEY.value])
+        self.is_save_simtrace_enabled = rospy.get_param('SIMTRACE_S3_BUCKET', None)
         # Create the agent specific directories needed for storing the metric files
         simtrace_dirname = os.path.dirname(IterationDataLocalFileNames.SIM_TRACE_EVALUATION_LOCAL_FILE.value)
         if not os.path.exists(os.path.join(ITERATION_DATA_LOCAL_FILE_PATH, self._agent_name_, simtrace_dirname)):
@@ -214,11 +229,17 @@ class EvalMetrics(MetricsInterface):
         self._best_lap_time = float('inf')
         self._total_evaluation_time = 0
         self._video_metrics = Mp4VideoMetrics.get_empty_dict()
+        self._reset_count_sum = 0
         rospy.Service("/{}/{}".format(self._agent_name_, "mp4_video_metrics"), VideoMetricsSrv,
                       self._handle_get_video_metrics)
 
     def reset(self):
         self._start_time_ = time.time()
+        self._reset_count_sum += \
+            self.reset_count_dict[EpisodeStatus.CRASHED.value] +\
+            self.reset_count_dict[EpisodeStatus.IMMOBILIZED.value] +\
+            self.reset_count_dict[EpisodeStatus.OFF_TRACK.value] +\
+            self.reset_count_dict[EpisodeStatus.REVERSED.value]
         for key in self.reset_count_dict.keys():
             self.reset_count_dict[key] = 0
 
@@ -264,12 +285,14 @@ class EvalMetrics(MetricsInterface):
 
         self._video_metrics[Mp4VideoMetrics.LAP_COUNTER.value] = self._number_of_trials_
         self._video_metrics[Mp4VideoMetrics.COMPLETION_PERCENTAGE.value] = self._progress_
-        self._video_metrics[Mp4VideoMetrics.CRASH_COUNTER.value] = self.reset_count_dict[EpisodeStatus.CRASHED.value]
+        # For continuous race, MP4 video will display the total reset counter for the entire race
+        # For non-continuous race, MP4 video will display reset counter per lap
         self._video_metrics[Mp4VideoMetrics.RESET_COUNTER.value] = \
-            self.reset_count_dict[EpisodeStatus.CRASHED.value] +\
-            self.reset_count_dict[EpisodeStatus.IMMOBILIZED.value] +\
-            self.reset_count_dict[EpisodeStatus.OFF_TRACK.value] +\
-            self.reset_count_dict[EpisodeStatus.REVERSED.value]
+            self.reset_count_dict[EpisodeStatus.CRASHED.value] + \
+            self.reset_count_dict[EpisodeStatus.IMMOBILIZED.value] + \
+            self.reset_count_dict[EpisodeStatus.OFF_TRACK.value] + \
+            self.reset_count_dict[EpisodeStatus.REVERSED.value] + \
+            (self._reset_count_sum if self._is_continuous else 0)
 
         self._video_metrics[Mp4VideoMetrics.THROTTLE.value] = actual_speed
         self._video_metrics[Mp4VideoMetrics.STEERING.value] = metrics[StepMetrics.STEER.value]
@@ -286,20 +309,17 @@ class EvalMetrics(MetricsInterface):
             self.reset_count_dict[self._episode_status] += 1
         StepMetrics.validate_dict(metrics)
         sim_trace_log(metrics)
-        is_save_simtrace_enabled = rospy.get_param('SIMTRACE_S3_BUCKET', None)
-        if is_save_simtrace_enabled:
+        if self.is_save_simtrace_enabled:
             write_simtrace_to_local_file(
                 os.path.join(os.path.join(ITERATION_DATA_LOCAL_FILE_PATH, self._agent_name_),
                              IterationDataLocalFileNames.SIM_TRACE_EVALUATION_LOCAL_FILE.value),
                 metrics)
-        self._simtrace_data_.write_simtrace_data(metrics)
         self._update_mp4_video_metrics(metrics)
 
     def _handle_get_video_metrics(self, req):
         return VideoMetricsSrvResponse(self._video_metrics[Mp4VideoMetrics.LAP_COUNTER.value],
                                        self._video_metrics[Mp4VideoMetrics.COMPLETION_PERCENTAGE.value],
                                        self._video_metrics[Mp4VideoMetrics.RESET_COUNTER.value],
-                                       self._video_metrics[Mp4VideoMetrics.CRASH_COUNTER.value],
                                        self._video_metrics[Mp4VideoMetrics.THROTTLE.value],
                                        self._video_metrics[Mp4VideoMetrics.STEERING.value],
                                        self._video_metrics[Mp4VideoMetrics.BEST_LAP_TIME.value],

@@ -61,14 +61,14 @@ def tfhub_to_savedmodel(model_name, export_path,
 def image_file_to_tensor(path):
     """Reads an image file and coverts it to a tensor (ndarray). 
     
-    No resizing or cropping is done, so the image dimensions must match
-    the model input shape (224x224 for the mobilenet_v2_140_224 model).
+    Resizing of input is done (224x224 for the mobilenet_v2_140_224 model).
     
     Args: 
         path (str): The file name or path to the image file.
     """
     
     image = cv2.imread(path)
+    image = cv2.resize(image, dsize=(224,224), interpolation=cv2.INTER_CUBIC)
     image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     image = np.asarray(image)
     image = cv2.normalize(image.astype('float'), None, 0, 1, cv2.NORM_MINMAX)

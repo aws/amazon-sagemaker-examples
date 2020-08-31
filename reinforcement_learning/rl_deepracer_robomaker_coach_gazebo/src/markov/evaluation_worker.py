@@ -10,11 +10,17 @@ from rl_coach.base_parameters import TaskParameters
 from rl_coach.core_types import EnvironmentSteps
 from rl_coach.data_stores.data_store import SyncFiles
 from markov import utils
+from markov.log_handler.logger import Logger
+from markov.log_handler.exception_handler import log_and_exit
+from markov.log_handler.constants import (SIMAPP_SIMULATION_WORKER_EXCEPTION,
+                                          SIMAPP_EVENT_ERROR_CODE_500,
+                                          SIMAPP_EVENT_ERROR_CODE_400)
+from markov.constants import SIMAPP_VERSION, DEFAULT_PARK_POSITION, ROLLOUT_WORKER_PROFILER_PATH
 from markov.agent_ctrl.constants import ConfigParams
 from markov.agents.rollout_agent_factory import create_rollout_agent, create_obstacles_agent, create_bot_cars_agent
 from markov.agents.utils import RunPhaseSubject
 from markov.defaults import reward_function
-from markov.deepracer_exceptions import GenericRolloutError, GenericRolloutException
+from markov.log_handler.deepracer_exceptions import GenericRolloutError, GenericRolloutException
 from markov.environments.constants import VELOCITY_TOPICS, STEERING_TOPICS, LINK_NAMES
 from markov.metrics.s3_metrics import EvalMetrics
 from markov.metrics.s3_writer import S3Writer
@@ -23,17 +29,19 @@ from markov.metrics.constants import MetricsS3Keys, IterationDataLocalFileNames,
 from markov.s3_boto_data_store import S3BotoDataStore, S3BotoDataStoreParameters
 from markov.s3_client import SageS3Client
 from markov.sagemaker_graph_manager import get_graph_manager
-from markov.rollout_utils import PhaseObserver, signal_robomaker_markov_package_ready
+from markov.rollout_utils import (PhaseObserver, signal_robomaker_markov_package_ready,
+                                  configure_environment_randomizer, get_robomaker_profiler_env)
 from markov.rospy_wrappers import ServiceProxyWrapper
 from markov.camera_utils import configure_camera
 from markov.utils_parse_model_metadata import parse_model_metadata
 from markov.checkpoint_utils import TEMP_RENAME_FOLDER, wait_for_checkpoints, modify_checkpoint_variables
+from markov.track_geom.constants import START_POS_OFFSET
+from markov.track_geom.track_data import TrackData
 
 from std_srvs.srv import Empty, EmptyRequest
 
-logger = utils.Logger(__name__, logging.INFO).get_logger()
+logger = Logger(__name__, logging.INFO).get_logger()
 
-EVALUATION_SIMTRACE_DATA_S3_OBJECT_KEY = "sim_inference_logs/EvaluationSimTraceData.csv"
 MIN_RESET_COUNT = 10000 #TODO: change when console passes float("inf")
 
 CUSTOM_FILES_PATH = "./custom_files"
@@ -43,67 +51,84 @@ if not os.path.exists(CUSTOM_FILES_PATH):
 if not os.path.exists(TEMP_RENAME_FOLDER):
     os.makedirs(TEMP_RENAME_FOLDER)
 
-def evaluation_worker(graph_manager, number_of_trials, task_parameters, s3_writers, is_continuous):
+IS_PROFILER_ON, PROFILER_S3_BUCKET, PROFILER_S3_PREFIX = get_robomaker_profiler_env()
+
+def evaluation_worker(graph_manager, number_of_trials, task_parameters, s3_writers, is_continuous,
+                      park_positions):
     """ Evaluation worker function
 
     Arguments:
-        graph_manager {[MultiAgentGraphManager]} -- [Graph manager of multiagent graph manager]
-        number_of_trials {[int]} -- [Number of trails you want to run the evaluation]
-        task_parameters {[TaskParameters]} -- [Information of the checkpoint, gpu/cpu, framework etc of rlcoach]
-        s3_writers {[S3Writer]} -- [Information to upload to the S3 bucket all the simtrace and mp4]
-        is_continuous {bool} -- [The termination condition for the car]
+        graph_manager(MultiAgentGraphManager): Graph manager of multiagent graph manager
+        number_of_trials(int): Number of trails you want to run the evaluation
+        task_parameters(TaskParameters): Information of the checkpoint, gpu/cpu,
+            framework etc of rlcoach
+        s3_writers(S3Writer): Information to upload to the S3 bucket all the simtrace and mp4
+        is_continuous(bool): The termination condition for the car
+        park_positions(list of tuple): list of (x, y) for cars to park at
     """
-    checkpoint_dirs = list()
-    agent_names = list()
-    subscribe_to_save_mp4_topic, unsubscribe_from_save_mp4_topic = list(), list()
-    subscribe_to_save_mp4, unsubscribe_from_save_mp4 = list(), list()
-    for agent_param in graph_manager.agents_params:
-        _checkpoint_dir = task_parameters.checkpoint_restore_path if len(graph_manager.agents_params) == 1\
-            else os.path.join(task_parameters.checkpoint_restore_path, agent_param.name)
-        agent_names.append(agent_param.name)
-        checkpoint_dirs.append(_checkpoint_dir)
-        racecar_name = 'racecar' if len(agent_param.name.split("_")) == 1\
-                                 else "racecar_{}".format(agent_param.name.split("_")[1])
-        subscribe_to_save_mp4_topic.append("/{}/save_mp4/subscribe_to_save_mp4".format(racecar_name))
-        unsubscribe_from_save_mp4_topic.append("/{}/save_mp4/unsubscribe_from_save_mp4".format(racecar_name))
-    wait_for_checkpoints(checkpoint_dirs, graph_manager.data_store)
-    modify_checkpoint_variables(checkpoint_dirs, agent_names)
+    # Collect profiler information only IS_PROFILER_ON is true
+    with utils.Profiler(s3_bucket=PROFILER_S3_BUCKET, s3_prefix=PROFILER_S3_PREFIX,
+                        output_local_path=ROLLOUT_WORKER_PROFILER_PATH, enable_profiling=IS_PROFILER_ON):
+        checkpoint_dirs = list()
+        agent_names = list()
+        subscribe_to_save_mp4_topic, unsubscribe_from_save_mp4_topic = list(), list()
+        subscribe_to_save_mp4, unsubscribe_from_save_mp4 = list(), list()
+        for agent_param in graph_manager.agents_params:
+            _checkpoint_dir = task_parameters.checkpoint_restore_path if len(graph_manager.agents_params) == 1 \
+                else os.path.join(task_parameters.checkpoint_restore_path, agent_param.name)
+            agent_names.append(agent_param.name)
+            checkpoint_dirs.append(_checkpoint_dir)
+            racecar_name = 'racecar' if len(agent_param.name.split("_")) == 1 \
+                                     else "racecar_{}".format(agent_param.name.split("_")[1])
+            subscribe_to_save_mp4_topic.append("/{}/save_mp4/subscribe_to_save_mp4".format(racecar_name))
+            unsubscribe_from_save_mp4_topic.append("/{}/save_mp4/unsubscribe_from_save_mp4".format(racecar_name))
+        wait_for_checkpoints(checkpoint_dirs, graph_manager.data_store)
+        modify_checkpoint_variables(checkpoint_dirs, agent_names)
 
-    # Make the clients that will allow us to pause and unpause the physics
-    rospy.wait_for_service('/gazebo/pause_physics')
-    rospy.wait_for_service('/gazebo/unpause_physics')
-    pause_physics = ServiceProxyWrapper('/gazebo/pause_physics', Empty)
-    unpause_physics = ServiceProxyWrapper('/gazebo/unpause_physics', Empty)
+        # Make the clients that will allow us to pause and unpause the physics
+        rospy.wait_for_service('/gazebo/pause_physics')
+        rospy.wait_for_service('/gazebo/unpause_physics')
+        pause_physics = ServiceProxyWrapper('/gazebo/pause_physics', Empty)
+        unpause_physics = ServiceProxyWrapper('/gazebo/unpause_physics', Empty)
 
-    for mp4_sub, mp4_unsub in zip(subscribe_to_save_mp4_topic, unsubscribe_from_save_mp4_topic):
-        rospy.wait_for_service(mp4_sub)
-        rospy.wait_for_service(mp4_unsub)
-    for mp4_sub, mp4_unsub in zip(subscribe_to_save_mp4_topic, unsubscribe_from_save_mp4_topic):
-        subscribe_to_save_mp4.append(ServiceProxyWrapper(mp4_sub, Empty))
-        unsubscribe_from_save_mp4.append(ServiceProxyWrapper(mp4_unsub, Empty))
+        for mp4_sub, mp4_unsub in zip(subscribe_to_save_mp4_topic, unsubscribe_from_save_mp4_topic):
+            rospy.wait_for_service(mp4_sub)
+            rospy.wait_for_service(mp4_unsub)
+        for mp4_sub, mp4_unsub in zip(subscribe_to_save_mp4_topic, unsubscribe_from_save_mp4_topic):
+            subscribe_to_save_mp4.append(ServiceProxyWrapper(mp4_sub, Empty))
+            unsubscribe_from_save_mp4.append(ServiceProxyWrapper(mp4_unsub, Empty))
 
-    graph_manager.create_graph(task_parameters=task_parameters, stop_physics=pause_physics,
-                               start_physics=unpause_physics, empty_service_call=EmptyRequest)
-    logger.info("Graph manager successfully created the graph: Unpausing physics")
-    unpause_physics(EmptyRequest())
-    graph_manager.reset_internal_state(True)
+        graph_manager.create_graph(task_parameters=task_parameters, stop_physics=pause_physics,
+                                   start_physics=unpause_physics, empty_service_call=EmptyRequest)
+        logger.info("Graph manager successfully created the graph: Unpausing physics")
+        unpause_physics(EmptyRequest())
 
-    is_save_mp4_enabled = rospy.get_param('MP4_S3_BUCKET', None)
-    if is_save_mp4_enabled:
-        for subscribe_mp4 in subscribe_to_save_mp4:
-            subscribe_mp4(EmptyRequest())
-    if is_continuous:
-        graph_manager.evaluate(EnvironmentSteps(1))
-    else:
-        for _ in range(number_of_trials):
+        is_save_mp4_enabled = rospy.get_param('MP4_S3_BUCKET', None)
+        if is_save_mp4_enabled:
+            for subscribe_mp4 in subscribe_to_save_mp4:
+                subscribe_mp4(EmptyRequest())
+
+        configure_environment_randomizer()
+        track_data = TrackData.get_instance()
+
+        # Before each evaluation episode (single lap for non-continuous race and complete race for
+        # continuous race), a new copy of park_positions needs to be loaded into track_data because
+        # a park position will be pop from park_positions when a racer car need to be parked.
+        if is_continuous:
+            track_data.park_positions = park_positions
             graph_manager.evaluate(EnvironmentSteps(1))
-    if is_save_mp4_enabled:
-        for unsubscribe_mp4 in unsubscribe_from_save_mp4:
-            unsubscribe_mp4(EmptyRequest())
-    for s3_writer in s3_writers:
-        s3_writer.upload_to_s3()
-    time.sleep(1)
-    pause_physics(EmptyRequest())
+        else:
+            for _ in range(number_of_trials):
+                track_data.park_positions = park_positions
+                graph_manager.evaluate(EnvironmentSteps(1))
+        if is_save_mp4_enabled:
+            for unsubscribe_mp4 in unsubscribe_from_save_mp4:
+                unsubscribe_mp4(EmptyRequest())
+        for s3_writer in s3_writers:
+            s3_writer.upload_to_s3()
+        time.sleep(1)
+        pause_physics(EmptyRequest())
+
     # Close the down the job
     utils.cancel_simulation_job(os.environ.get('AWS_ROBOMAKER_SIMULATION_JOB_ARN'),
                                 rospy.get_param('AWS_REGION'))
@@ -196,9 +221,10 @@ def main():
         validate_list.extend([mp4_s3_bucket, mp4_s3_object_prefix])
 
     if not all([lambda x: len(x) == len(validate_list[0]), validate_list]):
-        utils.log_and_exit("Eval worker error: Incorrect arguments passed: {}".format(validate_list),
-                           utils.SIMAPP_SIMULATION_WORKER_EXCEPTION,
-                           utils.SIMAPP_EVENT_ERROR_CODE_500)
+        log_and_exit("Eval worker error: Incorrect arguments passed: {}"
+                         .format(validate_list),
+                     SIMAPP_SIMULATION_WORKER_EXCEPTION,
+                     SIMAPP_EVENT_ERROR_CODE_500)
     if args.number_of_resets != 0 and args.number_of_resets < MIN_RESET_COUNT:
         raise GenericRolloutException("number of resets is less than {}".format(MIN_RESET_COUNT))
 
@@ -213,6 +239,12 @@ def main():
     s3_bucket_dict = dict()
     s3_prefix_dict = dict()
     s3_writers = list()
+    start_positions = [START_POS_OFFSET * idx for idx in reversed(range(len(arg_s3_bucket)))]
+    done_condition = utils.str_to_done_condition(rospy.get_param("DONE_CONDITION", any))
+    park_positions = utils.pos_2d_str_to_list(rospy.get_param("PARK_POSITIONS", []))
+    # if not pass in park positions for all done condition case, use default
+    if not park_positions:
+        park_positions = [DEFAULT_PARK_POSITION for _ in arg_s3_bucket]
     for agent_index, s3_bucket_val in enumerate(arg_s3_bucket):
         agent_name = 'agent' if len(arg_s3_bucket) == 1 else 'agent_{}'.format(str(agent_index))
         racecar_name = 'racecar' if len(arg_s3_bucket) == 1 else 'racecar_{}'.format(str(agent_index))
@@ -232,12 +264,12 @@ def main():
                                   model_metadata_local_path)
         # Handle backward compatibility
         _, _, version = parse_model_metadata(model_metadata_local_path)
-        if float(version) < float(utils.SIMAPP_VERSION) and \
+        if float(version) < float(SIMAPP_VERSION) and \
         not utils.has_current_ckpnt_name(arg_s3_bucket[agent_index], arg_s3_prefix[agent_index], args.aws_region):
             utils.make_compatible(arg_s3_bucket[agent_index], arg_s3_prefix[agent_index], args.aws_region,
                                   SyncFiles.TRAINER_READY.value)
 
-        #Select the optimal model
+        # Select the optimal model
         utils.do_model_selection(s3_bucket=arg_s3_bucket[agent_index],
                                 s3_prefix=arg_s3_prefix[agent_index],
                                 region=args.aws_region)
@@ -263,36 +295,31 @@ def main():
             ConfigParams.CAR_CTRL_CONFIG.value: {
                 ConfigParams.LINK_NAME_LIST.value: [
                     link_name.replace('racecar', racecar_name) for link_name in LINK_NAMES],
-                ConfigParams.VELOCITY_LIST.value : [
+                ConfigParams.VELOCITY_LIST.value: [
                     velocity_topic.replace('racecar', racecar_name) for velocity_topic in VELOCITY_TOPICS],
-                ConfigParams.STEERING_LIST.value : [
+                ConfigParams.STEERING_LIST.value: [
                     steering_topic.replace('racecar', racecar_name) for steering_topic in STEERING_TOPICS],
-                ConfigParams.CHANGE_START.value : utils.str2bool(rospy.get_param('CHANGE_START_POSITION', False)),
-                ConfigParams.ALT_DIR.value : utils.str2bool(rospy.get_param('ALTERNATE_DRIVING_DIRECTION', False)),
-                ConfigParams.ACTION_SPACE_PATH.value : 'custom_files/'+agent_name+'/model_metadata.json',
-                ConfigParams.REWARD.value : reward_function,
-                ConfigParams.AGENT_NAME.value : racecar_name,
-                ConfigParams.VERSION.value : version,
+                ConfigParams.CHANGE_START.value: utils.str2bool(rospy.get_param('CHANGE_START_POSITION', False)),
+                ConfigParams.ALT_DIR.value: utils.str2bool(rospy.get_param('ALTERNATE_DRIVING_DIRECTION', False)),
+                ConfigParams.ACTION_SPACE_PATH.value: 'custom_files/' + agent_name + '/model_metadata.json',
+                ConfigParams.REWARD.value: reward_function,
+                ConfigParams.AGENT_NAME.value: racecar_name,
+                ConfigParams.VERSION.value: version,
                 ConfigParams.NUMBER_OF_RESETS.value: args.number_of_resets,
                 ConfigParams.PENALTY_SECONDS.value: args.penalty_seconds,
                 ConfigParams.NUMBER_OF_TRIALS.value: args.number_of_trials,
                 ConfigParams.IS_CONTINUOUS.value: args.is_continuous,
                 ConfigParams.RACE_TYPE.value: args.race_type,
                 ConfigParams.COLLISION_PENALTY.value: args.collision_penalty,
-                ConfigParams.OFF_TRACK_PENALTY.value: args.off_track_penalty}}
+                ConfigParams.OFF_TRACK_PENALTY.value: args.off_track_penalty,
+                ConfigParams.START_POSITION.value: start_positions[agent_index],
+                ConfigParams.DONE_CONDITION.value: done_condition}}
 
         metrics_s3_config = {MetricsS3Keys.METRICS_BUCKET.value: metrics_s3_buckets[agent_index],
-                             MetricsS3Keys.METRICS_KEY.value:  metrics_s3_object_keys[agent_index],
+                             MetricsS3Keys.METRICS_KEY.value: metrics_s3_object_keys[agent_index],
                              # Replaced rospy.get_param('AWS_REGION') to be equal to the argument being passed
                              # or default argument set
-                             MetricsS3Keys.REGION.value: args.aws_region,
-                             # Replaced rospy.get_param('MODEL_S3_BUCKET') to be equal to the argument being passed
-                             # or default argument set
-                             MetricsS3Keys.STEP_BUCKET.value: arg_s3_bucket[agent_index],
-                             # Replaced rospy.get_param('MODEL_S3_PREFIX') to be equal to the argument being passed
-                             # or default argument set
-                             MetricsS3Keys.STEP_KEY.value: os.path.join(arg_s3_prefix[agent_index],
-                                                                        EVALUATION_SIMTRACE_DATA_S3_OBJECT_KEY)}
+                             MetricsS3Keys.REGION.value: args.aws_region}
         aws_region = rospy.get_param('AWS_REGION', args.aws_region)
         s3_writer_job_info = []
         if simtrace_s3_bucket:
@@ -318,7 +345,8 @@ def main():
 
         s3_writers.append(S3Writer(job_info=s3_writer_job_info))
         run_phase_subject = RunPhaseSubject()
-        agent_list.append(create_rollout_agent(agent_config, EvalMetrics(agent_name, metrics_s3_config),
+        agent_list.append(create_rollout_agent(agent_config, EvalMetrics(agent_name, metrics_s3_config,
+                                                                         args.is_continuous),
                                                run_phase_subject))
     agent_list.append(create_obstacles_agent())
     agent_list.append(create_bot_cars_agent())
@@ -327,9 +355,12 @@ def main():
     signal_robomaker_markov_package_ready()
 
     PhaseObserver('/agent/training_phase', run_phase_subject)
+    enable_domain_randomization = utils.str2bool(rospy.get_param('ENABLE_DOMAIN_RANDOMIZATION', False))
 
     graph_manager, _ = get_graph_manager(hp_dict=sm_hyperparams_dict, agent_list=agent_list,
-                                         run_phase_subject=run_phase_subject)
+                                         run_phase_subject=run_phase_subject,
+                                         enable_domain_randomization=enable_domain_randomization,
+                                         done_condition=done_condition)
 
     ds_params_instance = S3BotoDataStoreParameters(aws_region=args.aws_region,
                                                    bucket_names=s3_bucket_dict,
@@ -348,7 +379,8 @@ def main():
         number_of_trials=args.number_of_trials,
         task_parameters=task_parameters,
         s3_writers=s3_writers,
-        is_continuous=args.is_continuous
+        is_continuous=args.is_continuous,
+        park_positions=park_positions
     )
 
 if __name__ == '__main__':
@@ -357,18 +389,21 @@ if __name__ == '__main__':
         main()
     except ValueError as err:
         if utils.is_error_bad_ckpnt(err):
-            utils.log_and_exit("User modified model: {}".format(err),
-                               utils.SIMAPP_SIMULATION_WORKER_EXCEPTION,
-                               utils.SIMAPP_EVENT_ERROR_CODE_400)
+            log_and_exit("User modified model: {}"
+                             .format(err),
+                         SIMAPP_SIMULATION_WORKER_EXCEPTION,
+                         SIMAPP_EVENT_ERROR_CODE_400)
         else:
-            utils.log_and_exit("Eval worker value error: {}".format(err),
-                               utils.SIMAPP_SIMULATION_WORKER_EXCEPTION,
-                               utils.SIMAPP_EVENT_ERROR_CODE_500)
+            log_and_exit("Eval worker value error: {}"
+                             .format(err),
+                         SIMAPP_SIMULATION_WORKER_EXCEPTION,
+                         SIMAPP_EVENT_ERROR_CODE_500)
     except GenericRolloutError as ex:
         ex.log_except_and_exit()
     except GenericRolloutException as ex:
         ex.log_except_and_exit()
     except Exception as ex:
-        utils.log_and_exit("Eval worker error: {}".format(ex),
-                           utils.SIMAPP_SIMULATION_WORKER_EXCEPTION,
-                           utils.SIMAPP_EVENT_ERROR_CODE_500)
+        log_and_exit("Eval worker error: {}"
+                         .format(ex),
+                     SIMAPP_SIMULATION_WORKER_EXCEPTION,
+                     SIMAPP_EVENT_ERROR_CODE_500)

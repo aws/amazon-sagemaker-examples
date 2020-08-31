@@ -4,15 +4,14 @@ import xml.etree.ElementTree as ET
 import rospy
 
 from deepracer_simulation_environment.srv import TopCamDataSrvResponse, TopCamDataSrv
-from gazebo_msgs.srv import SetModelState, GetModelState
 from gazebo_msgs.msg import ModelState
 from geometry_msgs.msg import Pose
-from markov.rospy_wrappers import ServiceProxyWrapper
 from markov.track_geom.track_data import TrackData
 from markov.track_geom.utils import euler_to_quaternion
 from markov.cameras.abs_camera import AbstractCamera
 from markov.cameras.constants import CameraSettings
-from markov.utils import Logger
+from markov.log_handler.logger import Logger
+from markov.gazebo_tracker.trackers.set_model_state_tracker import SetModelStateTracker
 
 # Height value is determined from AWS track and is maintained to prevent z fighting in top down
 # view
@@ -26,17 +25,16 @@ DEFAULT_RESOLUTION = (640, 480)
 # Logger object
 LOG = Logger(__name__, logging.INFO).get_logger()
 
+
 class TopCamera(AbstractCamera):
     """this module is for top camera"""
     name = "top_camera"
 
-    def __init__(self, namespace=None, topic_name=None):
+    def __init__(self, namespace=None, model_name=None):
         super(TopCamera, self).__init__(TopCamera.name, namespace=namespace,
-                                        topic_name=topic_name)
-        rospy.wait_for_service('/gazebo/set_model_state')
-        self.model_state_client = ServiceProxyWrapper('/gazebo/set_model_state', SetModelState)
+                                        model_name=model_name)
         self.track_data = TrackData.get_instance()
-        x_min, y_min, x_max, y_max = self.track_data._outer_border_.bounds
+        x_min, y_min, x_max, y_max = self.track_data.outer_border.bounds
         horizontal_width = (x_max - x_min) * (1.0 + PADDING_PCT)
         vertical_width = (y_max - y_min) * (1.0 + PADDING_PCT)
         horizontal_fov = DEFAULT_H_FOV
@@ -74,9 +72,9 @@ class TopCamera(AbstractCamera):
             fov.text = str(self.camera_settings_dict[CameraSettings.HORZ_FOV])
         return '<?xml version="1.0"?>\n {}'.format(ET.tostring(root))
 
-    def _get_initial_camera_pose(self, model_state):
+    def _get_initial_camera_pose(self, car_pose):
         # get the bounds
-        x_min, y_min, x_max, y_max = self.track_data._outer_border_.bounds
+        x_min, y_min, x_max, y_max = self.track_data.outer_border.bounds
         # update camera position
         model_pose = Pose()
         model_pose.position.x = (x_min+x_max) / 2.0
@@ -89,16 +87,16 @@ class TopCamera(AbstractCamera):
         model_pose.orientation.w = w
         return model_pose
 
-    def _reset(self, model_state):
+    def _reset(self, car_pose):
         """Reset camera position based on the track size"""
         if self.is_reset_called:
             return
         # update camera position
-        model_pose = self._get_initial_camera_pose(model_state)
+        model_pose = self._get_initial_camera_pose(car_pose)
         camera_model_state = ModelState()
-        camera_model_state.model_name = self.topic_name
+        camera_model_state.model_name = self.model_name
         camera_model_state.pose = model_pose
-        self.model_state_client(camera_model_state)
+        SetModelStateTracker.get_instance().set_model_state(camera_model_state)
 
     def _update(self, model_state, delta_time):
         pass

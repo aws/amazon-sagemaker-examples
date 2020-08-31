@@ -7,7 +7,15 @@ from std_msgs.msg import String
 from std_srvs.srv import Empty, EmptyResponse
 from markov.agents.utils import RunPhaseSubject
 from markov.common import ObserverInterface
-from markov.utils import Logger
+from markov.log_handler.logger import Logger
+from markov.rospy_wrappers import ServiceProxyWrapper
+from markov.domain_randomizations.randomizer_manager import RandomizerManager
+from markov.domain_randomizations.visual.light_randomizer import LightRandomizer
+from markov.domain_randomizations.constants import GazeboServiceName
+from markov.constants import (ROBOMAKER_IS_PROFILER_ON, ROBOMAKER_PROFILER_S3_BUCKET,
+                              ROBOMAKER_PROFILER_S3_PREFIX)
+from deepracer_msgs.srv import (GetLightNames, GetLightNamesRequest)
+
 from rl_coach.core_types import RunPhase
 
 LOG = Logger(__name__, logging.INFO).get_logger()
@@ -73,3 +81,20 @@ class PhaseObserver(ObserverInterface):
             msg = UNKWN
             self._state_ = None
         self._phase_pub_.publish(msg)
+
+
+def configure_environment_randomizer(light_name_filter=None):
+    rospy.wait_for_service(GazeboServiceName.GET_LIGHT_NAMES.value)
+    get_light_names = ServiceProxyWrapper(GazeboServiceName.GET_LIGHT_NAMES.value, GetLightNames)
+    res = get_light_names(GetLightNamesRequest())
+    for light_name in res.light_names:
+        if light_name_filter and light_name not in light_name_filter:
+            continue
+        RandomizerManager.get_instance().add(LightRandomizer(light_name=light_name))
+
+def get_robomaker_profiler_env():
+    """ Read robomaker profiler environment """
+    is_profiler_on = rospy.get_param(ROBOMAKER_IS_PROFILER_ON, False)
+    profiler_s3_bucker = rospy.get_param(ROBOMAKER_PROFILER_S3_BUCKET, None)
+    profiler_s3_prefix = rospy.get_param(ROBOMAKER_PROFILER_S3_PREFIX, None)
+    return (is_profiler_on, profiler_s3_bucker, profiler_s3_prefix)

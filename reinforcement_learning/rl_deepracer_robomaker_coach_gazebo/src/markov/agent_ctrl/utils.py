@@ -7,8 +7,8 @@ import markov.agent_ctrl.constants as const
 from markov.metrics.constants import StepMetrics
 from markov.agent_ctrl.constants import RewardParam
 from markov.track_geom.constants import AgentPos, TrackNearDist, TrackNearPnts
-from markov.utils import Logger
-from markov.deepracer_exceptions import GenericRolloutException
+from markov.log_handler.logger import Logger
+from markov.log_handler.deepracer_exceptions import GenericRolloutException
 from rl_coach.spaces import DiscreteActionSpace
 from scipy.spatial.transform import Rotation
 
@@ -16,7 +16,7 @@ from scipy.spatial.transform import Rotation
 LOGGER = Logger(__name__, logging.INFO).get_logger()
 
 def set_reward_and_metrics(reward_params, step_metrics, agent_name, pos_dict, track_data,
-                           reverse_dir, data_dict, action, json_actions):
+                           data_dict, action, json_actions, car_pose):
     '''Populates the reward_params and step_metrics dictionaries with the common
        metrics and parameters.
        reward_params - Dictionary containing the input parameters to the reward function
@@ -24,10 +24,10 @@ def set_reward_and_metrics(reward_params, step_metrics, agent_name, pos_dict, tr
        agent_name - String of agent name
        pos_dict - Dictionary containing the agent position data, keys defined in AgentPos
        track_data - Object containing all the track information and geometry
-       reverse_dir - Bool of reverse direction.
        data_dict - Dictionary containing previous progress, steps, and start distance
        action - Integer containing the action to take
        json_actions - Dictionary that maps action into steering and angle
+       car_pose - Gazebo Pose of the agent
     '''
     try:
         # Check that the required keys are present in the dicts that are being
@@ -37,15 +37,13 @@ def set_reward_and_metrics(reward_params, step_metrics, agent_name, pos_dict, tr
         model_point = pos_dict[AgentPos.POINT.value]
         current_ndist = track_data.get_norm_dist(model_point)
         prev_index, next_index = track_data.find_prev_next_waypoints(current_ndist,
-                                                                     normalized=True,
-                                                                     reverse_dir=reverse_dir)
+                                                                     normalized=True)
         # model progress starting at the initial waypoint
+        reverse_dir = track_data.reverse_dir
         if reverse_dir:
             reward_params[const.RewardParam.LEFT_CENT.value[0]] = \
                 not reward_params[const.RewardParam.LEFT_CENT.value[0]]
-            current_progress = data_dict['start_ndist'] - current_ndist
-        else:
-            current_progress = current_ndist - data_dict['start_ndist']
+        current_progress = current_ndist - data_dict['start_ndist']
         current_progress = compute_current_prog(current_progress,
                                                 data_dict['prev_progress'])
         # Geat the nearest points
@@ -98,9 +96,10 @@ def set_reward_and_metrics(reward_params, step_metrics, agent_name, pos_dict, tr
         step_metrics[StepMetrics.ACTION.value] = action
         # set extra reward param for obstacle
         model_heading = reward_params[RewardParam.HEADING.value[0]]
-        obstacle_reward_params = track_data.get_object_reward_params(agent_name, model_point,
-                                                                     model_heading, current_progress,
-                                                                     reverse_dir)
+        obstacle_reward_params = track_data.get_object_reward_params(agent_name,
+                                                                     model_point,
+                                                                     reverse_dir,
+                                                                     car_pose)
         if obstacle_reward_params:
             reward_params.update(obstacle_reward_params)
     except KeyError as ex:
@@ -115,6 +114,9 @@ def compute_current_prog(current_progress, prev_progress):
        prev_progress - The progress in the previous step
     '''
     current_progress = 100 * current_progress
+    # if agent moving in reversed direction
+    if current_progress <= 0:
+        current_progress += 100
     # cross finish line in normal direction
     if prev_progress > current_progress + 50.0:
         current_progress += 100.0
