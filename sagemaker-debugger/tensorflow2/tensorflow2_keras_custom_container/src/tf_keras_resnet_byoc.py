@@ -37,18 +37,18 @@ def train(batch_size, epoch, model, hook):
     X_valid -= mean_image
     X_train /= 128.
     X_valid /= 128.
-    
+
     # register hook to save the following scalar values
     hook.save_scalar("epoch", epoch)
     hook.save_scalar("batch_size", batch_size)
     hook.save_scalar("train_steps_per_epoch", len(X_train)/batch_size)
     hook.save_scalar("valid_steps_per_epoch", len(X_valid)/batch_size)
-    
+
     model.fit(X_train, Y_train,
               batch_size=batch_size,
               epochs=epoch,
               validation_data=(X_valid, Y_valid),
-              shuffle=False,
+              shuffle=True,
               # smdebug modification: Pass the hook as a Keras callback
               callbacks=[hook])
 
@@ -60,7 +60,7 @@ def main():
     parser.add_argument("--model_dir", type=str, default="./model_keras_resnet")
     parser.add_argument("--lr", type=float, default=0.001)
     parser.add_argument("--random_seed", type=bool, default=False)
-    
+
     args = parser.parse_args()
 
     if args.random_seed:
@@ -68,27 +68,23 @@ def main():
         np.random.seed(2)
         random.seed(12)
 
-        
-    mirrored_strategy = tf.distribute.MirroredStrategy()
-    with mirrored_strategy.scope():
-        
-        model = ResNet50(weights=None, input_shape=(32,32,3), classes=10)
+    model = ResNet50(weights=None, input_shape=(32,32,3), classes=10)
 
-        # smdebug modification:
-        # Create hook from the configuration provided through sagemaker python sdk.
-        # This configuration is provided in the form of a JSON file.
-        # Default JSON configuration file:
-        # {
-        #     "LocalPath": <path on device where tensors will be saved>
-        # }"
-        # Alternatively, you could pass custom debugger configuration (using DebuggerHookConfig)
-        # through SageMaker Estimator. For more information, https://github.com/aws/sagemaker-python-sdk/blob/master/doc/amazon_sagemaker_debugger.rst
-        hook = smd.KerasHook.create_from_json_file()
+    # smdebug modification:
+    # Create hook from the configuration provided through sagemaker python sdk.
+    # This configuration is provided in the form of a JSON file.
+    # Default JSON configuration file:
+    # {
+    #     "LocalPath": <path on device where tensors will be saved>
+    # }"
+    # Alternatively, you could pass custom debugger configuration (using DebuggerHookConfig)
+    # through SageMaker Estimator. For more information, https://github.com/aws/sagemaker-python-sdk/blob/master/doc/amazon_sagemaker_debugger.rst
+    hook = smd.KerasHook.create_from_json_file()
 
-        opt = tf.keras.optimizers.Adam(learning_rate=args.lr)
-        model.compile(loss='categorical_crossentropy',
-                      optimizer=opt,
-                      metrics=['accuracy'])
+    opt = tf.keras.optimizers.Adam(learning_rate=args.lr)
+    model.compile(loss='categorical_crossentropy',
+                  optimizer=opt,
+                  metrics=['accuracy'])
 
     # start the training.
     train(args.batch_size, args.epoch, model, hook)
