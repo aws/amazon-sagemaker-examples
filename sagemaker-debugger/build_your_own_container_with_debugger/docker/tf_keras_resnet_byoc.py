@@ -1,13 +1,11 @@
 """
-This script is a ResNet training script which uses Tensorflow's Keras interface, and acts as an
-example of how to use SageMaker Debugger if you use either your own custom container to run in SageMaker, or your own script outside SageMaker.
+This script is a ResNet training script which uses Tensorflow's Keras interface, and provides an example of how to use SageMaker Debugger when you use your own custom container in SageMaker or your own script outside SageMaker.
 It has been orchestrated with SageMaker Debugger hooks to allow saving tensors during training.
-These hooks have been instrumented to read from json configuration that SageMaker will put in the training container.
+These hooks have been instrumented to read from a JSON configuration that SageMaker puts in the training container.
 Configuration provided to the SageMaker python SDK when creating a job will be passed on to the hook.
-This allows you to use the same script with differing configurations across different runs.
+This allows you to use the same script with different configurations across different runs.
 
-If you use an official SageMaker Framework container (i.e. AWS Deep Learning Container), then
-you do not have to orchestrate your script as below. Hooks will automatically be added in those environments. This experience is termed as "Zero Script Change". For more information, please refer to https://github.com/awslabs/sagemaker-debugger/blob/master/docs/sagemaker.md#zero-script-change. An example of the same is provided at https://github.com/awslabs/amazon-sagemaker-examples/sagemaker-debugger/tensorflow2/tensorflow2_zero_code_change.
+If you use an official SageMaker Framework container (i.e. AWS Deep Learning Container), you do not have to orchestrate your script as below. Hooks are automatically added in those environments. This experience is called a "zero script change". For more information, see https://github.com/awslabs/sagemaker-debugger/blob/master/docs/sagemaker.md#zero-script-change. An example of the same is provided at https://github.com/awslabs/amazon-sagemaker-examples/sagemaker-debugger/tensorflow2/tensorflow2_zero_code_change.
 """
 
 # Standard Library
@@ -58,22 +56,11 @@ def train(batch_size, epoch, model, hook):
 def main():
     parser = argparse.ArgumentParser(description="Train resnet50 cifar10")
     parser.add_argument("--batch_size", type=int, default=50)
-    parser.add_argument("--epoch", type=int, default=100)
+    parser.add_argument("--epoch", type=int, default=15)
     parser.add_argument("--model_dir", type=str, default="./model_keras_resnet")
     parser.add_argument("--lr", type=float, default=0.001)
     parser.add_argument("--random_seed", type=bool, default=False)
-    parser.add_argument("--num_epochs", type=int, default=100, help="Number of epochs to train for")
-    parser.add_argument(
-        "--num_steps",
-        type=int,
-        help="Number of steps to train for. If this" "is passed, it overrides num_epochs",
-    )
-    parser.add_argument(
-        "--num_eval_steps",
-        type=int,
-        help="Number of steps to evaluate for. If this"
-             "is passed, it doesnt evaluate over the full eval set",
-    )
+    
     args = parser.parse_args()
 
     if args.random_seed:
