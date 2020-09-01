@@ -2,6 +2,7 @@
 import bisect
 import numpy as np
 import math
+from markov.track_geom.constants import START_POS_OFFSET
 
 
 # The order of rotation applied: roll -> pitch -> yaw
@@ -31,10 +32,10 @@ def quaternion_to_euler(x, y, z, w):
         y: quaternion y
         z: quaternion z
         w: quaternion w
-    
+
     Returns:
         Tuple: (roll, pitch, yaw) tuple
-    
+
     '''
     # roll (x-axis rotation)
     sinr_cosp = 2.0 * (w * x + y * z)
@@ -134,3 +135,7 @@ def pose_distance(pose_a, pose_b):
     p_a = pose_a.position
     p_b = pose_b.position
     return math.sqrt((p_b.x - p_a.x)**2 + (p_b.y - p_a.y)**2 + (p_b.z - p_a.z)**2)
+
+
+def get_start_positions(race_car_num):
+    return [-(START_POS_OFFSET + START_POS_OFFSET * idx) for idx in range(race_car_num)]

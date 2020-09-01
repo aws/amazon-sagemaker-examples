@@ -6,8 +6,6 @@ import logging
 import math
 import botocore
 import numpy as np
-import subprocess
-import time
 
 from rl_coach.base_parameters import TaskParameters, DistributedCoachSynchronizationType, RunType
 from rl_coach import core_types
@@ -148,14 +146,6 @@ def training_worker(graph_manager, task_parameters, user_batch_size,
     finally:
         graph_manager.data_store.upload_finished_file()
 
-def start_redis_server():
-    p = subprocess.Popen("redis-server /etc/redis/redis.conf", shell=True, stderr=subprocess.STDOUT)
-    time.sleep(5)
-    if p.poll() is not None:
-        raise RuntimeError("Could not start Redis server.")
-    else:
-        print("Redis server started successfully!")
-    return p
 
 def main():
     screen.set_use_colors(False)

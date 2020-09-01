@@ -42,13 +42,6 @@ BLINK_MIN_ALPHA = 0.3
 # Single Blink interval in sec
 BLINK_INTERVAL = 0.5
 
-class ResetPos(Enum):
-    '''This enum defines the keys for the input keys for the rollout
-       reset position dict
-    '''
-    START_POS = 'start_pos'
-    LAST_POS = 'last_pos'
-
 class ConfigParams(Enum):
     '''This enum defines the keys for the input keys for the rollout
        ctr config dict
@@ -84,6 +77,7 @@ class RewardParam(Enum):
     Y = ['y', 0.0]                                                      # float: race car y position
     HEADING = ['heading', 0.0]                                          # float: race car heading angle
     CENTER_DIST = ['distance_from_center', 0.0]                         # float: race car distance from centerline
+    PROJECTION_DISTANCE = ['projection_distance', 0.0]                  # float: race car distance projected on the centerline
     PROG = ['progress', 0.0]                                            # float: race car track progress [0,1]
     STEPS = ['steps', 0]                                                # int: number of steps race car have taken
     SPEED = ['speed', 0.0]                                              # float: race car speed
@@ -100,6 +94,7 @@ class RewardParam(Enum):
     OBJECT_IN_CAMERA = ['object_in_camera', False]                      # boolean: any object in camera
     OBJECT_SPEEDS = ['objects_speed', []]                               # list of float: list of objects speed
     OBJECT_HEADINGS = ['objects_heading', []]                           # list of float: list of objects heading
+    OBJECT_CENTER_DISTS = ['objects_distance_from_center', []]          # list of float: list of object distance from centerline
     OBJECT_CENTERLINE_PROJECTION_DISTANCES = ['objects_distance', []]   # list of float: list of object distance projected on the centerline
     CRASHED = ['is_crashed', False]                                     # boolean: crashed into an object or bot car
     OFFTRACK = ['is_offtrack', False]                                   # boolean: all four wheels went off-track
