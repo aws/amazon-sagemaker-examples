@@ -93,30 +93,6 @@ EPISODE_STATUS_LABEL_MAP = {
     EpisodeStatus.PARK.value: 'Park'
 }
 
-#
-# This constant is import in Markov and Simulation Application.
-# This caused a race condition of checking for condition and trying to create folder.
-# Hence having a try catch block. Python 3.2 has os.makedirs(mydir, exist_ok=True)
-# will use this when we move to python3
-#
-try:
-    ITERATION_DATA_LOCAL_FILE_PATH = "./custom_files/iteration_data/"
-    if not os.path.exists(ITERATION_DATA_LOCAL_FILE_PATH):
-        os.makedirs(ITERATION_DATA_LOCAL_FILE_PATH)
-except OSError as err:
-    LOG.info("The directory was already created")
-
-class IterationDataLocalFileNames(Enum):
-    ''' Local file names that should be uploaded to s3 after every rollout'''
-    SIM_TRACE_TRAINING_LOCAL_FILE = 'training-simtrace/iteration.csv'
-    SIM_TRACE_EVALUATION_LOCAL_FILE = 'evaluation-simtrace/iteration.csv'
-    CAMERA_PIP_MP4_VALIDATION_LOCAL_PATH = 'camera-pip/video.mp4'
-    CAMERA_45DEGREE_MP4_VALIDATION_LOCAL_PATH = 'camera-45degree/video.mp4'
-    CAMERA_TOPVIEW_MP4_VALIDATION_LOCAL_PATH = 'camera-topview/video.mp4'
-
-
-MULTIPROCESS_S3WRITER_POOL = 4
-
 @unique
 class Mp4VideoMetrics(Enum):
     '''This enum is used for gathering the video metrics displayed on the mp4'''
@@ -129,6 +105,9 @@ class Mp4VideoMetrics(Enum):
     BEST_LAP_TIME = 'best_lap_time'
     TOTAL_EVALUATION_TIME = 'total_evaluation_time'
     DONE = 'done'
+    X = 'x'
+    Y = 'y'
+    OBJECT_LOCATIONS = 'object_locations'
 
     @classmethod
     def get_empty_dict(cls):

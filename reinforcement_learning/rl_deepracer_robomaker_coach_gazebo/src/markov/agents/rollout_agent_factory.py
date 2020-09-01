@@ -7,7 +7,6 @@ from markov.agents.agent import Agent
 from markov.agents.utils import construct_sensor, get_network_settings
 from markov.sensors.sensors_rollout import SensorFactory
 from markov.cameras.frustum_manager import FrustumManager
-from markov import utils_parse_model_metadata
 
 def create_rollout_agent(agent_config, metrics, run_phase_subject):
     '''Returns an rollout agent object
@@ -16,12 +15,13 @@ def create_rollout_agent(agent_config, metrics, run_phase_subject):
        run_phase_subject - Subject that notifies observers when the run phase changes
     '''
     model_metadata = agent_config['model_metadata']
-    observation_list, network, _ = utils_parse_model_metadata.parse_model_metadata(model_metadata)
+    observation_list, network, version = model_metadata.get_model_metadata_info()
     agent_name = agent_config[ConfigParams.CAR_CTRL_CONFIG.value][ConfigParams.AGENT_NAME.value]
     sensor = construct_sensor(agent_name, observation_list, SensorFactory)
     network_settings = get_network_settings(sensor, network)
     FrustumManager.get_instance().add(agent_name=agent_name,
-                                      observation_list=observation_list)
+                                      observation_list=observation_list,
+                                      version=version)
 
     ctrl_config = agent_config[ConfigParams.CAR_CTRL_CONFIG.value]
     ctrl = RolloutCtrl(ctrl_config, run_phase_subject, metrics)
