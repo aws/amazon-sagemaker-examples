@@ -1,4 +1,4 @@
-gluoncv==0.8.0b20200723 
+gluoncv==0.8.0
 pybind11==2.4.3
 Cython==0.29.6
 mpi4py==3.0.3
