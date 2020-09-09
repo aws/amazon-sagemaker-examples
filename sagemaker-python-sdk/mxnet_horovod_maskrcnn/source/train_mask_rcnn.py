@@ -479,7 +479,7 @@ def train(net, train_data, val_data, eval_metric, batch_size, ctx, logger, args)
             for metric, records in zip(metrics2, add_losses):
                 for pred in records:
                     metric.update(pred[0], pred[1])
-            trainer.step(batch_size)
+            trainer.step(args.batch_size)
             if (not args.horovod or hvd.rank() == 0) and args.log_interval \
                     and not (i + 1) % args.log_interval:
                 msg = ','.join(['{}={:.3f}'.format(*metric.get()) for metric in metrics + metrics2])
@@ -499,6 +499,7 @@ def train(net, train_data, val_data, eval_metric, batch_size, ctx, logger, args)
             current_map = 0.
             save_params(net, logger, best_map, current_map, epoch, args.save_interval,
                         os.path.join(args.sm_save,args.save_prefix))
+            
     for thread in async_eval_processes:
         thread.join()
 
