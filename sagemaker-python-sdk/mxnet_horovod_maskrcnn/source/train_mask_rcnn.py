@@ -479,7 +479,7 @@ def train(net, train_data, val_data, eval_metric, batch_size, ctx, logger, args)
             for metric, records in zip(metrics2, add_losses):
                 for pred in records:
                     metric.update(pred[0], pred[1])
-            trainer.step(args.batch_size)
+            trainer.step(batch_size)
             if (not args.horovod or hvd.rank() == 0) and args.log_interval \
                     and not (i + 1) % args.log_interval:
                 msg = ','.join(['{}={:.3f}'.format(*metric.get()) for metric in metrics + metrics2])
