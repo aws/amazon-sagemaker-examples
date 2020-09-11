@@ -127,6 +127,12 @@ class TrackData(object):
         '''
         return self._reverse_dir_
 
+    @property
+    def is_ccw(self):
+        '''ccw direction getter
+        '''
+        return self._is_ccw_ ^ self._reverse_dir_
+
     @reverse_dir.setter
     def reverse_dir(self, val):
         '''reverse direction setter
@@ -286,7 +292,7 @@ class TrackData(object):
         except Exception as ex:
             raise GenericRolloutException("Unable to get nearest points: {}".format(ex))
 
-    def get_object_reward_params(self, racecar_name, model_point, reverse_dir, car_pose):
+    def get_object_reward_params(self, racecar_name, model_point, car_pose):
         '''Returns a dictionary with object-related reward function params.'''
         with self._lock_:
             try:
@@ -297,17 +303,12 @@ class TrackData(object):
                     return {}
 
                 # Sort the object locations based on projected distance
+                num_objects = len(object_locations)
                 object_pdists = [self.center_line.project(Point(p)) for p in object_locations]
-                object_order = np.argsort(object_pdists)
-                object_pdists = [object_pdists[i] for i in object_order]
-                object_locations = [object_locations[i] for i in object_order]
-                object_headings = []
-                object_speeds = []
-                object_headings = [0.0 for _ in object_order]
-                object_speeds = [0.0 for _ in object_order]
+                object_headings = [0.0] * num_objects
+                object_speeds = [0.0] * num_objects
                 if self._is_bot_car_:
-                    for i in object_order:
-                        object_pose = object_poses[i]
+                    for i, object_pose in enumerate(object_poses):
                         _, _, yaw = quaternion_to_euler(x=object_pose.orientation.x,
                                                         y=object_pose.orientation.y,
                                                         z=object_pose.orientation.z,
@@ -317,7 +318,11 @@ class TrackData(object):
 
                 # Find the prev/next objects
                 model_pdist = self.center_line.project(model_point)
-                prev_object_index, next_object_index = find_prev_next(object_pdists, model_pdist)
+                object_order = np.argsort(object_pdists)
+                object_pdists_ordered = [object_pdists[i] for i in object_order]
+                prev_object_index, next_object_index = find_prev_next(object_pdists_ordered, model_pdist)
+                prev_object_index = object_order[prev_object_index]
+                next_object_index = object_order[next_object_index]
 
                 # Figure out which one is the closest
                 object_points = [Point([object_location[0], object_location[1]])
@@ -332,35 +337,26 @@ class TrackData(object):
                     closest_object_point = next_object_point
 
                 # Figure out whether objects is left of center based on direction
-                is_ccw = self._is_ccw_ ^ reverse_dir
-                objects_left_of_center = [self._inner_poly_.contains(p) ^ (not is_ccw) \
+                objects_left_of_center = [self._inner_poly_.contains(p) ^ (not self.is_ccw) \
                                           for p in object_points]
 
-                # Figure out which lane the model is in
-                model_nearest_pnts_dict = self.get_nearest_points(model_point)
-                model_nearest_dist_dict = self.get_nearest_dist(model_nearest_pnts_dict, model_point)
-                model_is_inner = \
-                    model_nearest_dist_dict[TrackNearDist.NEAR_DIST_IN.value] < \
-                    model_nearest_dist_dict[TrackNearDist.NEAR_DIST_OUT.value]
+                # Get object distances to centerline
+                objects_distance_to_center = [self.center_line.distance(p)
+                                              for p in object_points]
 
-                # Figure out which lane the object is in
-                closest_object_nearest_pnts_dict = self.get_nearest_points(closest_object_point)
-                closest_object_nearest_dist_dict = \
-                    self.get_nearest_dist(closest_object_nearest_pnts_dict, closest_object_point)
-                closest_object_is_inner = \
-                    closest_object_nearest_dist_dict[TrackNearDist.NEAR_DIST_IN.value] < \
-                    closest_object_nearest_dist_dict[TrackNearDist.NEAR_DIST_OUT.value]
+                # Figure out if the next object is in the camera view
                 objects_in_camera = self.get_objects_in_camera_frustums(agent_name=racecar_name,
-                                                                        car_pose=car_pose,
-                                                                        object_order=object_order)
+                                                                        car_pose=car_pose)
                 is_next_object_in_camera = any(object_in_camera_idx == next_object_index
                                             for object_in_camera_idx, _ in objects_in_camera)
+
                 # Determine if they are in the same lane
                 return {RewardParam.CLOSEST_OBJECTS.value[0]: [prev_object_index, next_object_index],
                         RewardParam.OBJECT_LOCATIONS.value[0]: object_locations,
                         RewardParam.OBJECTS_LEFT_OF_CENTER.value[0]: objects_left_of_center,
                         RewardParam.OBJECT_SPEEDS.value[0]: object_speeds,
                         RewardParam.OBJECT_HEADINGS.value[0]: object_headings,
+                        RewardParam.OBJECT_CENTER_DISTS.value[0]: objects_distance_to_center,
                         RewardParam.OBJECT_CENTERLINE_PROJECTION_DISTANCES.value[0]: object_pdists,
                         RewardParam.OBJECT_IN_CAMERA.value[0]: is_next_object_in_camera
                         }
@@ -437,6 +433,17 @@ class TrackData(object):
         """
         with self.noncollidable_object_lock:
             self.noncollidable_objects.discard(object_name)
+
+    def is_object_collidable(self, object_name):
+        """
+        Check whether object with given object_name is collidable or not
+        Args:
+            object_name: name of object to check
+
+        Returns: True if collidable otherwise false
+        """
+        with self.noncollidable_object_lock:
+            return object_name not in self.noncollidable_objects
 
     def get_collided_object_name(self, racecar_wheel_points, racecar_name):
         '''Get object name that racecar collide into

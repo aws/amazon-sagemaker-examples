@@ -12,7 +12,6 @@ from markov.log_handler.constants import (SIMAPP_ERROR_HANDLER_EXCEPTION, SIMAPP
                                           SIMAPP_EVENT_ERROR_CODE_400, SIMAPP_ERROR_EXIT, FAULT_MAP,
                                           UNCLASSIFIED_FAULT_CODE, EXCEPTION_HANDLER_SYNC_FILE,
                                           ERROR_HANDLER_EXCEPTION_FAULT_CODE)
-from markov.constants import SIMAPP_VERSION
 from markov.log_handler.logger import Logger
 
 logger = Logger(__name__, logging.INFO).get_logger()
@@ -44,7 +43,6 @@ def log_and_exit(msg, error_source, error_code):
                 file_name = inspect.stack()[1][1].split("/")[-1]
                 function_name = inspect.stack()[1][3]
                 line_number = inspect.stack()[1][2]
-                dict_obj['version'] = SIMAPP_VERSION
                 dict_obj['date'] = str(datetime.datetime.now())
                 dict_obj['function'] = "{}::{}::{}".format(file_name, function_name, line_number)
                 dict_obj['message'] = msg
@@ -68,7 +66,6 @@ def log_and_exit(msg, error_source, error_code):
         dict_obj = OrderedDict()
         json_format_log = dict()
         fault_code = ERROR_HANDLER_EXCEPTION_FAULT_CODE
-        dict_obj['version'] = SIMAPP_VERSION
         dict_obj['date'] = str(datetime.datetime.now())
         dict_obj['function'] = 'exception_handler.py::log_and_exit::66'
         dict_obj['message'] = msg

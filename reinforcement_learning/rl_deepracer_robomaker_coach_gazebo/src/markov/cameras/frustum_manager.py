@@ -25,16 +25,18 @@ class FrustumManager(object):
         # there should be only one camera manager instance
         FrustumManager._instance_ = self
 
-    def add(self, agent_name, observation_list):
+    def add(self, agent_name, observation_list, version):
         """Add a frustum for given agent with given observation list
 
         Args:
             agent_name (str): agent_name
             observation_list (list): observation list
+            version (float): deepracer physics version
         """
         with self.lock:
             self.frustum_map[agent_name] = Frustum(agent_name=agent_name,
-                                                         observation_list=observation_list)
+                                                   observation_list=observation_list,
+                                                   version=version)
 
     def remove(self, agent_name):
         """Remove given agent's frustum from manager.
