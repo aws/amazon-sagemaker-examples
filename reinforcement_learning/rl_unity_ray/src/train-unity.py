@@ -84,7 +84,6 @@ class MyLauncher(SageMakerRayLauncher):
                 "env_name": "Basic"
               },
               "num_workers": (self.num_cpus-1),
-              # "num_workers": 0,
               "ignore_worker_failures": True,
             }
           }

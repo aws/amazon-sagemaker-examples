@@ -191,8 +191,7 @@ class SageMakerRayLauncher(object):
                     if filename.startswith("checkpoint"):
                         checkpoints.append(os.path.join(root, filename))
             time.sleep(5)
-            # modify 'count' to 10 to be more reliable
-            if count >= 10:
+            if count >= 6:
                 raise RuntimeError("Failed to find checkpoint files")
 
         checkpoints.sort(key=natural_keys)
