@@ -499,6 +499,7 @@ def train(net, train_data, val_data, eval_metric, batch_size, ctx, logger, args)
             current_map = 0.
             save_params(net, logger, best_map, current_map, epoch, args.save_interval,
                         os.path.join(args.sm_save,args.save_prefix))
+            
     for thread in async_eval_processes:
         thread.join()
 
