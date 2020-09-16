@@ -84,6 +84,7 @@ The following provide examples demonstrating different capabilities of Amazon Sa
 - [Stable Baselines](reinforcement_learning/rl_roboschool_stable_baselines) In this notebook example, we will make the HalfCheetah agent learn to walk using the stable-baselines, which are a set of improved implementations of Reinforcement Learning (RL) algorithms based on OpenAI Baselines.
 - [Travelling Salesman](reinforcement_learning/rl_traveling_salesman_vehicle_routing_coach) is a classic NP hard problem, which this notebook solves with AWS SageMaker RL.
 - [Tic-tac-toe](reinforcement_learning/rl_tic_tac_toe_coach_customEnv) is a simple implementation of a custom Gym environment to train and deploy an RL agent in Coach that then plays tic-tac-toe interactively in a Jupyter Notebook.
+- [Unity Game Agent](reinforcement_learning/rl_unity_ray) shows how to use RL algorithms to train an agent to play Unity3D game.
 
 ### Scientific Details of Algorithms
 

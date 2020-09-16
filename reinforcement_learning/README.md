@@ -24,6 +24,7 @@ These examples demonstrate how to train reinforcement learning models on SageMak
 -  [Tic-tac-toe](rl_tic_tac_toe_coach_customEnv) uses RL to train a policy and then plays locally and interactively within the notebook.
 -  [Traveling Salesman and Vehicle Routing](rl_traveling_salesman_vehicle_routing_coach) is an example of using RL to address operations research problems.
 -  [Game Server Auto-pilot](rl_game_server_autopilot) Reduce player wait time by autoscaling game-servers deployed in EKS cluster using RL to add and remove EC2 instances as per dynamic player usage.
+-  [Unity Game Agent](rl_unity_ray) shows how to use RL algorithms to train an agent to play Unity3D game.
 
 ### FAQ
 https://github.com/awslabs/amazon-sagemaker-examples#faq 
