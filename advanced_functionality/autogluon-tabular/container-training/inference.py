@@ -121,7 +121,7 @@ def transform_fn(models, data, input_content_type, output_content_type):
                 performance = net.evaluate_predictions(y_true=ds[target], 
                                                        y_pred=predictions, 
                                                        auxiliary_metrics=True)                
-                print(json.dumps(performance, indent=4))
+                print(json.dumps(performance, indent=4, default=pd.DataFrame.to_json))
                 time.sleep(0.1)
             except Exception as e:
                 # Print exceptions on evaluate, continue to return predictions
