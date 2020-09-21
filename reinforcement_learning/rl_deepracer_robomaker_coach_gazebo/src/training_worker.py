@@ -206,6 +206,7 @@ def main():
                         default=os.environ.get("AWS_REGION", "us-east-1"))
 
     args, _ = parser.parse_known_args()
+    start_redis_server()
 
     s3_client = S3Client(region_name=args.aws_region, max_retry_attempts=0)
 

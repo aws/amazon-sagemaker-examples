@@ -362,6 +362,7 @@ def main():
     metrics_s3_obect_key_dict = dict()
     mp4_s3_bucket_dict = dict()
     mp4_s3_object_prefix_dict = dict()
+    simtrace_video_s3_writers = []
 
     for agent_index, s3_bucket_val in enumerate(arg_s3_bucket):
         agent_name = 'agent' if len(arg_s3_bucket) == 1 else 'agent_{}'.format(str(agent_index))
@@ -433,7 +434,6 @@ def main():
                              # or default argument set
                              MetricsS3Keys.REGION.value: args.aws_region}
         aws_region = rospy.get_param('AWS_REGION', args.aws_region)
-        simtrace_video_s3_writers = []
         if simtrace_s3_bucket:
             simtrace_video_s3_writers.append(
                 SimtraceVideo(upload_type=SimtraceVideoNames.SIMTRACE_EVAL.value,

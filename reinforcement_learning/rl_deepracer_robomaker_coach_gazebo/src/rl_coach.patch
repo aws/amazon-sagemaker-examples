@@ -144,3 +144,169 @@ index 531c523..78b4e1c 100644
  
          # Using a placeholder to update the variable during restore to avoid memory leak.
          # Ref: https://github.com/tensorflow/tensorflow/issues/4151
+diff --git a/rl_coach/agents/actor_critic_agent.py b/rl_coach/agents/actor_critic_agent.py
+index 35c8bf9..4f3ce60 100644
+--- a/rl_coach/agents/actor_critic_agent.py
++++ b/rl_coach/agents/actor_critic_agent.py
+@@ -94,11 +94,14 @@ class ActorCriticAgentParameters(AgentParameters):
+ class ActorCriticAgent(PolicyOptimizationAgent):
+     def __init__(self, agent_parameters, parent: Union['LevelManager', 'CompositeAgent']=None):
+         super().__init__(agent_parameters, parent)
++        print("[RL] ActorCriticAgent init")
+         self.last_gradient_update_step_idx = 0
+         self.action_advantages = self.register_signal('Advantages')
+         self.state_values = self.register_signal('Values')
+         self.value_loss = self.register_signal('Value Loss')
+         self.policy_loss = self.register_signal('Policy Loss')
++        print("[RL] ActorCriticAgent  init successful")
++
+ 
+     # Discounting function used to calculate discounted returns.
+     def discount(self, x, gamma):
+diff --git a/rl_coach/agents/agent.py b/rl_coach/agents/agent.py
+index 5d12e0b..0ee3cfb 100644
+--- a/rl_coach/agents/agent.py
++++ b/rl_coach/agents/agent.py
+@@ -74,7 +74,7 @@ class Agent(AgentInterface):
+         self.imitation = False
+         self.agent_logger = Logger()
+         self.agent_episode_logger = EpisodeLogger()
+-
++        print("[RL] Created agent loggers")
+         # get the memory
+         # - distributed training + shared memory:
+         #   * is chief?  -> create the memory and add it to the scratchpad
+@@ -84,22 +84,30 @@ class Agent(AgentInterface):
+         memory_name = self.ap.memory.path.split(':')[1]
+         self.memory_lookup_name = self.full_name_id + '.' + memory_name
+         if self.shared_memory and not self.is_chief:
++            print("[RL] Creating shared memory")
+             self.memory = self.shared_memory_scratchpad.get(self.memory_lookup_name)
+         else:
++            print("[RL] Dynamic import of memory: ", self.ap.memory)
+             # modules
+             self.memory = dynamic_import_and_instantiate_module_from_params(self.ap.memory)
++            print("[RL] Dynamically imported of memory", self.memory)
+ 
+             if hasattr(self.ap.memory, 'memory_backend_params'):
++                print("[RL] Getting memory backend", self.ap.memory.memory_backend_params)
+                 self.memory_backend = get_memory_backend(self.ap.memory.memory_backend_params)
++                print("[RL] Memory backend", self.memory_backend)
+ 
+                 if self.ap.memory.memory_backend_params.run_type != 'trainer':
++                    print("[RL] Setting memory backend", self.memory_backend)
+                     self.memory.set_memory_backend(self.memory_backend)
+ 
+             if self.shared_memory and self.is_chief:
++                print("[RL] Shared memory scratchpad")
+                 self.shared_memory_scratchpad.add(self.memory_lookup_name, self.memory)
+ 
+         # set devices
+         if type(agent_parameters.task_parameters) == DistributedTaskParameters:
++            print("[RL] Setting distributed devices")
+             self.has_global = True
+             self.replicated_device = agent_parameters.task_parameters.device
+             self.worker_device = "/job:worker/task:{}".format(self.task_id)
+@@ -108,6 +116,7 @@ class Agent(AgentInterface):
+             else:
+                 self.worker_device += "/device:GPU:0"
+         else:
++            print("[RL] Setting devices")
+             self.has_global = False
+             self.replicated_device = None
+             if agent_parameters.task_parameters.use_cpu:
+@@ -115,7 +124,7 @@ class Agent(AgentInterface):
+             else:
+                 self.worker_device = [Device(DeviceType.GPU, i)
+                                       for i in range(agent_parameters.task_parameters.num_gpu)]
+-
++        print("[RL] Setting filters")
+         # filters
+         self.input_filter = self.ap.input_filter
+         self.input_filter.set_name('input_filter')
+@@ -134,21 +143,26 @@ class Agent(AgentInterface):
+         # 3. Single worker (=both TF and Mxnet) - no data sharing needed + numpy arithmetic backend
+ 
+         if hasattr(self.ap.memory, 'memory_backend_params') and self.ap.algorithm.distributed_coach_synchronization_type:
++            print("[RL] Setting filter devices: distributed")
+             self.input_filter.set_device(device, memory_backend_params=self.ap.memory.memory_backend_params, mode='numpy')
+             self.output_filter.set_device(device, memory_backend_params=self.ap.memory.memory_backend_params, mode='numpy')
+             self.pre_network_filter.set_device(device, memory_backend_params=self.ap.memory.memory_backend_params, mode='numpy')
+         elif (type(agent_parameters.task_parameters) == DistributedTaskParameters and
+               agent_parameters.task_parameters.framework_type == Frameworks.tensorflow):
++            print("[RL] Setting filter devices: tf")
+             self.input_filter.set_device(device, mode='tf')
+             self.output_filter.set_device(device, mode='tf')
+             self.pre_network_filter.set_device(device, mode='tf')
+         else:
++            print("[RL] Setting filter devices: numpy")
+             self.input_filter.set_device(device, mode='numpy')
+             self.output_filter.set_device(device, mode='numpy')
+             self.pre_network_filter.set_device(device, mode='numpy')
+ 
+         # initialize all internal variables
++        print("[RL] Setting Phase")
+         self._phase = RunPhase.HEATUP
++        print("[RL] After setting Phase")
+         self.total_shaped_reward_in_current_episode = 0
+         self.total_reward_in_current_episode = 0
+         self.total_steps_counter = 0
+@@ -180,7 +194,7 @@ class Agent(AgentInterface):
+         # environment parameters
+         self.spaces = None
+         self.in_action_space = self.ap.algorithm.in_action_space
+-
++        print("[RL] Setting signals")
+         # signals
+         self.episode_signals = []
+         self.step_signals = []
+@@ -195,6 +209,8 @@ class Agent(AgentInterface):
+ 
+         # batch rl
+         self.ope_manager = OpeManager() if self.ap.is_batch_rl_training else None
++        print("[RL] Agent init successful")
++
+ 
+     @property
+     def parent(self) -> 'LevelManager':
+diff --git a/rl_coach/agents/agent.py b/rl_coach/agents/agent.py
+index 866fe8a..3e89908 100644
+--- a/rl_coach/agents/agent.py
++++ b/rl_coach/agents/agent.py
+@@ -28,6 +28,8 @@ from rl_coach.base_parameters import AgentParameters, Device, DeviceType, Distri
+ from rl_coach.core_types import RunPhase, PredictionType, EnvironmentEpisodes, ActionType, Batch, Episode, StateType
+ from rl_coach.core_types import Transition, ActionInfo, TrainingSteps, EnvironmentSteps, EnvResponse
+ from rl_coach.logger import screen, Logger, EpisodeLogger
++from rl_coach.memories.memory import Memory
++from rl_coach.memories.non_episodic.experience_replay import ExperienceReplay
+ from rl_coach.memories.episodic.episodic_experience_replay import EpisodicExperienceReplay
+ from rl_coach.saver import SaverCollection
+ from rl_coach.spaces import SpacesDefinition, VectorObservationSpace, GoalsSpace, AttentionActionSpace
+@@ -572,7 +574,8 @@ class Agent(AgentInterface):
+             self.current_episode += 1
+ 
+         if self.phase != RunPhase.TEST:
+-            if isinstance(self.memory, EpisodicExperienceReplay):
++            if isinstance(self.memory, EpisodicExperienceReplay) or \
++                (isinstance(self.memory, Memory) and not isinstance(self.memory, ExperienceReplay)):
+                 self.call_memory('store_episode', self.current_episode_buffer)
+             elif self.ap.algorithm.store_transitions_only_when_episodes_are_terminated:
+                 for transition in self.current_episode_buffer.transitions:
+@@ -618,7 +621,8 @@ class Agent(AgentInterface):
+         self.input_filter.reset()
+         self.output_filter.reset()
+         self.pre_network_filter.reset()
+-        if isinstance(self.memory, EpisodicExperienceReplay):
++        if isinstance(self.memory, EpisodicExperienceReplay) or \
++            (isinstance(self.memory, Memory) and not isinstance(self.memory, ExperienceReplay)):
+             self.call_memory('verify_last_episode_is_closed')
+ 
+         for network in self.networks.values():
+@@ -953,7 +957,7 @@ class Agent(AgentInterface):
+             # for episodic memories we keep the transitions in a local buffer until the episode is ended.
+             # for regular memories we insert the transitions directly to the memory
+             self.current_episode_buffer.insert(transition)
+-            if not isinstance(self.memory, EpisodicExperienceReplay) \
++            if isinstance(self.memory, ExperienceReplay) \
+                     and not self.ap.algorithm.store_transitions_only_when_episodes_are_terminated:
+                 self.call_memory('store', transition)
