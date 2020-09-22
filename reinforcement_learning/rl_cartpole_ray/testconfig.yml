@@ -1,0 +1,7 @@
+train_instance_count:
+    - 1
+    - 2
+
+instance_type:
+    - ml.m4.xlarge
+    - ml.p3.2xlarge

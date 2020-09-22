@@ -1,0 +1,7 @@
+notebooks:
+    - rl_cartpole_coach/rl_cartpole_coach_gymEnv.ipynb
+    - rl_cartpole_ray/rl_cartpole_ray_gymEnv.ipynb
+
+configs:
+    rl_cartpole_coach/rl_cartpole_coach_gymEnv.ipynb: testconfig.yml
+    rl_cartpole_ray/rl_cartpole_ray_gymEnv.ipynb: testconfig.yml
