@@ -1,0 +1,3 @@
+dependencies:
+  - pip:
+    - sagemaker==1.7.2
