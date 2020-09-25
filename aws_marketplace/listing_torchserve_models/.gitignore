@@ -1,0 +1,15 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Models
+*.pth
+*.mar
+*.tar.gz
+
+# Jupyter Notebook:
+.ipynb_checkpoints
+
+# Util folders
+serve
