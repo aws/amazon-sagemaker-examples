@@ -3,16 +3,10 @@ labeling job inconsistencies for Ground Truth semantic segmentation
 tasks between June 4, 2020, and September 4, 2020.
 '''
 
-# Installation
-
-'''
-pip install -r requirements.txt
-'''
-
 # Usage
 
 '''
-python sem_seg_fix.py --labeling-job-name example-job-name
+python sagemaker_ground_truth_semantic_segmentation_mask_index_correction.py --labeling-job-name example-job-name
 
 `example-job-name` is an Amazon SageMaker Ground Truth semantic
 segmentation labeling job with a single annotator with inconsistent
