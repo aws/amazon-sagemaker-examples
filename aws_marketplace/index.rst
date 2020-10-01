@@ -1,6 +1,6 @@
-#########
-Autopilot
-#########
+############
+Marketplace
+############
 
 .. toctree::
    :maxdepth: 0

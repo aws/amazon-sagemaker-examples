@@ -1,6 +1,6 @@
-#########
-Autopilot
-#########
+#############
+Model Monitor
+#############
 
 .. toctree::
    :maxdepth: 0

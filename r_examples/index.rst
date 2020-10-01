@@ -1,6 +1,6 @@
-#########
-Autopilot
-#########
+#############
+R Examples
+#############
 
 .. toctree::
    :maxdepth: 0

@@ -34,6 +34,7 @@ extensions = [
     "nbsphinx"
 ]
 
+# extension nbsphinx config
 nbsphinx_execute = 'never'
 
 # Add any paths that contain templates here, relative to this directory.

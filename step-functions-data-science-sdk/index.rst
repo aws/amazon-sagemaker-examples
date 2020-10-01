@@ -1,6 +1,6 @@
-#########
-Autopilot
-#########
+##############
+Step Functions
+##############
 
 .. toctree::
    :maxdepth: 0

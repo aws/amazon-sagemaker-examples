@@ -12,4 +12,4 @@ python:
 
 sphinx:
   configuration: conf.py
-  fail_on_warning: true # http://www.sphinx-doc.org/en/master/man/sphinx-build.html#id6
+  fail_on_warning: false

@@ -1,6 +1,6 @@
-#########
-Autopilot
-#########
+#############
+Science of ML
+#############
 
 .. toctree::
    :maxdepth: 0

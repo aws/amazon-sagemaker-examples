@@ -1,6 +1,6 @@
-#########
-Autopilot
-#########
+#############
+Endpoints
+#############
 
 .. toctree::
    :maxdepth: 0

@@ -1,173 +1,80 @@
-Welcome to Amazon SageMaker Example Notebooks
-=============================================
+Amazon SageMaker Example Notebooks
+==================================
 
-Contributions welcome!
+[Intro]
 
-
-
-[Clone / usage instructions....]
 
 .. toctree::
    :maxdepth: 1
+   :hidden:
    :caption: Get started:
-   
-   advanced_functionality/custom-training-containers/script-mode-container-2/notebook/script-mode-container-2
-   advanced_functionality/custom-training-containers/script-mode-container/notebook/script-mode-container
-   advanced_functionality/distributed_tensorflow_mask_rcnn/mask-rcnn-s3
-   advanced_functionality/fastai_oxford_pets/fastai_lesson1_sagemaker_example
-   advanced_functionality/inference_pipeline_sparkml_xgboost_abalone/inference_pipeline_sparkml_xgboost_abalone
-   advanced_functionality/kmeans_bring_your_own_model/kmeans_bring_your_own_model
-   advanced_functionality/multi_model_sklearn_home_value/sklearn_multi_model_endpoint_home_value
-   advanced_functionality/multi_model_xgboost_home_value/xgboost_multi_model_endpoint_home_value
-   advanced_functionality/pytorch_extending_our_containers/pytorch_extending_our_containers
-   advanced_functionality/r_kernel/example_r_notebook
-   advanced_functionality/r_kernel/using_r_with_amazon_sagemaker
-   advanced_functionality/scikit_bring_your_own/scikit_bring_your_own
-   advanced_functionality/search/ml_experiment_management_using_search
-   advanced_functionality/tensorflow_bring_your_own/tensorflow_bring_your_own
-   advanced_functionality/tensorflow_iris_byom/tensorflow_BYOM_iris
-   advanced_functionality/xgboost_bring_your_own_model/xgboost_bring_your_own_model
-   autopilot/sagemaker_autopilot_direct_marketing
-   aws_sagemaker_studio/frameworks/keras_pipe_mode_horovod/keras_pipe_mode_horovod_cifar10
-   aws_sagemaker_studio/frameworks/mxnet_gluon_sentiment/mxnet_sentiment_analysis_with_gluon
-   aws_sagemaker_studio/frameworks/mxnet_mnist/mxnet_mnist_with_batch_transform
-   aws_sagemaker_studio/frameworks/mxnet_onnx_ei/mxnet_onnx_ei
-   aws_sagemaker_studio/frameworks/pytorch_cnn_cifar10/pytorch_cnn_cifar10
-   aws_sagemaker_studio/sagemaker_algorithms/linear_learner_mnist/linear_learner_mnist
-   aws_sagemaker_studio/sagemaker_neo_compilation_jobs/deploy_tensorflow_model_on_Inf1_instance/tensorflow_distributed_mnist_neo_inf1_studio
-   aws_sagemaker_studio/sagemaker_studio_image_build/xgboost_bring_your_own/Batch_Transform_BYO_XGB
-   code_snippets/Deploy_Previously_Created_Model
-   ground_truth_labeling_jobs/3d_point_cloud_demo/create-3D-pointcloud-labeling-job
-   ground_truth_labeling_jobs/3d_point_cloud_input_data_processing/3D-point-cloud-input-data-processing
-   ground_truth_labeling_jobs/annotation_consolidation/ACSBlogPost
-   ground_truth_labeling_jobs/bring_your_own_model_for_sagemaker_labeling_workflows_with_active_learning/bring_your_own_model_for_sagemaker_labeling_workflows_with_active_learning
-   ground_truth_labeling_jobs/data_analysis_of_ground_truth_image_classification_output/data_analysis_of_ground_truth_image_classification_output
-   ground_truth_labeling_jobs/ground_truth_object_detection_tutorial/object_detection_tutorial
-   ground_truth_labeling_jobs/object_detection_augmented_manifest_training/object_detection_augmented_manifest_training
-   ground_truth_labeling_jobs/pretrained_model/pretrained_model_labeling_tutorial
-   hyperparameter_tuning/chainer_cifar10/chainer_single_machine_cifar10
-   hyperparameter_tuning/keras_bring_your_own/hpo_bring_your_own_keras_container
-   hyperparameter_tuning/mxnet_gluon_cifar10_random_search/hyperparameter_tuning_mxnet_gluon_cifar10_random_search
-   hyperparameter_tuning/mxnet_mnist/hpo_mxnet_mnist
-   hyperparameter_tuning/rapids_bring_your_own/rapids_sagemaker_hpo
-   hyperparameter_tuning/tensorflow_mnist/hpo_tensorflow_mnist
-   hyperparameter_tuning/xgboost_direct_marketing/hpo_xgboost_direct_marketing_sagemaker_APIs
-   hyperparameter_tuning/xgboost_direct_marketing/hpo_xgboost_direct_marketing_sagemaker_python_sdk
-   hyperparameter_tuning/xgboost_random_log/hpo_xgboost_random_log
-   introduction_to_amazon_algorithms/blazingtext_hosting_pretrained_fasttext/blazingtext_hosting_pretrained_fasttext
-   introduction_to_amazon_algorithms/blazingtext_text_classification_dbpedia/blazingtext_text_classification_dbpedia
-   introduction_to_amazon_algorithms/blazingtext_word2vec_subwords_text8/blazingtext_word2vec_subwords_text8
-   introduction_to_amazon_algorithms/deepar_electricity/DeepAR-Electricity
-   introduction_to_amazon_algorithms/deepar_synthetic/deepar_synthetic
-   introduction_to_amazon_algorithms/factorization_machines_mnist/factorization_machines_mnist
-   introduction_to_amazon_algorithms/ipinsights_login/ipinsights-tutorial
-   introduction_to_amazon_algorithms/k_nearest_neighbors_covtype/k_nearest_neighbors_covtype
-   introduction_to_amazon_algorithms/linear_learner_mnist/linear_learner_mnist_with_file_system_data_source
-   introduction_to_amazon_algorithms/ntm_synthetic/ntm_synthetic
-   introduction_to_amazon_algorithms/pca_mnist/pca_mnist
-   introduction_to_amazon_algorithms/random_cut_forest/random_cut_forest
-   introduction_to_amazon_algorithms/xgboost_abalone/xgboost_abalone
-   introduction_to_amazon_algorithms/xgboost_abalone/xgboost_abalone
-   introduction_to_amazon_algorithms/xgboost_abalone/xgboost_abalone_dist_script_mode
-   introduction_to_amazon_algorithms/xgboost_abalone/xgboost_abalone_dist_script_mode
-   introduction_to_amazon_algorithms/xgboost_abalone/xgboost_managed_spot_training
-   introduction_to_amazon_algorithms/xgboost_abalone/xgboost_managed_spot_training
-   introduction_to_amazon_algorithms/xgboost_abalone/xgboost_parquet_input_training
-   introduction_to_amazon_algorithms/xgboost_abalone/xgboost_parquet_training
-   introduction_to_amazon_algorithms/xgboost_mnist/xgboost_mnist
-   introduction_to_applying_machine_learning/breast_cancer_prediction/Breast Cancer Prediction
-   introduction_to_applying_machine_learning/gluon_recommender_system/gluon_recommender_system
-   introduction_to_applying_machine_learning/ntm_20newsgroups_topic_modeling/ntm_20newsgroups_topic_model
-   introduction_to_applying_machine_learning/xgboost_customer_churn/xgboost_customer_churn
-   r_examples/r_batch_transform/r_xgboost_batch_transform
-   r_examples/r_end_2_end/r_sagemaker_abalone
-   r_examples/r_sagemaker_hello_world/r_sagemaker_hello_world
-   reinforcement_learning/rl_cartpole_batch_coach/rl_cartpole_batch_coach
-   reinforcement_learning/rl_cartpole_coach/rl_cartpole_coach_gymEnv
-   reinforcement_learning/rl_knapsack_coach_custom/rl_knapsack_coach_customEnv
-   reinforcement_learning/rl_managed_spot_cartpole_coach/rl_managed_spot_cartpole_coach_gymEnv
-   reinforcement_learning/rl_mountain_car_coach_gymEnv/rl_mountain_car_coach_gymEnv
-   reinforcement_learning/rl_objecttracker_robomaker_coach_gazebo/rl_objecttracker_coach_robomaker
-   reinforcement_learning/rl_predictive_autoscaling_coach_customEnv/rl_predictive_autoscaling_coach_customEnv
-   reinforcement_learning/rl_roboschool_ray/rl_roboschool_ray_automatic_model_tuning
-   reinforcement_learning/rl_roboschool_ray/rl_roboschool_ray_distributed
-   reinforcement_learning/rl_roboschool_stable_baselines/rl_roboschool_stable_baselines
-   reinforcement_learning/rl_traveling_salesman_vehicle_routing_coach/rl_traveling_salesman_vehicle_routing_coach
-   sagemaker_batch_transform/batch_transform_associate_predictions_with_input/Batch Transform - breast cancer prediction with high level SDK
-   sagemaker_batch_transform/batch_transform_associate_predictions_with_input/Batch Transform - breast cancer prediction with lowel level SDK
-   sagemaker_batch_transform/tensorflow_open-images_jpg/tensorflow-serving-jpg-cli
-   sagemaker_batch_transform/tensorflow_open-images_jpg/tensorflow-serving-jpg-python-sdk
-   sagemaker_batch_transform/tensorflow_open-images_tfrecord/tensorflow-serving-tfrecord-python-sdk
-   sagemaker_batch_transform/tensorflow_open-images_tfrecord/tensorflow-serving-tfrecord.cli
-   sagemaker_batch_transform/working_with_tfrecords/working-with-tfrecords
-   sagemaker_endpoints/a_b_testing/a_b_testing
-   sagemaker_model_monitor/enable_model_monitor/SageMaker-Enable-Model-Monitor
-   sagemaker_model_monitor/introduction/SageMaker-ModelMonitoring
-   sagemaker_model_monitor/visualization/SageMaker-Model-Monitor-Visualize
-   sagemaker_neo_compilation_jobs/deploy_tensorflow_model_on_Inf1_instance/tensorflow_distributed_mnist_neo_inf1
-   sagemaker_neo_compilation_jobs/gluoncv_yolo_darknet/gluoncv_yolo_darknet_neo
-   sagemaker_neo_compilation_jobs/pytorch_torchvision/pytorch_torchvision_neo
-   sagemaker_neo_compilation_jobs/pytorch_vgg19_bn/pytorch-vgg19-bn
-   sagemaker_neo_compilation_jobs/tensorflow_distributed_mnist/tensorflow_distributed_mnist_neo
-   sagemaker_processing/feature_transformation_with_sagemaker_processing_dask/feature_transformation_with_sagemaker_processing_dask
-   sagemaker_processing/feature_transformation_with_sagemaker_processing/feature_transformation_with_sagemaker_processing
-   sagemaker_processing/scikit_learn_data_processing_and_model_evaluation/scikit_learn_data_processing_and_model_evaluation
-   sagemaker_processing/spark_distributed_data_processing/sagemaker-spark-processing
-   sagemaker-debugger/build_your_own_container_with_debugger/debugger_byoc
-   sagemaker-debugger/mnist_tensor_analysis/mnist_tensor_analysis
-   sagemaker-debugger/mnist_tensor_plot/mnist-tensor-plot
-   sagemaker-debugger/model_specific_realtime_analysis/autoencoder_mnist/autoencoder_mnist
-   sagemaker-debugger/model_specific_realtime_analysis/bert_attention_head_view/bert_attention_head_view
-   sagemaker-debugger/model_specific_realtime_analysis/cnn_class_activation_maps/cnn_class_activation_maps
-   sagemaker-debugger/mxnet_realtime_analysis/mxnet-realtime-analysis
-   sagemaker-debugger/pytorch_custom_container/pytorch_byoc_smdebug
-   sagemaker-debugger/pytorch_iterative_model_pruning/iterative_model_pruning_alexnet
-   sagemaker-debugger/pytorch_iterative_model_pruning/iterative_model_pruning_resnet
-   sagemaker-debugger/tensorflow_action_on_rule/detect_stalled_training_job_and_stop
-   sagemaker-debugger/tensorflow_action_on_rule/tf-mnist-stop-training-job
-   sagemaker-debugger/tensorflow_keras_custom_rule/tf-keras-custom-rule
-   sagemaker-debugger/tensorflow2/tensorflow2_keras_custom_container/tf2-keras-custom-container
-   sagemaker-debugger/tensorflow2/tensorflow2_zero_code_change/tf2-keras-default-container
-   sagemaker-debugger/xgboost_builtin_rules/xgboost-regression-debugger-rules
-   sagemaker-debugger/xgboost_census_explanations/xgboost-census-debugger-rules
-   sagemaker-debugger/xgboost_realtime_analysis/xgboost-realtime-analysis
-   sagemaker-python-sdk/1P_kmeans_highlevel/kmeans_mnist
-   sagemaker-python-sdk/1P_kmeans_lowlevel/kmeans_mnist_lowlevel
-   sagemaker-python-sdk/chainer_cifar10/chainer_single_machine_cifar10
-   sagemaker-python-sdk/dgl_gcmc/mxnet_gcmc_hypertune
-   sagemaker-python-sdk/dgl_gcn_tox21/pytorch-gcn-tox21
-   sagemaker-python-sdk/dgl_gcn_tox21/pytorch-gcn-tox21-hypertune
-   sagemaker-python-sdk/dgl_gcn/mxnet_gcn
-   sagemaker-python-sdk/dgl_gcn/mxnet_gcn_hypertune
-   sagemaker-python-sdk/dgl_gcn/pytorch_gcn
-   sagemaker-python-sdk/dgl_gcn/pytorch_gcn_hypertune
-   sagemaker-python-sdk/dgl_kge/kge_mxnet
-   sagemaker-python-sdk/dgl_kge/kge_mxnet_hypertune
-   sagemaker-python-sdk/dgl_kge/kge_pytorch
-   sagemaker-python-sdk/dgl_kge/kge_pytorch_hypertune
-   sagemaker-python-sdk/mxnet_gluon_embedding_server/mxnet_embedding_server
-   sagemaker-python-sdk/mxnet_gluon_mnist/mxnet_mnist_with_gluon
-   sagemaker-python-sdk/mxnet_gluon_mnist/mxnet_mnist_with_gluon_local_mode
-   sagemaker-python-sdk/mxnet_mnist/mxnet_mnist_elastic_inference_local
-   sagemaker-python-sdk/mxnet_onnx_eia/mxnet_onnx_eia
-   sagemaker-python-sdk/pytorch_cnn_cifar10/pytorch_local_mode_cifar10
-   sagemaker-python-sdk/pytorch_mnist/pytorch_mnist
-   sagemaker-python-sdk/scikit_learn_inference_pipeline/Inference Pipeline with Scikit-learn and Linear Learner
-   sagemaker-python-sdk/tensorflow_moving_from_framework_mode_to_script_mode/tensorflow_moving_from_framework_mode_to_script_mode
-   sagemaker-python-sdk/tensorflow_script_mode_horovod/tensorflow_script_mode_horovod
-   sagemaker-python-sdk/tensorflow_script_mode_pipe_mode/tensorflow_script_mode_pipe_mode
-   sagemaker-python-sdk/tensorflow_script_mode_quickstart/tensorflow_script_mode_quickstart
-   sagemaker-python-sdk/tensorflow_script_mode_using_shell_commands/tensorflow_script_mode_using_shell_commands
-   sagemaker-python-sdk/tensorflow_serving_container/tensorflow_serving_container
-   sagemaker-python-sdk/tensorflow_serving_using_elastic_inference_with_your_own_model/tensorflow_serving_pretrained_model_elastic_inference
-   sagemaker-python-sdk/tensorflow-eager-script-mode/tf-eager-sm-scriptmode
-   sagemaker-spark/pyspark_mnist/pyspark_mnist_custom_estimator
-   sagemaker-spark/pyspark_mnist/pyspark_mnist_pca_kmeans
-   sagemaker-spark/pyspark_mnist/pyspark_mnist_pca_mllib_kmeans
-   sagemaker-spark/pyspark_mnist/pyspark_mnist_xgboost
-   scientific_details_of_algorithms/linear_learner_multiclass_classification/linear_learner_multiclass_classification
-   scientific_details_of_algorithms/ntm_topic_modeling/ntm_wikitext
-   scientific_details_of_algorithms/streaming_median/streamingMedian.py
-   step-functions-data-science-sdk/hello_world_workflow/hello_world_workflow
-   step-functions-data-science-sdk/machine_learning_workflow_abalone/machine_learning_workflow_abalone
-   step-functions-data-science-sdk/training_pipeline_pytorch_mnist/training_pipeline_pytorch_mnist
+
+   get_started/index
+
+
+.. toctree::
+   :maxdepth: 1
+   :caption: End-to-end examples:
+
+   autopilot/index
+   aws_sagemaker_studio/index
+
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Preprocessing examples:
+
+   preprocessing/index
+   ground_truth_labeling_jobs/index
+
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Training examples:
+
+   sagemaker-debugger/index
+   sagemaker-experiments/index
+   reinforcement_learning/index
+   hyperparameter_tuning/index
+
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Inference examples:
+
+   sagemaker_model_monitor/index
+   sagemaker_neo_compilation_jobs/index 
+
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Framework examples:
+
+   sagemaker-python-sdk/index
+   r_examples/index
+
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Workflow examples:
+
+   sagemaker_processing/index
+   sagemaker-spark/index
+   step_functions_data-science-sdk/index
+
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Advanced examples:
+
+   scientific_details_of_algorithms/index
+   advanced_functionality/index
+   aws_marketplace/index
+
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Community examples:
+
+
+[Contributions welcome!]
