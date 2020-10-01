@@ -1,3 +1,4 @@
 dependencies:
   - pip:
+    - nbsphinx==0.7.1
     - sagemaker==1.7.2
