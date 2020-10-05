@@ -1,24 +1,24 @@
-# ------------------------------------------------------------ #
-# Neo host methods                                             #
-# ------------------------------------------------------------ #
-
-import os
+import io
+import json
 import logging
+import os
+import pickle
+
+import numpy as np
 import torch
+import torchvision.transforms as transforms
+from PIL import Image  # Training container doesn't have this package
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 
+# ------------------------------------------------------------ #
+# Neo host methods                                             #
+# ------------------------------------------------------------ #
+
 def transform_fn(model, payload, request_content_type,
                  response_content_type):
-    from PIL import Image   # Training container doesn't have this package
-    import logging
-    import numpy as np
-    import io
-    import json
-    import torchvision.transforms as transforms
-    
 
     logger.info('Invoking user-defined transform function')
 
@@ -62,7 +62,6 @@ def transform_fn(model, payload, request_content_type,
 
 
 def model_fn(model_dir):
-    import pickle
 
     logger.info('model_fn')
     with torch.neo.config(model_dir=model_dir, neo_runtime=True):

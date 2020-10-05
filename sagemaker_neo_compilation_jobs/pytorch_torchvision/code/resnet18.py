@@ -1,19 +1,20 @@
-import os
+import io
+import json
 import logging
+import os
+import pickle
+
+import numpy as np
 import torch
+import torchvision.transforms as transforms
+from PIL import Image  # Training container doesn't have this package
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
+
 def transform_fn(model, payload, request_content_type,
                  response_content_type):
-    from PIL import Image   # Training container doesn't have this package
-    import logging
-    import numpy as np
-    import io
-    import json
-    import torchvision.transforms as transforms
-    
 
     logger.info('Invoking user-defined transform function')
 
@@ -34,7 +35,7 @@ def transform_fn(model, payload, request_content_type,
     ])
     normalized = preprocess(decoded)
     batchified = normalized.unsqueeze(0)
-    
+
     # predict
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     batchified = batchified.to(device)
@@ -51,9 +52,7 @@ def transform_fn(model, payload, request_content_type,
     return response_body, content_type
 
 
-
 def model_fn(model_dir):
-    import pickle
 
     logger.info('model_fn')
     with torch.neo.config(model_dir=model_dir, neo_runtime=True):
