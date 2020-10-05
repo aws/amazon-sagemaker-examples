@@ -46,7 +46,7 @@ def transform_fn(model, payload, request_content_type,
     result = model.forward(batchified)
 
     # Softmax (assumes batch size 1)
-    result = np.squeeze(result.cpu().numpy())
+    result = np.squeeze(result.cpu().detach().numpy())
     result_exp = np.exp(result - np.max(result))
     result = result_exp / np.sum(result_exp)
 
