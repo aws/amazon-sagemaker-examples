@@ -13,10 +13,6 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 
-# ------------------------------------------------------------ #
-# Neo host methods                                             #
-# ------------------------------------------------------------ #
-
 def transform_fn(model, payload, request_content_type,
                  response_content_type):
 
@@ -54,11 +50,6 @@ def transform_fn(model, payload, request_content_type,
     content_type = 'application/json'
 
     return response_body, content_type
-
-
-# ------------------------------------------------------------ #
-# Sagemaker Hosting methods                                    #
-# ------------------------------------------------------------ #
 
 
 def model_fn(model_dir):
