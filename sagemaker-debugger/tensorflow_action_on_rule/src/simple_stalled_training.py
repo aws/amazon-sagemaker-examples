@@ -1,6 +1,12 @@
 """
 This script is a simple training script with the Tensorflow MonitoredSession interface 
 with 4 additional lines of code at the end to force the training job stalled.
+It is designed to be used with SageMaker Debugger in an official SageMaker Framework container (i.e. AWS Deep Learning Container).
+You can also manually register the Debugger hook object if your training script requires frameworks and versions
+that are not supported by the Deep Learning Containers. The manual hook registration code lines are provided
+in this training script as commented lines. If you want to explore, uncomment the lines and run it on
+other frameworks and containers.
+For more information, refer to https://docs.aws.amazon.com/sagemaker/latest/dg/train-debugger.html
 """
 
 # Standard Library
@@ -10,6 +16,10 @@ import random
 # Third Party
 import numpy as np
 import tensorflow.compat.v1 as tf
+
+# First Party
+# import smdebug.tensorflow as smd
+
 
 def str2bool(v):
     if isinstance(v, bool):
@@ -48,27 +58,51 @@ with tf.name_scope("foobaz"):
     y = tf.matmul(x, w0)
 loss = tf.reduce_mean((tf.matmul(x, w) - y) ** 2, name="loss")
 
+# ========= Debugger Hook Registration =========
+# Register a smdebug's TensorFlow session hook
+# hook = smd.SessionHook.create_from_json_file()
+
+# set up a "losses" collection using the hook
+# hook.add_to_collection("losses", loss)
+# ==============================================
+
 global_step = tf.Variable(17, name="global_step", trainable=False)
 increment_global_step_op = tf.assign(global_step, global_step + 1)
 
 optimizer = tf.train.AdamOptimizer(args.lr)
 
-# use this wrapped optimizer to minimize loss
+# ========= Debugger Hook Registration =========
+# Wrap the optimizer using the hook
+# optimizer = hook.wrap_optimizer(optimizer)
+# ==============================================
+
 optimizer_op = optimizer.minimize(loss, global_step=increment_global_step_op)
 
 sess = tf.train.MonitoredSession()
 
-# session for running the tensorflow model
+# ========= Debugger Hook Registration =========
+# Pass the Debugger hook as a callback
+# sess = tf.train.MonitoredSession(hooks=hook)
+# ==============================================
+
+# ========= Debugger Hook Registration =========
+# Set the hook to TRAIN (train) mode
+# hook.set_mode(smd.modes.TRAIN)
+# ==============================================
 for i in range(args.steps):
     x_ = np.random.random((10, 2)) * args.scale
     _loss, opt, gstep = sess.run([loss, optimizer_op, increment_global_step_op], {x: x_})
     print(f"Step={i}, Loss={_loss}")
 
-# set the mode for monitored session based runs
+# ========= Debugger Hook Registration =========
+# Set the hook to EVAL (evaluation) mode
+# hook.set_mode(smd.modes.EVAL)
+# ==============================================
 for i in range(args.steps):
     x_ = np.random.random((10, 2)) * args.scale
     sess.run([loss, increment_global_step_op], {x: x_})
     
+# Force the training job to sleep for 10 minutes
 import time
 print("Sleeping for 10 minutes")
 time.sleep(10*60)
