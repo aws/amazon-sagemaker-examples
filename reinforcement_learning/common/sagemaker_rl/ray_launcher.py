@@ -234,8 +234,6 @@ class SageMakerRayLauncher(object):
         cls = get_agent_class(algorithm)
         with open(os.path.join(MODEL_OUTPUT_DIR, "params.json")) as config_json:
             config = json.load(config_json)
-        use_torch = config.get("use_pytorch", False)
-        if not use_torch:
             print("Loaded config for TensorFlow serving.")
             config["monitor"] = False
             config["num_workers"] = 1
@@ -244,13 +242,14 @@ class SageMakerRayLauncher(object):
             checkpoint = os.path.join(MODEL_OUTPUT_DIR, "checkpoint")
             agent.restore(checkpoint)
             export_tf_serving(agent, MODEL_OUTPUT_DIR)
-        else:
-            print("Skipped PyTroch serving.")
 
-    def save_checkpoint_and_serving_model(self, algorithm=None, env_string=None):
+    def save_checkpoint_and_serving_model(self, algorithm=None, env_string=None, use_pytorch=False):
         self.save_experiment_config()
         self.copy_checkpoints_to_model_output()
-        self.create_tf_serving_model(algorithm, env_string)
+        if use_pytorch:
+            print("Skipped PyTorch serving.")
+        else:
+            self.create_tf_serving_model(algorithm, env_string)
 
         # To ensure SageMaker local mode works fine
         change_permissions_recursive(INTERMEDIATE_DIR, 0o777)
@@ -339,8 +338,10 @@ class SageMakerRayLauncher(object):
 
         algo = experiment_config["training"]["run"]
         env_string = experiment_config["training"]["config"]["env"]
+        use_pytorch = experiment_config["training"]["config"].get("use_pytorch", False)
         self.save_checkpoint_and_serving_model(algorithm=algo,
-                                               env_string=env_string)
+                                               env_string=env_string,
+                                               use_pytorch=use_pytorch)
 
     @classmethod
     def train_main(cls):
