@@ -234,14 +234,14 @@ class SageMakerRayLauncher(object):
         cls = get_agent_class(algorithm)
         with open(os.path.join(MODEL_OUTPUT_DIR, "params.json")) as config_json:
             config = json.load(config_json)
-            print("Loaded config for TensorFlow serving.")
-            config["monitor"] = False
-            config["num_workers"] = 1
-            config["num_gpus"] = 0
-            agent = cls(env=env_string, config=config)
-            checkpoint = os.path.join(MODEL_OUTPUT_DIR, "checkpoint")
-            agent.restore(checkpoint)
-            export_tf_serving(agent, MODEL_OUTPUT_DIR)
+        print("Loaded config for TensorFlow serving.")
+        config["monitor"] = False
+        config["num_workers"] = 1
+        config["num_gpus"] = 0
+        agent = cls(env=env_string, config=config)
+        checkpoint = os.path.join(MODEL_OUTPUT_DIR, "checkpoint")
+        agent.restore(checkpoint)
+        export_tf_serving(agent, MODEL_OUTPUT_DIR)
 
     def save_checkpoint_and_serving_model(self, algorithm=None, env_string=None, use_pytorch=False):
         self.save_experiment_config()
