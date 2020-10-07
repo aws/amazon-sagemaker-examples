@@ -3,9 +3,11 @@ import gzip
 import json
 import logging
 import os
+import io
 import struct
 import mxnet as mx
 import numpy as np
+from collections import namedtuple
 
 def load_data(path):
     with gzip.open(find_file(path, "labels.gz")) as flbl:
@@ -107,13 +109,13 @@ def parse_args():
 
 ### NOTE: model_fn and transform_fn are used to load the model and serve inference
 def model_fn(model_dir):
-    import mxnet as mx
     import neomxnet  # noqa: F401
-    import logging
-    from collections import namedtuple
+    
     logging.info('Invoking user-defined model_fn')
-    # change context to mx.gpu() when optimizing and depolying with Neo for GPU endpoints
+    
+    # change context to mx.gpu() when optimizing and deploying with Neo for GPU endpoints
     ctx = mx.cpu()
+    
     Batch = namedtuple('Batch', ['data'])
     sym, arg_params, aux_params = mx.model.load_checkpoint(os.path.join(model_dir, 'compiled'), 0)
     mod = mx.mod.Module(symbol=sym, context=ctx, label_names=None)
@@ -127,17 +129,14 @@ def model_fn(model_dir):
     return mod
 
 def transform_fn(mod, payload, input_content_type, output_content_type):
-    import numpy as np
-    import mxnet as mx
     import neomxnet  # noqa: F401
-    import json
-    import io
-    import logging
-    from collections import namedtuple
+    
     logging.info('Invoking user-defined transform_fn')
     Batch = namedtuple('Batch', ['data'])
-    # change context to mx.gpu() when optimizing and depolying with Neo for GPU endpoints
+    
+    # change context to mx.gpu() when optimizing and deploying with Neo for GPU endpoints
     ctx = mx.cpu()
+    
     if input_content_type != 'application/x-npy':
         raise RuntimeError('Input content type must be application/x-npy')
 
