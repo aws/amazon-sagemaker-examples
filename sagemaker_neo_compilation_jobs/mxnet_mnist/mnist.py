@@ -129,7 +129,6 @@ def model_fn(model_dir):
     return mod
 
 def transform_fn(mod, payload, input_content_type, output_content_type):
-    import neomxnet  # noqa: F401
     
     logging.info('Invoking user-defined transform_fn')
     Batch = namedtuple('Batch', ['data'])
