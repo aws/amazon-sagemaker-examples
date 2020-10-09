@@ -3,16 +3,18 @@ AutoML with Autopilot
 #####################
 
 Get started with Autopilot
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+==========================
+
+.. image:: https://readthedocs.org/projects/sagemaker-examples-test-website/badge/?version=latest
 
 .. toctree::
    :maxdepth: 0
-   :glob:
 
-   *
+   sagemaker_autopilot_direct_marketing
+
 
 Feature selection
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+==========================
 
 .. toctree::
    :maxdepth: 0
@@ -21,7 +23,8 @@ Feature selection
 
 
 Model explainability
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+==========================
+
 .. toctree::
    :maxdepth: 0
 

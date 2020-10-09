@@ -1,6 +1,9 @@
 Amazon SageMaker Example Notebooks
 ==================================
 
+.. image:: https://readthedocs.org/projects/sagemaker-examples-test-website/badge/?version=latest
+
+
 [Intro]
 
 
