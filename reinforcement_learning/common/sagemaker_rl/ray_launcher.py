@@ -243,10 +243,13 @@ class SageMakerRayLauncher(object):
         agent.restore(checkpoint)
         export_tf_serving(agent, MODEL_OUTPUT_DIR)
 
-    def save_checkpoint_and_serving_model(self, algorithm=None, env_string=None):
+    def save_checkpoint_and_serving_model(self, algorithm=None, env_string=None, use_pytorch=False):
         self.save_experiment_config()
         self.copy_checkpoints_to_model_output()
-        self.create_tf_serving_model(algorithm, env_string)
+        if use_pytorch:
+            print("Skipped PyTorch serving.")
+        else:
+            self.create_tf_serving_model(algorithm, env_string)
 
         # To ensure SageMaker local mode works fine
         change_permissions_recursive(INTERMEDIATE_DIR, 0o777)
@@ -335,8 +338,10 @@ class SageMakerRayLauncher(object):
 
         algo = experiment_config["training"]["run"]
         env_string = experiment_config["training"]["config"]["env"]
+        use_pytorch = experiment_config["training"]["config"].get("use_pytorch", False)
         self.save_checkpoint_and_serving_model(algorithm=algo,
-                                               env_string=env_string)
+                                               env_string=env_string,
+                                               use_pytorch=use_pytorch)
 
     @classmethod
     def train_main(cls):
