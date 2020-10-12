@@ -2,8 +2,11 @@
 AWS Marketplace
 ################
 
-Offer your algorithm on the AWS Marketplace
+Publish algorithm on the AWS Marketplace
 ===========================================
+
+Create your algorithm and model package
+----------------------------------------
 
 .. toctree::
    :maxdepth: 0
@@ -11,8 +14,8 @@ Offer your algorithm on the AWS Marketplace
    creating_marketplace_products/Bring_Your_Own-Creating_Algorithm_and_Model_Package
 
 
-Curate AWS Marketplace Listings
-=================================
+Curate your sample notebook
+---------------------------
 
 ..
    #these need to be rst files
