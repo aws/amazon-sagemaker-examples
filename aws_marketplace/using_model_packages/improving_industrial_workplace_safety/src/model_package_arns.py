@@ -13,9 +13,9 @@ class ModelPackageArnProvider:
     "eu-west-1": "arn:aws:sagemaker:eu-west-1:985815980388:model-package/construction-worker-v1-copy-06-3f94f03fae021ca61cb609d42d0118c2",
     "eu-west-2": "arn:aws:sagemaker:eu-west-2:856760150666:model-package/construction-worker-v1-copy-06-3f94f03fae021ca61cb609d42d0118c2",
     "us-east-1": "arn:aws:sagemaker:us-east-1:865070037744:model-package/construction-worker-v1-copy-06-3f94f03fae021ca61cb609d42d0118c2",
-    "us-east-2": "arn:aws:sagemaker:us-west-1:382657785993:model-package/construction-worker-v1-copy-06-3f94f03fae021ca61cb609d42d0118c2",
-    "us-west-1": "arn:aws:sagemaker:us-west-2:594846645681:model-package/construction-worker-v1-copy-06-3f94f03fae021ca61cb609d42d0118c2",
-    "us-west-2": "arn:aws:sagemaker:us-east-2:057799348421:model-package/construction-worker-v1-copy-06-3f94f03fae021ca61cb609d42d0118c2"}
+    "us-east-2": "arn:aws:sagemaker:us-east-2:057799348421:model-package/construction-worker-v1-copy-06-3f94f03fae021ca61cb609d42d0118c2",
+    "us-west-1": "arn:aws:sagemaker:us-west-1:382657785993:model-package/construction-worker-v1-copy-06-3f94f03fae021ca61cb609d42d0118c2",
+    "us-west-2": "arn:aws:sagemaker:us-west-2:594846645681:model-package/construction-worker-v1-copy-06-3f94f03fae021ca61cb609d42d0118c2"}
       return mapping[current_region]
   @staticmethod
   def get_machine_detection_model_package_arn(current_region):
