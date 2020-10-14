@@ -39,7 +39,7 @@ def train():
             trainingParams = json.load(tc)
 
         # Take the set of files and read them all into a single pandas dataframe
-        input_files = [ os.path.join(training_path, file) for file in os.listdir(training_path) ]
+        input_files = [ os.path.join(training_path, file) for file in os.listdir(training_path) if file.endswith(".csv") ]
         if len(input_files) == 0:
             raise ValueError(('There are no files in {}.\n' +
                               'This usually indicates that the channel ({}) was incorrectly specified,\n' +
