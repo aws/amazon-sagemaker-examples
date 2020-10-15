@@ -233,6 +233,7 @@ def main():
     s3_bucket_dict = dict()
     s3_prefix_dict = dict()
     checkpoint_dict = dict()
+    simtrace_video_s3_writers = []
     start_positions = get_start_positions(len(arg_s3_bucket))
     done_condition = utils.str_to_done_condition(rospy.get_param("DONE_CONDITION", any))
     park_positions = utils.pos_2d_str_to_list(rospy.get_param("PARK_POSITIONS", []))
@@ -302,7 +303,6 @@ def main():
                              MetricsS3Keys.REGION.value: args.aws_region}
         aws_region = rospy.get_param('AWS_REGION', args.aws_region)
 
-        simtrace_video_s3_writers = []
         if simtrace_s3_bucket:
             simtrace_video_s3_writers.append(
                 SimtraceVideo(upload_type=SimtraceVideoNames.SIMTRACE_EVAL.value,

@@ -8,6 +8,7 @@ from rl_coach.core_types import SelectedPhaseOnlyDumpFilter, MaxDumpFilter, RunP
 import rl_coach.core_types 
 from rl_coach import logger
 from rl_coach.logger import screen
+import tensorflow as tf
 import argparse
 import copy
 import logging
