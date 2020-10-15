@@ -4,6 +4,7 @@ import mxnet as mx
 # Please make sure to import neomxnet
 import neomxnet  # noqa: F401
 import io
+import os
 import logging
 
 # Change the context to mx.gpu() if deploying to a GPU endpoint
@@ -12,7 +13,7 @@ ctx = mx.cpu()
 def model_fn(model_dir):
     logging.info('Invoking user-defined model_fn')
     # The compiled model artifacts are saved with the prefix 'compiled'
-    sym, arg_params, aux_params = mx.model.load_checkpoint('compiled', 0)
+    sym, arg_params, aux_params = mx.model.load_checkpoint(os.path.join(model_dir, 'compiled'), 0)
     mod = mx.mod.Module(symbol=sym, context=ctx, label_names=None)
     exe = mod.bind(for_training=False,
                data_shapes=[('data', (1,3,224,224))],

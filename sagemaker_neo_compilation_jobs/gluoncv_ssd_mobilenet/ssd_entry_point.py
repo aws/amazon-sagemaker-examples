@@ -179,15 +179,18 @@ def model_fn(model_dir):
     :param: model_dir The directory where model files are stored.
     :return: a model (in this case a Gluon network)
     """
+    logging.info('Invoking user-defined model_fn')
     import neomxnet  # noqa: F401
+    #change context to mx.cpu() when optimizing and deploying with Neo for CPU endpoints
+    ctx = mx.gpu()
     net = gluon.SymbolBlock.imports(
         '%s/compiled-symbol.json' % model_dir,
         ['data'],
         '%s/compiled-0000.params' % model_dir,
+        ctx=ctx
     )
+    net.hybridize(static_alloc=True, static_shape=True)
     #run warm-up inference on empty data
-    ctx = mx.gpu() if mx.context.num_gpus() > 0 else mx.cpu()
-    net.collect_params().reset_ctx(ctx)
     warmup_data = mx.nd.empty((1,3,512,512), ctx=ctx)
     class_IDs, scores, bounding_boxes = net(warmup_data)
    
@@ -197,12 +200,12 @@ def transform_fn(net, data, content_type, output_content_type):
     """
     pre-process the incoming payload, perform prediction & convert the prediction output into response payload
     """
-
+    logging.info('Invoking user-defined transform_fn')
+    
     import gluoncv as gcv
     
-    #set context
-    ctx = mx.gpu() if mx.context.num_gpus() > 0 else mx.cpu()
-    net.collect_params().reset_ctx(ctx)
+    #change context to mx.cpu() when optimizing and deploying with Neo for CPU endpoints
+    ctx = mx.gpu()
     
     """
     pre-processing
