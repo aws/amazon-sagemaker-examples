@@ -41,6 +41,7 @@ Amazon SageMaker Example Notebooks
    :maxdepth: 1
    :caption: Training
 
+   training/index
    sagemaker-debugger/index
    sagemaker-experiments/index
    reinforcement_learning/index
