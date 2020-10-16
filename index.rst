@@ -38,14 +38,10 @@ Amazon SageMaker Example Notebooks
 
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
    :caption: Training
 
    training/index
-   sagemaker-debugger/index
-   sagemaker-experiments/index
-   reinforcement_learning/index
-   hyperparameter_tuning/index
 
 
 .. toctree::

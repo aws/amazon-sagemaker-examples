@@ -1,11 +1,4 @@
-#################
-Training Overview
-#################
-
 Examples on how to train models with SageMaker.
-
-Get started with training models on SageMaker
-=============================================
 
 Algorithms
 ============
@@ -20,7 +13,7 @@ Bring your own container
 ========================
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    bring_your_own_container
 
@@ -32,6 +25,33 @@ Data types
    :maxdepth: 1
 
    data_types
+
+
+Debugger
+==========
+
+.. toctree::
+   :maxdepth: 1
+
+   ../sagemaker-debugger/index
+
+
+Experiments
+==========
+
+.. toctree::
+   :maxdepth: 1
+
+   ../sagemaker-experiments/index
+
+
+Distributed
+===========
+
+.. toctree::
+   :maxdepth: 1
+
+   distributed
 
 
 Frameworks

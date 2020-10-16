@@ -14,7 +14,7 @@ Introduction to applying machine learning
    ../introduction_to_applying_machine_learning/object2vec_document_embedding/object2vec_document_embedding
 
    ../introduction_to_applying_machine_learning/US-census_population_segmentation_PCA_Kmeans/sagemaker-countycensusclustering
-   
+
 
 Training
 =================================
@@ -25,15 +25,15 @@ Training
    ../introduction_to_amazon_algorithms/xgboost_mnist/xgboost_mnist
 
 
-   ../introduction_to_amazon_algorithms/pca_mnist/pca_mnist
-   ../introduction_to_amazon_algorithms/k_nearest_neighbors_covtype/k_nearest_neighbors_covtype
-   ../introduction_to_amazon_algorithms/factorization_machines_mnist/factorization_machines_mnist
-   ../introduction_to_amazon_algorithms/deepar_electricity/DeepAR-Electricity
-   ../introduction_to_amazon_algorithms/ipinsights_login/ipinsights-tutorial
-   ../introduction_to_amazon_algorithms/lda_topic_modeling/LDA-Introduction
-   ../introduction_to_amazon_algorithms/deepar_synthetic/deepar_synthetic
-   ../introduction_to_amazon_algorithms/object_detection_birds/object_detection_birds
-   ../introduction_to_amazon_algorithms/managed_spot_training_object_detection/managed_spot_training_object_detection
+
+
+
+
+
+
+
+
+
    ../introduction_to_amazon_algorithms/seq2seq_translation_en-de/SageMaker-Seq2Seq-Translation-English-German
    ../introduction_to_amazon_algorithms/ntm_synthetic/ntm_synthetic
 
