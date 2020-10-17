@@ -36,6 +36,15 @@ Debugger
    ../sagemaker-debugger/index
 
 
+Distributed Training
+====================
+
+.. toctree::
+   :maxdepth: 1
+
+   distributed
+
+
 Experiments
 ==========
 
@@ -43,15 +52,6 @@ Experiments
    :maxdepth: 1
 
    ../sagemaker-experiments/index
-
-
-Distributed
-===========
-
-.. toctree::
-   :maxdepth: 1
-
-   distributed
 
 
 Frameworks

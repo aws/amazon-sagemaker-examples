@@ -1,10 +1,25 @@
+.. image:: _static/sagemaker_gears.jpg
+  :width: 600
+  :alt: sagemaker_logo
+
 Amazon SageMaker Example Notebooks
 ==================================
 
 .. image:: https://readthedocs.org/projects/sagemaker-examples-test-website/badge/?version=latest
 
+Welcome to Amazon SageMaker.
+This site highlights example Jupyter notebooks for a variety of machine learning use cases that you can run in SageMaker.
 
-[Intro]
+This site is based on the `SageMaker Examples repository <https://github.com/aws/amazon-sagemaker-examples>`_ on GitHub.
+Browse around to see what piques your interest.
+To run these notebooks, you will need a SageMaker Notebook Instance or SageMaker Studio.
+Refer to the SageMaker developer guide's `Get Started <https://docs.aws.amazon.com/sagemaker/latest/dg/gs.html>`_ page to get one of these setup.
+
+On a Notebook Instance, the examples are pre-installed and available from the examples menu item in JupyterLab.
+On SageMaker Studio, you will need to open a terminal, go to your home folder, then clone the repo with the following::
+
+   git clone https://github.com/aws/amazon-sagemaker-examples.git
+
 
 
 .. toctree::
@@ -38,7 +53,7 @@ Amazon SageMaker Example Notebooks
 
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Training
 
    training/index
@@ -48,13 +63,12 @@ Amazon SageMaker Example Notebooks
    :maxdepth: 1
    :caption: Inference
 
-   sagemaker_model_monitor/index
-   sagemaker_neo_compilation_jobs/index
+   inference/index
 
 
 .. toctree::
    :maxdepth: 1
-   :caption: Framework
+   :caption: Frameworks
 
    sagemaker-python-sdk/index
    r_examples/index
@@ -62,7 +76,7 @@ Amazon SageMaker Example Notebooks
 
 .. toctree::
    :maxdepth: 1
-   :caption: Workflow
+   :caption: Workflows
 
    sagemaker_processing/index
    sagemaker-spark/index
@@ -77,10 +91,10 @@ Amazon SageMaker Example Notebooks
    advanced_functionality/index
    aws_marketplace/index
 
+..
+   .. toctree::
+      :maxdepth: 1
+      :caption: Community examples
 
-.. toctree::
-   :maxdepth: 1
-   :caption: Community examples
 
-
-[Contributions welcome!]
+Contributions welcome!

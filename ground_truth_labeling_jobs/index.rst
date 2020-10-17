@@ -8,13 +8,14 @@ Get started with Ground Truth
 .. toctree::
    :maxdepth: 1
 
-   ground_truth_object_detection_tutorial/object_detection_tutorial
    from_unlabeled_data_to_deployed_machine_learning_model_ground_truth_demo_image_classification/from_unlabeled_data_to_deployed_machine_learning_model_ground_truth_demo_image_classification
-   sagemaker_ground_truth_semantic_segmentation_mask_index_correction
 
+
+Task types
+==========
 
 3D point clouds
-===============
+---------------
 
 .. toctree::
    :maxdepth: 1
@@ -24,12 +25,39 @@ Get started with Ground Truth
 
 
 Annotation consolidation
-========================
+------------------------
 
 .. toctree::
    :maxdepth: 1
 
    annotation_consolidation/ACSBlogPost
+
+
+Object detection
+----------------
+
+.. toctree::
+   :maxdepth: 1
+
+   ground_truth_object_detection_tutorial/object_detection_tutorial
+
+
+Pretrained model labeling
+-------------------------
+
+.. toctree::
+   :maxdepth: 1
+
+   pretrained_model/pretrained_model_labeling_tutorial
+
+
+Semantic segmentation
+---------------------
+
+.. toctree::
+   :maxdepth: 1
+
+   sagemaker_ground_truth_semantic_segmentation_mask_index_correction
 
 
 Bring your own model
@@ -39,15 +67,6 @@ Bring your own model
    :maxdepth: 1
 
    bring_your_own_model_for_sagemaker_labeling_workflows_with_active_learning/bring_your_own_model_for_sagemaker_labeling_workflows_with_active_learning
-
-
-Pretrained model labeling
-=========================
-
-.. toctree::
-   :maxdepth: 1
-
-   pretrained_model/pretrained_model_labeling_tutorial
 
 
 Analysis tasks
