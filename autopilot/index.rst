@@ -1,7 +1,3 @@
-#####################
-AutoML with Autopilot
-#####################
-
 Get started with Autopilot
 ==========================
 

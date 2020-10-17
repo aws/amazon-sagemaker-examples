@@ -76,7 +76,7 @@ Management features
 ======================
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    management
 
@@ -85,6 +85,6 @@ Reinforcement learning
 ======================
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    ../reinforcement_learning/index

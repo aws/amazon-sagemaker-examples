@@ -1,10 +1,5 @@
-######################
-Studio
-######################
-
-
 Get started with Studio
-^^^^^^^^^^^^^^^^^^^^^^^
+=======================
 
 .. toctree::
    :maxdepth: 1
@@ -14,7 +9,7 @@ Get started with Studio
 
 
 Framework examples
-^^^^^^^^^^^^^^^^^^^^^^^
+=======================
 
 .. toctree::
    :maxdepth: 1
@@ -27,7 +22,7 @@ Framework examples
 
 
 Neo compilation
-^^^^^^^^^^^^^^^^^^^^^^^
+=======================
 
 .. toctree::
    :maxdepth: 1
@@ -36,7 +31,7 @@ Neo compilation
 
 
 BYO image to Studio
-^^^^^^^^^^^^^^^^^^^^^^^
+=======================
 
 .. toctree::
    :maxdepth: 1
