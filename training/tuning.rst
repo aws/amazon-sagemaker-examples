@@ -76,7 +76,7 @@ Early stopping
 .. toctree::
    :maxdepth: 1
 
-   ../hyperparameter_tuning/image_classification_early_stopping
+   ../hyperparameter_tuning/image_classification_early_stopping/hpo_image_classification_early_stopping
 
 
 Warm start
@@ -85,4 +85,4 @@ Warm start
 .. toctree::
    :maxdepth: 1
 
-   ../hyperparameter_tuning/image_classification_warmstart
+   ../hyperparameter_tuning/image_classification_warmstart/hpo_image_classification_warmstart
