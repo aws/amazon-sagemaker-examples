@@ -27,6 +27,16 @@ Data types
 
    data_types
 
+
+Model Compilation with Neo
+==========================
+
+.. toctree::
+   :maxdepth: 1
+
+   ../sagemaker_neo_compilation_jobs/index
+
+
 Model deployment
 ================
 
@@ -37,14 +47,6 @@ Model deployment
    ../advanced_functionality/tensorflow_iris_byom/tensorflow_BYOM_iris
    ../advanced_functionality/kmeans_bring_your_own_model/kmeans_bring_your_own_model
    ../advanced_functionality/xgboost_bring_your_own_model/xgboost_bring_your_own_model
-
-Compile models with Neo
------------------------
-
-.. toctree::
-   :maxdepth: 1
-
-   ../sagemaker_neo_compilation_jobs/index
 
 
 Elastic inference

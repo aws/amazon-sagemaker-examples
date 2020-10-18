@@ -26,6 +26,7 @@ MXNet
    :maxdepth: 0
 
    mxnet_realtime_analysis/mxnet-realtime-analysis
+   mxnet_spot_training/mxnet-spot-training-with-sagemakerdebugger
 
 
 PyTorch
@@ -35,6 +36,7 @@ PyTorch
    :maxdepth: 0
 
    pytorch_iterative_model_pruning/iterative_model_pruning_resnet
+   pytorch_iterative_model_pruning/iterative_model_pruning_alexnet
    pytorch_custom_container/pytorch_byoc_smdebug
 
 
@@ -57,6 +59,7 @@ TensorFlow 1.x
 .. toctree::
    :maxdepth: 0
 
+   tensorflow_builtin_rule/tf-mnist-builtin-rule
    tensorflow_action_on_rule/detect_stalled_training_job_and_stop
    tensorflow_action_on_rule/tf-mnist-stop-training-job
    tensorflow_keras_custom_rule/tf-keras-custom-rule
