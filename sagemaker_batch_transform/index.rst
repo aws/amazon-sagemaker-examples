@@ -1,4 +1,3 @@
-
 Get started with Batch Transform
 ================================
 
@@ -6,6 +5,21 @@ Get started with Batch Transform
    :maxdepth: 1
 
    introduction_to_batch_transform/batch_transform_pca_dbscan_movie_clusters
+
+..
+   file name change required
+   batch_transform_associate_predictions_with_input/Batch Transform - breast cancer prediction with high level SDK
+   batch_transform_associate_predictions_with_input/Batch Transform - breast cancer prediction with lowel level SDK
+
+
+Apache MXNet
+============
+
+
+.. toctree::
+   :maxdepth: 1
+
+   ../sagemaker-python-sdk/mxnet_mnist/mxnet_mnist_with_batch_transform
 
 
 Data types

@@ -16,6 +16,7 @@ Training
    :maxdepth: 1
 
    ../introduction_to_amazon_algorithms/xgboost_mnist/xgboost_mnist
+   ../introduction_to_applying_machine_learning/ensemble_modeling/EnsembleLearnerCensusIncome
 
 
 Inference

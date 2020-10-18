@@ -7,12 +7,13 @@ Apache MXNet
 .. toctree::
    :maxdepth: 1
 
-   ../sagemaker-python-sdk/mxnet_mnist/mxnet_mnist.ipynb
-   ../sagemaker-python-sdk/mxnet_horovod_fasterrcnn
-   ../sagemaker-python-sdk/mxnet_horovod_maskrcnn
+   ../sagemaker-python-sdk/mxnet_mnist/mxnet_mnist
+   ../sagemaker-python-sdk/mxnet_horovod_fasterrcnn/horovod_deployment_notebook
+   ../sagemaker-python-sdk/mxnet_horovod_maskrcnn/horovod_deployment_notebook
+   ../sagemaker-python-sdk/mxnet_horovod_mnist/mxnet_mnist_horovod
 
 
-In addition to the notebook, this topic is covered in this workshop topic: `Parallelized data distribution (sharding)<https://sagemaker-workshop.com/builtin/parallelized.html>`_
+In addition to the notebook, this topic is covered in this workshop topic: `Parallelized data distribution (sharding) <https://sagemaker-workshop.com/builtin/parallelized.html>`_
 
 
 PyTorch

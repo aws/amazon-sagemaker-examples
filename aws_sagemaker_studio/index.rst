@@ -21,8 +21,8 @@ Framework examples
    frameworks/pytorch_cnn_cifar10/pytorch_cnn_cifar10
 
 
-Neo compilation
-=======================
+Model compilation with Neo
+==========================
 
 .. toctree::
    :maxdepth: 1
@@ -30,8 +30,8 @@ Neo compilation
    sagemaker_neo_compilation_jobs/deploy_tensorflow_model_on_Inf1_instance/tensorflow_distributed_mnist_neo_inf1_studio
 
 
-BYO image to Studio
-=======================
+Bring your own container to Studio
+==================================
 
 .. toctree::
    :maxdepth: 1

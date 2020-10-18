@@ -55,7 +55,7 @@ Explore a number of actions with contextual bandits algorithms in SageMaker.
    :maxdepth: 0
 
    bandits_recsys_movielens_testbed/bandits_movielens_testbed
-   bandits_statlog_vw_custom/bandits_statlog_vw_customEnv
+   bandits_statlog_vw_customEnv/bandits_statlog_vw_customEnv
 
 
 Roboschool

@@ -51,15 +51,6 @@ Pretrained model labeling
    pretrained_model/pretrained_model_labeling_tutorial
 
 
-Semantic segmentation
----------------------
-
-.. toctree::
-   :maxdepth: 1
-
-   sagemaker_ground_truth_semantic_segmentation_mask_index_correction
-
-
 Bring your own model
 ====================
 
@@ -87,4 +78,6 @@ Worker labeling efficiency
 .. toctree::
    :maxdepth: 1
 
+..
+   rename due to spaces
    worker_labeling_efficiency/identify_worker_accuracy

@@ -27,14 +27,15 @@ R
 
    ../hyperparameter_tuning/r_bring_your_own/tune_r_bring_your_own
 
+..
+   notebook does not render (no title)
+   Rapids
+   =======
 
-Rapids
-=======
+   .. toctree::
+      :maxdepth: 1
 
-.. toctree::
-   :maxdepth: 1
-
-   ../hyperparameter_tuning/rapids_bring_your_own/rapids_sagemaker_hpo
+      ../hyperparameter_tuning/rapids_bring_your_own/rapids_sagemaker_hpo
 
 
 TensorFlow

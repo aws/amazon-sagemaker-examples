@@ -77,6 +77,7 @@ ntm
 
    ../scientific_details_of_algorithms/ntm_topic_modeling/ntm_wikitext
    ../introduction_to_amazon_algorithms/ntm_synthetic/ntm_synthetic
+   ../introduction_to_applying_machine_learning/ntm_20newsgroups_topic_modeling/ntm_20newsgroups_topic_model
 
 
 seq2seq
@@ -84,6 +85,8 @@ seq2seq
 
 .. toctree::
    :maxdepth: 1
+
+   ../introduction_to_amazon_algorithms/seq2seq_translation_en-de/SageMaker-Seq2Seq-Translation-English-German
 
 
 Time series processing
@@ -160,6 +163,7 @@ Basic
    ../introduction_to_amazon_algorithms/xgboost_mnist/xgboost_mnist
    ../introduction_to_amazon_algorithms/xgboost_abalone/xgboost_abalone
    ../introduction_to_applying_machine_learning/xgboost_customer_churn/xgboost_customer_churn
+   ../introduction_to_applying_machine_learning/xgboost_direct_marketing/xgboost_direct_marketing_sagemaker
 
 
 Advanced
@@ -169,9 +173,7 @@ Advanced
    :maxdepth: 1
 
    ../introduction_to_amazon_algorithms/xgboost_abalone/xgboost_abalone_dist_script_mode
-   ../introduction_to_amazon_algorithms/xgboost_abalone/xgboost_managed_spot_training
    ../introduction_to_amazon_algorithms/xgboost_abalone/xgboost_parquet_input_training
-   ../introduction_to_amazon_algorithms/xgboost_abalone/xgboost_parquet_training
 
 
 Unsupervised learning algorithms
@@ -196,6 +198,9 @@ kmeans
    :maxdepth: 1
 
    ../introduction_to_applying_machine_learning/US-census_population_segmentation_PCA_Kmeans/sagemaker-countycensusclustering
+   ../sagemaker-python-sdk/1P_kmeans_highlevel/kmeans_mnist
+   ../sagemaker-python-sdk/1P_kmeans_lowlevel/kmeans_mnist_lowlevel
+
 
 pca
 -----

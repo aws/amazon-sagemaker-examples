@@ -70,8 +70,7 @@ On SageMaker Studio, you will need to open a terminal, go to your home folder, t
    :maxdepth: 1
    :caption: Frameworks
 
-   sagemaker-python-sdk/index
-   r_examples/index
+   training/frameworks
 
 
 .. toctree::
@@ -88,13 +87,11 @@ On SageMaker Studio, you will need to open a terminal, go to your home folder, t
    :caption: Advanced examples
 
    scientific_details_of_algorithms/index
-   advanced_functionality/index
    aws_marketplace/index
 
-..
-   .. toctree::
-      :maxdepth: 1
-      :caption: Community examples
 
+.. toctree::
+   :maxdepth: 1
+   :caption: Community examples
 
-Contributions welcome!
+   contrib/index

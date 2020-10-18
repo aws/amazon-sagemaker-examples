@@ -8,6 +8,13 @@ Apache MXNet
    :maxdepth: 1
 
    ../sagemaker-python-sdk/mxnet_gluon_mnist/mxnet_mnist_with_gluon
+   ../sagemaker-python-sdk/mxnet_gluon_embedding_server/mxnet_embedding_server
+   ../sagemaker-python-sdk/mxnet_gluon_sentiment/mxnet_sentiment_analysis_with_gluon
+   ../introduction_to_applying_machine_learning/gluon_recommender_system/gluon_recommender_system
+   ../sagemaker-python-sdk/mxnet_onnx_superresolution/mxnet_onnx
+   ../sagemaker-python-sdk/mxnet_onnx_export/mxnet_onnx_export
+   ../sagemaker-python-sdk/mxnet_mnist/mxnet_mnist_with_batch_transform
+   ../sagemaker-python-sdk/mxnet_mnist/mxnet_mnist_elastic_inference
 
 
 Deep Graph Library
@@ -36,6 +43,7 @@ PyTorch
    :maxdepth: 1
 
    ../sagemaker-python-sdk/pytorch_mnist/pytorch_mnist
+   ../sagemaker-python-sdk/pytorch_lstm_word_language_model/pytorch_rnn
 
 
 R
@@ -44,8 +52,29 @@ R
 .. toctree::
    :maxdepth: 1
 
-   advanced_functionality/r_kernel/example_r_notebook
-   advanced_functionality/r_kernel/using_r_with_amazon_sagemaker
+   ../r_examples/r_sagemaker_hello_world/r_sagemaker_hello_world
+   ../advanced_functionality/r_kernel/example_r_notebook
+
+
+..
+   notebooks have no title and will not render
+   ../r_examples/r_end_2_end/r_sagemaker_abalone
+   ../r_examples/r_batch_transform/r_xgboost_batch_transform
+   ../advanced_functionality/r_kernel/using_r_with_amazon_sagemaker
+
+
+Scikit-learn
+====================================
+
+.. toctree::
+   :maxdepth: 1
+
+   ../sagemaker-python-sdk/scikit_learn_randomforest/Sklearn_on_SageMaker_end2end
+
+..
+   needs to be renamed (remove spaces)
+   ../sagemaker-python-sdk/scikit_learn_iris/
+   ../sagemaker-python-sdk/scikit_learn_inference_pipeline/
 
 
 TensorFlow
@@ -60,3 +89,5 @@ TensorFlow
    ../sagemaker-python-sdk/tensorflow_script_mode_quickstart/tensorflow_script_mode_quickstart
    ../sagemaker-python-sdk/tensorflow_script_mode_using_shell_commands/tensorflow_script_mode_using_shell_commands
    ../sagemaker-python-sdk/tensorflow-eager-script-mode/tf-eager-sm-scriptmode
+   ../sagemaker-python-sdk/tensorflow_script_mode_training_and_serving/tensorflow_script_mode_training_and_serving
+   ../sagemaker-python-sdk/tensorboard_keras/tensorboard_keras
