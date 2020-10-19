@@ -202,9 +202,4 @@ def plot_lda_topics(documents, nrows, ncols, with_colorbar=True,
 
     return fig
 
-if __name__ == '__main__':
-    generate_griffiths_data(num_documents=5000, average_document_length=150,
-                            num_topics=5, alpha=None, eta=None, seed=0)
-    generate_griffiths_data(num_documents=5000, average_document_length=150,
-                            num_topics=10, alpha=None, eta=None, seed=0)
     
