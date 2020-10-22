@@ -9,7 +9,7 @@ phases:
   pre_build:
     commands:
       - PR_NUM=$(echo $CODEBUILD_SOURCE_VERSION | grep -o '[0-9]\+')
-      - NOTEBOOKS="$(get-pr-notebooks $PR_NUM)"
+      - NOTEBOOKS="$(pr-notebook-filenames --pr $PR_NUM)"
 
   build:
     commands:
@@ -29,4 +29,4 @@ phases:
         --instance-type $INSTANCE_TYPE \
         --region $REGION \
         --notebook-instance-role-arn $SAGEMAKER_ROLE_ARN \
-        $NOTEBOOKS
+        ($NOTEBOOKS)
