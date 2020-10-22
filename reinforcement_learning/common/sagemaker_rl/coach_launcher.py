@@ -1,22 +1,15 @@
 from rl_coach.agents.clipped_ppo_agent import ClippedPPOAgentParameters
-from rl_coach.agents.policy_gradients_agent import PolicyGradientsAgentParameters
 from rl_coach.graph_managers.basic_rl_graph_manager import BasicRLGraphManager
 from rl_coach.graph_managers.graph_manager import ScheduleParameters
-from rl_coach.base_parameters import VisualizationParameters, TaskParameters, Frameworks
+from rl_coach.base_parameters import VisualizationParameters, Frameworks
 from rl_coach.utils import short_dynamic_import
 from rl_coach.core_types import SelectedPhaseOnlyDumpFilter, MaxDumpFilter, RunPhase
 import rl_coach.core_types 
 from rl_coach import logger
 from rl_coach.logger import screen
-import tensorflow as tf
 import argparse
-import copy
-import logging
 import os
 import sys
-import shutil
-import glob
-import re
 
 from .configuration_list import ConfigurationList
 from rl_coach.coach import CoachLauncher
@@ -188,57 +181,6 @@ class SageMakerCoachPresetLauncher(CoachLauncher):
                     network_parameters.framework = args.framework
         return graph_manager
 
-    def _save_tf_model(self):
-        ckpt_dir = '/opt/ml/output/data/checkpoint'
-        model_dir = '/opt/ml/model'
-
-        # Re-Initialize from the checkpoint so that you will have the latest models up.
-        tf.train.init_from_checkpoint(ckpt_dir,
-                                      {'main_level/agent/online/network_0/': 'main_level/agent/online/network_0'})
-        tf.train.init_from_checkpoint(ckpt_dir,
-                                      {'main_level/agent/online/network_1/': 'main_level/agent/online/network_1'})
-
-        # Create a new session with a new tf graph.
-        sess = tf.Session(config=tf.ConfigProto(allow_soft_placement=True))
-        sess.run(tf.global_variables_initializer())  # initialize the checkpoint.
-
-        # This is the node that will accept the input.
-        input_nodes = tf.get_default_graph().get_tensor_by_name('main_level/agent/main/online/' + \
-                                                                'network_0/observation/observation:0')
-        # This is the node that will produce the output.
-        output_nodes = tf.get_default_graph().get_operation_by_name('main_level/agent/main/online/' + \
-                                                                    'network_1/ppo_head_0/policy')
-        # Save the model as a servable model.
-        tf.saved_model.simple_save(session=sess,
-                                   export_dir='model',
-                                   inputs={"observation": input_nodes},
-                                   outputs={"policy": output_nodes.outputs[0]})
-        # Move to the appropriate folder. Don't mind the directory, this just works.
-        # rl-cart-pole is the name of the model. Remember it.
-        shutil.move('model/', model_dir + '/model/tf-model/00000001/')
-        # EASE will pick it up and upload to the right path.
-        print("Success")
-
-    def _save_onnx_model(self):
-        from .onnx_utils import fix_onnx_model
-        ckpt_dir = '/opt/ml/output/data/checkpoint'
-        model_dir = '/opt/ml/model'
-        # find latest onnx file
-        # currently done by name, expected to be changed in future release of coach.
-        glob_pattern = os.path.join(ckpt_dir, '*.onnx')
-        onnx_files = [file for file in glob.iglob(glob_pattern, recursive=True)]
-        if len(onnx_files) > 0:
-            extract_step = lambda string: int(re.search('/(\d*)_Step.*', string, re.IGNORECASE).group(1))
-            onnx_files.sort(key=extract_step)
-            latest_onnx_file = onnx_files[-1]
-            # move to model directory
-            filepath_from = os.path.abspath(latest_onnx_file)
-            filepath_to = os.path.join(model_dir, "model.onnx")
-            shutil.move(filepath_from, filepath_to)
-            fix_onnx_model(filepath_to)
-        else:
-            screen.warning("No ONNX files found in {}".format(ckpt_dir))
-        
     @classmethod
     def train_main(cls):
         """Entrypoint for training.  
@@ -253,9 +195,11 @@ class SageMakerCoachPresetLauncher(CoachLauncher):
         if sage_args.save_model == 1:
             backend = os.getenv('COACH_BACKEND', 'tensorflow')
             if backend == 'tensorflow':
-                trainer._save_tf_model()
+                from .save_coach_model_tensorflow import save_tf_model
+                save_tf_model()
             if backend == 'mxnet':
-                trainer._save_onnx_model()
+                from .save_coach_model_mxnet import save_onnx_model
+                save_onnx_model()
 
 
 class SageMakerCoachLauncher(SageMakerCoachPresetLauncher):
