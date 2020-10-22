@@ -434,9 +434,9 @@ def model_fn(model_dir):
     """
     logging.info('Invoking user-defined model_fn')
 
-    import neomxnet
+    import neomxnet # noqa: F401
 
-    #check if GPUs area available
+    #select GPU context
     ctx = mx.gpu()
 
     net = gluon.SymbolBlock.imports(
@@ -457,6 +457,8 @@ def transform_fn(net, data, content_type, output_content_type):
     """
     Transform incoming requests.
     """
+    logging.info('Invoking user-defined transform_fn')
+
     import gluoncv as gcv
     
     #decode json string into numpy array
@@ -465,7 +467,7 @@ def transform_fn(net, data, content_type, output_content_type):
     #preprocess image   
     x, image = gcv.data.transforms.presets.yolo.transform_test(mx.nd.array(data), 320)
     
-    #check if GPUs area available
+    #select GPU context
     ctx = mx.gpu()
 
     #load image onto right context
