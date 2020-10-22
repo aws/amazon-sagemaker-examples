@@ -2,7 +2,10 @@
     var pixels = [];
     for (var i = 0; i < 28*28; i++) pixels[i] = 0;
     var click = 0;
-
+    
+    // Only works in Jupyter Notebook
+    // In Jupyter Lab, DOM needs to be 
+    // rendered before canvas can be selected
     var canvas = document.querySelector("canvas");
     canvas.addEventListener("mousemove", function(e){
         if (e.buttons == 1) {
@@ -45,8 +48,11 @@
             }
         }
         result += "]]"
+        
+        // Only works in Jupyter Notebook
+        // Ipython cannot be used in Jupyter Lab
         var kernel = IPython.notebook.kernel;
-        kernel.execute("data = " + result)
+        kernel.execute("user_input = " + result)
     }
 </script>
 <table>
