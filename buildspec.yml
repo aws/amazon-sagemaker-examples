@@ -10,11 +10,10 @@ phases:
     commands:
       - PR_NUM=$(echo $CODEBUILD_SOURCE_VERSION | grep -o '[0-9]\+')
       - NOTEBOOKS="$(pr-notebook-filenames --pr $PR_NUM)"
+      - [  -z "$NOTEBOOKS" ] && return 0 || echo "testing $NOTEBOOKS"
 
   build:
     commands:
-      - echo "testing $NOTEBOOKS"
-
       - aws s3 cp s3://sagemaker-mead-cli/mead-nb-test.tar.gz mead-nb-test.tar.gz
       - tar -xzf mead-nb-test.tar.gz
       - export JAVA_HOME=$(get-java-home)
