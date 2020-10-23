@@ -27,4 +27,4 @@ phases:
         --instance-type $INSTANCE_TYPE \
         --region $REGION \
         --notebook-instance-role-arn $SAGEMAKER_ROLE_ARN \
-        ($NOTEBOOKS)
+        $NOTEBOOKS
