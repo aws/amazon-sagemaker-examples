@@ -1,4 +1,5 @@
 import io
+import os
 import PIL.Image
 import json
 import logging
@@ -6,78 +7,6 @@ import numpy as np
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
-
-# ------------------------------------------------------------ #
-# Neo host methods                                             #
-# ------------------------------------------------------------ #  
-
-def neo_preprocess(payload, content_type):
-
-    def _read_input_shape(signature):
-        shape = signature[-1]['shape']
-        shape[0] = 1
-        return shape
-
-    def _transform_image(image, shape_info):
-        # Fetch image size
-        input_shape = _read_input_shape(shape_info)
-
-        # Perform color conversion
-        if input_shape[-3] == 3:
-            # training input expected is 3 channel RGB
-            image = image.convert('RGB')
-        elif input_shape[-3] == 1:
-            # training input expected is grayscale
-            image = image.convert('L')
-        else:
-            # shouldn't get here
-            raise RuntimeError('Wrong number of channels in input shape')
-
-        # Resize
-        image = np.asarray(image.resize((input_shape[-2], input_shape[-1])))
-
-        # Normalize
-        mean_vec = np.array([0.485, 0.456, 0.406])
-        stddev_vec = np.array([0.229, 0.224, 0.225])
-        image = (image/255- mean_vec)/stddev_vec
-
-        # Transpose
-        if len(image.shape) == 2:  # for greyscale image
-            image = np.expand_dims(image, axis=2)
-        image = np.rollaxis(image, axis=2, start=0)[np.newaxis, :]
-
-        return image
-
-        
-    logging.info('Invoking user-defined pre-processing function')
-
-    if content_type != 'image/jpeg':
-        raise RuntimeError('Content type must be image/jpeg')
-    
-    shape_info = [{"shape":[1,3,512,512], "name":"data"}]
-    f = io.BytesIO(payload)
-    dtest = _transform_image(PIL.Image.open(f), shape_info)
-    return {'data':dtest}
-
-    
-def neo_postprocess(result):
-
-    logging.info('Invoking user-defined post-processing function')
- 
-    js = {'prediction':[],'instance':[]}
-    for r in result:
-        r = np.squeeze(r)
-        js['instance'].append(r.tolist())
-    idx, score, bbox = js['instance']
-    bbox = np.asarray(bbox)
-    res = np.hstack((np.column_stack((idx,score)),bbox))
-    for r in res:
-        js['prediction'].append(r.tolist())
-    del js['instance']
-    response_body = json.dumps(js)
-    content_type = 'application/json'
-
-    return response_body, content_type
 
 # ------------------------------------------------------------ #
 # Training methods                                             #
@@ -91,7 +20,6 @@ import mxnet as mx
 from mxnet import nd
 from mxnet import gluon
 from mxnet import autograd
-
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Train SSD networks.')
@@ -129,9 +57,6 @@ def parse_args():
 
 def get_dataloader(net, data_shape, batch_size, num_workers, ctx):
     """Get dataloader."""
-    import os
-
-    os.system('pip3 install gluoncv')
 
     from gluoncv import data as gdata
     from gluoncv.data.batchify import Tuple, Stack, Pad
@@ -151,9 +76,6 @@ def get_dataloader(net, data_shape, batch_size, num_workers, ctx):
 
 def train(net, train_data, ctx, args):
     """Training pipeline"""
-    import os
-
-    os.system('pip3 install gluoncv')
 
     import gluoncv as gcv
     
@@ -233,9 +155,6 @@ def train(net, train_data, ctx, args):
     return net
 
 if __name__ == '__main__':
-    import os
-
-    os.system('pip3 install gluoncv')
 
     from gluoncv import model_zoo
     
@@ -251,7 +170,7 @@ if __name__ == '__main__':
     train(net, train_loader, ctx, args)
     
 # ------------------------------------------------------------ #
-# Hosting methods                                              #
+# Hosting methods for Neo compiled model                       #
 # ------------------------------------------------------------ #    
     
 def model_fn(model_dir):
@@ -260,44 +179,58 @@ def model_fn(model_dir):
     :param: model_dir The directory where model files are stored.
     :return: a model (in this case a Gluon network)
     """
+    logging.info('Invoking user-defined model_fn')
+    import neomxnet  # noqa: F401
+    #change context to mx.cpu() when optimizing and deploying with Neo for CPU endpoints
+    ctx = mx.gpu()
     net = gluon.SymbolBlock.imports(
-        '%s/model-symbol.json' % model_dir,
+        '%s/compiled-symbol.json' % model_dir,
         ['data'],
-        '%s/model-0000.params' % model_dir,
+        '%s/compiled-0000.params' % model_dir,
+        ctx=ctx
     )
+    net.hybridize(static_alloc=True, static_shape=True)
+    #run warm-up inference on empty data
+    warmup_data = mx.nd.empty((1,3,512,512), ctx=ctx)
+    class_IDs, scores, bounding_boxes = net(warmup_data)
    
     return net
     
 def transform_fn(net, data, content_type, output_content_type): 
     """
-    Transform incoming requests.
+    pre-process the incoming payload, perform prediction & convert the prediction output into response payload
     """
-    import os
-
-    os.system('pip3 install gluoncv')
-
+    logging.info('Invoking user-defined transform_fn')
+    
     import gluoncv as gcv
     
+    #change context to mx.cpu() when optimizing and deploying with Neo for CPU endpoints
+    ctx = mx.gpu()
+    
+    """
+    pre-processing
+    """
     #decode json string into numpy array
     data = json.loads(data)
     
     #preprocess image   
     x, image = gcv.data.transforms.presets.ssd.transform_test(mx.nd.array(data), 512)
     
-    #check if GPUs area available
-    ctx = mx.gpu() if mx.context.num_gpus() > 0 else mx.cpu()
-    
-    net.collect_params().reset_ctx(ctx)
-
     #load image onto right context
     x = x.as_in_context(ctx)
     
-    #perform inference
+    """
+    prediction/inference
+    """
     class_IDs, scores, bounding_boxes = net(x)
     
+    """
+    post-processing
+    """
     #create list of results
     result = [class_IDs.asnumpy().tolist(), scores.asnumpy().tolist(), bounding_boxes.asnumpy().tolist()]
     
     #decode as json string
     response_body = json.dumps(result)
+    
     return response_body, output_content_type
