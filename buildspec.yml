@@ -10,7 +10,10 @@ phases:
     commands:
       - PR_NUM=$(echo $CODEBUILD_SOURCE_VERSION | grep -o '[0-9]\+')
       - NOTEBOOKS="$(pr-notebook-filenames --pr $PR_NUM)"
-      - [  -z "$NOTEBOOKS" ] && return 0 || echo "testing $NOTEBOOKS"
+      - |-
+        if [ -z "$NOTEBOOKS" ]; then
+          return 0
+        fi
 
   build:
     commands:
