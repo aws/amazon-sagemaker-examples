@@ -1,4 +1,4 @@
-FROM rapidsai/rapidsai:0.15-cuda11.0-base-ubuntu18.04-py3.7 
+FROM rapidsai/rapidsai-nightly:0.16-cuda11.0-base-ubuntu18.04-py3.7
 
 ENV DATASET_DIRECTORY="1_year"
 ENV ALGORITHM_CHOICE="XGBoost"
