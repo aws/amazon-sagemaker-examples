@@ -66,6 +66,9 @@ def generate_griffiths_data(num_documents=5000, average_document_length=150,
     """
     vocabulary_size = 25
     image_dim = np.int(np.sqrt(vocabulary_size))
+    
+    # to be used for numercial stability
+    epsilon = np.finfo(float).eps
 
     # perform checks on input
     assert num_topics in [5,10], 'Example data only available for 5 or 10 topics'
@@ -98,9 +101,14 @@ def generate_griffiths_data(num_documents=5000, average_document_length=150,
 
     # generate documents using the LDA model / provess
     #
+    # normalize beta to ensure each row is a valid probability dist
+    beta /= (1 + epsilon)
+    
     document_lengths = sp.stats.poisson(average_document_length).rvs(size=num_documents)
     documents = np.zeros((num_documents,vocabulary_size), dtype=np.float)
     thetas = dirichlet_alpha.rvs(size=num_documents)  # precompute topic distributions for performance
+    thetas /= (1 + epsilon)
+    
     for m in range(num_documents):
         document_length = document_lengths[m]
         theta = thetas[m]
