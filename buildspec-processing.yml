@@ -1,0 +1,15 @@
+version: 0.2
+
+env:
+  variables:
+    INSTANCE_TYPE: 'ml.m5.xlarge'
+    IMAGE: '763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:1.6.0-cpu-py36-ubuntu16.04'
+
+phases:
+  pre_build:
+    commands:
+      - PR_NUM=$(echo $CODEBUILD_SOURCE_VERSION | grep -o '[0-9]\+')
+
+  build:
+    commands:
+      - run-pr-notebooks --pr $PR_NUM --image $IMAGE --instance $INSTANCE_TYPE
