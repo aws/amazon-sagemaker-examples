@@ -1,9 +1,14 @@
 import ray
 import os
 import re
-from ray.rllib.utils.framework import try_import_tf
+import tensorflow as tf
 
-tf = try_import_tf()
+def import_tf1():
+    if "2." in tf.__version__[:2]:
+        return tf.compat.v1
+    return tf
+
+tf = import_tf1()
 
 def atoi(text):
     return int(text) if text.isdigit() else text
