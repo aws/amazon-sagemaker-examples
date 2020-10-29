@@ -3,7 +3,7 @@ import numpy as np
 
 from markov.environments.constants import TRAINING_IMAGE_SIZE, TRAINING_LIDAR_SIZE, SECTOR_LIDAR_CLIPPING_DIST
 from markov.architecture.constants import SchemeInfo, Input, ActivationFunctions, NeuralNetwork
-from markov.deepracer_exceptions import GenericError
+from markov.log_handler.deepracer_exceptions import GenericError
 from rl_coach.spaces import StateSpace, ImageObservationSpace, \
                             VectorObservationSpace, PlanarMapsObservationSpace
 

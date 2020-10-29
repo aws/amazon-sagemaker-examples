@@ -7,7 +7,7 @@ import logging
 import time
 
 backend = os.environ.get('DGLBACKEND')
-if backend.lower() == 'mxnet':
+if backend and backend.lower() == 'mxnet':
     import multiprocessing as mp
     from train_mxnet import load_model
     from train_mxnet import train
@@ -278,17 +278,17 @@ if __name__ == '__main__':
     args = ArgParser().parse_args()
 
     # sagemaker related args
-    num_gpus = int(os.environ['SM_NUM_GPUS'])
+    num_gpus = int(os.environ.get('SM_NUM_GPUS', 0))
     if num_gpus == 0:
         args.gpu = -1
     else:
         # only use gpu0 now
         args.gpu = 0
-    
+
     # specify model save location
-    args.save_path = str(os.environ['SM_MODEL_DIR'])
+    args.save_path = str(os.environ.get('SM_MODEL_DIR', '.'))
     args.save_emb = os.path.join(args.save_path, 'emb')
     print(args)
- 
+
     logger = get_logger(args)
     run(args, logger)

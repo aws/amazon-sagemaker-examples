@@ -1,26 +1,20 @@
 import numpy as np
 import math
 import threading
-from markov.deepracer_exceptions import GenericRolloutException
-from markov.rospy_wrappers import ServiceProxyWrapper
+from markov.log_handler.deepracer_exceptions import GenericRolloutException
 from markov.architecture.constants import Input
 from markov.track_geom.utils import euler_to_quaternion, quaternion_to_euler, apply_orientation
 from markov.cameras.constants import GazeboWorld
 from markov.cameras.utils import normalize, project_to_2d, ray_plane_intersect
-
-import rospy
-from gazebo_msgs.srv import GetModelState
-
+from markov.constants import SIMAPP_VERSION_3
 
 class Frustum(object):
-    def __init__(self, agent_name, observation_list):
+    def __init__(self, agent_name, observation_list, version):
         self.agent_name = agent_name
 
         # define inward direction
         self.ccw = True
 
-        rospy.wait_for_service('/gazebo/get_model_state')
-        self.model_state_client = ServiceProxyWrapper('/gazebo/get_model_state', GetModelState)
         self.frustums = []
         self.cam_poses = []
         self.near_plane_infos = []
@@ -35,15 +29,23 @@ class Frustum(object):
 
         # TODO: Remove below camera_offsets and camera_pitch variables if we can get Camera pose directly
         self.camera_offsets = []
-        if Input.STEREO.value in observation_list:
-            # Hard coded Stereo Camera Offset Position from basis_link
-            self.camera_offsets.append(np.array([0.2, -0.03, 0.164]))
-            self.camera_offsets.append(np.array([0.2, 0.03, 0.164]))
+        # simapp version 3 has different and accurate camera locations
+        if version >= SIMAPP_VERSION_3:
+            # camera offset is calculcated in homogeneous coordinates according to v3 physics at
+            # https://quip-amazon.com/Z2CyAS06rU5R/DeepRacer-Physics
+            # by applying base_link, zed_camera_joint_(rightcam/leftcam), and camera_joint_(rightcam/leftcam)
+            if Input.STEREO.value in observation_list:
+                self.camera_offsets.append(np.array([0.14529379, -0.03, 0.13032555]))
+                self.camera_offsets.append(np.array([0.14529379, 0.03, 0.13032555]))
+            else:
+                self.camera_offsets.append(np.array([0.14529379, 0, 0.13032555]))
         else:
-            # Hard coded Front Facing Camera Offset Position from basis_link
-            self.camera_offsets.append(np.array([0.2, 0, 0.164]))
-        self.camera_pitch = 0.261799
-
+            if Input.STEREO.value in observation_list:
+                self.camera_offsets.append(np.array([0.2, -0.03, 0.164]))
+                self.camera_offsets.append(np.array([0.2, 0.03, 0.164]))
+            else:
+                self.camera_offsets.append(np.array([0.2, 0, 0.164]))
+        self.camera_pitch = 0.2618
     @staticmethod
     def get_forward_vec(quaternion):
         return apply_orientation(quaternion, GazeboWorld.forward)
@@ -56,22 +58,24 @@ class Frustum(object):
     def get_right_vec(quaternion):
         return apply_orientation(quaternion, GazeboWorld.right)
 
-    def update(self):
+    def update(self, car_pose):
         """
         Update the frustums
+
+        Args:
+            car_pose (Pose): Gazebo Pose of the agent
         """
         with self.lock:
             self.frustums = []
             self.cam_poses = []
             self.near_plane_infos = []
             # Retrieve car pose to calculate camera pose.
-            car_model_state = self.model_state_client(self.agent_name, '')
-            car_pos = np.array([car_model_state.pose.position.x, car_model_state.pose.position.y,
-                                car_model_state.pose.position.z])
-            car_quaternion = [car_model_state.pose.orientation.x,
-                              car_model_state.pose.orientation.y,
-                              car_model_state.pose.orientation.z,
-                              car_model_state.pose.orientation.w]
+            car_pos = np.array([car_pose.position.x, car_pose.position.y,
+                                car_pose.position.z])
+            car_quaternion = [car_pose.orientation.x,
+                              car_pose.orientation.y,
+                              car_pose.orientation.z,
+                              car_pose.orientation.w]
             for camera_offset in self.camera_offsets:
                 # Get camera position by applying position offset from the car position.
                 cam_pos = car_pos + apply_orientation(car_quaternion, camera_offset)

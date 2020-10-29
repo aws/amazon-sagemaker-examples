@@ -151,7 +151,7 @@ def train():
     
     if not is_master:
         print(f'Worker: {current_host}')
-        process_search_term = "/usr/local/bin/python3.6 /mask-rcnn-tensorflow/MaskRCNN/train.py"
+        process_search_term = "python3 /mask-rcnn-tensorflow/MaskRCNN/train.py"
         wait_for_training_processes_to_appear_and_finish(process_search_term, current_host)
         print(f'Worker {current_host} has completed')
     else:
@@ -229,7 +229,13 @@ def train():
         resnet_arch = hyperparamters['resnet_arch']
     except KeyError:
         resnet_arch = 'resnet50'
-        
+    
+    load_model = None
+    try:
+        load_model = hyperparamters['load_model']
+    except KeyError:
+        pass
+    
     resnet_num_blocks = '[3, 4, 6, 3]'
     if resnet_arch == 'resnet101':
         resnet_num_blocks = '[3, 4, 23, 3]'
@@ -256,7 +262,7 @@ mpirun -np {numprocesses} \\
 -x HOROVOD_CYCLE_TIME -x HOROVOD_FUSION_THRESHOLD \\
 -x LD_LIBRARY_PATH -x PATH \\
 --output-filename {model_dir}  \\
-/usr/local/bin/python3.6 /mask-rcnn-tensorflow/MaskRCNN/train.py \
+python3 /mask-rcnn-tensorflow/MaskRCNN/train.py \
 --logdir {log_dir} \
 --fp16 \
 --throughput_log_freq=2000 \
@@ -278,6 +284,14 @@ PREPROC.PREDEFINED_PADDING=True \
 TRAIN.GRADIENT_CLIP=0 \
 TRAINER=horovod"""
 
+    for key,item in hyperparamters.items():
+        if key.startswith("config:"):
+            hp=f" {key[7:]}={item}"
+            mpirun_cmd+=hp
+    
+    if load_model:
+        mpirun_cmd += f' --load {train_data_dir}/pretrained-models/{load_model}'
+        
     print("--------Begin MPI Run Command----------")
     print(mpirun_cmd)
     print("--------End MPI Run Comamnd------------")

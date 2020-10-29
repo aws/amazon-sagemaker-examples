@@ -1,0 +1,49 @@
+JOB_TYPE:                             "EVALUATION"
+WORLD_NAME:                           ""
+MODEL_S3_BUCKET:                      ""
+MODEL_S3_PREFIX:                      ""
+AWS_REGION:                           ""
+METRICS_S3_BUCKET:                    ""
+METRICS_S3_OBJECT_KEY:                "/evaluation_metrics.json"
+SIMTRACE_S3_BUCKET:                   ""
+SIMTRACE_S3_PREFIX:                   "/iteration-data/evaluation"
+NUMBER_OF_TRIALS:                     "5"
+ROBOMAKER_SIMULATION_JOB_ACCOUNT_ID:  ""
+CAR_COLOR:                            "Grey"
+NUMBER_OF_RESETS:                     "10000"
+PENALTY_SECONDS:                      "2.0"
+IS_CONTINUOUS:                        "false"
+OFF_TRACK_PENALTY:                    "0.0"
+COLLISION_PENALTY:                    "0.0"
+ENABLE_DOMAIN_RANDOMIZATION:          "false"
+REVERSE_DIR:                          "false"
+
+# Modify this for obstacle avoidance (Having NUMBER_OF_OBSTACLES = 0 nullifies all these parameters)
+NUMBER_OF_OBSTACLES:                  "0"
+MIN_DISTANCE_BETWEEN_OBSTACLES:       "2.0"
+RANDOMIZE_OBSTACLE_LOCATIONS:         "false"
+IS_OBSTACLE_BOT_CAR:                  "false"
+# OBJECT_POSITIONS:
+#  - 0.25, +1
+#  - 0.09, -1
+
+# Modify this for Head to bot (Having NUMBER_OF_BOT_CARS = 0 nullifies all these parameters)
+NUMBER_OF_BOT_CARS:                   "0"
+IS_LANE_CHANGE:                       "false"
+LOWER_LANE_CHANGE_TIME:               "3.0"
+UPPER_LANE_CHANGE_TIME:               "5.0"
+LANE_CHANGE_DISTANCE:                 "1.0"
+MIN_DISTANCE_BETWEEN_BOT_CARS:        "2.0"
+RANDOMIZE_BOT_CAR_LOCATIONS:          "true"
+BOT_CAR_SPEED:                        "0.2"
+
+# Only for the mp4 videos
+MP4_S3_BUCKET:                        ""
+MP4_S3_OBJECT_PREFIX:                 "/iteration-data/evaluation"
+RACE_TYPE:                            "TIME_TRIAL"
+VIDEO_JOB_TYPE:                       "RACING"
+DISPLAY_NAME:                         "LongLongRacerNameBlaBlaBla"
+RACER_NAME:                           "racer-alias"
+MODEL_NAME:                           "bla-bla-model-user-created-in-customer"
+LEADERBOARD_TYPE:                     "LEAGUE"
+LEADERBOARD_NAME:                     "2020 MARCH QUALIFIER"

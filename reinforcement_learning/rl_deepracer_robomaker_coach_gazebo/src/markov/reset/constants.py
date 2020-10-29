@@ -8,12 +8,14 @@ class RaceType(Enum):
     OBJECT_AVOIDANCE = "OBJECT_AVOIDANCE"
     HEAD_TO_BOT = "HEAD_TO_BOT"
     HEAD_TO_MODEL = "HEAD_TO_MODEL"
+    F1 = "F1"
 
 class AgentPhase(Enum):
     '''Enum containing the keys for agent phase
     '''
     PAUSE = "pause"
     RUN = "run"
+    PARK = "park"
 
 class AgentCtrlStatus(Enum):
     '''Enum containing the keys for agent control status
@@ -24,6 +26,7 @@ class AgentCtrlStatus(Enum):
     PREV_PROGRESS = "prev_progress"
     PREV_PNT_DIST = "prev_pnt_dist"
     AGENT_PHASE = "agent_phase"
+    START_NDIST = "start_ndist"
 
     @classmethod
     def validate_dict(cls, input_dict):
@@ -37,6 +40,7 @@ class AgentInfo(Enum):
     LAP_COUNT = "lap_count"
     CURRENT_PROGRESS = "current_progress"
     CRASHED_OBJECT_NAME = "crashed_object_name"
+    START_NDIST = "start_ndist"
 
     @classmethod
     def validate_dict(cls, input_dict):
