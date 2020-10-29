@@ -2,7 +2,7 @@ import argparse
 import json
 import logging
 import os
-import sagemaker_containers
+# import sagemaker_containers
 import sys
 import torch
 import torch.distributed as dist
@@ -11,6 +11,8 @@ import torch.nn.functional as F
 import torch.optim as optim
 import torch.utils.data
 import torch.utils.data.distributed
+import torch.multiprocessing as mp
+
 from torchvision import datasets, transforms
 
 logger = logging.getLogger(__name__)
@@ -40,13 +42,17 @@ class Net(nn.Module):
 
 def _get_train_data_loader(batch_size, training_dir, is_distributed, **kwargs):
     logger.info("Get train data loader")
+    
     dataset = datasets.MNIST(training_dir, train=True, transform=transforms.Compose([
         transforms.ToTensor(),
         transforms.Normalize((0.1307,), (0.3081,))
     ]))
+        
     train_sampler = torch.utils.data.distributed.DistributedSampler(dataset) if is_distributed else None
-    return torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=train_sampler is None,
+    train_loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=(train_sampler is None),
                                        sampler=train_sampler, **kwargs)
+    
+    return train_sampler, train_loader
 
 
 def _get_test_data_loader(test_batch_size, training_dir, **kwargs):
@@ -67,23 +73,21 @@ def _average_gradients(model):
         param.grad.data /= size
 
 
-def train(args):
-    is_distributed = len(args.hosts) > 1 and args.backend is not None
-    logger.debug("Distributed training - {}".format(is_distributed))
+def train(local_rank, args):
+    logger.debug("Distributed training - {}".format(args.is_distributed))
     use_cuda = args.num_gpus > 0
     logger.debug("Number of gpus available - {}".format(args.num_gpus))
     kwargs = {'num_workers': 1, 'pin_memory': True} if use_cuda else {}
     device = torch.device("cuda" if use_cuda else "cpu")
 
-    if is_distributed:
+    if args.is_distributed:
         # Initialize the distributed environment.
-        world_size = len(args.hosts)
-        os.environ['WORLD_SIZE'] = str(world_size)
-        host_rank = args.hosts.index(args.current_host)
-        os.environ['RANK'] = str(host_rank)
-        dist.init_process_group(backend=args.backend, rank=host_rank, world_size=world_size)
-        logger.info('Initialized the distributed environment: \'{}\' backend on {} nodes. '.format(
-            args.backend, dist.get_world_size()) + 'Current host rank is {}. Number of gpus: {}'.format(
+        rank = args.num_gpus * args.node_rank + local_rank
+        world_size = args.num_gpus * args.num_hosts
+        
+        dist.init_process_group(backend=args.backend, init_method='env://', rank=rank, world_size=world_size)
+        logger.info('Initialized the distributed environment: \'{}\' backend on {} GPUs. '.format(
+            args.backend, dist.get_world_size()) + 'Current process rank is {}. Number of gpus: {}'.format(
             dist.get_rank(), args.num_gpus))
 
     # set the seed for generating random numbers
@@ -91,10 +95,11 @@ def train(args):
     if use_cuda:
         torch.cuda.manual_seed(args.seed)
 
-    train_loader = _get_train_data_loader(args.batch_size, args.data_dir, is_distributed, **kwargs)
+    train_sampler, train_loader = _get_train_data_loader(args.batch_size, args.data_dir, args.is_distributed, **kwargs)
     test_loader = _get_test_data_loader(args.test_batch_size, args.data_dir, **kwargs)
 
-    logger.debug("Processes {}/{} ({:.0f}%) of train data".format(
+    logger.debug("{} local_rank - Processes {}/{} ({:.0f}%) of train data".format(
+        local_rank,
         len(train_loader.sampler), len(train_loader.dataset),
         100. * len(train_loader.sampler) / len(train_loader.dataset)
     ))
@@ -104,25 +109,35 @@ def train(args):
         100. * len(test_loader.sampler) / len(test_loader.dataset)
     ))
 
-    model = Net().to(device)
-    if is_distributed and use_cuda:
+    model = Net()
+    if args.is_distributed and use_cuda:
         # multi-machine multi-gpu case
-        model = torch.nn.parallel.DistributedDataParallel(model)
+        torch.cuda.set_device(local_rank)
+        model.cuda(local_rank)
+        model = torch.nn.parallel.DistributedDataParallel(model, device_ids=[local_rank], output_device=local_rank)
     else:
         # single-machine multi-gpu case or single-machine or multi-machine cpu case
         model = torch.nn.DataParallel(model)
-
+        
     optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum)
 
     for epoch in range(1, args.epochs + 1):
+        if args.is_distributed:
+            train_sampler.set_epoch(epoch)
+                    
         model.train()
-        for batch_idx, (data, target) in enumerate(train_loader, 1):
-            data, target = data.to(device), target.to(device)
+
+        for batch_idx, (data, target) in enumerate(train_loader):
+            if use_cuda == True:
+                data, target = data.cuda(local_rank), target.cuda(local_rank)
+            else:
+                data, target = data.to(device), target.to(device)
+            
             optimizer.zero_grad()
             output = model(data)
             loss = F.nll_loss(output, target)
             loss.backward()
-            if is_distributed and not use_cuda:
+            if args.is_distributed and not use_cuda:
                 # average gradients manually for multi-machine cpu case only
                 _average_gradients(model)
             optimizer.step()
@@ -195,4 +210,17 @@ if __name__ == '__main__':
     parser.add_argument('--data-dir', type=str, default=os.environ['SM_CHANNEL_TRAINING'])
     parser.add_argument('--num-gpus', type=int, default=os.environ['SM_NUM_GPUS'])
 
-    train(parser.parse_args())
+    args = parser.parse_args()
+    
+    # For PyTorch DDP
+    args.num_hosts = len(args.hosts)
+    args.node_rank = args.hosts.index(args.current_host)
+    os.environ['MASTER_ADDR'] = args.hosts[0]
+    os.environ['MASTER_PORT'] = '23456'
+    
+    args.is_distributed = True if (len(args.hosts) > 1 and args.backend is not None and args.num_gpus > 0) or args.num_gpus > 1 else False
+    
+    if args.is_distributed == True:
+        mp.spawn(train, nprocs=args.num_gpus, args=(args,))
+    else:
+        train(0, args)
