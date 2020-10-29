@@ -9,6 +9,7 @@ phases:
   pre_build:
     commands:
       - PR_NUM=$(echo $CODEBUILD_SOURCE_VERSION | grep -o '[0-9]\+')
+      - echo 'Testing notebooks for PR ${PR_NUM}'
 
   build:
     commands:
