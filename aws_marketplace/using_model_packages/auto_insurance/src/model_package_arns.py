@@ -27,6 +27,8 @@ class ModelPackageArnProvider:
     def get_vehicle_recognition_model_package_arn(current_region):
         mapping = {
           "us-east-1" : "arn:aws:sagemaker:us-east-1:865070037744:model-package/vehicle-5bbb43353155de115c9fabdde5167c06",
+          "us-east-2" : "arn:aws:sagemaker:us-east-2:057799348421:model-package/vehicle-5bbb43353155de115c9fabdde5167c06",
+
           "ap-northeast-1" : "arn:aws:sagemaker:ap-northeast-1:977537786026:model-package/vehicle-5bbb43353155de115c9fabdde5167c06",
          "ap-northeast-2" : "arn:aws:sagemaker:ap-northeast-2:745090734665:model-package/vehicle-5bbb43353155de115c9fabdde5167c06",
           "ap-southeast-1" : "arn:aws:sagemaker:ap-southeast-1:192199979996:model-package/vehicle-5bbb43353155de115c9fabdde5167c06",
@@ -35,6 +37,9 @@ class ModelPackageArnProvider:
         "ap-south-1":    "arn:aws:sagemaker:ap-south-1:077584701553:model-package/vehicle-5bbb43353155de115c9fabdde5167c06",
          "ca-central-1":"arn:aws:sagemaker:ca-central-1:470592106596:model-package/vehicle-5bbb43353155de115c9fabdde5167c06",   
           "eu-west-1" : "arn:aws:sagemaker:eu-west-1:985815980388:model-package/vehicle-5bbb43353155de115c9fabdde5167c06",
-          "eu-west-2" : "arn:aws:sagemaker:eu-west-2:856760150666:model-package/vehicle-5bbb43353155de115c9fabdde5167c06"
+          "eu-west-2" : "arn:aws:sagemaker:eu-west-2:856760150666:model-package/vehicle-5bbb43353155de115c9fabdde5167c06",
+          "us-west-2" : "arn:aws:sagemaker:us-west-2:594846645681:model-package/vehicle-5bbb43353155de115c9fabdde5167c06",
+          "us-west-1" : "arn:aws:sagemaker:us-west-1:382657785993:model-package/vehicle-5bbb43353155de115c9fabdde5167c06"
+
         }
         return mapping[current_region]
