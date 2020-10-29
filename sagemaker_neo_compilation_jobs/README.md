@@ -5,6 +5,7 @@
 
 These examples focus on the Amazon SageMaker Neo which allows you to compile models and host in pre-built containers.
 
+- [GluonCV SSD Mobilenet](gluoncv_ssd_mobilenet)
 - [Image Classification](imageclassification_caltech)
 - [MNIST with MXNet](mxnet_mnist)
 - [Deploying pre-trained PyTorch vision models](pytorch_torchvision)

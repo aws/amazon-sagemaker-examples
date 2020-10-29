@@ -1,0 +1,16 @@
+ARG REGISTRY_URI
+FROM ${REGISTRY_URI}/mxnet-training:1.6.0-cpu-py3
+
+RUN pip install --upgrade pip
+ENV PATH="/opt/ml/code:${PATH}"
+
+# Copies the training code inside the container
+COPY package/ /opt/ml/code/package/
+COPY container-training/train.py /opt/ml/code/train.py
+COPY container-training/inference.py /opt/ml/code/inference.py
+
+# this environment variable is used by the SageMaker PyTorch container to determine our user code directory.
+ENV SAGEMAKER_SUBMIT_DIRECTORY /opt/ml/code
+
+# Defines train.py as script entrypoint
+ENV SAGEMAKER_PROGRAM train.py
