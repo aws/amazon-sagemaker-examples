@@ -35,7 +35,7 @@ def export_tf_serving(agent, output_dir):
         input_signature["observations"] = tf.saved_model.utils.build_tensor_info(policy.observations)
 
         output_signature = {}
-        output_signature["actions"] = tf.saved_model.utils.build_tensor_info(policy.sampler)
+        output_signature["actions"] = tf.saved_model.utils.build_tensor_info(policy._sampler)
         output_signature["logits"] = tf.saved_model.utils.build_tensor_info(policy.logits)
 
         signature_def = (
