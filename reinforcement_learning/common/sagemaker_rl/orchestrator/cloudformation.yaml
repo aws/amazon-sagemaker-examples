@@ -135,8 +135,10 @@ Resources:
               - "ecr:BatchCheckLayerAvailability"
               - "ecr:GetDownloadUrlForLayer"
               - "ecr:BatchGetImage"
-              - "dynamodb:*"
-              - "firehose:*"
+              - "dynamodb:Query"
+              - "dynamodb:DescribeTable"
+              - "firehose:PutRecord"
+              - "firehose:PutRecordBatch"
             Resource:
               - "*"
       PolicyName: SageMakerAssumedRolePolicy

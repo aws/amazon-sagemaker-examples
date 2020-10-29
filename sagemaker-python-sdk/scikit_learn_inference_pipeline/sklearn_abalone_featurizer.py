@@ -9,13 +9,13 @@ import shutil
 import argparse
 import csv
 import json
+import joblib
 import numpy as np
 import pandas as pd
 
-from sklearn.compose import ColumnTransformer
-from sklearn.externals import joblib
+from sklearn.compose import ColumnTransformer, make_column_selector
 from sklearn.impute import SimpleImputer
-from sklearn.pipeline import Pipeline
+from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import Binarizer, StandardScaler, OneHotEncoder
 
 from sagemaker_containers.beta.framework import (
@@ -35,16 +35,16 @@ feature_columns_names = [
 label_column = 'rings'
 
 feature_columns_dtype = {
-    'sex': str,
-    'length': np.float64,
-    'diameter': np.float64,
-    'height': np.float64,
-    'whole_weight': np.float64,
-    'shucked_weight': np.float64,
-    'viscera_weight': np.float64,
-    'shell_weight': np.float64}
+    'sex': "category",
+    'length': "float64",
+    'diameter': "float64",
+    'height': "float64",
+    'whole_weight': "float64",
+    'shucked_weight': "float64",
+    'viscera_weight': "float64",
+    'shell_weight': "float64"}
 
-label_column_dtype = {'rings': np.float64} # +1.5 gives the age in years
+label_column_dtype = {'rings': "float64"} # +1.5 gives the age in years
 
 def merge_two_dicts(x, y):
     z = x.copy()   # start with x's keys and values
@@ -76,7 +76,10 @@ if __name__ == '__main__':
         names=feature_columns_names + [label_column],
         dtype=merge_two_dicts(feature_columns_dtype, label_column_dtype)) for file in input_files ]
     concat_data = pd.concat(raw_data)
-    
+
+    # Labels should not be preprocessed. predict_fn will reinsert the labels after featurizing.
+    concat_data.drop(label_column, axis=1, inplace=True)
+
     # This section is adapted from the scikit-learn example of using preprocessing pipelines:
     #
     # https://scikit-learn.org/stable/auto_examples/compose/plot_column_transformer_mixed_types.html
@@ -92,22 +95,17 @@ if __name__ == '__main__':
     # - shell_weight: Weight after being dried
     # Categorical Features:
     # - sex: categories encoded as strings {'M', 'F', 'I'} where 'I' is Infant
-    numeric_features = list(feature_columns_names)
-    numeric_features.remove('sex')
-    numeric_transformer = Pipeline(steps=[
-        ('imputer', SimpleImputer(strategy='median')),
-        ('scaler', StandardScaler())])
+    numeric_transformer = make_pipeline(
+        SimpleImputer(strategy='median'),
+        StandardScaler())
 
-    categorical_features = ['sex']
-    categorical_transformer = Pipeline(steps=[
-        ('imputer', SimpleImputer(strategy='constant', fill_value='missing')),
-        ('onehot', OneHotEncoder(handle_unknown='ignore'))])
+    categorical_transformer = make_pipeline(
+        SimpleImputer(strategy='constant', fill_value='missing'),
+        OneHotEncoder(handle_unknown='ignore'))
 
-    preprocessor = ColumnTransformer(
-        transformers=[
-            ('num', numeric_transformer, numeric_features),
-            ('cat', categorical_transformer, categorical_features)],
-        remainder="drop")
+    preprocessor = ColumnTransformer(transformers=[
+            ("num", numeric_transformer, make_column_selector(dtype_exclude="category")),
+            ("cat", categorical_transformer, make_column_selector(dtype_include="category"))])
     
     preprocessor.fit(concat_data)
 
@@ -172,7 +170,7 @@ def predict_fn(input_data, model):
         rest of features either one hot encoded or standardized
     """
     features = model.transform(input_data)
-    
+
     if label_column in input_data:
         # Return the label (as the first column) and the set of features.
         return np.insert(features, 0, input_data[label_column], axis=1)

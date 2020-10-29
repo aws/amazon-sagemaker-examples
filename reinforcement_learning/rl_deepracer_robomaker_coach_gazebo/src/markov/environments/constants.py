@@ -3,6 +3,16 @@
 '''
 # Dimensions of the input training image
 TRAINING_IMAGE_SIZE = (160, 120)
+# Dimensions of input lidar data
+TRAINING_LIDAR_SIZE = 64
+
+# SECTOR_LIDAR sensor constants
+# Number of lidar sectors - to be used when filtering in observation_binary_filter
+NUMBER_OF_LIDAR_SECTORS = 8
+# Number of values in each of the lidar sector - to be used when filtering in observation_binary_filter
+NUMBER_OF_LIDAR_VALUES_IN_EACH_SECTOR = int(TRAINING_LIDAR_SIZE / NUMBER_OF_LIDAR_SECTORS)
+# Max clipping distance for sector lidar sensor
+SECTOR_LIDAR_CLIPPING_DIST = 0.5
 
 LINK_NAMES = ['racecar::left_rear_wheel', 'racecar::left_front_wheel',
               'racecar::right_rear_wheel', 'racecar::right_front_wheel']

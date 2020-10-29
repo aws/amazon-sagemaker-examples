@@ -1,8 +1,9 @@
-from markov.architecture.constants import Input
 '''This module contains the concrete implementations of the agent interface'''
+from markov.architecture.constants import Input
+
 class Agent(object):
     '''Concrete class for agents running in the rollout worker'''
-    def __init__(self, network_settings, sensor, ctrl, metrics):
+    def __init__(self, network_settings, sensor, ctrl):
         '''network_settings - Dictionary containing the desired
                               network configuration
            sensor - Reference to the composite sensor object
@@ -12,45 +13,70 @@ class Agent(object):
         self._network_settings_ = network_settings
         self._sensor_ = sensor
         self._ctrl_ = ctrl
-        self._metrics_ = metrics
 
     @property
     def network_settings(self):
         return self._network_settings_
 
     def get_observation_space(self):
+        '''Get the sensor obervation space
+        '''
         if self._sensor_ is not None:
             return self._sensor_.get_observation_space()
-        else:
-            return None
 
     def get_action_space(self):
+        '''Get the control action space
+        '''
         return self._ctrl_.action_space
 
     def reset_agent(self):
-        self._ctrl_.clear_data()
+        '''Reset agent control and metric instance
+        '''
         self._ctrl_.reset_agent()
-        if self._metrics_ is not None:
-            self._metrics_.reset()
         if self._sensor_ is not None:
             return self._sensor_.get_state()
-        else:
-            return None
 
     def finish_episode(self):
+        ''' Finish episode and update its metrics into s3 bucket
+        '''
         self._ctrl_.finish_episode()
-        if self._metrics_:
-            self._metrics_.upload_episode_metrics()
 
-    def step(self, action):
+    def send_action(self, action):
+        '''Publish action index to gazebo
+
+        Args:
+            action: Interger with the desired action to take
+        '''
         self._ctrl_.send_action(action)
+
+    def update_agent(self, action):
+        '''Update agent status based on taken action and env change
+
+        Args:
+            action: Interger with the desired action to take
+
+        Returns:
+            dict: dictionary contains single agent info map after desired action is taken
+                  with key as each agent's name and value as each agent's info
+        '''
+        return self._ctrl_.update_agent(action)
+
+    def judge_action(self, action, agents_info_map):
+        '''Judge the taken action
+
+        Args:
+            action: Interger with the desired action to take
+            agents_info_map: dictionary contains all agents info map with key as
+                             each agent's name and value as each agent's info
+
+        Returns:
+            tuple: tuple contains next state sensor observation, reward value, and done flag
+        '''
         if self._sensor_ is not None:
             next_state = self._sensor_.get_state()
         else:
             next_state = None
-        reward, done, step_metrics = self._ctrl_.judge_action(action)
-        if self._metrics_ is not None:
-            self._metrics_.upload_step_metrics(step_metrics)
+        reward, done, _ = self._ctrl_.judge_action(agents_info_map)
         if hasattr(self._ctrl_, 'reward_data_pub') and self._ctrl_.reward_data_pub is not None:
             raw_state = self._sensor_.get_raw_state()
             # More visualizations topics can be added here
