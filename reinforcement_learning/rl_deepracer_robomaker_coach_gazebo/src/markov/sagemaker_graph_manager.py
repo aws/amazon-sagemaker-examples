@@ -3,6 +3,7 @@ from markov.architecture.constants import Input
 from markov.architecture.embedder_factory import create_input_embedder, create_middle_embedder
 from markov.environments.deepracer_racetrack_env import DeepRacerRacetrackEnvParameters
 from markov.multi_agent_coach.multi_agent_graph_manager import MultiAgentGraphManager
+from markov.memories.deepracer_memory import DeepRacerMemoryParameters
 
 from rl_coach.agents.clipped_ppo_agent import ClippedPPOAgentParameters
 from rl_coach.base_parameters import VisualizationParameters, PresetValidationParameters, \
@@ -138,7 +139,7 @@ def get_graph_manager(hp_dict, agent_list, run_phase_subject, enable_domain_rand
                 agent_params.exploration.epsilon_schedule = LinearSchedule(1.0,
                                                                            params["e_greedy_value"],
                                                                            params["epsilon_steps"])
-
+            agent_params.memory = DeepRacerMemoryParameters()
             trainable_agents_list.append(agent_params)
         else:
             non_trainable_agents_list.append(agent)

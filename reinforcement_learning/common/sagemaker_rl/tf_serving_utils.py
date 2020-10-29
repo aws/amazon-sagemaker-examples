@@ -1,7 +1,9 @@
-import tensorflow as tf
+import ray
 import os
 import re
+from ray.rllib.utils.framework import try_import_tf
 
+tf = try_import_tf()
 
 def atoi(text):
     return int(text) if text.isdigit() else text
@@ -15,8 +17,8 @@ def change_permissions_recursive(path, mode):
     for root, dirs, files in os.walk(path, topdown=False):
         for dir in [os.path.join(root, d) for d in dirs]:
             os.chmod(dir, mode)
-    for file in [os.path.join(root, f) for f in files]:
-        os.chmod(file, mode)
+        for file in [os.path.join(root, f) for f in files]:
+            os.chmod(file, mode)
 
 
 def export_tf_serving(agent, output_dir):
