@@ -4,6 +4,7 @@ Get started with SageMaker Debugger
 .. toctree::
    :maxdepth: 0
 
+   amazon_sagemaker_debugger_tutorial_notebooks/debugger_tutorial_built_in_rules_debugging
    mnist_tensor_analysis/mnist_tensor_analysis
    mnist_tensor_plot/mnist-tensor-plot
 
@@ -59,7 +60,6 @@ TensorFlow 1.x
 .. toctree::
    :maxdepth: 0
 
-   tensorflow_builtin_rule/tf-mnist-builtin-rule
    tensorflow_action_on_rule/detect_stalled_training_job_and_stop
    tensorflow_action_on_rule/tf-mnist-stop-training-job
    tensorflow_keras_custom_rule/tf-keras-custom-rule
