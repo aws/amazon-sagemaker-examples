@@ -2,7 +2,6 @@ import argparse
 import json
 import logging
 import os
-import sagemaker_containers
 import sys
 import torch
 import torch.distributed as dist
@@ -40,7 +39,8 @@ class Net(nn.Module):
 
 def _get_train_data_loader(batch_size, training_dir, is_distributed, **kwargs):
     logger.info("Get train data loader")
-    dataset = datasets.MNIST(training_dir, train=True, transform=transforms.Compose([
+    dataset = datasets.MNIST(training_dir, train=True, download=True, 
+        transform=transforms.Compose([
         transforms.ToTensor(),
         transforms.Normalize((0.1307,), (0.3081,))
     ]))
@@ -52,7 +52,8 @@ def _get_train_data_loader(batch_size, training_dir, is_distributed, **kwargs):
 def _get_test_data_loader(test_batch_size, training_dir, **kwargs):
     logger.info("Get test data loader")
     return torch.utils.data.DataLoader(
-        datasets.MNIST(training_dir, train=False, transform=transforms.Compose([
+        datasets.MNIST(training_dir, train=False, download=True, 
+            transform=transforms.Compose([
             transforms.ToTensor(),
             transforms.Normalize((0.1307,), (0.3081,))
         ])),
@@ -68,7 +69,9 @@ def _average_gradients(model):
 
 
 def train(args):
-    is_distributed = len(args.hosts) > 1 and args.backend is not None
+    if not os.path.exists(args.model_dir):
+        os.makedirs(args.model_dir)
+    is_distributed = (not args.debug) and len(args.hosts) > 1 and args.backend is not None
     logger.debug("Distributed training - {}".format(is_distributed))
     use_cuda = args.num_gpus > 0
     logger.debug("Number of gpus available - {}".format(args.num_gpus))
@@ -187,6 +190,8 @@ if __name__ == '__main__':
                         help='how many batches to wait before logging training status')
     parser.add_argument('--backend', type=str, default=None,
                         help='backend for distributed training (tcp, gloo on cpu and gloo, nccl on gpu)')
+    parser.add_argument('--debug', action='store_true', 
+                        help='debug this script')
 
     # Container environment
     parser.add_argument('--hosts', type=list, default=json.loads(os.environ['SM_HOSTS']))
