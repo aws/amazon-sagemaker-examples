@@ -6,21 +6,21 @@ class ModelPackageArnProvider:
         mapping = {
     
             "us-east-1" :    "arn:aws:sagemaker:us-east-1:865070037744:model-package/gpt-2-1584040650-de7f6ab78d68d7fdf5f4f39a559d05ac",
-            "us-east-2" :  "arn:aws:sagemaker:us-east-1:865070037744:model-package/gpt-2-1584040650-de7f6ab78d68d7fdf5f4f39a559d05ac",
-            "us-west-1" :  "arn:aws:sagemaker:us-east-1:865070037744:model-package/gpt-2-1584040650-de7f6ab78d68d7fdf5f4f39a559d05ac",
-            "us-west-2" :  "arn:aws:sagemaker:us-east-1:865070037744:model-package/gpt-2-1584040650-de7f6ab78d68d7fdf5f4f39a559d05ac",
-            "ca-central-1" :  "arn:aws:sagemaker:us-east-1:865070037744:model-package/gpt-2-1584040650-de7f6ab78d68d7fdf5f4f39a559d05ac",
-            "eu-central-1" :  "arn:aws:sagemaker:us-east-1:865070037744:model-package/gpt-2-1584040650-de7f6ab78d68d7fdf5f4f39a559d05ac",
-            "eu-west-1" :  "arn:aws:sagemaker:us-east-1:865070037744:model-package/gpt-2-1584040650-de7f6ab78d68d7fdf5f4f39a559d05ac",
-            "eu-west-2" :  "arn:aws:sagemaker:us-east-1:865070037744:model-package/gpt-2-1584040650-de7f6ab78d68d7fdf5f4f39a559d05ac",
-            "eu-west-3" :  "arn:aws:sagemaker:us-east-1:865070037744:model-package/gpt-2-1584040650-de7f6ab78d68d7fdf5f4f39a559d05ac",
-            "eu-north-1" :  "arn:aws:sagemaker:us-east-1:865070037744:model-package/gpt-2-1584040650-de7f6ab78d68d7fdf5f4f39a559d05ac",
-            "ap-southeast-1" :  "arn:aws:sagemaker:us-east-1:865070037744:model-package/gpt-2-1584040650-de7f6ab78d68d7fdf5f4f39a559d05ac",
-            "ap-southeast-2" :  "arn:aws:sagemaker:us-east-1:865070037744:model-package/gpt-2-1584040650-de7f6ab78d68d7fdf5f4f39a559d05ac",
-            "ap-northeast-2" :  "arn:aws:sagemaker:us-east-1:865070037744:model-package/gpt-2-1584040650-de7f6ab78d68d7fdf5f4f39a559d05ac",
-            "ap-northeast-1" :  "arn:aws:sagemaker:us-east-1:865070037744:model-package/gpt-2-1584040650-de7f6ab78d68d7fdf5f4f39a559d05ac",
-            "ap-south-1" :  "arn:aws:sagemaker:us-east-1:865070037744:model-package/gpt-2-1584040650-de7f6ab78d68d7fdf5f4f39a559d05ac",
-            "sa-east-1" :   "arn:aws:sagemaker:us-east-1:865070037744:model-package/gpt-2-1584040650-de7f6ab78d68d7fdf5f4f39a559d05ac"
+            "us-east-2" :  "arn:aws:sagemaker:us-east-2:865070037744:model-package/gpt-2-1584040650-de7f6ab78d68d7fdf5f4f39a559d05ac",
+            "us-west-1" :  "arn:aws:sagemaker:us-west-1:865070037744:model-package/gpt-2-1584040650-de7f6ab78d68d7fdf5f4f39a559d05ac",
+            "us-west-2" :  "arn:aws:sagemaker:us-west-2:865070037744:model-package/gpt-2-1584040650-de7f6ab78d68d7fdf5f4f39a559d05ac",
+            "ca-central-1" :  "arn:aws:sagemaker:ca-central-1:865070037744:model-package/gpt-2-1584040650-de7f6ab78d68d7fdf5f4f39a559d05ac",
+            "eu-central-1" :  "arn:aws:sagemaker:eu-central-1:865070037744:model-package/gpt-2-1584040650-de7f6ab78d68d7fdf5f4f39a559d05ac",
+            "eu-west-1" :  "arn:aws:sagemaker:eu-west-1:865070037744:model-package/gpt-2-1584040650-de7f6ab78d68d7fdf5f4f39a559d05ac",
+            "eu-west-2" :  "arn:aws:sagemaker:eu-west-2:865070037744:model-package/gpt-2-1584040650-de7f6ab78d68d7fdf5f4f39a559d05ac",
+            "eu-west-3" :  "arn:aws:sagemaker:eu-west-3:865070037744:model-package/gpt-2-1584040650-de7f6ab78d68d7fdf5f4f39a559d05ac",
+            "eu-north-1" :  "arn:aws:sagemaker:eu-north-1:865070037744:model-package/gpt-2-1584040650-de7f6ab78d68d7fdf5f4f39a559d05ac",
+            "ap-southeast-1" :  "arn:aws:sagemaker:ap-southeast-1:865070037744:model-package/gpt-2-1584040650-de7f6ab78d68d7fdf5f4f39a559d05ac",
+            "ap-southeast-2" :  "arn:aws:sagemaker:ap-southeast-2:865070037744:model-package/gpt-2-1584040650-de7f6ab78d68d7fdf5f4f39a559d05ac",
+            "ap-northeast-2" :  "arn:aws:sagemaker:ap-northeast-2:865070037744:model-package/gpt-2-1584040650-de7f6ab78d68d7fdf5f4f39a559d05ac",
+            "ap-northeast-1" :  "arn:aws:sagemaker:ap-northeast-1:865070037744:model-package/gpt-2-1584040650-de7f6ab78d68d7fdf5f4f39a559d05ac",
+            "ap-south-1" :  "arn:aws:sagemaker:ap-south-1:865070037744:model-package/gpt-2-1584040650-de7f6ab78d68d7fdf5f4f39a559d05ac",
+            "sa-east-1" :   "arn:aws:sagemaker:sa-east-1:865070037744:model-package/gpt-2-1584040650-de7f6ab78d68d7fdf5f4f39a559d05ac"
 
                     }
         return mapping[current_region]
