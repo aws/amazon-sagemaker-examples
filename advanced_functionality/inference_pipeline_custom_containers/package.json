@@ -1,0 +1,9 @@
+{
+  "name": "ml-inference-filter",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "create": "CF_BUCKET=cf-state-degibb ./scripts/create-stack.sh",
+    "update": "CF_BUCKET=cf-state-degibb ./scripts/update-stack.sh"
+  }
+}
