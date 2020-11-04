@@ -1,5 +1,5 @@
 import tensorflow as tf
-import tensorflow.contrib.slim as slim
+import tf_slim as slim
 
 from ray.rllib.models import Model, ModelCatalog
 from ray.rllib.models.misc import normc_initializer
