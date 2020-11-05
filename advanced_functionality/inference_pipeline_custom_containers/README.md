@@ -11,7 +11,7 @@ Prerequisites:
 
 Setup instructions
 
- 1. Run the cloudformation script. As a convenience you can run `npm run-script create`, which will run the Cloudformation commands for you. If you wish to that first update `package.json`, and replace the sections which read `<CF BUCKET HERE>` with the name of a S3 bucket which you want to use to store the packaged cloudformation templates. If you want to run this manually execute the steps in `./scripts/create-stack.sh`.
+ 1. Run the cloudformation script. `aws cloudformation create-stack --cli-input-json file://create-stack.json --template-body file://templates/main.yml`
  2. Load the preprocessor custom container into ECR. First change into the proper path: `cd ./containers/preprocessor/scripts` and run `sh build_and_push.sh $AWS_ACCOUNT_ID us-west-2 custompipeline/preprocessor`
  3. Load the postprocessor custom container into ECR. First change into the proper path: `cd ./containers/preprocessor/scripts` and run `sh build_and_push.sh $AWS_ACCOUNT_ID us-west-2 custompipeline/postprocessor`
  4. Launch the Jupypter notebook. Click on: `restart and run all cells`

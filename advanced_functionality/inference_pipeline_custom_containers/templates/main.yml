@@ -3,7 +3,7 @@ Parameters:
   GitRepoUrl:
     Type: String
     Description: The Github repository
-    Default: https://github.com/gibbster/fs-sagemaker-custom-pipeline
+    Default: https://github.com/aws/amazon-sagemaker-examples
 
 Resources:
   FeatureTable:
