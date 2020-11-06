@@ -210,11 +210,11 @@ class ModelManager():
         args = dict(entry_point=entry_point,
                     source_dir='src',
                     dependencies=["common/sagemaker_rl"],
-                    image_uri=self.image,
+                    image_name=self.image,
                     role=self.role,
                     sagemaker_session=self.sagemaker_session,
-                    instance_type=self.instance_type,
-                    instance_count=self.instance_count,
+                    train_instance_type=self.instance_type,
+                    train_instance_count=self.instance_count,
                     metric_definitions=metric_definitions,
                     hyperparameters=self.algor_params,
                     output_path=output_path,
@@ -235,7 +235,7 @@ class ModelManager():
         self.rl_estimator = RLEstimator(**rl_estimator_args)
 
         if manifest_file_path:
-            input_data = sagemaker.inputs.TrainingInput(
+            input_data = sagemaker.session.s3_input(
                 s3_data=manifest_file_path,
                 input_mode='File',
                 s3_data_type='ManifestFile'
@@ -290,7 +290,7 @@ class ModelManager():
             self.rl_estimator = RLEstimator(**rl_estimator_args)
 
             if manifest_file_path:
-                inputs = sagemaker.inputs.TrainingInput(
+                inputs = sagemaker.session.s3_input(
                     s3_data=manifest_file_path, 
                     s3_data_type='ManifestFile'
                 )
@@ -333,7 +333,7 @@ class ModelManager():
         rl_estimator_args['model_uri'] = model_artifact_path
 
         if manifest_file_path:
-            inputs = sagemaker.inputs.TrainingInput(
+            inputs = sagemaker.session.s3_input(
                 s3_data=manifest_file_path, 
                 s3_data_type='ManifestFile'
             )
