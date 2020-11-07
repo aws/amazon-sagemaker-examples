@@ -22,6 +22,7 @@ class RlCoachSyncFile():
     '''This class is for rl coach sync file: .finished, .lock, and .ready
     '''
     def __init__(self, syncfile_type, bucket, s3_prefix, region_name="us-east-1",
+                 s3_endpoint_url=None,
                  local_dir='./checkpoint',
                  max_retry_attempts=5, backoff_time_sec=1.0):
         '''This class is for rl coach sync file: .finished, .lock, and .ready
@@ -51,6 +52,7 @@ class RlCoachSyncFile():
         self._local_path = os.path.normpath(
             SYNC_FILES_LOCAL_PATH_FORMAT_DICT[syncfile_type].format(local_dir))
         self._s3_client = S3Client(region_name,
+                                   s3_endpoint_url,
                                    max_retry_attempts,
                                    backoff_time_sec)
 

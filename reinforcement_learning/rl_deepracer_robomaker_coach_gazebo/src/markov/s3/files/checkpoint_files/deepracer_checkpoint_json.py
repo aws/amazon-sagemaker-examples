@@ -23,6 +23,7 @@ class DeepracerCheckpointJson():
     '''This class is for deepracer checkpoint json file upload and download
     '''
     def __init__(self, bucket, s3_prefix, region_name='us-east-1',
+                 s3_endpoint_url=None,
                  local_dir='.checkpoint/agent',
                  max_retry_attempts=0, backoff_time_sec=1.0):
         '''This class is for deepracer checkpoint json file upload and download
@@ -50,6 +51,7 @@ class DeepracerCheckpointJson():
         self._local_path = os.path.normpath(
             DEEPRACER_CHECKPOINT_LOCAL_PATH_FORMAT.format(local_dir))
         self._s3_client = S3Client(region_name,
+                                   s3_endpoint_url,
                                    max_retry_attempts,
                                    backoff_time_sec)
 

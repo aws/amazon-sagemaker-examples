@@ -12,6 +12,7 @@ class MetricsS3Keys(Enum):
     REGION = 'aws_region'
     METRICS_BUCKET = 'metrics_bucket'
     METRICS_KEY = 'metrics_key'
+    ENDPOINT_URL = 'endpoint_url'
 
 class EvalMetricsKeys(Enum):
     '''The shared metric key for eval metrics'''
