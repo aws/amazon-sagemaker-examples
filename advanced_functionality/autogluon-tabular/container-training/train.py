@@ -64,7 +64,7 @@ def get_roc_auc(X_test, y_test_true, y_test_pred, labels, model_output_dir):
     n_classes = len(labels)
     y_test_true_binalized = label_binarize(y_test_true, classes=labels)
     
-    if len(y_test_pred.shape) == 1:
+    if len(labels) == 2:
         y_test_pred = np.reshape(y_test_pred, (-1, 1))
     
     # Compute ROC curve and ROC area for each class
@@ -100,6 +100,9 @@ def get_roc_auc(X_test, y_test_true, y_test_pred, labels, model_output_dir):
     
     
 def train(args):
+    
+    model_output_dir = f'{args.output_dir}/data'
+    
     is_distributed = len(args.hosts) > 1
     host_rank = args.hosts.index(args.current_host)
     dist_ip_addrs = args.hosts
@@ -176,7 +179,7 @@ def train(args):
                 
                 if predictor.problem_type == BINARY:
                     print(f'DEBUG calling get_roc_auc with {predictor.problem_type}')
-                    get_roc_auc(X_test, y_test_true, y_test_pred_prob[:,0], predictor.class_labels[:1], model_output_dir)
+                    get_roc_auc(X_test, y_test_true, y_test_pred_prob[:,0], predictor.class_labels, model_output_dir)
                 elif predictor.problem_type == MULTICLASS:
                     print(f'DEBUG calling get_roc_auc with {predictor.problem_type}')
                     get_roc_auc(X_test, y_test_true, y_test_pred_prob, predictor.class_labels, model_output_dir)
