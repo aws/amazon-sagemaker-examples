@@ -163,20 +163,21 @@ def train(args):
                 y_test_pred = predictor.predict(X_test)
                 y_test_pred_prob = predictor.predict_proba(X_test, as_multiclass=True)
                 
-                report_dict = classification_report(y_test_true, y_test_pred, output_dict=True, labels=predictor.class_labels)
-                report_dict_df = pd.DataFrame(report_dict).T
-                report_dict_df.to_csv(f'{model_output_dir}/classification_report.csv', index=True)
-                
-                cm = confusion_matrix(y_test_true, y_test_pred, labels=predictor.class_labels)
-                cm_df = pd.DataFrame(cm, predictor.class_labels, predictor.class_labels)
-                sns.set(font_scale=1)
-                cmap = 'coolwarm'
-                sns.heatmap(cm_df, annot=True, fmt='d', cmap=cmap)
-                plt.title('Confusion Matrix')
-                plt.ylabel('true label')
-                plt.xlabel('predicted label')
-                plt.show()
-                plt.savefig(f'{model_output_dir}/confusion_matrix.png')
+                if predictor.problem_type in [BINARY, MULTICLASS]:
+                    report_dict = classification_report(y_test_true, y_test_pred, output_dict=True, labels=predictor.class_labels)
+                    report_dict_df = pd.DataFrame(report_dict).T
+                    report_dict_df.to_csv(f'{model_output_dir}/classification_report.csv', index=True)
+
+                    cm = confusion_matrix(y_test_true, y_test_pred, labels=predictor.class_labels)
+                    cm_df = pd.DataFrame(cm, predictor.class_labels, predictor.class_labels)
+                    sns.set(font_scale=1)
+                    cmap = 'coolwarm'
+                    sns.heatmap(cm_df, annot=True, fmt='d', cmap=cmap)
+                    plt.title('Confusion Matrix')
+                    plt.ylabel('true label')
+                    plt.xlabel('predicted label')
+                    plt.show()
+                    plt.savefig(f'{model_output_dir}/confusion_matrix.png')
                 
                 if predictor.problem_type == BINARY:
                     print(f'DEBUG calling get_roc_auc with {predictor.problem_type}')
