@@ -9,7 +9,7 @@ ENV PATH="/opt/ml/code:${PATH}"
 COPY container-training/train.py /opt/ml/code/train.py
 COPY container-training/inference.py /opt/ml/code/inference.py
 
-# Install seaborn for plotting
+# Install seaborn for plot
 RUN pip install seaborn
 
 # this environment variable is used by the SageMaker PyTorch container to determine our user code directory.
