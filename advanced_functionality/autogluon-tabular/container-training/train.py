@@ -13,12 +13,18 @@ import pandas as pd
 from collections import Counter
 from timeit import default_timer as timer
 
+import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
+import shutil
+
 with warnings.catch_warnings():
     warnings.filterwarnings('ignore', category=DeprecationWarning)
     from prettytable import PrettyTable
     import autogluon as ag
     from autogluon import TabularPrediction as task
     from autogluon.task.tabular_prediction import TabularDataset
+    from autogluon.utils.tabular.ml.constants import BINARY, MULTICLASS, REGRESSION, SOFTCLASS
 
 
 # ------------------------------------------------------------ #
@@ -49,6 +55,50 @@ def format_for_print(df):
         table.add_row(row[1:])
     return str(table)
 
+def get_roc_auc(X_test, y_test_true, y_test_pred, labels, model_output_dir):
+    from sklearn.preprocessing import label_binarize
+    from sklearn.metrics import roc_curve, auc
+
+    from itertools import cycle
+    
+    n_classes = len(labels)
+    y_test_true_binalized = label_binarize(y_test_true, classes=labels)
+    
+    if len(y_test_pred.shape) == 1:
+        y_test_pred = np.reshape(y_test_pred, (-1, 1))
+    
+    # Compute ROC curve and ROC area for each class
+    fpr = dict()
+    tpr = dict()
+    roc_auc = dict()
+
+    for i in range(n_classes):
+        fpr[i], tpr[i], _ = roc_curve(y_test_true_binalized[:, i], y_test_pred[:, i])
+        roc_auc[i] = auc(fpr[i], tpr[i])
+
+    # Compute micro-average ROC curve and ROC area
+    fpr["micro"], tpr["micro"], _ = roc_curve(y_test_true_binalized.ravel(), y_test_pred.ravel())
+    roc_auc["micro"] = auc(fpr["micro"], tpr["micro"])
+    
+    sns.set(font_scale=1)
+    plt.figure()
+    lw = 2
+    colors = cycle(['aqua', 'darkorange', 'cornflowerblue'])
+
+    for i, color in zip(range(n_classes), colors):
+        plt.plot(fpr[i], tpr[i], color=color,
+                 lw=lw, label=f'ROC curve for {i} (area = %0.2f)' % roc_auc[i])
+    plt.plot([0, 1], [0, 1], color='navy', lw=lw, linestyle='--')
+    plt.xlim([0.0, 1.0])
+    plt.ylim([0.0, 1.05])
+    plt.xlabel('False Positive Rate')
+    plt.ylabel('True Positive Rate')
+    plt.title('Receiver operating characteristic example')
+    plt.legend(loc="lower right")
+    plt.show()
+    plt.savefig(f'{model_output_dir}/roc_auc_curve.png')
+    
+    
 def train(args):
     is_distributed = len(args.hosts) > 1
     host_rank = args.hosts.index(args.current_host)
@@ -86,6 +136,7 @@ def train(args):
             print('Running model on test data and getting Leaderboard...')
             leaderboard = predictor.leaderboard(dataset=test_data, silent=True)
             print(format_for_print(leaderboard), end='\n\n')
+            leaderboard.to_csv(f'{model_output_dir}/leaderboard.csv', index=False)
 
             # Feature importance on test data
             # Note: Feature importance must be calculated on held-out (test) data.
@@ -94,7 +145,42 @@ def train(args):
                 print('Feature importance:')
                 # Increase rows to print feature importance                
                 pd.set_option('display.max_rows', 500)
-                print(predictor.feature_importance(test_data))
+                feature_importance = predictor.feature_importance(test_data)
+                print(feature_importance)
+                feature_importance.to_csv(f'{model_output_dir}/feature_importance.csv', index=True)
+                
+            # Classification report and confusion matrix for classification model
+            if predictor.problem_type in [BINARY, MULTICLASS]:
+                from sklearn.metrics import classification_report, confusion_matrix
+                
+                
+                X_test = test_data.drop(args.fit_args['label'], axis=1)
+                y_test_true = test_data[args.fit_args['label']]
+                y_test_pred = predictor.predict(X_test)
+                y_test_pred_prob = predictor.predict_proba(X_test, as_multiclass=True)
+                
+                report_dict = classification_report(y_test_true, y_test_pred, output_dict=True, labels=predictor.class_labels)
+                report_dict_df = pd.DataFrame(report_dict).T
+                report_dict_df.to_csv(f'{model_output_dir}/classification_report.csv', index=True)
+                
+                cm = confusion_matrix(y_test_true, y_test_pred, labels=predictor.class_labels)
+                cm_df = pd.DataFrame(cm, predictor.class_labels, predictor.class_labels)
+                sns.set(font_scale=1)
+                cmap = 'coolwarm'
+                sns.heatmap(cm_df, annot=True, fmt='d', cmap=cmap)
+                plt.title('Confusion Matrix')
+                plt.ylabel('true label')
+                plt.xlabel('predicted label')
+                plt.show()
+                plt.savefig(f'{model_output_dir}/confusion_matrix.png')
+                
+                if predictor.problem_type == BINARY:
+                    print(f'DEBUG calling get_roc_auc with {predictor.problem_type}')
+                    get_roc_auc(X_test, y_test_true, y_test_pred_prob[:,0], predictor.class_labels[:1], model_output_dir)
+                elif predictor.problem_type == MULTICLASS:
+                    print(f'DEBUG calling get_roc_auc with {predictor.problem_type}')
+                    get_roc_auc(X_test, y_test_true, y_test_pred_prob, predictor.class_labels, model_output_dir)
+                    
         else:
             warnings.warn('Skipping eval on test data since label column is not included.')
 
@@ -119,6 +205,7 @@ def parse_args():
     parser.add_argument('--current-host', type=str, default=os.environ['SM_CURRENT_HOST'])
     parser.add_argument('--num-gpus', type=int, default=os.environ['SM_NUM_GPUS'])
     parser.add_argument('--model-dir', type=str, default=os.environ['SM_MODEL_DIR'])
+    parser.add_argument('--output-dir', type=str, default=os.environ['SM_OUTPUT_DIR'])
     parser.add_argument('--train', type=str, default=os.environ['SM_CHANNEL_TRAINING'])
     # Arguments to be passed to task.fit()
     parser.add_argument('--fit_args', type=lambda s: ast.literal_eval(s),
