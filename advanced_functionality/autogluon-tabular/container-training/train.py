@@ -66,6 +66,7 @@ def get_roc_auc(X_test, y_test_true, y_test_pred, labels, model_output_dir):
     
     if len(labels) == 2:
         y_test_pred = np.reshape(y_test_pred, (-1, 1))
+        n_classes = 1
     
     # Compute ROC curve and ROC area for each class
     fpr = dict()
