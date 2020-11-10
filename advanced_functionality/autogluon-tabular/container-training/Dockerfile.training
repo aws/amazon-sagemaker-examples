@@ -1,11 +1,11 @@
 ARG REGISTRY_URI
 FROM ${REGISTRY_URI}/mxnet-training:1.6.0-cpu-py3
 
-RUN pip install --upgrade pip
+RUN pip install autogluon
+RUN pip install PrettyTable
 ENV PATH="/opt/ml/code:${PATH}"
 
 # Copies the training code inside the container
-COPY package/ /opt/ml/code/package/
 COPY container-training/train.py /opt/ml/code/train.py
 COPY container-training/inference.py /opt/ml/code/inference.py
 
