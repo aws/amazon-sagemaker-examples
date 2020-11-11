@@ -57,17 +57,24 @@ def format_for_print(df):
         table.add_row(row[1:])
     return str(table)
 
-def get_roc_auc(X_test, y_test_true, y_test_pred, labels, model_output_dir):
+def get_roc_auc(y_test_true, y_test_pred, labels, class_labels_internal, model_output_dir):
     from sklearn.preprocessing import label_binarize
     from sklearn.metrics import roc_curve, auc
 
     from itertools import cycle
-    
-    n_classes = len(labels)
+        
     y_test_true_binalized = label_binarize(y_test_true, classes=labels)
     
-    if len(y_test_pred.shape) == 1:
+    if len(labels) == 2:
+        # binary classification
+        true_label_index = class_labels_internal.index(1)
+        y_test_pred = y_test_pred[:,true_label_index]
         y_test_pred = np.reshape(y_test_pred, (-1, 1))
+        labels = labels[true_label_index:true_label_index+1]
+        n_classes = 1
+    else:
+        # multiclass classification
+        n_classes = len(labels)
     
     # Compute ROC curve and ROC area for each class
     fpr = dict()
@@ -89,7 +96,7 @@ def get_roc_auc(X_test, y_test_true, y_test_pred, labels, model_output_dir):
 
     for i, color in zip(range(n_classes), colors):
         plt.plot(fpr[i], tpr[i], color=color,
-                 lw=lw, label=f'ROC curve for {i} (area = %0.2f)' % roc_auc[i])
+                 lw=lw, label=f'ROC curve for {labels[i]} (area = %0.2f)' % roc_auc[i])
     plt.plot([0, 1], [0, 1], color='navy', lw=lw, linestyle='--')
     plt.xlim([0.0, 1.0])
     plt.ylim([0.0, 1.05])
@@ -162,7 +169,6 @@ def train(args):
             if predictor.problem_type in [BINARY, MULTICLASS]:
                 from sklearn.metrics import classification_report, confusion_matrix
                 
-                
                 X_test = test_data.drop(args.fit_args['label'], axis=1)
                 y_test_true = test_data[args.fit_args['label']]
                 y_test_pred = predictor.predict(X_test)
@@ -183,12 +189,7 @@ def train(args):
                 plt.show()
                 plt.savefig(f'{model_output_dir}/confusion_matrix.png')
                 
-                if predictor.problem_type == BINARY:
-                    print(f'DEBUG calling get_roc_auc with {predictor.problem_type}')
-                    get_roc_auc(X_test, y_test_true, y_test_pred_prob[:,0], predictor.class_labels[:1], model_output_dir)
-                elif predictor.problem_type == MULTICLASS:
-                    print(f'DEBUG calling get_roc_auc with {predictor.problem_type}')
-                    get_roc_auc(X_test, y_test_true, y_test_pred_prob, predictor.class_labels, model_output_dir)
+                get_roc_auc(y_test_true, y_test_pred_prob, predictor.class_labels, predictor.class_labels_internal, model_output_dir)
         else:
             warnings.warn('Skipping eval on test data since label column is not included.')
 
