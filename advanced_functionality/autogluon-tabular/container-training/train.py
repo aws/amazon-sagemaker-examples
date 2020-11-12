@@ -13,12 +13,6 @@ import pandas as pd
 from collections import Counter
 from timeit import default_timer as timer
 
-import numpy as np
-import seaborn as sns
-import matplotlib.pyplot as plt
-import shutil
-import networkx as nx
-
 with warnings.catch_warnings():
     warnings.filterwarnings('ignore', category=DeprecationWarning)
     from prettytable import PrettyTable

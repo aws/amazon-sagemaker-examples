@@ -3,13 +3,6 @@ FROM ${REGISTRY_URI}
 
 RUN pip install autogluon
 RUN pip install PrettyTable
-RUN pip install bokeh
-
-RUN apt-get update \
-  && apt-get install -y --no-install-recommends graphviz libgraphviz-dev pkg-config \
-  && rm -rf /var/lib/apt/lists/* \
-  && pip install pygraphviz
-  
 ENV PATH="/opt/ml/code:${PATH}"
 
 # Copies the training code inside the container
