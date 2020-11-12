@@ -36,6 +36,7 @@ class Checkpoint():
     RlCoachSyncFile, TensorflowModel to handle all checkpoint related logic
     '''
     def __init__(self, bucket, s3_prefix, region_name="us-east-1",
+                 s3_endpoint_url=None,
                  agent_name='agent', checkpoint_dir="./checkpoint",
                  max_retry_attempts=5, backoff_time_sec=1.0):
         '''This class is a placeholder for RLCoachCheckpoint, DeepracerCheckpointJson,
@@ -64,6 +65,7 @@ class Checkpoint():
         self._rl_coach_checkpoint = RLCoachCheckpoint(bucket=bucket,
                                                       s3_prefix=s3_prefix,
                                                       region_name=region_name,
+                                                      s3_endpoint_url=s3_endpoint_url,
                                                       local_dir=os.path.join(checkpoint_dir,
                                                                              agent_name),
                                                       max_retry_attempts=max_retry_attempts,
@@ -76,6 +78,7 @@ class Checkpoint():
             DeepracerCheckpointJson(bucket=bucket,
                                     s3_prefix=s3_prefix,
                                     region_name=region_name,
+                                    s3_endpoint_url=s3_endpoint_url,
                                     local_dir=os.path.join(checkpoint_dir, agent_name),
                                     max_retry_attempts=0,
                                     backoff_time_sec=backoff_time_sec)
@@ -85,6 +88,7 @@ class Checkpoint():
                                                   bucket=bucket,
                                                   s3_prefix=s3_prefix,
                                                   region_name=region_name,
+                                                  s3_endpoint_url=s3_endpoint_url,
                                                   local_dir=os.path.join(checkpoint_dir,
                                                                          agent_name),
                                                   max_retry_attempts=max_retry_attempts,
@@ -95,6 +99,7 @@ class Checkpoint():
                                               bucket=bucket,
                                               s3_prefix=s3_prefix,
                                               region_name=region_name,
+                                              s3_endpoint_url=s3_endpoint_url,
                                               local_dir=checkpoint_dir,
                                               max_retry_attempts=max_retry_attempts,
                                               backoff_time_sec=backoff_time_sec)
@@ -104,6 +109,7 @@ class Checkpoint():
                                                bucket=bucket,
                                                s3_prefix=s3_prefix,
                                                region_name=region_name,
+                                               s3_endpoint_url=s3_endpoint_url,
                                                local_dir=os.path.join(checkpoint_dir,
                                                                       agent_name),
                                                max_retry_attempts=max_retry_attempts,
@@ -113,6 +119,7 @@ class Checkpoint():
         self._tensorflow_model = TensorflowModel(bucket=bucket,
                                                  s3_prefix=s3_prefix,
                                                  region_name=region_name,
+                                                 s3_endpoint_url=s3_endpoint_url,
                                                  local_dir=os.path.join(checkpoint_dir,
                                                                         agent_name),
                                                  max_retry_attempts=max_retry_attempts,
