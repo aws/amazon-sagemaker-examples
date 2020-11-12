@@ -4,6 +4,8 @@ FROM ${REGISTRY_URI}
 RUN pip install autogluon
 RUN pip install PrettyTable
 RUN pip install bokeh
+RUN pip install graphviz
+RUN pip install pygraphviz
 ENV PATH="/opt/ml/code:${PATH}"
 
 # Copies the training code inside the container
