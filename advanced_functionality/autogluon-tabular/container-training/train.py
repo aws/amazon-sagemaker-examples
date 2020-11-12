@@ -17,6 +17,7 @@ import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
 import shutil
+import networkx as nx
 
 with warnings.catch_warnings():
     warnings.filterwarnings('ignore', category=DeprecationWarning)
@@ -141,6 +142,17 @@ def train(args):
     if os.path.exists(model_summary_fname_src):
         shutil.copy(model_summary_fname_src, model_summary_fname_tgt)
     
+    # ensemble visualization
+    G = predictor._trainer.model_graph
+    remove = [node for node,degree in dict(G.degree()).items() if degree < 1]
+    G.remove_nodes_from(remove)
+    A = nx.nx_agraph.to_agraph(G)
+    A.graph_attr.update(rankdir='BT')
+    A.node_attr.update(fontsize=10)
+    for node in A.iternodes():
+        node.attr['shape'] = 'rectagle'
+    A.draw(os.path.join(model_output_dir, 'ensemble-model.png'), format='png', prog='dot')
+
     # Optional test data
     if args.test:
         print(f'Test files: {os.listdir(args.test)}')
@@ -261,3 +273,4 @@ if __name__ == "__main__":
 
     elapsed_time = round(timer()-start,3)
     print(f'Elapsed time: {elapsed_time} seconds. Training Completed!')
+
