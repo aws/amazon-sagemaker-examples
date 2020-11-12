@@ -13,7 +13,6 @@ import pandas as pd
 from collections import Counter
 from timeit import default_timer as timer
 
-sys.path.insert(0, 'package')
 with warnings.catch_warnings():
     warnings.filterwarnings('ignore', category=DeprecationWarning)
     from prettytable import PrettyTable
