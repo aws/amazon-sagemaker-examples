@@ -26,6 +26,7 @@ class IpConfig():
     '''ip upload, download, and parse
     '''
     def __init__(self, bucket, s3_prefix, region_name='us-east-1',
+                 s3_endpoint_url=None,
                  local_path="./custom_files/agent/ip.json",
                  max_retry_attempts=5, backoff_time_sec=1.0):
         '''ip upload, download, and parse
@@ -53,6 +54,7 @@ class IpConfig():
             IP_ADDRESS_POSTFIX))
         self._local_path = local_path
         self._s3_client = S3Client(region_name,
+                                   s3_endpoint_url,
                                    max_retry_attempts,
                                    backoff_time_sec)
         self._ip_file = None
