@@ -46,17 +46,23 @@ On SageMaker Studio, you will need to open a terminal, go to your home folder, t
 
 .. toctree::
    :maxdepth: 1
-   :caption: Data Ingestion
+   :caption: Ingest Data
 
-   data_ingestion/index
+   ingest_data/index
 
 
 .. toctree::
    :maxdepth: 1
-   :caption: Preprocessing
+   :caption: Label Data
 
-   preprocessing/index
-   ground_truth_labeling_jobs/index
+   label_data/index
+
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Prep Data
+
+   prep_data/index
 
 
 .. toctree::
