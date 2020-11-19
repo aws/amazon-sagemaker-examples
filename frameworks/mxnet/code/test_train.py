@@ -5,9 +5,9 @@ import os
 import boto3
 import json
 
+dirname = os.path.dirname(os.path.abspath(__file__))
 
-CONFIG_FILE=os.path.join(os.environ["SAGEMAKER_EXAMPLES_DIR"], "config.json")
-with open(CONFIG_FILE, "r") as f:
+with open(os.path.join(dirname, "config.json"), "r") as f:
     CONFIG = json.load(f)
     
 def download_from_s3(data_dir='/tmp/data', train=True):
