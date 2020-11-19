@@ -6,6 +6,7 @@ import boto3
 import json
 
 CONFIG_FILE="../../config.json"
+
 with open(CONFIG_FILE, "r") as f:
     CONFIG = json.load(f)
 
@@ -37,10 +38,10 @@ def mnist_to_numpy(data_dir='/tmp/data', train=True):
     for obj in [images_file, labels_file]:
         key = os.path.join("datasets/image/MNIST", obj)
         dest = os.path.join(data_dir, obj)
-        s3.download_file(bucket, key, dest)
+        if not os.path.exists(dest):
+            s3.download_file(bucket, key, dest)
 
     return _convert_to_numpy(data_dir, images_file, labels_file)
-
 
 def _convert_to_numpy(data_dir, images_file, labels_file):
     """Byte string to numpy arrays"""

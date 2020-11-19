@@ -1,12 +1,14 @@
 from __future__ import print_function
 
 import argparse
+import gzip
 import logging
 import os
 
 import mxnet as mx
 from mxnet import gluon, autograd
 from mxnet.gluon import nn
+from mxnet.gluon.data import Dataset
 import numpy as np
 import json
 import time
@@ -17,6 +19,56 @@ logging.basicConfig(level=logging.DEBUG)
 # ------------------------------------------------------------ #
 # Training methods                                             #
 # ------------------------------------------------------------ #
+
+def input_transformer(data, label):
+    data = data.reshape((-1,)).astype(np.float32) / 255.
+    return data, label
+
+
+class MNIST(Dataset):
+    def __init__(self, data_dir, train=True, transform=None):
+
+        if train:
+            images_file="train-images-idx3-ubyte.gz"
+            labels_file="train-labels-idx1-ubyte.gz"
+        else:
+            images_files="t10k-images-idx3-ubyte.gz"
+            labels_files="t10k-labels-idx1-ubyte.gz"
+        
+        self.images, self.labels = self._convert_to_numpy(
+                data_dir, images_file, labels_file)
+
+        def _id(x, y):
+            return x, y
+        self.transform = transform or _id 
+
+    def __len__(self):
+        return len(self.labels)
+    
+    def __getitem__(self, idx):
+        img, label = self.images[idx], self.labels[idx]
+        return self.transform(img, label)
+
+    def _convert_to_numpy(self, data_dir, images_file, labels_file):
+        """Byte string to numpy arrays 
+        """
+        with gzip.open(os.path.join(data_dir, images_file), 'rb') as f:
+            images = np.frombuffer(f.read(), 
+                    np.uint8, offset=16).reshape(-1, 28, 28)
+
+        with gzip.open(os.path.join(data_dir, labels_file), 'rb') as f:
+            labels = np.frombuffer(f.read(), np.uint8, offset=8)
+
+        return (images, labels)
+    
+    
+    
+    
+def get_data_loader(data_dir, batch_size, train=True):
+    mnist = MNIST(data_dir, train, input_transformer)
+    return gluon.data.DataLoader(mnist, batch_size=batch_size,
+            shuffle=True, last_batch='rollover')
+
 
 
 def train(args):
@@ -41,9 +93,9 @@ def train(args):
     # load training and validation data
     # we use the gluon.data.vision.MNIST class because of its built in mnist pre-processing logic,
     # but point it at the location where SageMaker placed the data files, so it doesn't download them again.
-    training_dir = args.train
-    train_data = get_train_data(training_dir + '/train', batch_size)
-    val_data = get_val_data(training_dir + '/test', batch_size)
+   
+    train_data = get_data_loader(args.train, batch_size)
+    val_data = get_data_loader(args.test, batch_size)
 
     # define the network
     net = define_network()
@@ -135,22 +187,6 @@ def define_network():
     return net
 
 
-def input_transformer(data, label):
-    data = data.reshape((-1,)).astype(np.float32) / 255.
-    return data, label
-
-
-def get_train_data(data_dir, batch_size):
-    return gluon.data.DataLoader(
-        gluon.data.vision.MNIST(data_dir, train=True, transform=input_transformer),
-        batch_size=batch_size, shuffle=True, last_batch='rollover')
-
-
-def get_val_data(data_dir, batch_size):
-    return gluon.data.DataLoader(
-        gluon.data.vision.MNIST(data_dir, train=False, transform=input_transformer),
-        batch_size=batch_size, shuffle=False)
-
 
 def test(ctx, net, val_data):
     metric = mx.metric.Accuracy()
@@ -161,44 +197,6 @@ def test(ctx, net, val_data):
         metric.update([label], [output])
     return metric.get()
 
-
-# ------------------------------------------------------------ #
-# Hosting methods                                              #
-# ------------------------------------------------------------ #
-
-def model_fn(model_dir):
-    """
-    Load the gluon model. Called once when hosting service starts.
-
-    :param: model_dir The directory where model files are stored.
-    :return: a model (in this case a Gluon network)
-    """
-    net = gluon.SymbolBlock.imports(
-        '%s/model-symbol.json' % model_dir,
-        ['data'],
-        '%s/model-0000.params' % model_dir,
-    )
-    return net
-
-
-def transform_fn(net, data, input_content_type, output_content_type):
-    """
-    Transform a request using the Gluon model. Called once per request.
-
-    :param net: The Gluon model.
-    :param data: The request payload.
-    :param input_content_type: The request content type.
-    :param output_content_type: The (desired) response content type.
-    :return: response payload and content type.
-    """
-    # we can use content types to vary input/output handling, but
-    # here we just assume json for both
-    parsed = json.loads(data)
-    nda = mx.nd.array(parsed)
-    output = net(nda)
-    prediction = mx.nd.argmax(output, axis=1)
-    response_body = json.dumps(prediction.asnumpy().tolist()[0])
-    return response_body, output_content_type
 
 
 # ------------------------------------------------------------ #
@@ -226,5 +224,4 @@ def parse_args():
 
 if __name__ == '__main__':
     args = parse_args()
-
     train(args)
