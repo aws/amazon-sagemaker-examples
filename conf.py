@@ -18,7 +18,7 @@
 # -- Project information -----------------------------------------------------
 
 project = 'Amazon SageMaker Examples'
-copyright = '2020, Aaron Markham'
+copyright = '2020, Amazon Web Services, Inc. or its affiliates. All rights reserved.'
 author = 'Aaron Markham'
 
 # The full version, including alpha/beta/rc tags
