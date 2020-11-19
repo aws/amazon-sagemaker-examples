@@ -996,7 +996,7 @@ class ExperimentManager():
             environ_vars["FIREHOSE_STREAM"] = stream_name
 
         sagemaker_model = sagemaker.model.Model(
-            image=self.image,
+            image_uri=self.image,
             role=self.resource_manager.iam_role_arn,
             name=model_id,
             model_data=model_record["s3_model_output_path"],
@@ -1057,7 +1057,7 @@ class ExperimentManager():
 
             model_record = self.model_db_client.get_model_record(self.experiment_id, model_id)
             sagemaker_model = sagemaker.model.Model(
-                image=self.image,
+                image_uri=self.image,
                 role=self.resource_manager.iam_role_arn,
                 name=model_id,
                 model_data=model_record["s3_model_output_path"],
@@ -1069,7 +1069,6 @@ class ExperimentManager():
                 sagemaker_model.deploy(initial_instance_count=hosting_instance_count,
                                     instance_type=hosting_instance_type,
                                     endpoint_name=self.experiment_id,
-                                    update_endpoint=update_endpoint,
                                     wait=wait)
             except Exception as e:
                 logger.error(e)

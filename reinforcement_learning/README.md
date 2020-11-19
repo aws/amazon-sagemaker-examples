@@ -17,7 +17,6 @@ If you are using PyTorch rather than TensorFlow, please set `debugger_hook_confi
 -  [Knapsack](rl_knapsack_coach_custom) is an example of using RL to address operations research problem.
 -  [Mountain Car](rl_mountain_car_coach_gymEnv) is a classic control RL problem, in which an under-powered car is tasked with climbing a steep mountain, and is only successful when it reaches the top.
 -  [Network Compression](rl_network_compression_ray_custom) reduces the size of a trained network using a RL algorithm.
--  [Object Tracker](rl_objecttracker_robomaker_coach_gazebo) trains a TurtleBot object tracker using Amazon SageMaker RL coupled with AWS RoboMaker.
 -  [Portfolio Management](rl_portfolio_management_coach_customEnv) shows how to re-distribute a capital into a set of different financial assets using RL algorithms.
 -  [Predictive Auto-scaling](rl_predictive_autoscaling_coach_customEnv) scales a production service via RL approach by adding and removing resources in reaction to dynamically changing load.
 -  [Resource Allocation](rl_resource_allocation_ray_customEnv) solves three canonical online and stochastic decision making problems using RL algorithms.

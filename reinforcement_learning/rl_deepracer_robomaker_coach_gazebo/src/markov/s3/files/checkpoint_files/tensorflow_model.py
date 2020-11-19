@@ -34,6 +34,7 @@ class TensorflowModel():
     '''This class is for tensorflow model upload and download
     '''
     def __init__(self, bucket, s3_prefix, region_name='us-east-1',
+                 s3_endpoint_url=None,
                  local_dir='./checkpoint/agent',
                  max_retry_attempts=5, backoff_time_sec=1.0):
         '''This class is for tensorflow model upload and download
@@ -59,6 +60,7 @@ class TensorflowModel():
                                                          CHECKPOINT_POSTFIX_DIR))
         self._delete_queue = queue.Queue()
         self._s3_client = S3Client(region_name,
+                                   s3_endpoint_url,
                                    max_retry_attempts,
                                    backoff_time_sec)
 
