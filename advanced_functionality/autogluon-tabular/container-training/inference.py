@@ -10,8 +10,6 @@ import copy
 
 warnings.filterwarnings('ignore', category=FutureWarning)
 
-sys.path.append(os.path.join(os.path.dirname(__file__), '/opt/ml/code/package'))
-
 import numpy as np
 import pandas as pd
 import pickle

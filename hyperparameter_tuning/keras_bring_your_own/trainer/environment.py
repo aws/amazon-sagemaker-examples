@@ -144,7 +144,14 @@ class HyperParameters(collections.Mapping):
         """
         try:
             value = self.hyperparameters_dict[key]
-            return object_type(value) if object_type else value
+            if not object_type:
+                return value
+            elif object_type == bool:
+                if value.lower() in ['True', 'true']:
+                    return True
+                return False
+            else:
+                return object_type(value)
         except KeyError:
             return default
 
