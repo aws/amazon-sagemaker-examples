@@ -39,8 +39,6 @@ def download_from_s3(data_dir='/tmp/data', train=True):
             s3.download_file(bucket, key, dest)
     return
 
-
-
 class Env:
     def __init__(self):       
         # simulate container env

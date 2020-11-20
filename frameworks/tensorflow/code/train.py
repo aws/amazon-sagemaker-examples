@@ -6,10 +6,12 @@ import os
 import json
 import gzip
 import numpy as np
+import traceback
 
 import tensorflow as tf
 from tensorflow.keras.layers import Dense, Flatten, Conv2D
 from tensorflow.keras import Model
+
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -63,6 +65,15 @@ def mnist_to_numpy(data_dir, train):
 
     return convert_to_numpy(data_dir, images_file, labels_file)
 
+
+def normalize(x, axis):
+    eps = np.finfo(float).eps
+
+    mean = np.mean(x, axis=axis, keepdims=True)
+    # avoid division by zero
+    std = np.std(x, axis=axis, keepdims=True) + eps
+    return (x - mean) / std
+
 # Training logic
 
 def train(args):
@@ -72,15 +83,19 @@ def train(args):
 
     x_train, x_test = x_train.astype(np.float32), x_test.astype(np.float32)
 
+    # normalize the inputs to mean 0 and std 1
+    x_train, x_test = normalize(x_train, (1, 2)), normalize(x_test, (1, 2))
+
     # expand channel axis
     # tf uses depth minor convention
     x_train, x_test = np.expand_dims(x_train, axis=3), np.expand_dims(x_test, axis=3)
-
+    
+    # normalize the data to mean 0 and std 1
     train_loader = tf.data.Dataset.from_tensor_slices(
-        (x_train, y_train)).shuffle(len(x_train)).batch(32)
+        (x_train, y_train)).shuffle(len(x_train)).batch(args.batch_size)
 
     test_loader = tf.data.Dataset.from_tensor_slices(
-        (x_test, y_test)).batch(32)
+        (x_test, y_test)).batch(args.batch_size)
 
     model = SmallConv()
     loss_fn = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
@@ -114,7 +129,9 @@ def train(args):
     def test_step(images, labels):
         predictions = model(images, training=False)
         t_loss = loss_fn(labels, predictions)
-
+        test_loss(t_loss)
+        test_accuracy(labels, predictions)
+        return
 
     for epoch in range(args.epochs):
         train_loss.reset_states()
@@ -146,10 +163,9 @@ def parse_args():
 
     parser.add_argument('--batch-size', type=int, default=100)
     parser.add_argument('--epochs', type=int, default=1)
-    parser.add_argument('--learning-rate', type=float, default=0.1)
+    parser.add_argument('--learning-rate', type=float, default=1e-3)
     parser.add_argument('--beta_1', type=float, default=0.9)
     parser.add_argument('--beta_2', type=float, default=0.999)
-    parser.add_argument('--log-interval', type=float, default=100)
     
     # Environment variables given by the training image
     parser.add_argument('--model-dir', type=str, default=os.environ['SM_MODEL_DIR'])
@@ -162,9 +178,11 @@ def parse_args():
     return parser.parse_args()
 
 
+
 if __name__ == '__main__':
     args = parse_args()
-    train(args) 
+    train(args)
+
 
 
 
