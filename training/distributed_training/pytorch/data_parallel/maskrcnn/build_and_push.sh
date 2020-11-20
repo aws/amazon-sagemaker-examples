@@ -7,7 +7,7 @@
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-if [ "$#" -eq 4 ]; then
+if [ "$#" -eq 3 ]; then
     region=$1
     image=$2
     tag=$3
