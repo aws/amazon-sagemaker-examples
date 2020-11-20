@@ -140,7 +140,7 @@ These examples provide you an introduction to how to use Neo to optimizes deep l
 - [Distributed TensorFlow](sagemaker_neo_compilation_jobs/tensorflow_distributed_mnist) Adapts form [tensorflow mnist](sagemaker-python-sdk/tensorflow_distributed_mnist) including Neo API and comparsion between the baseline
 - [Predicting Customer Churn](sagemaker_neo_compilation_jobs/xgboost_customer_churn) Adapts form [xgboost customer churn](introduction_to_applying_machine_learning/xgboost_customer_churn) including Neo API and comparsion between the baseline
 
-### Amazon SageMaker Procesing
+### Amazon SageMaker Processing
 
 These examples show you how to use SageMaker Processing jobs to run data processing workloads.
 
