@@ -52,6 +52,8 @@ class Env:
     
 if __name__=='__main__':
     Env()
+    download_from_s3()
+    download_from_s3(train=False)
     args = parse_args()
     train(args)
 

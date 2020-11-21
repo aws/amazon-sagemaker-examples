@@ -98,6 +98,7 @@ def train(args):
         (x_test, y_test)).batch(args.batch_size)
 
     model = SmallConv()
+    model.compile()
     loss_fn = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
     optimizer = tf.keras.optimizers.Adam(
             learning_rate=args.learning_rate, 
@@ -132,14 +133,15 @@ def train(args):
         test_loss(t_loss)
         test_accuracy(labels, predictions)
         return
-
+    
+    print("Training starts ...")
     for epoch in range(args.epochs):
         train_loss.reset_states()
         train_accuracy.reset_states()
         test_loss.reset_states()
         test_accuracy.reset_states()
         
-        for images, labels in train_loader:
+        for batch, (images, labels) in enumerate(train_loader):
             train_step(images, labels)
         
         for images, labels in test_loader:
@@ -154,14 +156,20 @@ def train(args):
         )
 
     # Save the model
-    model.save(args.model_dir)
+    # A version number is needed for the serving container
+    # to load the model
+    version = '00000000'
+    ckpt_dir = os.path.join(args.model_dir, version)
+    if not os.path.exists(ckpt_dir):
+        os.makedirs(ckpt_dir)
+    model.save(ckpt_dir)
     return
 
 
 def parse_args():
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--batch-size', type=int, default=100)
+    parser.add_argument('--batch-size', type=int, default=32)
     parser.add_argument('--epochs', type=int, default=1)
     parser.add_argument('--learning-rate', type=float, default=1e-3)
     parser.add_argument('--beta_1', type=float, default=0.9)
