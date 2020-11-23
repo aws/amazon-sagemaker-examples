@@ -7,7 +7,8 @@ Apache MXNet
 .. toctree::
    :maxdepth: 1
 
-   ../frameworks/mxnet
+   ../frameworks/mxnet/get_started_mnist_train
+   ../frameworks/mxnet/get_started_mnist_deploy
    ../sagemaker-python-sdk/mxnet_gluon_embedding_server/mxnet_embedding_server
    ../sagemaker-python-sdk/mxnet_gluon_sentiment/mxnet_sentiment_analysis_with_gluon
    ../introduction_to_applying_machine_learning/gluon_recommender_system/gluon_recommender_system
@@ -42,7 +43,9 @@ PyTorch
 .. toctree::
    :maxdepth: 1
 
-   ../frameworks/pytorch
+   ../frameworks/pytorch/get_started_mnist_train
+   ../frameworks/pytorch/get_started_mnist_deploy
+   ../sagemaker-python-sdk/pytorch_lstm_word_language_model/pytorch_rnn
    ../sagemaker-python-sdk/pytorch_lstm_word_language_model/pytorch_rnn
 
 
@@ -83,7 +86,9 @@ TensorFlow
 .. toctree::
    :maxdepth: 1
 
-   ../frameworks/tensorflow
+   ../frameworks/tensorflow/get_started_mnist_train
+   ../frameworks/tensorflow/get_started_mnist_deploy
+   ../sagemaker-python-sdk/tensorflow_moving_from_framework_mode_to_script_mode/tensorflow_moving_from_framework_mode_to_script_mode
    ../sagemaker-python-sdk/tensorflow_moving_from_framework_mode_to_script_mode/tensorflow_moving_from_framework_mode_to_script_mode
    ../sagemaker-python-sdk/tensorflow_script_mode_horovod/tensorflow_script_mode_horovod
    ../sagemaker-python-sdk/tensorflow_script_mode_pipe_mode/tensorflow_script_mode_pipe_mode
