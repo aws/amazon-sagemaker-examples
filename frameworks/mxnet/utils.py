@@ -10,9 +10,6 @@ dirname = os.path.dirname(os.path.abspath(__file__))
 with open(os.path.join(dirname, "code/config.json"), "r") as f:
     CONFIG = json.load(f)
 
-with open(CONFIG_FILE, "r") as f:
-    CONFIG = json.load(f)
-
 def mnist_to_numpy(data_dir='/tmp/data', train=True):
     """Download MNIST dataset and convert it to numpy array
     
