@@ -6,6 +6,7 @@ Apache MXNet
 
 .. toctree::
    :maxdepth: 1
+
    ../frameworks/mxnet
    ../sagemaker-python-sdk/mxnet_gluon_embedding_server/mxnet_embedding_server
    ../sagemaker-python-sdk/mxnet_gluon_sentiment/mxnet_sentiment_analysis_with_gluon
@@ -40,6 +41,7 @@ PyTorch
 
 .. toctree::
    :maxdepth: 1
+
    ../frameworks/pytorch
    ../sagemaker-python-sdk/pytorch_lstm_word_language_model/pytorch_rnn
 
@@ -80,6 +82,8 @@ TensorFlow
 
 .. toctree::
    :maxdepth: 1
+
+   ../frameworks/tensorflow
    ../sagemaker-python-sdk/tensorflow_moving_from_framework_mode_to_script_mode/tensorflow_moving_from_framework_mode_to_script_mode
    ../sagemaker-python-sdk/tensorflow_script_mode_horovod/tensorflow_script_mode_horovod
    ../sagemaker-python-sdk/tensorflow_script_mode_pipe_mode/tensorflow_script_mode_pipe_mode
