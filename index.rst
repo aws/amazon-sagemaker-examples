@@ -21,10 +21,8 @@ On SageMaker Studio, you will need to open a terminal, go to your home folder, t
    git clone https://github.com/aws/amazon-sagemaker-examples.git
 
 
-
 .. toctree::
    :maxdepth: 1
-   :hidden:
    :caption: Get started
 
    get_started/index
@@ -32,7 +30,7 @@ On SageMaker Studio, you will need to open a terminal, go to your home folder, t
 
 .. toctree::
    :maxdepth: 1
-   :caption: Featured examples
+   :caption: SageMaker Studio
 
    aws_sagemaker_studio/index
 
