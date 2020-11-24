@@ -18,9 +18,9 @@ def model_fn(model_dir):
     :return: a model (in this case a Gluon network)
     """
     net = gluon.SymbolBlock.imports(
-            symbol_file=os.path.join(model_dir, 'model-symbol.json'),
+            symbol_file=os.path.join(model_dir, 'compiled-symbol.json'),
             input_names=['data'],
-            param_file=os.path.join(model_dir, 'model-0000.params'))
+            param_file=os.path.join(model_dir, 'compiled-0000.params'))
     return net
 
 def transform_fn(net, data, input_content_type, output_content_type):
