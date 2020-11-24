@@ -72,21 +72,16 @@ def get_data_loader(data_dir, batch_size, train=True):
 
 
 def train(args):
-    # SageMaker passes num_cpus, num_gpus and other args we can use to tailor training to
-    # the current container environment, but here we just use simple cpu context.
     ctx = mx.cpu()
+
     # retrieve the hyperparameters we set in notebook (with some defaults)
     batch_size = args.batch_size
     epochs = args.epochs
     learning_rate = args.learning_rate
     momentum = args.momentum
     log_interval = args.log_interval
-
+    
     model_dir = args.model_dir
-
-    ckpt_dir = '/tmp/ckpt' 
-    if not os.path.exists(ckpt_dir):
-        os.makedirs(ckpt_dir)
 
     train_data = get_data_loader(args.train, batch_size)
     val_data = get_data_loader(args.test, batch_size)
@@ -145,21 +140,12 @@ def train(args):
             best_val_score = val_acc
             logging.info('Saving the model, params and optimizer state.')
 
-            # save model params
-            net.export(ckpt_dir + '/model')
-
+            # save model params as model-0000.params and model-symbol.json
+            net.export(model_dir + '/model')
         
-            # save optimizer params
-            trainer.save_states(ckpt_dir + '/%.4f-gluon_mnist-%d.states'%(
-                best_val_score, epoch))
-    
-    # copy the ckpt with best validation score to model dir
-    # save(net, model_dir)
+    return    
 
 
-def save(net, model_dir):
-    # save the model
-    net.export(model_dir)
 
 
 def define_network():
