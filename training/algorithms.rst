@@ -230,6 +230,5 @@ object2vec
    :maxdepth: 1
 
    ../introduction_to_applying_machine_learning/object2vec_document_embedding/object2vec_document_embedding
-   ../introduction_to_amazon_algorithms/object2vec_multilabel_genre_classification/object2vec_multilabel_genre_classification
    ../introduction_to_amazon_algorithms/object2vec_movie_recommendation/object2vec_movie_recommendation
    ../introduction_to_amazon_algorithms/object2vec_sentence_similarity/object2vec_sentence_similarity

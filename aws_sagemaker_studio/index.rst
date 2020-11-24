@@ -1,4 +1,8 @@
+################
 SageMaker Studio
+################
+
+Get Started with SageMaker Studio
 =================================
 
 .. raw:: html

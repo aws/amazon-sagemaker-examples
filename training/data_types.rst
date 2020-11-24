@@ -1,3 +1,6 @@
+Data Types
+==========
+
 Image
 -----
 Coming soon...

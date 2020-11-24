@@ -1,3 +1,6 @@
+Distributed Training
+====================
+
 Examples on how to use distributed training on SageMaker.
 
 
