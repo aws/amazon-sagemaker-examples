@@ -7,8 +7,6 @@ Apache MXNet
 .. toctree::
    :maxdepth: 1
 
-   ../frameworks/mxnet/get_started_mnist_train
-   ../frameworks/mxnet/get_started_mnist_deploy
    ../sagemaker-python-sdk/mxnet_gluon_embedding_server/mxnet_embedding_server
    ../sagemaker-python-sdk/mxnet_gluon_sentiment/mxnet_sentiment_analysis_with_gluon
    ../introduction_to_applying_machine_learning/gluon_recommender_system/gluon_recommender_system
