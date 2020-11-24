@@ -24,6 +24,7 @@ On SageMaker Studio, you will need to open a terminal, go to your home folder, t
 .. toctree::
    :maxdepth: 1
    :caption: Get started
+   :hidden:
 
    get_started/index
 
@@ -31,6 +32,7 @@ On SageMaker Studio, you will need to open a terminal, go to your home folder, t
 .. toctree::
    :maxdepth: 1
    :caption: SageMaker Studio
+   :hidden:
 
    aws_sagemaker_studio/index
 
@@ -38,6 +40,7 @@ On SageMaker Studio, you will need to open a terminal, go to your home folder, t
 .. toctree::
    :maxdepth: 1
    :caption: Autopilot
+   :hidden:
 
    autopilot/index
 
@@ -64,22 +67,25 @@ On SageMaker Studio, you will need to open a terminal, go to your home folder, t
 
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
    :caption: Training
+   :hidden:
 
    training/index
 
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
    :caption: Inference
+   :hidden:
 
    inference/index
 
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
    :caption: Frameworks
+   :hidden:
 
    training/frameworks
 

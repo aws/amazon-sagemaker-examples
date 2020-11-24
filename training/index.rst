@@ -1,3 +1,6 @@
+Train Models on SageMaker
+=============================
+
 Examples on how to train models with SageMaker.
 
 Algorithms
@@ -58,7 +61,7 @@ Frameworks
 ============
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
 
    frameworks
 

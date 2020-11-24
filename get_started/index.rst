@@ -1,5 +1,5 @@
-Amazon SageMaker
-================
+Get Started with Amazon SageMaker
+=================================
 
 You have several options for how you can use SageMaker.
 

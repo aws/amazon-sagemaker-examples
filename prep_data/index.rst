@@ -18,7 +18,8 @@ Image data guide
 ================
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
+   :hidden:
 
    image_data_guide/index
 
