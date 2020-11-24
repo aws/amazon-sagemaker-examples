@@ -3,10 +3,5 @@
 **/__pycache__
 **/.aws-sam
 .DS_Store
-<<<<<<< HEAD
 
-*.swp
-*.swo
-=======
 **/_build
->>>>>>> b0ebb0b58bc0a62c92abb3fc2c618ba98ad946c2

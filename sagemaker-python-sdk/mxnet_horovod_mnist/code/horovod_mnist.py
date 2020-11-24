@@ -22,8 +22,7 @@ from mxnet import autograd, gluon, nd
 from mxnet.test_utils import download
 
 
-def main():
-
+def main(args):
     # Function to get mnist iterator given a rank
     def get_mnist_iterator(rank):
         data_dir = "data-%d" % rank
@@ -175,7 +174,7 @@ def main():
         device = context.device_type + str(num_workers)
         logging.info('Device info: %s', device)
 
-if __name__ == "__main__":
+def parse_args():
     # Handling script arguments
     parser = argparse.ArgumentParser(description='MXNet MNIST Distributed Example')
     parser.add_argument('--batch-size', type=int, default=64,
@@ -188,7 +187,8 @@ if __name__ == "__main__":
                         help='learning rate (default: 0.01)')
     parser.add_argument('--momentum', type=float, default=0.9,
                         help='SGD momentum (default: 0.9)')
-    parser.add_argument('--no-cuda', action='store_true', help='disable training on GPU (default: False)')
+    parser.add_argument('--no-cuda', type=bool, default=False,
+                        help='disable training on GPU (default: False)')
     
     # Container Environment
     parser.add_argument('--hosts', type=list, default=json.loads(os.environ['SM_HOSTS']))
@@ -203,8 +203,12 @@ if __name__ == "__main__":
         # Disable CUDA if there are no GPUs.
         if mx.context.num_gpus() == 0:
             args.no_cuda = True
+    return args
 
+if __name__ == "__main__":
+
+    args = parse_args()
     logging.basicConfig(level=logging.INFO)
     logging.info(args)
-
-    main()
+    main(args)
+    
