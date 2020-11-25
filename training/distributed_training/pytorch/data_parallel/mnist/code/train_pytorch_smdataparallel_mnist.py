@@ -159,8 +159,8 @@ def main():
             test(model, device, test_loader)
         scheduler.step()
 
-    print("Saving the model...")
     if rank == 0:
+        print("Saving the model...")
         save_model(model, args.model_dir)   
 
 
