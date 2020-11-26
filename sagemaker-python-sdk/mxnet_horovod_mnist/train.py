@@ -12,6 +12,7 @@
 # language governing permissions and limitations under the License.
 import argparse
 import logging
+import json
 import os
 import zipfile
 import time
@@ -19,46 +20,45 @@ import time
 import mxnet as mx
 import horovod.mxnet as hvd
 from mxnet import autograd, gluon, nd
-from mxnet.test_utils import download
 
+logging.basicConfig(level=logging.DEBUG)
+logging.info('So should it be')
 
-def main():
+def get_mnist_iterator(rank, args):
+    data_dir = args.data_dir
+    # data_dir = "data-%d" % rank
+    
+    if not os.path.isdir(data_dir):
+        os.makedirs(data_dir)
+     
+    
+    input_shape = (1, 28, 28)
+    batch_size = args.batch_size
+
+    train_iter = mx.io.MNISTIter(
+        image="%s/train-images-idx3-ubyte" % data_dir,
+        label="%s/train-labels-idx1-ubyte" % data_dir,
+        input_shape=input_shape,
+        batch_size=batch_size,
+        shuffle=True,
+        flat=False,
+        num_parts=hvd.size(),
+        part_index=hvd.rank()
+    )
+
+    val_iter = mx.io.MNISTIter(
+        image="%s/t10k-images-idx3-ubyte" % data_dir,
+        label="%s/t10k-labels-idx1-ubyte" % data_dir,
+        input_shape=input_shape,
+        batch_size=batch_size,
+        flat=False,
+    )
+
+    return train_iter, val_iter
+
+def train(args):
 
     # Function to get mnist iterator given a rank
-    def get_mnist_iterator(rank):
-        data_dir = "data-%d" % rank
-        if not os.path.isdir(data_dir):
-            os.makedirs(data_dir)
-        zip_file_path = download('http://data.mxnet.io/mxnet/data/mnist.zip',
-                                 dirname=data_dir)
-        with zipfile.ZipFile(zip_file_path) as zf:
-            zf.extractall(data_dir)
-
-        input_shape = (1, 28, 28)
-        batch_size = args.batch_size
-
-        train_iter = mx.io.MNISTIter(
-            image="%s/train-images-idx3-ubyte" % data_dir,
-            label="%s/train-labels-idx1-ubyte" % data_dir,
-            input_shape=input_shape,
-            batch_size=batch_size,
-            shuffle=True,
-            flat=False,
-            num_parts=hvd.size(),
-            part_index=hvd.rank()
-        )
-
-        val_iter = mx.io.MNISTIter(
-            image="%s/t10k-images-idx3-ubyte" % data_dir,
-            label="%s/t10k-labels-idx1-ubyte" % data_dir,
-            input_shape=input_shape,
-            batch_size=batch_size,
-            flat=False,
-        )
-
-        return train_iter, val_iter
-
-
     kernel_size = 5
     strides = 2
     pool_size = 2
@@ -99,7 +99,7 @@ def main():
     num_workers = hvd.size()
 
     # Load training and validation data
-    train_data, val_data = get_mnist_iterator(hvd.rank())
+    train_data, val_data = get_mnist_iterator(hvd.rank(), args)
 
     # Build model
     model = conv_nets()
@@ -133,6 +133,7 @@ def main():
         global_tic = time.time()
 
     # Train model
+    print("Start training ...")
     for epoch in range(args.epochs):
         tic = time.time()
         train_data.reset()
@@ -147,7 +148,7 @@ def main():
             trainer.step(args.batch_size)
             metric.update([label], [output])
 
-            if nbatch % 100 == 0:
+            if nbatch % 10 == 0:
                 name, acc = metric.get()
                 logging.info('[Epoch %d Batch %d] Training: %s=%f' %
                              (epoch, nbatch, name, acc))
@@ -175,7 +176,7 @@ def main():
         device = context.device_type + str(num_workers)
         logging.info('Device info: %s', device)
 
-if __name__ == "__main__":
+def parse_args():
     # Handling script arguments
     parser = argparse.ArgumentParser(description='MXNet MNIST Distributed Example')
     parser.add_argument('--batch-size', type=int, default=64,
@@ -203,8 +204,11 @@ if __name__ == "__main__":
         # Disable CUDA if there are no GPUs.
         if mx.context.num_gpus() == 0:
             args.no_cuda = True
+    return args 
 
-    logging.basicConfig(level=logging.INFO)
-    logging.info(args)
+if __name__ == "__main__":
+    
+    args = parse_pargs()
+    # logging.info(args)
 
-    main()
+    train(args)
