@@ -47,7 +47,7 @@ def download_from_s3(data_dir='/tmp/data', train=True):
 class Env:
     def __init__(self):       
         # simulate container env
-        os.environ["SM_MODEL_DIR"] = "/tmp/tf/model"
+        os.environ["SM_MODEL_DIR"] = "/tmp/mxnet/model"
         os.environ["SM_CHANNEL_TRAINING"]="/tmp/data"
         os.environ["SM_CHANNEL_TESTING"]="/tmp/data"
         os.environ["SM_HOSTS"] = '["algo-1"]'
