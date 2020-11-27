@@ -255,7 +255,7 @@ def parse_args():
 
 if __name__ == "__main__":
     
-    args = parse_pargs()
+    args = parse_args()
     # logging.info(args)
 
     train(args)
