@@ -119,6 +119,7 @@ def train(args):
     # Horovod: pin context to local rank
     context = mx.cpu(hvd.local_rank()) if args.no_cuda else mx.gpu(hvd.local_rank())
     num_workers = hvd.size()
+    print("Training Context: ", context)
     
     train_set = MNIST(args.data_dir, train=True)
     test_set = MNIST(args.data_dir, train=False)
