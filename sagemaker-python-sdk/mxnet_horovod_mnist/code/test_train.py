@@ -5,10 +5,15 @@ import os
 import boto3
 import json
 
-dirname = os.path.dirname(os.path.abspath(__file__))
+# dirname = os.path.dirname(os.path.abspath(__file__))
 
-with open(os.path.join(dirname, "config.json"), "r") as f:
-    CONFIG = json.load(f)
+# with open(os.path.join(dirname, "config.json"), "r") as f:
+#     CONFIG = json.load(f)
+
+CONFIG = {
+    "public_bucket": "sagemaker-sample-files"
+}
+
     
 def download_from_s3(data_dir='/tmp/data', train=True):
     """Download MNIST dataset and convert it to numpy array
@@ -42,7 +47,7 @@ def download_from_s3(data_dir='/tmp/data', train=True):
 class Env:
     def __init__(self):       
         # simulate container env
-        os.environ["SM_MODEL_DIR"] = "/tmp/tf/model"
+        os.environ["SM_MODEL_DIR"] = "/tmp/mxnet/model"
         os.environ["SM_CHANNEL_TRAINING"]="/tmp/data"
         os.environ["SM_CHANNEL_TESTING"]="/tmp/data"
         os.environ["SM_HOSTS"] = '["algo-1"]'
