@@ -11,3 +11,5 @@ These examples provide quick walkthroughs to get you up and running with the lab
 - [Training a Machine Learning Model Using an Output Manifest](object_detection_augmented_manifest_training) introduces the concept of an "augmented manifest" and demonstrates that the output file of a labeling job can be immediately used as the input file to train a SageMaker machine learning model.
 - [Annotation Consolidation](annotation_consolidation) demonstrates Amazon SageMaker Ground Truth annotation consolidation techniques for image classification for a completed labeling job.
 - [Ground Truth Conversion Scripts](ground_truth_conversion_scripts) provides a conversion script for the output of Ground Truth semantic segmentation manifest to Common Objects in Context (COCO) format
+- [3D Point Cloud Demo](3d_point_cloud_demo) demonstrates the Amazon SageMaker Ground Truth's annotation workflow for 3D point cloud data types.
+- [3D Point Cloud Input Data Processing](3d_point_cloud_input_data_processing) demonstrates how you can pre-process your 3D point cloud input data to create an object tracking job labeling job.
