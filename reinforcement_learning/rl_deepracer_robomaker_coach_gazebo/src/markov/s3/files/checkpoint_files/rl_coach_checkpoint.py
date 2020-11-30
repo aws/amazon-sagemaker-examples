@@ -28,6 +28,7 @@ class RLCoachCheckpoint():
     '''This class is for RL coach checkpoint file
     '''
     def __init__(self, bucket, s3_prefix, region_name='us-east-1',
+                 s3_endpoint_url=None,
                  local_dir='./checkpoint/agent',
                  max_retry_attempts=5, backoff_time_sec=1.0):
         '''This class is for RL coach checkpoint file
@@ -68,6 +69,7 @@ class RLCoachCheckpoint():
         self._coach_checkpoint_state_file = CheckpointStateFile(
             os.path.dirname(self._local_path))
         self._s3_client = S3Client(region_name,
+                                   s3_endpoint_url,
                                    max_retry_attempts,
                                    backoff_time_sec)
 

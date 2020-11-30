@@ -75,7 +75,7 @@ if not os.path.exists(CUSTOM_FILES_PATH):
 IS_PROFILER_ON, PROFILER_S3_BUCKET, PROFILER_S3_PREFIX = get_robomaker_profiler_env()
 
 
-def download_custom_files_if_present(s3_bucket, s3_prefix, aws_region):
+def download_custom_files_if_present(s3_bucket, s3_prefix, aws_region, s3_endpoint_url):
     '''download custom environment and preset files
 
     Args:
@@ -89,7 +89,7 @@ def download_custom_files_if_present(s3_bucket, s3_prefix, aws_region):
     '''
     success_environment_download, success_preset_download = False, False
     try:
-        s3_client = S3Client(region_name=aws_region, max_retry_attempts=0)
+        s3_client = S3Client(region_name=aws_region, s3_endpoint_url=s3_endpoint_url, max_retry_attempts=0)
         environment_file_s3_key = os.path.normpath(s3_prefix + "/environments/deepracer_racetrack_env.py")
         environment_local_path = os.path.join(CUSTOM_FILES_PATH, "deepracer_racetrack_env.py")
         s3_client.download_file(bucket=s3_bucket,
@@ -223,6 +223,10 @@ def main():
                         help='(string) S3 prefix',
                         type=str,
                         default=rospy.get_param("SAGEMAKER_SHARED_S3_PREFIX", "sagemaker"))
+    parser.add_argument('--s3_endpoint_url',
+                        help='(string) S3 endpoint URL',
+                        type=str,
+                        default=rospy.get_param("S3_ENDPOINT_URL", None))                             
     parser.add_argument('--num_workers',
                         help="(int) The number of workers started in this pool",
                         type=int,
@@ -286,12 +290,14 @@ def main():
 
     logger.info("S3 bucket: %s", args.s3_bucket)
     logger.info("S3 prefix: %s", args.s3_prefix)
+    logger.info("S3 endpoint URL: %s" % args.s3_endpoint_url)
 
     # Download and import reward function
     # TODO: replace 'agent' with name of each agent for multi-agent training
     reward_function_file = RewardFunction(bucket=args.s3_bucket,
                                           s3_key=args.reward_file_s3_key,
                                           region_name=args.aws_region,
+                                          s3_endpoint_url=args.s3_endpoint_url,
                                           local_path=REWARD_FUCTION_LOCAL_PATH_FORMAT.format('agent'))
     reward_function = reward_function_file.get_reward_function()
 
@@ -300,13 +306,15 @@ def main():
 
     preset_file_success, _ = download_custom_files_if_present(s3_bucket=args.s3_bucket,
                                                               s3_prefix=args.s3_prefix,
-                                                              aws_region=args.aws_region)
+                                                              aws_region=args.aws_region,
+                                                              s3_endpoint_url=args.s3_endpoint_url)
 
     # download model metadata
     # TODO: replace 'agent' with name of each agent
     model_metadata = ModelMetadata(bucket=args.s3_bucket,
                                    s3_key=args.model_metadata_s3_key,
                                    region_name=args.aws_region,
+                                   s3_endpoint_url=args.s3_endpoint_url,
                                    local_path=MODEL_METADATA_LOCAL_PATH_FORMAT.format('agent'))
     _, _, version = model_metadata.get_model_metadata_info()
 
@@ -341,7 +349,8 @@ def main():
                                        key_tuple[1])
     metrics_s3_config = {MetricsS3Keys.METRICS_BUCKET.value: rospy.get_param('METRICS_S3_BUCKET'),
                          MetricsS3Keys.METRICS_KEY.value: metrics_key,
-                         MetricsS3Keys.REGION.value: rospy.get_param('AWS_REGION')}
+                         MetricsS3Keys.ENDPOINT_URL.value:  rospy.get_param('S3_ENDPOINT_URL', None),
+                         MetricsS3Keys.REGION.value: rospy.get_param('AWS_REGION')}                         
 
     run_phase_subject = RunPhaseSubject()
 
@@ -353,6 +362,7 @@ def main():
     checkpoint = Checkpoint(bucket=args.s3_bucket,
                             s3_prefix=args.s3_prefix,
                             region_name=args.aws_region,
+                            s3_endpoint_url=args.s3_endpoint_url,
                             agent_name='agent',
                             checkpoint_dir=args.checkpoint_dir)
 
@@ -390,6 +400,7 @@ def main():
                           bucket=simtrace_s3_bucket,
                           s3_prefix=simtrace_s3_object_prefix,
                           region_name=aws_region,
+                          s3_endpoint_url=args.s3_endpoint_url,
                           local_path=SIMTRACE_TRAINING_LOCAL_PATH_FORMAT.format('agent')))
     if mp4_s3_bucket:
         simtrace_video_s3_writers.extend([
@@ -397,22 +408,26 @@ def main():
                           bucket=mp4_s3_bucket,
                           s3_prefix=mp4_s3_object_prefix,
                           region_name=aws_region,
+                          s3_endpoint_url=args.s3_endpoint_url,
                           local_path=CAMERA_PIP_MP4_LOCAL_PATH_FORMAT.format('agent')),
             SimtraceVideo(upload_type=SimtraceVideoNames.DEGREE45.value,
                           bucket=mp4_s3_bucket,
                           s3_prefix=mp4_s3_object_prefix,
                           region_name=aws_region,
+                          s3_endpoint_url=args.s3_endpoint_url,
                           local_path=CAMERA_45DEGREE_LOCAL_PATH_FORMAT.format('agent')),
             SimtraceVideo(upload_type=SimtraceVideoNames.TOPVIEW.value,
                           bucket=mp4_s3_bucket,
                           s3_prefix=mp4_s3_object_prefix,
                           region_name=aws_region,
+                          s3_endpoint_url=args.s3_endpoint_url,
                           local_path=CAMERA_TOPVIEW_LOCAL_PATH_FORMAT.format('agent'))])
 
     # TODO: replace 'agent' with specific agent name for multi agent training
     ip_config = IpConfig(bucket=args.s3_bucket,
                          s3_prefix=args.s3_prefix,
                          region_name=args.aws_region,
+                         s3_endpoint_url=args.s3_endpoint_url,       
                          local_path=IP_ADDRESS_LOCAL_PATH.format('agent'))
     redis_ip = ip_config.get_ip_config()
 
@@ -421,6 +436,7 @@ def main():
     hyperparameters = Hyperparameters(bucket=args.s3_bucket,
                                       s3_key=get_s3_key(args.s3_prefix, HYPERPARAMETER_S3_POSTFIX),
                                       region_name=args.aws_region,
+                                      s3_endpoint_url=args.s3_endpoint_url,
                                       local_path=HYPERPARAMETER_LOCAL_PATH_FORMAT.format('agent'))
     sm_hyperparams_dict = hyperparameters.get_hyperparameters_dict()
 

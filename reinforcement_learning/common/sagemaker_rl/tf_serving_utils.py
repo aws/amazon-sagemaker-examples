@@ -1,9 +1,13 @@
 import ray
 import os
 import re
-from ray.rllib.utils.framework import try_import_tf
+import tensorflow
 
-tf = try_import_tf()
+def import_tf1():
+    if "2." in tensorflow.__version__[:2]:
+        return tensorflow.compat.v1
+    return tensorflow
+
 
 def atoi(text):
     return int(text) if text.isdigit() else text
@@ -25,6 +29,7 @@ def export_tf_serving(agent, output_dir):
     if ray.__version__ >= "0.8.2":
         agent.export_policy_model(os.path.join(output_dir, "1"))
     else:
+        tf = import_tf1()
         policy = agent.local_evaluator.policy_map["default"]
         input_signature = {}
         input_signature["observations"] = tf.saved_model.utils.build_tensor_info(policy.observations)

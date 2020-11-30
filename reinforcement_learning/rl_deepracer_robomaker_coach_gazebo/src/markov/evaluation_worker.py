@@ -145,6 +145,10 @@ def main():
                         type=str,
                         nargs='+',
                         default=rospy.get_param("MODEL_S3_PREFIX", ["sagemaker"]))
+    parser.add_argument('--s3_endpoint_url',
+                        help='(string) S3 endpoint URL',
+                        type=str,
+                        default=rospy.get_param("S3_ENDPOINT_URL", None))                        
     parser.add_argument('--aws_region',
                         help='(string) AWS region',
                         type=str,
@@ -190,7 +194,7 @@ def main():
     args = parser.parse_args()
     arg_s3_bucket = args.s3_bucket
     arg_s3_prefix = args.s3_prefix
-    logger.info("S3 bucket: %s \n S3 prefix: %s", arg_s3_bucket, arg_s3_prefix)
+    logger.info("S3 bucket: %s \n S3 prefix: %s \n S3 endpoint URL: %s", args.s3_bucket, args.s3_prefix, args.s3_endpoint_url)
 
     metrics_s3_buckets = rospy.get_param('METRICS_S3_BUCKET')
     metrics_s3_object_keys = rospy.get_param('METRICS_S3_OBJECT_KEY')
@@ -250,6 +254,7 @@ def main():
         model_metadata = ModelMetadata(bucket=arg_s3_bucket[agent_index],
                                        s3_key=get_s3_key(arg_s3_prefix[agent_index], MODEL_METADATA_S3_POSTFIX),
                                        region_name=args.aws_region,
+                                       s3_endpoint_url=args.s3_endpoint_url,
                                        local_path=MODEL_METADATA_LOCAL_PATH_FORMAT.format(agent_name))
         _, _, version = model_metadata.get_model_metadata_info()
 
@@ -257,6 +262,7 @@ def main():
         checkpoint = Checkpoint(bucket=arg_s3_bucket[agent_index],
                                 s3_prefix=arg_s3_prefix[agent_index],
                                 region_name=args.aws_region,
+                                s3_endpoint_url=args.s3_endpoint_url,
                                 agent_name=agent_name,
                                 checkpoint_dir=args.local_model_directory)
         # make coach checkpoint compatible
@@ -298,6 +304,7 @@ def main():
 
         metrics_s3_config = {MetricsS3Keys.METRICS_BUCKET.value: metrics_s3_buckets[agent_index],
                              MetricsS3Keys.METRICS_KEY.value: metrics_s3_object_keys[agent_index],
+                             MetricsS3Keys.ENDPOINT_URL.value: rospy.get_param('S3_ENDPOINT_URL', None),
                              # Replaced rospy.get_param('AWS_REGION') to be equal to the argument being passed
                              # or default argument set
                              MetricsS3Keys.REGION.value: args.aws_region}
@@ -309,6 +316,7 @@ def main():
                               bucket=simtrace_s3_bucket[agent_index],
                               s3_prefix=simtrace_s3_object_prefix[agent_index],
                               region_name=aws_region,
+                              s3_endpoint_url=args.s3_endpoint_url,
                               local_path=SIMTRACE_EVAL_LOCAL_PATH_FORMAT.format(agent_name)))
         if mp4_s3_bucket:
             simtrace_video_s3_writers.extend([
@@ -316,16 +324,19 @@ def main():
                               bucket=mp4_s3_bucket[agent_index],
                               s3_prefix=mp4_s3_object_prefix[agent_index],
                               region_name=aws_region,
+                              s3_endpoint_url=args.s3_endpoint_url,
                               local_path=CAMERA_PIP_MP4_LOCAL_PATH_FORMAT.format(agent_name)),
                 SimtraceVideo(upload_type=SimtraceVideoNames.DEGREE45.value,
                               bucket=mp4_s3_bucket[agent_index],
                               s3_prefix=mp4_s3_object_prefix[agent_index],
                               region_name=aws_region,
+                              s3_endpoint_url=args.s3_endpoint_url,
                               local_path=CAMERA_45DEGREE_LOCAL_PATH_FORMAT.format(agent_name)),
                 SimtraceVideo(upload_type=SimtraceVideoNames.TOPVIEW.value,
                               bucket=mp4_s3_bucket[agent_index],
                               s3_prefix=mp4_s3_object_prefix[agent_index],
                               region_name=aws_region,
+                              s3_endpoint_url=args.s3_endpoint_url,
                               local_path=CAMERA_TOPVIEW_LOCAL_PATH_FORMAT.format(agent_name))])
 
         run_phase_subject = RunPhaseSubject()
