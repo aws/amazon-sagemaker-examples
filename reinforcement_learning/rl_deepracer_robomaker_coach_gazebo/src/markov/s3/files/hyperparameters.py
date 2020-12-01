@@ -18,6 +18,7 @@ class Hyperparameters():
     '''hyperparameters download and upload
     '''
     def __init__(self, bucket, s3_key, region_name="us-east-1",
+                 s3_endpoint_url=None,
                  local_path="./custom_files/agent/hyperparameters.json",
                  max_retry_attempts=5, backoff_time_sec=1.0):
         '''Hyperparameters upload, download, and parse
@@ -42,7 +43,8 @@ class Hyperparameters():
         self._s3_key = s3_key.replace('s3://{}/'.format(self._bucket), '')
         self._local_path = local_path
         self._hyperparameters = None
-        self._s3_client = S3Client(region_name,
+        self._s3_client = S3Client(region_name, 
+                                   s3_endpoint_url,
                                    max_retry_attempts,
                                    backoff_time_sec)
 

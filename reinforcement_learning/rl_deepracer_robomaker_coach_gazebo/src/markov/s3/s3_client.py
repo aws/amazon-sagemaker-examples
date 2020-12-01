@@ -22,7 +22,7 @@ logger = Logger(__name__, logging.INFO).get_logger()
 
 
 class S3Client():
-    def __init__(self, region_name="us-east-1", max_retry_attempts=5, backoff_time_sec=1.0):
+    def __init__(self, region_name="us-east-1", s3_endpoint_url=None, max_retry_attempts=5, backoff_time_sec=1.0):
         '''S3 client
 
         Args:
@@ -32,6 +32,7 @@ class S3Client():
         '''
 
         self._region_name = region_name
+        self._s3_endpoint_url = s3_endpoint_url
         self._max_retry_attempts = max_retry_attempts
         self._backoff_time_sec = backoff_time_sec
 
@@ -46,6 +47,7 @@ class S3Client():
 
         s3_client = boto3.Session().client('s3',
                                            region_name=self._region_name,
+                                           endpoint_url=self._s3_endpoint_url,
                                            config=self._get_boto_config())
         return s3_client
 
