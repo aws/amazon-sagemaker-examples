@@ -29,7 +29,9 @@ class YamlFile():
     '''yaml file upload, download, and parse
     '''
     def __init__(self, agent_type, bucket, s3_key,
-                 region_name="us-east-1", local_path="params.yaml",
+                 region_name="us-east-1", 
+                 s3_endpoint_url=None, 
+                 local_path="params.yaml",
                  max_retry_attempts=5, backoff_time_sec=1.0):
         '''yaml upload, download, and parse
 
@@ -53,6 +55,7 @@ class YamlFile():
         self._s3_key = s3_key.replace('s3://{}/'.format(self._bucket), '')
         self._local_path = local_path
         self._s3_client = S3Client(region_name,
+                                   s3_endpoint_url,
                                    max_retry_attempts,
                                    backoff_time_sec)
         self._agent_type = agent_type
