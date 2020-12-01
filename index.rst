@@ -72,7 +72,7 @@ On SageMaker Studio, you will need to open a terminal, go to your home folder, t
 
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
    :caption: Training
 
    training/index
