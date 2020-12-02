@@ -49,15 +49,12 @@ def fetch_model(model_data):
     tar = tarfile.open(os.path.join(model_dir, 'model.tar.gz'))
     tar.extractall(model_dir)
     tar.close()
-
     return model_dir
 
 
 def test(model_dir):
-    
     # decompress the model.tar.gz file
     # model_dir = fetch_model(model_data)
-    
     # load the model
     net = model_fn(model_dir)
     
@@ -84,7 +81,7 @@ def test(model_dir):
 
 
 if __name__ == '__main__':
-    model_dir='/tmp/ckpt'
+    model_dir='/tmp/model'
     test(model_dir)
 
 
