@@ -35,32 +35,9 @@ via the following steps:
 1. Load the model artifact from `SM_MODEL_DIR` set by `test_train.py` by calling
 `model_fn`. This step simulates how the inference container loads the model when
 executed. 
-2. Create dummpy data and serialize it to a json string. This step simulates 
+2. Create dummy data and serialize it to a json string. This step simulates 
 how `sagemaker.predictor.Predictor` class preprocess the input data. 
 3. Call `transform_fn` function with the loaded model from step 1 and json string
 from step 2. This step simulates how inference container processes incoming 
 requests. 
-
-
-It loads the model artifact from `SM_MODEL_DIR` set by 
-`test_train.py` by calling `model_fn` function in `inference.py`, then it
-creates dummpy data and serialize it to a json string. This process simulates
-how SageMaker `Predictor` class preprocess the input data before invoking the 
-endpoint.  
-
-
-
-## Test the Entry Point for Training Container
-`train.py` is the entry point used by the SageMaker training containers. To test it before running on SageMaker,
-run the test script in your local develop environment. 
-```
-python test_train.py
-```
-Your environment should have all the dependencies required by `train.py` and `test_train.py`. Testing `train.py` 
-in your local python environment makes debugging easier. `test_train.py` simulatesthe environment of the SageMaker deep learning training container by creating the environment variables that `train.py` expects in `Env` class. `test_train.py`
-downloads the MNIST dataset from the public S3 bucket: `sagemaker-sample-files` 
-and save it in a temporary directory. It uses this temporary directory as the channel for training and testing. 
-
-
-## Test the Entry Point for Inference Container
 
