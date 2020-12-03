@@ -1,6 +1,7 @@
 # coding=utf-8
 # Copyright (c) 2019 NVIDIA CORPORATION. All rights reserved.
 # Copyright 2018 The Google AI Language Team Authors and The HugginFace Inc. team.
+# Modifications Copyright 2016 Amazon.com, Inc. or its affiliates. All Rights Reserved.
 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -41,11 +42,9 @@ import pprint
 import json
 import subprocess
 
-from tokenization import BertTokenizer
 import modeling
 from schedulers import PolyWarmUpScheduler
 
-from file_utils import PYTORCH_PRETRAINED_BERT_CACHE
 from utils import format_step, get_world_size, get_rank
 from utils import is_main_process
 from apex.parallel import DistributedDataParallel as DDP
@@ -55,6 +54,7 @@ from apex.parallel.distributed import flat_dist_call
 import amp_C
 import apex_C
 from apex.amp import _amp_state
+# SMP: Import smp library
 import smdistributed.modelparallel.torch as smp
 import configparser
 
@@ -89,10 +89,7 @@ class WorkerInitObj(object):
 
 def create_pretraining_dataset(input_file, max_pred_length, shared_list, args, worker_init):
     train_data = pretraining_dataset(input_file=input_file, max_pred_length=max_pred_length)
-    if args.horovod > 0:
-        train_sampler = torch.utils.data.distributed.DistributedSampler(train_data, num_replicas=hvd.size(), rank=hvd.rank())
-    else:
-        train_sampler = RandomSampler(train_data)
+    train_sampler = RandomSampler(train_data)
     train_dataloader = DataLoader(train_data, sampler=train_sampler,
                                   batch_size=args.train_batch_size * args.n_gpu,
                                   num_workers=4, worker_init_fn=worker_init,
@@ -290,7 +287,6 @@ def parse_arguments():
                         help='Disable tqdm progress bar')
     parser.add_argument('--steps_this_run', type=int, default=1000,
                         help='If provided, only run this many steps before exiting')
-    parser.add_argument('--horovod', type=int, default=0)
     parser.add_argument('--ddp', type=int, default=0)
     parser.add_argument('--smp', type=int, default=0)
     parser.add_argument('--num_microbatches', type=int, default=1)
@@ -323,21 +319,12 @@ def setup_training(args):
     assert (torch.cuda.is_available())
 
     if args.smp > 0:
-        '''
-        cfg = {
-            'microbatches': args.num_microbatches,
-            'placement_strategy': 'cluster',
-            'pipeline': args.pipeline,
-            'optimize': 'speed',
-            'partitions': 2,
-            'horovod': args.horovod > 0,
-            'ddp': args.ddp > 0,
-            'memory_weight': args.param_weight,
-            'overlapping_allreduce': args.overlapping_allreduce > 0,
-        }
-        '''
+        # Initialize SMP. The configuration is obtained from the parameters passed to
+        # the Sagemaker PyTorch estimator.
         smp.init()
 
+    # SMP: Set the device to the GPU ID used by the current process.
+    # Input tensors should be transferred to this device.
     torch.cuda.set_device(smp.local_rank())
     device = torch.device("cuda", smp.local_rank())
     args.n_gpu = 1
@@ -407,6 +394,10 @@ def prepare_model_and_optimizer(args, device):
     model = modeling.BertForPreTraining(config)
     model.checkpoint_activations(args.checkpoint_activations)
     if args.smp > 0:
+        # SMP: Use the DistributedModel container to provide the model
+        # to be partitioned across different ranks. For the rest of the script,
+        # the returned DistributedModel object should be used in place of
+        # the model provided for DistributedModel class instantiation.
         model = smp.DistributedModel(model)
 
     checkpoint = None
@@ -419,6 +410,7 @@ def prepare_model_and_optimizer(args, device):
 
         global_step = args.resume_step if not args.init_checkpoint else 0
 
+        # SMP: Load a model that was saved with smp.save
         if not args.init_checkpoint:
             checkpoint = smp.load(os.path.join(args.output_dir, "ckpt_{}.pt".format(global_step)), partial=args.partial_checkpoint)
         else:
@@ -441,6 +433,8 @@ def prepare_model_and_optimizer(args, device):
     optimizer = FusedLAMB(optimizer_grouped_parameters,
                           lr=args.learning_rate)
     if args.smp > 0:
+        # SMP: Use Distributed Optimizer which allows the loading of optimizer state for a distributed model
+        # Also provides APIs to obtain local optimizer state for the current mp_rank.
         optimizer = smp.DistributedOptimizer(optimizer)
     lr_scheduler = PolyWarmUpScheduler(optimizer,
                                        warmup=args.warmup_proportion,
@@ -539,8 +533,6 @@ def take_optimizer_step(args, optimizer, model, overflow_buf, global_step):
             param.grad = None
     else:
         if args.apply_optimizer > 0:
-            if args.horovod > 0 and args.overlapping_allreduce == 0:
-                smp.hvd_average_grads()
             optimizer.step()
         # optimizer.zero_grad()
         for param in model.parameters():
@@ -549,6 +541,8 @@ def take_optimizer_step(args, optimizer, model, overflow_buf, global_step):
 
     return global_step
 
+# SMP: Define smp step. Pass the necessary arguments for the train_step call
+# and return any tensors needed outside
 @smp.step
 def smp_step(args, device, input_ids, segment_ids, input_mask, masked_lm_labels, next_sentence_labels, model, optimizer, criterion, step):
     rval = train_step(args, device, input_ids, segment_ids, input_mask, masked_lm_labels, next_sentence_labels, model, optimizer, criterion, step)
@@ -742,6 +736,7 @@ def main():
                                             'data_loader': None if global_step >= args.steps_this_run else train_dataloader}
                                 if args.fp16:
                                     save_dict['master params'] = list(amp.master_params(optimizer))
+                                # SMP: Checkpoint mp_rank specific state
                                 smp.save(save_dict, output_save_file, partial=True)
 
                                 most_recent_ckpts_paths.append(output_save_file)
@@ -764,6 +759,7 @@ def main():
                                             'data_loader': None if global_step >= args.steps_this_run else train_dataloader}
                                 if args.fp16:
                                     save_dict['master params'] = list(amp.master_params(optimizer))
+                                # SMP: Save a single checkpoint containing entire model parameters
                                 smp.save(save_dict, output_save_file, partial=False)
                             smp.barrier()
                             return args, final_loss, train_time_raw, global_step
