@@ -81,7 +81,7 @@ def main():
     _ = KerasHook(out_dir="")  # need this line so that import doesn't get removed by pre-commit
     parser = argparse.ArgumentParser(description="Train resnet50 cifar10")
     parser.add_argument("--batch_size", type=int, default=256)
-    parser.add_argument("--epoch", type=int, default=50)
+    parser.add_argument("--epoch", type=int, default=5)
     parser.add_argument("--data_augmentation", type=bool, default=False)
     parser.add_argument("--model_dir", type=str, default="./model_keras_resnet")
     parser.add_argument("--enable_bottleneck", type=bool, default=True)

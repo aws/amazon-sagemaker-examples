@@ -36,14 +36,14 @@ def train(batch_size, epoch, net, hook, device, local_rank):
         root=f"./data_{local_rank}", train=True, download=True, transform=transform_train
     )
     trainloader = torch.utils.data.DataLoader(
-        trainset, batch_size=batch_size, shuffle=True, num_workers=2
+        trainset, batch_size=batch_size, shuffle=True, num_workers=2, pin_memory=True
     )
 
     validset = torchvision.datasets.CIFAR10(
         root=f"./data_{local_rank}", train=False, download=True, transform=transform_valid
     )
     validloader = torch.utils.data.DataLoader(
-        validset, batch_size=batch_size, shuffle=False, num_workers=2
+        validset, batch_size=batch_size, shuffle=False, num_workers=2, pin_memory=True
     )
 
     loss_optim = nn.CrossEntropyLoss()
@@ -97,7 +97,7 @@ def train(batch_size, epoch, net, hook, device, local_rank):
 
 def main():
     parser = argparse.ArgumentParser(description="Train resnet50 cifar10")
-    parser.add_argument("--batch_size", type=int, default=2048)
+    parser.add_argument("--batch_size", type=int, default=1024)
     parser.add_argument("--epoch", type=int, default=5)
     parser.add_argument("--local_rank", type=int)
     opt = parser.parse_args()
