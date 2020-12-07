@@ -39,6 +39,15 @@ Model Compilation with Neo
    ../sagemaker_neo_compilation_jobs/index
 
 
+Edge Manager
+==========================
+
+.. toctree::
+   :maxdepth: 1
+
+   /sagemaker_edge_manager/sagemaker_edge_example/sagemaker_edge_example
+
+
 Model deployment
 ================
 

@@ -1,7 +1,3 @@
-##########
-Autopilot
-##########
-
 Get started with Autopilot
 ==========================
 
