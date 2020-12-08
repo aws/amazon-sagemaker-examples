@@ -1,3 +1,7 @@
+#########################
+Algorithms
+#########################
+
 Examples on how to use SageMaker's built-in algorithms.
 
 
