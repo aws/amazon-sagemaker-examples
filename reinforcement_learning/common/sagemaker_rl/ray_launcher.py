@@ -125,9 +125,9 @@ class SageMakerRayLauncher(object):
         config = {"num_cpus": num_workers, "num_gpus": self.num_gpus}
 
         if self.is_master_node:
-            all_wokers_host_names = self.get_all_host_names()[1:]
+            all_workers_host_names = self.get_all_host_names()[1:]
             # Single machine job
-            if len(all_wokers_host_names) == 0:
+            if len(all_workers_host_names) == 0:
                 return config
             master_ip = get_ip_from_host(host_name=self.host_name)
             self.start_ray_cluster(master_ip)
@@ -135,8 +135,8 @@ class SageMakerRayLauncher(object):
                                                              host_name="%s:%s" % (
                                                              self.cluster_type.value, self.host_name))
             self.sage_cluster_communicator.create_s3_signal("%s:%s" % (self.cluster_type.value, self.host_name))
-            print("Waiting for %s worker nodes to join!" % (len(all_wokers_host_names)))
-            self.sage_cluster_communicator.wait_for_signals(all_wokers_host_names)
+            print("Waiting for %s worker nodes to join!" % (len(all_workers_host_names)))
+            self.sage_cluster_communicator.wait_for_signals(all_workers_host_names)
             print("All worker nodes have joined the cluster. Now training...")
             if ray.__version__ >= "0.8.2":
                 config = {"address": "%s:6379" % master_ip}
@@ -325,14 +325,14 @@ class SageMakerRayLauncher(object):
         experiment_config = self.customize_experiment_config(experiment_config)
         experiment_config = self.set_up_checkpoint(experiment_config)
         
-        print("Important! Ray with version <=7.2 may report \"Did not find checkpoint file\" even if the",
+        print("Important! Ray with version <=0.7.2 may report \"Did not find checkpoint file\" even if the",
               "experiment is actually restored successfully. If restoration is expected, please check",
               "\"training_iteration\" in the experiment info to confirm."
              )
         run_experiments(experiment_config)
-        all_wokers_host_names = self.get_all_host_names()[1:]
+        all_workers_host_names = self.get_all_host_names()[1:]
         # If distributed job, send TERMINATION_SIGNAL to all workers.
-        if len(all_wokers_host_names) > 0:
+        if len(all_workers_host_names) > 0:
             self.sage_cluster_communicator.create_s3_signal(TERMINATION_SIGNAL)
 
         algo = experiment_config["training"]["run"]
