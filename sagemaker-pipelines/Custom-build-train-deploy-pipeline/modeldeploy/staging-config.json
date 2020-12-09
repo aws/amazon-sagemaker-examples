@@ -1,0 +1,7 @@
+{
+  "Parameters": {
+    "StageName": "staging",
+    "EndpointInstanceCount": "1",
+    "EndpointInstanceType": "ml.m5.large"
+  }
+}

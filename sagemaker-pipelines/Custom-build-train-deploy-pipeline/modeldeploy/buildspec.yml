@@ -1,0 +1,29 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      python: 3.8
+    commands:
+      # Upgrade AWS CLI to the latest version
+      - pip install --upgrade --force-reinstall botocore boto3 awscli
+
+  build:
+    commands:
+      # Export the staging and production configuration files
+      - python build.py --model-execution-role "$MODEL_EXECUTION_ROLE_ARN" --model-package-group-name "$SOURCE_MODEL_PACKAGE_GROUP_NAME" --sagemaker-project-id "$SAGEMAKER_PROJECT_ID" --sagemaker-project-name "$SAGEMAKER_PROJECT_NAME" --export-staging-config $EXPORT_TEMPLATE_STAGING_CONFIG --export-prod-config $EXPORT_TEMPLATE_PROD_CONFIG
+
+      # Package the infrastucture as code defined in endpoint-config-template.yml by using AWS CloudFormation.
+      # Note that the Environment Variables like ARTIFACT_BUCKET, SAGEMAKER_PROJECT_NAME etc,. used below are expected to be setup by the
+      # CodeBuild resrouce in the infra pipeline (in the ServiceCatalog product)
+      - aws cloudformation package --template endpoint-config-template.yml --s3-bucket $ARTIFACT_BUCKET --output-template $EXPORT_TEMPLATE_NAME
+
+      # Print the files to verify contents
+      - cat $EXPORT_TEMPLATE_STAGING_CONFIG
+      - cat $EXPORT_TEMPLATE_PROD_CONFIG
+
+artifacts:
+  files:
+    - $EXPORT_TEMPLATE_NAME
+    - $EXPORT_TEMPLATE_STAGING_CONFIG
+    - $EXPORT_TEMPLATE_PROD_CONFIG

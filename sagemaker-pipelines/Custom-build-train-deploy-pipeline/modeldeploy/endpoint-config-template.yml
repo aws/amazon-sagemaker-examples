@@ -1,0 +1,53 @@
+Description:
+  This template is built and deployed by the infrastructure pipeline in various stages (staging/production) as required.
+  It specifies the resources that need to be created, like the SageMaker Endpoint. It can be extended to include resources like
+  AutoScalingPolicy, API Gateway, etc,. as required.
+Parameters:
+  SageMakerProjectName:
+    Type: String
+    Description: Name of the project
+    MinLength: 1
+    MaxLength: 32
+    AllowedPattern: ^[a-zA-Z](-*[a-zA-Z0-9])*
+  ModelExecutionRoleArn:
+    Type: String
+    Description: Execution role used for deploying the model.
+  ModelPackageName:
+    Type: String
+    Description: The trained Model Package Name
+  StageName:
+    Type: String
+    Description:
+      The name for a project pipeline stage, such as Staging or Prod, for
+      which resources are provisioned and deployed.
+  EndpointInstanceCount:
+    Type: Number
+    Description: Number of instances to launch for the endpoint.
+    MinValue: 1
+  EndpointInstanceType:
+    Type: String
+    Description: The ML compute instance type for the endpoint.
+
+Resources:
+  Model:
+    Type: AWS::SageMaker::Model
+    Properties:
+      PrimaryContainer:
+        ModelPackageName: !Ref ModelPackageName
+      ExecutionRoleArn: !Ref ModelExecutionRoleArn
+
+  EndpointConfig:
+    Type: AWS::SageMaker::EndpointConfig
+    Properties:
+      ProductionVariants:
+        - InitialInstanceCount: !Ref EndpointInstanceCount
+          InitialVariantWeight: 1.0
+          InstanceType: !Ref EndpointInstanceType
+          ModelName: !GetAtt Model.ModelName
+          VariantName: AllTraffic
+
+  Endpoint:
+    Type: AWS::SageMaker::Endpoint
+    Properties:
+      EndpointName: !Sub ${SageMakerProjectName}-${StageName}
+      EndpointConfigName: !GetAtt EndpointConfig.EndpointConfigName
