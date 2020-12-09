@@ -3,12 +3,12 @@ import errno
 import tensorflow as tf
 from tensorflow.keras.layers import Conv2D, Dense, Flatten
 
-# Rubik: Import TF2.x API 
+# SMP: Import TF2.x API
 import smdistributed.modelparallel.tensorflow as smp
 
 tf.random.set_seed(1234)
 
-# Rubik: Initialize
+# SMP: Initialize
 smp.init()
 
 cache_dir = os.path.join(os.path.expanduser("~"), ".keras", "datasets")
@@ -31,7 +31,7 @@ x_train, x_test = x_train / 255.0, x_test / 255.0
 x_train = x_train[..., tf.newaxis]
 x_test = x_test[..., tf.newaxis]
 
-# Rubik: If needed, seed the shuffle with smp.dp_rank(), and drop_remainder
+# SMP: If needed, seed the shuffle with smp.dp_rank(), and drop_remainder
 # in batching to make sure batch size is always divisible by number of microbatches
 train_ds = (
     tf.data.Dataset.from_tensor_slices((x_train, y_train))
@@ -44,7 +44,7 @@ test_ds = (
     .batch(256, drop_remainder=True)
 )
 
-# Rubik: Define smp.DistributedModel the same way as Keras sub-classing API 
+# SMP: Define smp.DistributedModel the same way as Keras sub-classing API 
 class MyModel(smp.DistributedModel):
     def __init__(self):
         super(MyModel, self).__init__()
@@ -140,7 +140,7 @@ def sync_s3_checkpoints_to_local(local_path="/opt/ml/checkpoints", s3_path=os.pa
     aws_s3_sync(s3_path, local_path)
     return
 
-# Rubik: Define smp.step. Return any tensors needed outside
+# SMP: Define smp.step. Return any tensors needed outside
 @smp.step
 def get_grads(images, labels):
     predictions = model(images, training=True)
@@ -154,19 +154,19 @@ def get_grads(images, labels):
 def train_step(images, labels):
     gradients, loss, predictions = get_grads(images, labels)
 
-    # Rubik: Accumulate the gradients across microbatches
+    # SMP: Accumulate the gradients across microbatches
     gradients = [g.accumulate() for g in gradients]
     optimizer.apply_gradients(zip(gradients, model.trainable_variables))
 
-    # Rubik: Average the loss across microbatches
+    # SMP: Average the loss across microbatches
     train_loss(loss.reduce_mean())
 
-    # Rubik: Merge predictions across microbatches
+    # SMP: Merge predictions across microbatches
     train_accuracy(labels, predictions.merge())
     return loss.reduce_mean()
 
 
-# Rubik: Define the smp.step for evaluation. Optionally specify an input signature.
+# SMP: Define the smp.step for evaluation. Optionally specify an input signature.
 @smp.step(
     input_signature=[
         tf.TensorSpec(shape=[None, 28, 28, 1], dtype=tf.float64),
