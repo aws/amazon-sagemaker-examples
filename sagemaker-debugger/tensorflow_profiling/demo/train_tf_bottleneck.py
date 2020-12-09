@@ -68,7 +68,7 @@ def install_dependencies():
 
 if __name__ == "__main__":    
     parser = argparse.ArgumentParser(description="Train resnet50 cifar10")
-    parser.add_argument("--batch_size", type=int, default=128)
+    parser.add_argument("--batch_size", type=int, default=1024)
     parser.add_argument("--epoch", type=int, default=100)
     parser.add_argument("--lr", type=float, default=0.001)
     parser.add_argument("--dataset_bottleneck", type=lambda s: s.lower() in ['true', 't', 'yes', '1'], default=False)
