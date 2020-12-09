@@ -137,7 +137,7 @@ def get_pipeline(
     # training step for generating model artifacts
     model_path = f"s3://{sagemaker_session.default_bucket()}/{base_job_prefix}/CustomerChurnTrain"
     image_uri = sagemaker.image_uris.retrieve(
-        framework="xgboost", #we are using the Sagemaker built in xgboost model
+        framework="xgboost", #we are using the Sagemaker built in xgboost algorithm
         region=region,
         version="1.0-1",
         py_version="py3",

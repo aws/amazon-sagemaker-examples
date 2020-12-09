@@ -14,6 +14,7 @@ logger.setLevel(logging.INFO)
 logger.addHandler(logging.StreamHandler())
 
 #May need to import additional metrics depending on what you are measuring.
+#See https://docs.aws.amazon.com/sagemaker/latest/dg/model-monitor-model-quality-metrics.html
 from sklearn.metrics import classification_report, roc_auc_score, accuracy_score
 
 
@@ -41,8 +42,8 @@ if __name__ == "__main__":
     acc = accuracy_score(y_test, predictions.round())
     auc = roc_auc_score(y_test, predictions.round())
     report_dict = {
-        "binary_classification_metrics": { #This can change based on the model used, but it must be a specific name per <insert doc link>
-            "accuracy": {"value": acc, "standard_deviation": "NaN"}, #Metrics can change, but follow the format in the docs <insert doc link>
+        "binary_classification_metrics": { #This can change based on the model used, but it must be a specific name per (https://docs.aws.amazon.com/sagemaker/latest/dg/model-monitor-model-quality-metrics.html)
+            "accuracy": {"value": acc, "standard_deviation": "NaN"}, #Metrics can change, but follow the format in the docs.
             "auc": {"value": auc, "standard_deviation": "NaN"},
         },
     }
