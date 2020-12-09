@@ -14,7 +14,7 @@ class Metrics():
     '''metrics upload
     '''
     def __init__(self, bucket, s3_key, region_name='us-east-1',
-                 max_retry_attempts=5, backoff_time_sec=1.0):
+                 max_retry_attempts=5, backoff_time_sec=1.0, s3_endpoint_url=None):
         '''metrics upload
 
         Args:
@@ -32,6 +32,7 @@ class Metrics():
         self._bucket = bucket
         self._s3_key = s3_key
         self._s3_client = S3Client(region_name,
+                                   s3_endpoint_url,
                                    max_retry_attempts,
                                    backoff_time_sec)
 
