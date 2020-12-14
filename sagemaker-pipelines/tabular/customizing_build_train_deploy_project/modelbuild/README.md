@@ -14,7 +14,7 @@ We’ll start by taking a detailed look at what AWS services are launched when t
 
 Within Amazon SageMaker Studio (https://aws.amazon.com/sagemaker/studio), you can select “Projects” from a drop-down menu on the “Components and registries” tab as shown below:
 
-![Select "Projects"](img/select_project.png)
+![Select Projects](img/select_projects.png)
 
 From the projects page you’ll have the option to launch a pre-configured SageMaker MLOps template. We'll select the build, train and deploy template:
 
@@ -179,7 +179,7 @@ By committing these changes to the AWS CodeCommit repository (easily done in Sag
 
 Once completed, we can go to our Model group and inspect the metadata attached to the model. If everything looks good, we can manually approve the model:
    
-![Model Group](model_group.png)
+![Model Group](img/model_group.png)
 
 ![Model Status](img/model_status.png)
 
