@@ -57,4 +57,127 @@ In order to modify the seed code from this launched template, we’ll first need
 
 The “ModelBuild” repository contains the code for preprocessing, training, and evaluating. The seed code trains and evaluates a model on theAbalone open source dataset (https://archive.ics.uci.edu/ml/datasets/abalone). We can modify these files in order to solve our own customer churn use-case.
 
+```
+|-- codebuild-buildspec.yml
+|-- CONTRIBUTING.md
+|-- pipelines
+|   |-- abalone
+|   |   |-- evaluate.py
+|   |   |-- __init__.py
+|   |   |-- pipeline.py
+|   |   |-- preprocess.py
+|   |-- get_pipeline_definition.py
+|   |-- __init__.py
+|   |-- run_pipeline.py
+|   |-- _utils.py
+|   |-- __version__.py
+|-- README.md
+|-- sagemaker-pipelines-project.ipynb
+|-- setup.cfg
+|-- setup.py
+|-- tests
+|   -- test_pipelines.py
+|-- tox.ini
+```
+
+1. We’ll need a dataset accessible to the SageMaker Pipelines. The easiest way to do this is to open a new SageMaker notebook inside Studio and run the following cells:
+
+```
+!wget http://dataminingconsultant.com/DKD2e_data_sets.zip
+!unzip -o DKD2e_data_sets.zip
+!mv "Data sets" Datasets
+```
+```
+import boto3
+from sagemaker import get_execution_role
+
+region = boto3.Session().region_name
+default_bucket = boto3.Session().resource('s3').Bucket(default_bucket)
+role = sagemaker.get_execution_role()
+RawData = boto3.Session().resource('s3')\
+.Bucket(default_bucket).Object(os.path.join(prefix, 'data/RawData.csv'))\
+.upload_file('./Datasets/churn.txt')
+print(os.path.join("s3://",default_bucket, prefix, 'data/RawData.csv'))
+```
+
+   - Note you’ll want to retain this dataset S3 URL.
+
+
+2. Rename the abalone directory to customer_churn. This requires us to modify the path inside `codebuild-buildspec.yml` as shown in the sample repository
+
+```
+run-pipeline --module-name pipelines.customer-churn.pipeline \
+```
+3. Replace the `preprocess.py` code with the customer churn preprocessing script found in the sample repository. 
+
+4. Replace the `pipeline.py` code with the customer churn pipeline script found in the sample repository.
+   - a. Please be sure to replace the “InputDataUrl” default parameter with the S3 URL obtained in step 1.
+    ```
+        input_data = ParameterString(
+        name="InputDataUrl",
+        default_value=f"s3://YOUR_BUCKET/RawData.csv",
+    )
+    ```
+   - b. Notice we’ve updated the conditional step to evaluate the classification model.
+    ```
+    # Conditional step for evaluating model quality and branching execution
+    cond_lte = ConditionGreaterThanOrEqualTo(
+        left=JsonGet(step=step_eval, property_file=evaluation_report, json_path="binary_classification_metrics.accuracy.value"), right=0.8
+    )
+    ```
+   - c. One last thing to note is the default `ModelApprovalStatus` is set to `PendingManualApproval`. If our model has greater than 80% accuracy then it will be added to the model registry, but not deployed until manual approval is complete.
+
+5. Replace the `evaluate.py` code with the customer churn evaluation script found in the sample repository. One piece of the code we’d like to point out is that since we’re evaluating a classification model, we need to update the metrics we’ll be evaluating and associating with trained models:
+
+```
+report_dict = {
+  "binary_classification_metrics": {
+      "accuracy": {
+          "value": acc,
+           "standard_deviation" : "NaN"
+       },
+       "auc" : {
+          "value" : roc_auc,
+          "standard_deviation": "NaN"
+       },
+   },
+}
+
+evaluation_output_path = '/opt/ml/processing/evaluation/evaluation.json'
+with open(evaluation_output_path, 'w') as f:
+    f.write(json.dumps(report_dict))
+```
+The json structure of these metrics are required to match the format of sagemaker.model_metrics (https://docs.aws.amazon.com/sagemaker/latest/dg/model-monitor-model-quality-metrics.html) for complete integration with the Model Registry.
+
+
+## ModelDeploy Repo
+
+The “ModelDeploy” repository contains the AWS CloudFormation buildspec for the deployment AWS CodePipeline. We won’t make any modifications to this code since it is sufficient for our customer churn example. It’s worth noting that model tests can be added to this repo to gate model deployment.
+
+```
+.
+├── build.py
+├── buildspec.yml
+├── endpoint-config-template.yml
+├── prod-config.json
+├── README.md
+├── staging-config.json
+└── test
+    ├── buildspec.yml
+    └── test.py
+```
+
+## Trigger a New Execution
+
+By committing these changes to the AWS CodeCommit repository (easily done in SageMaker Studio source control tab), a new Pipeline execution will be triggered.  We can be monitor the execution by selecting your Pipeline inside of the SageMaker Project.
+
+
+
+   
+   
+
+    
+
+
+
 
