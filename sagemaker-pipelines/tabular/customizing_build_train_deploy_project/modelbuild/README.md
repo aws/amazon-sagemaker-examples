@@ -18,13 +18,13 @@ Within Amazon SageMaker Studio (https://aws.amazon.com/sagemaker/studio), you ca
 
 From the projects page you’ll have the option to launch a pre-configured SageMaker MLOps template. We'll select the build, train and deploy template:
 
-![Create Project](https://github.com/HallieCrosby/amazon-sagemaker-examples/tree/challie_reinvnet2020/sagemaker-pipelines/tabular/customizing_build_train_deploy_project/modelbuild/img/create_project.png)
+![Create Project](img/create_project.png)
 
 NOTE: The starter code is used to kick off a model building pipeline by default and will train a ML model. This will incur a small cost.
 
 Once the project is created from the MLOps template, the following architecture will be deployed:
 
-![Deep Dive Architecture Review](https://github.com/HallieCrosby/amazon-sagemaker-examples/tree/challie_reinvnet2020/sagemaker-pipelines/tabular/customizing_build_train_deploy_project/modelbuild/img/deep_dive.png)
+![Deep Dive Architecture Review](img/deep_dive.png)
 
 Included in the above architecture are the following AWS Services. Note, all SageMaker resources such as training jobs, pipelines, models, and endpoints as well as AWS resources listed below are automatically tagged with the project name and a unique project ID tag:
 
@@ -51,7 +51,7 @@ After your project has been created the architecture shown above will be deploye
 
 In order to modify the seed code from this launched template, we’ll first need to clone the AWS CodeCommit repositories to our local SageMaker Studio instance. From the list of projects, select the one that was just created. Under the “Repositories” tab you can select the hyperlinks to locally clone the AWS CodeCommit repos:
 
-![Clone the Repos Locally](https://github.com/HallieCrosby/amazon-sagemaker-examples/tree/challie_reinvnet2020/sagemaker-pipelines/tabular/customizing_build_train_deploy_project/modelbuild/img/clone.png)
+![Clone the Repos Locally](img/clone.png)
 
 ## ModelBuild Repo
 
@@ -171,17 +171,17 @@ The “ModelDeploy” repository contains the AWS CloudFormation buildspec for t
 
 By committing these changes to the AWS CodeCommit repository (easily done in SageMaker Studio source control tab), a new Pipeline execution will be triggered.  We can be monitor the execution by selecting your Pipeline inside of the SageMaker Project.
 
-![Git Push](https://github.com/HallieCrosby/amazon-sagemaker-examples/tree/challie_reinvnet2020/sagemaker-pipelines/tabular/customizing_build_train_deploy_project/modelbuild/img/git_push.png)
+![Git Push](img/git_push.png)
 
-![Execution](https://github.com/HallieCrosby/amazon-sagemaker-examples/tree/challie_reinvnet2020/sagemaker-pipelines/tabular/customizing_build_train_deploy_project/modelbuild/img/execution.png)
+![Execution](img/execution.png)
 
-![DAG](https://github.com/HallieCrosby/amazon-sagemaker-examples/tree/challie_reinvnet2020/sagemaker-pipelines/tabular/customizing_build_train_deploy_project/modelbuild/img/dag.png)
+![DAG](img/dag.png)
 
 Once completed, we can go to our Model group and inspect the metadata attached to the model. If everything looks good, we can manually approve the model:
    
-![Model Group](https://github.com/HallieCrosby/amazon-sagemaker-examples/tree/challie_reinvnet2020/sagemaker-pipelines/tabular/customizing_build_train_deploy_project/modelbuild/img/model_group.png)
+![Model Group](model_group.png)
 
-![Model Status](https://github.com/HallieCrosby/amazon-sagemaker-examples/tree/challie_reinvnet2020/sagemaker-pipelines/tabular/customizing_build_train_deploy_project/modelbuild/img/model_status.png)
+![Model Status](img/model_status.png)
 
 This approval will trigger the ModelDeploy pipeline and expose and endpoint for real time inference.
 
