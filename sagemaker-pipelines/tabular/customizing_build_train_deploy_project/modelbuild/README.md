@@ -171,12 +171,25 @@ The “ModelDeploy” repository contains the AWS CloudFormation buildspec for t
 
 By committing these changes to the AWS CodeCommit repository (easily done in SageMaker Studio source control tab), a new Pipeline execution will be triggered.  We can be monitor the execution by selecting your Pipeline inside of the SageMaker Project.
 
+![Git Push](https://github.com/HallieCrosby/amazon-sagemaker-examples/tree/challie_reinvnet2020/sagemaker-pipelines/tabular/customizing_build_train_deploy_project/modelbuild/img/git_push.png)
 
+![Execution](https://github.com/HallieCrosby/amazon-sagemaker-examples/tree/challie_reinvnet2020/sagemaker-pipelines/tabular/customizing_build_train_deploy_project/modelbuild/img/execution.png)
 
+![DAG](https://github.com/HallieCrosby/amazon-sagemaker-examples/tree/challie_reinvnet2020/sagemaker-pipelines/tabular/customizing_build_train_deploy_project/modelbuild/img/dag.png)
+
+Once completed, we can go to our Model group and inspect the metadata attached to the model. If everything looks good, we can manually approve the model:
    
-   
+![Model Group](https://github.com/HallieCrosby/amazon-sagemaker-examples/tree/challie_reinvnet2020/sagemaker-pipelines/tabular/customizing_build_train_deploy_project/modelbuild/img/model_group.png)
 
+![Model Status](https://github.com/HallieCrosby/amazon-sagemaker-examples/tree/challie_reinvnet2020/sagemaker-pipelines/tabular/customizing_build_train_deploy_project/modelbuild/img/model_status.png)
+
+This approval will trigger the ModelDeploy pipeline and expose and endpoint for real time inference.
+
+![Endpoints](https://github.com/HallieCrosby/amazon-sagemaker-examples/tree/challie_reinvnet2020/sagemaker-pipelines/tabular/customizing_build_train_deploy_project/modelbuild/img/endpoints.png)
     
+## Conclusion
+
+Amazon SageMaker Pipelines (https://aws.amazon.com/sagemaker/pipelines/) enables teams to leverage best practice CI/CD methods within their machine learning workflows. In this post we showed how a pre-configured MLOps template can be modified by a Data Scientist for their own modeling use case. Among the many benefits is that the changes to the source code can be tracked, associated metadata can be tied to trained models for deployment approval, and repeated Pipeline steps can be cached for re-use. Try SageMaker Pipelines in your own workflows today. 
 
 
 
