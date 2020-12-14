@@ -4,7 +4,7 @@ We recently announced Amazon SageMaker Pipelines (https://aws.amazon.com/sagemak
 
 The main components of Amazon SageMaker Pipelines are shown in the diagram below. SageMaker Projects includes MLOps templates that automatically provision the underlying resources needed to enable CI/CD capabilities for your Machine Learning Development Lifecycle (MLDC). Customers can use a number of built-in templates or create your own custom templates. SageMaker Pipelines can be used independently to create automated workflows;however, when used in combination with SageMaker Projects the additional CI/CD capabilities are provide automatically. As the diagram below illustrates, SageMaker’s built-in MLOps templates can automatically provision all of the underlying resources to build CI/CD pipelines that tap into AWS Developer Tools (https://aws.amazon.com/products/developer-tools/) and AWS Service Catalog (https://aws.amazon.com/servicecatalog/).
 
-![Highlevel Architecture Review](https://github.com/HallieCrosby/amazon-sagemaker-examples/tree/challie_reinvnet2020/sagemaker-pipelines/tabular/customizing_build_train_deploy_project/modelbuild/img/high_level.png)
+![Highlevel Architecture Review](img/high_level.png)
 
 This blog post will focus on using one of the MLOps templates to bootstrap your ML project and establish a CI/CD pattern from seed code. We’ll show how to use the built-in Build/Train/Deploy Project template as a base for a customer churn classification example. This base template will enable CI/CD for building, training, and evaluating machine learning models, registering trained models to the Model Registry, and automating model deployment with manual approval and automated testing. 
 
@@ -14,7 +14,7 @@ We’ll start by taking a detailed look at what AWS services are launched when t
 
 Within Amazon SageMaker Studio (https://aws.amazon.com/sagemaker/studio), you can select “Projects” from a drop-down menu on the “Components and registries” tab as shown below:
 
-![Select "Projects"](https://github.com/HallieCrosby/amazon-sagemaker-examples/tree/challie_reinvnet2020/sagemaker-pipelines/tabular/customizing_build_train_deploy_project/modelbuild/img/select_project.png)
+![Select "Projects"](img/select_project.png)
 
 From the projects page you’ll have the option to launch a pre-configured SageMaker MLOps template. We'll select the build, train and deploy template:
 
@@ -185,8 +185,8 @@ Once completed, we can go to our Model group and inspect the metadata attached t
 
 This approval will trigger the ModelDeploy pipeline and expose and endpoint for real time inference.
 
-![Endpoints](https://github.com/HallieCrosby/amazon-sagemaker-examples/tree/challie_reinvnet2020/sagemaker-pipelines/tabular/customizing_build_train_deploy_project/modelbuild/img/endpoints.png)
-    
+![Endpoints](img/endpoints.png)
+
 ## Conclusion
 
 Amazon SageMaker Pipelines (https://aws.amazon.com/sagemaker/pipelines/) enables teams to leverage best practice CI/CD methods within their machine learning workflows. In this post we showed how a pre-configured MLOps template can be modified by a Data Scientist for their own modeling use case. Among the many benefits is that the changes to the source code can be tracked, associated metadata can be tied to trained models for deployment approval, and repeated Pipeline steps can be cached for re-use. Try SageMaker Pipelines in your own workflows today. 
