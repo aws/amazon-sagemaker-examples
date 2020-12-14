@@ -4,4 +4,5 @@ We recently announced Amazon SageMaker Pipelines (https://aws.amazon.com/sagemak
 
 The main components of Amazon SageMaker Pipelines are shown in the diagram below. SageMaker Projects includes MLOps templates that automatically provision the underlying resources needed to enable CI/CD capabilities for your Machine Learning Development Lifecycle (MLDC). Customers can use a number of built-in templates or create your own custom templates. SageMaker Pipelines can be used independently to create automated workflows;however, when used in combination with SageMaker Projects the additional CI/CD capabilities are provide automatically. As the diagram below illustrates, SageMaker’s built-in MLOps templates can automatically provision all of the underlying resources to build CI/CD pipelines that tap into AWS Developer Tools (https://aws.amazon.com/products/developer-tools/) and AWS Service Catalog (https://aws.amazon.com/servicecatalog/).
 
-![A typical ML Application pipeline](img/pipeline-full.png)
+![Highlevel Architecture Review](https://github.com/HallieCrosby/amazon-sagemaker-examples/tree/challie_reinvnet2020/sagemaker-pipelines/tabular/customizing_build_train_deploy_project/modelbuild/img/Yosemite_ForReview-High Level.png)
+
