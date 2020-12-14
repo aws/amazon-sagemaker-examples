@@ -5,9 +5,10 @@ import os
 
 # Third Party
 import numpy as np
+import tensorflow.compat.v2 as tf
 from tensorflow.keras.applications.resnet50 import ResNet50
 from tensorflow.keras.datasets import cifar10
-from tensorflow.keras.optimizers import Adam
+#from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.utils import to_categorical
 
 
@@ -43,16 +44,14 @@ def main():
     parser.add_argument("--epoch", type=int, default=5)
     parser.add_argument("--out_dir", type=str, default="./output_keras_resnet")
     parser.add_argument("--model_dir", type=str, default="./model_keras_resnet")
-    parser.add_argument("--gpu", type=int, default=0, help="Number of GPUs to be used.")
 
     opt = parser.parse_args()
 
-    if opt.gpu > 0:
-        print(f"Enabling training on {opt.gpu}")
-        os.environ["CUDA_VISIBLE_DEVICE"] = opt.gpu
+    mirrored_strategy = tf.distribute.MirroredStrategy()
 
-    model = ResNet50(weights=None, input_shape=(32, 32, 3), classes=10)
-    model.compile(loss="categorical_crossentropy", optimizer="adam", metrics=["accuracy"])
+    with mirrored_strategy.scope():
+        model = ResNet50(weights=None, input_shape=(32, 32, 3), classes=10)
+        model.compile(loss="categorical_crossentropy", optimizer="adam", metrics=["accuracy"])
 
     # start the training.
     train(opt.batch_size, opt.epoch, model)
