@@ -24,7 +24,6 @@ On SageMaker Studio, you will need to open a terminal, go to your home folder, t
 .. toctree::
    :maxdepth: 1
    :caption: Get started
-   :hidden:
 
    get_started/index
 
@@ -32,15 +31,14 @@ On SageMaker Studio, you will need to open a terminal, go to your home folder, t
 .. toctree::
    :maxdepth: 1
    :caption: SageMaker Studio
-   :hidden:
 
    aws_sagemaker_studio/index
+   sagemaker-lineage/index
 
 
 .. toctree::
    :maxdepth: 1
    :caption: Autopilot
-   :hidden:
 
    autopilot/index
 
@@ -67,25 +65,36 @@ On SageMaker Studio, you will need to open a terminal, go to your home folder, t
 
 
 .. toctree::
-   :maxdepth: 2
-   :caption: Training
-   :hidden:
+   :maxdepth: 1
+   :caption: Feature Store
 
-   training/index
+   sagemaker-featurestore/index
 
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
+   :caption: Training
+
+   training/index
+   training/algorithms
+   training/frameworks
+   training/debugger/index
+   training/tuning
+   training/distributed_training/index
+   training/bring_your_own_container
+   training/management
+
+
+.. toctree::
+   :maxdepth: 1
    :caption: Inference
-   :hidden:
 
    inference/index
 
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Frameworks
-   :hidden:
 
    training/frameworks
 
@@ -94,6 +103,7 @@ On SageMaker Studio, you will need to open a terminal, go to your home folder, t
    :maxdepth: 1
    :caption: Workflows
 
+   sagemaker-pipelines/index
    sagemaker_processing/index
    sagemaker-spark/index
    step-functions-data-science-sdk/index
