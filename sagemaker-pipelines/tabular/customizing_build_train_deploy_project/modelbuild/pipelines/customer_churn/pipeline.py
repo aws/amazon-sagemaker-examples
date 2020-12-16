@@ -35,7 +35,9 @@ from sagemaker.processing import (
     ScriptProcessor,
 )
 from sagemaker.sklearn.processing import SKLearnProcessor
-from sagemaker.workflow.conditions import ConditionGreaterThanOrEqualTo #You can edit the condition (https://sagemaker.readthedocs.io/en/stable/workflows/pipelines/sagemaker.workflow.pipelines.html#conditions)
+from sagemaker.workflow.conditions import (
+    ConditionGreaterThanOrEqualTo,
+)
 from sagemaker.workflow.condition_step import (
     ConditionStep,
     JsonGet,
@@ -87,9 +89,9 @@ def get_pipeline(
     region,
     role=None,
     default_bucket=None,
-    model_package_group_name="CustomerChurnPackageGroup", #Choose any name
-    pipeline_name="reInventDEMOV2-p-tzdghxefgtkt", #You can find your pipeline name in the Studio UI (project -> Pipelines -> name)
-    base_job_prefix="CustomerChurn", #Choose any name
+    model_package_group_name="CustomerChurnPackageGroup",  # Choose any name
+    pipeline_name="reInventDEMOV2-p-tzdghxefgtkt",  # You can find your pipeline name in the Studio UI (project -> Pipelines -> name)
+    base_job_prefix="CustomerChurn",  # Choose any name
 ):
     """Gets a SageMaker ML Pipeline instance working with on CustomerChurn data.
 
@@ -105,35 +107,36 @@ def get_pipeline(
     if role is None:
         role = sagemaker.session.get_execution_role(sagemaker_session)
 
-    # parameters for pipeline execution
+    # Parameters for pipeline execution
     processing_instance_count = ParameterInteger(
         name="ProcessingInstanceCount", default_value=1
     )
     processing_instance_type = ParameterString(
-        name="ProcessingInstanceType", default_value="ml.m5.xlarge" 
+        name="ProcessingInstanceType", default_value="ml.m5.xlarge"
     )
     training_instance_type = ParameterString(
         name="TrainingInstanceType", default_value="ml.m5.xlarge"
     )
     model_approval_status = ParameterString(
-        name="ModelApprovalStatus", default_value="PendingManualApproval" # ModelApprovalStatus can be set to a default of "Approved" if you don't want manual approval.
+        name="ModelApprovalStatus",
+        default_value="PendingManualApproval",  # ModelApprovalStatus can be set to a default of "Approved" if you don't want manual approval.
     )
     input_data = ParameterString(
         name="InputDataUrl",
-        default_value=f"s3://sm-pipelines-demo-data-123456789/churn.txt", #Change this to point to the s3 location of your raw input data.
+        default_value=f"s3://sm-pipelines-demo-data-123456789/churn.txt",  # Change this to point to the s3 location of your raw input data.
     )
 
-    # processing step for feature engineering
+    # Processing step for feature engineering
     sklearn_processor = SKLearnProcessor(
         framework_version="0.23-1",
         instance_type=processing_instance_type,
         instance_count=processing_instance_count,
-        base_job_name=f"{base_job_prefix}/sklearn-CustomerChurn-preprocess", #choose any name
+        base_job_name=f"{base_job_prefix}/sklearn-CustomerChurn-preprocess",  # choose any name
         sagemaker_session=sagemaker_session,
         role=role,
     )
     step_process = ProcessingStep(
-        name="CustomerChurnProcess", #choose any name
+        name="CustomerChurnProcess",  # choose any name
         processor=sklearn_processor,
         outputs=[
             ProcessingOutput(output_name="train", source="/opt/ml/processing/train"),
@@ -146,10 +149,10 @@ def get_pipeline(
         job_arguments=["--input-data", input_data],
     )
 
-    # training step for generating model artifacts
+    # Training step for generating model artifacts
     model_path = f"s3://{sagemaker_session.default_bucket()}/{base_job_prefix}/CustomerChurnTrain"
     image_uri = sagemaker.image_uris.retrieve(
-        framework="xgboost", #we are using the Sagemaker built in xgboost algorithm
+        framework="xgboost",  # we are using the Sagemaker built in xgboost algorithm
         region=region,
         version="1.0-1",
         py_version="py3",
@@ -193,7 +196,7 @@ def get_pipeline(
         },
     )
 
-    # processing step for evaluation
+    # Processing step for evaluation
     script_eval = ScriptProcessor(
         image_uri=image_uri,
         command=["python3"],
@@ -232,7 +235,7 @@ def get_pipeline(
         property_files=[evaluation_report],
     )
 
-    # register model step that will be conditionally executed
+    # Register model step that will be conditionally executed
     model_metrics = ModelMetrics(
         model_statistics=MetricsSource(
             s3_uri="{}/evaluation.json".format(
@@ -244,7 +247,7 @@ def get_pipeline(
         )
     )
 
-    # register model step that will be conditionally executed
+    # Register model step that will be conditionally executed
     step_register = RegisterModel(
         name="CustomerChurnRegisterModel",
         estimator=xgb_train,
@@ -258,14 +261,14 @@ def get_pipeline(
         model_metrics=model_metrics,
     )
 
-    # condition step for evaluating model quality and branching execution
-    cond_lte = ConditionGreaterThanOrEqualTo( #You can change the condition here
+    # Condition step for evaluating model quality and branching execution
+    cond_lte = ConditionGreaterThanOrEqualTo(  # You can change the condition here
         left=JsonGet(
             step=step_eval,
             property_file=evaluation_report,
-            json_path="binary_classification_metrics.accuracy.value", #This should follow the structure of your report_dict defined in the evaluate.py file. 
+            json_path="binary_classification_metrics.accuracy.value",  # This should follow the structure of your report_dict defined in the evaluate.py file.
         ),
-        right=0.8, #You can change the threshold here
+        right=0.8,  # You can change the threshold here
     )
     step_cond = ConditionStep(
         name="CustomerChurnAccuracyCond",
@@ -274,7 +277,7 @@ def get_pipeline(
         else_steps=[],
     )
 
-    # pipeline instance
+    # Pipeline instance
     pipeline = Pipeline(
         name=pipeline_name,
         parameters=[

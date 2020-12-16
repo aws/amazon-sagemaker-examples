@@ -43,21 +43,22 @@ if __name__ == "__main__":
 
     logger.info("Reading downloaded data.")
 
-
-    #read in csv
+    # read in csv
     df = pd.read_csv(fn)
 
-    #drop the "Phone" feature column
+    # drop the "Phone" feature column
     df = df.drop(["Phone"], axis=1)
-    #chagne the data type of "Area Code"
+
+    # Change the data type of "Area Code"
     df["Area Code"] = df["Area Code"].astype(object)
-    #drop several other columns
+
+    # Drop several other columns
     df = df.drop(["Day Charge", "Eve Charge", "Night Charge", "Intl Charge"], axis=1)
 
-    #Convert categorical variables into dummy/indicator variables.
+    # Convert categorical variables into dummy/indicator variables.
     model_data = pd.get_dummies(df)
 
-    #Create one binary classification target column
+    # Create one binary classification target column
     model_data = pd.concat(
         [
             model_data["Churn?_True."],
@@ -66,7 +67,7 @@ if __name__ == "__main__":
         axis=1,
     )
 
-    #Split the data
+    # Split the data
     train_data, validation_data, test_data = np.split(
         model_data.sample(frac=1, random_state=1729),
         [int(0.7 * len(model_data)), int(0.9 * len(model_data))],
