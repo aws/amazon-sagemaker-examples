@@ -90,7 +90,7 @@ def get_pipeline(
     role=None,
     default_bucket=None,
     model_package_group_name="CustomerChurnPackageGroup",  # Choose any name
-    pipeline_name="reInventDEMOV2-p-tzdghxefgtkt",  # You can find your pipeline name in the Studio UI (project -> Pipelines -> name)
+    pipeline_name="CustomerChurnDemo-p-ewf8t7lvhivm",  # You can find your pipeline name in the Studio UI (project -> Pipelines -> name)
     base_job_prefix="CustomerChurn",  # Choose any name
 ):
     """Gets a SageMaker ML Pipeline instance working with on CustomerChurn data.
