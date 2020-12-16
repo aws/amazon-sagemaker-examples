@@ -122,7 +122,7 @@ class SageMakerRayLauncher(object):
 
     def ray_init_config(self):
         num_workers = max(self.num_cpus, 3)
-        config = {"num_cpus": num_workers, "num_gpus": self.num_gpus, "webui_host": '127.0.0.1'}
+        config = {"num_cpus": num_workers, "num_gpus": self.num_gpus}
 
         if self.is_master_node:
             all_workers_host_names = self.get_all_host_names()[1:]

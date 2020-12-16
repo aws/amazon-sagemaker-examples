@@ -6,7 +6,6 @@ import boto3
 import sagemaker
 from botocore.exceptions import ClientError
 from sagemaker.local.local_session import LocalSession
-from sagemaker.predictor import RealTimePredictor
 
 from orchestrator.exceptions.ddb_client_exceptions import RecordAlreadyExistsException
 
@@ -549,9 +548,9 @@ class Predictor(object):
                 with the Amazon SageMaker APIs and any other AWS services needed.
         """
         self.endpoint_name = endpoint_name
-        self._realtime_predictor = RealTimePredictor(endpoint_name,
-                                                     serializer=sagemaker.predictor.json_serializer,
-                                                     deserializer=sagemaker.predictor.json_deserializer,
+        self._realtime_predictor = sagemaker.predictor.Predictor(endpoint_name,
+                                                     serializer=sagemaker.serializers.JSONSerializer(),
+                                                     deserializer=sagemaker.deserializers.JSONDeserializer(),
                                                      sagemaker_session=sagemaker_session)
 
     def get_action(self, obs=None):
