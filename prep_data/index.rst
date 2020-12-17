@@ -14,6 +14,15 @@ Each includes example datasets for you to experiment with.
 If you want to use your own data, start with the `data ingestion examples <../data_ingestion/index.html>`_.
 
 
+Detect pre-training data bias
+=============================
+
+.. toctree::
+   :maxdepth: 1
+
+   /sagemaker_processing/fairness_and_explainability/fairness_and_explainability
+
+
 Image data guide
 ================
 
