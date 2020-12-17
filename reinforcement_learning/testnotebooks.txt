@@ -1,2 +1,2 @@
-rl_cartpole_ray/rl_cartpole_ray_gymEnv.ipynb
-rl_cartpole_coach/rl_cartpole_coach_gymEnv.ipynb
+./rl_roboschool_ray/rl_roboschool_ray.ipynb
+./rl_cartpole_ray/rl_cartpole_ray_gymEnv.ipynb

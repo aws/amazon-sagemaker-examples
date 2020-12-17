@@ -18,6 +18,7 @@ class RewardFunction():
     '''reward function upload, download, and parse
     '''
     def __init__(self, bucket, s3_key, region_name="us-east-1",
+                 s3_endpoint_url=None,
                  local_path="./custom_files/agent/customer_reward_function.py",
                  max_retry_attempts=5, backoff_time_sec=1.0):
         '''reward function upload, download, and parse
@@ -49,6 +50,7 @@ class RewardFunction():
         self._import_path = local_path.replace(".py", "").replace("./", "").replace("/", ".")
         self._reward_function = None
         self._s3_client = S3Client(region_name,
+                                   s3_endpoint_url,
                                    max_retry_attempts,
                                    backoff_time_sec)
 

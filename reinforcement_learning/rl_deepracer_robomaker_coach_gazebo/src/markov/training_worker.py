@@ -179,6 +179,10 @@ def main():
                         help='(string) S3 prefix',
                         type=str,
                         default='sagemaker')
+    parser.add_argument('--s3_endpoint_url',
+                        help='(string) S3 endpoint URL',
+                        type=str,
+                        default=os.environ.get("S3_ENDPOINT_URL", None))                            
     parser.add_argument('--framework',
                         help='(string) tensorflow or mxnet',
                         type=str,
@@ -196,14 +200,16 @@ def main():
                         default=os.environ.get("AWS_REGION", "us-east-1"))
 
     args, _ = parser.parse_known_args()
+    logger.info("S3 bucket: %s \n S3 prefix: %s \n S3 endpoint URL: %s", args.s3_bucket, args.s3_prefix, args.s3_endpoint_url)
 
-    s3_client = S3Client(region_name=args.aws_region, max_retry_attempts=0)
+    s3_client = S3Client(region_name=args.aws_region, s3_endpoint_url=args.s3_endpoint_url, max_retry_attempts=0)
 
     # download model metadata
     # TODO: replace 'agent' with name of each agent
     model_metadata_download = ModelMetadata(bucket=args.s3_bucket,
                                             s3_key=args.model_metadata_s3_key,
                                             region_name=args.aws_region,
+                                            s3_endpoint_url=args.s3_endpoint_url,
                                             local_path=MODEL_METADATA_LOCAL_PATH_FORMAT.format('agent'))
     _, network_type, version = model_metadata_download.get_model_metadata_info()
 
@@ -211,6 +217,7 @@ def main():
     model_metadata_upload = ModelMetadata(bucket=args.s3_bucket,
                                           s3_key=get_s3_key(args.s3_prefix, MODEL_METADATA_S3_POSTFIX),
                                           region_name=args.aws_region,
+                                          s3_endpoint_url=args.s3_endpoint_url,
                                           local_path=MODEL_METADATA_LOCAL_PATH_FORMAT.format('agent'))
     model_metadata_upload.persist(s3_kms_extra_args=utils.get_s3_kms_extra_args())
 
@@ -267,7 +274,8 @@ def main():
         # Upload hyperparameters to SageMaker shared s3 bucket
         hyperparameters = Hyperparameters(bucket=args.s3_bucket,
                                           s3_key=get_s3_key(args.s3_prefix, HYPERPARAMETER_S3_POSTFIX),
-                                          region_name=args.aws_region)
+                                          region_name=args.aws_region,
+                                          s3_endpoint_url=args.s3_endpoint_url)
         hyperparameters.persist(hyperparams_json=robomaker_hyperparams_json,
                                 s3_kms_extra_args=utils.get_s3_kms_extra_args())
 
@@ -277,6 +285,7 @@ def main():
             sample_collector = SampleCollector(bucket=args.s3_bucket,
                                                s3_prefix=args.s3_prefix,
                                                region_name=args.aws_region,
+                                               s3_endpoint_url=args.s3_endpoint_url,
                                                max_sample_count=max_sample_count,
                                                sampling_frequency=int(sm_hyperparams_dict.get("sampling_frequency", 1)))
             graph_manager.sample_collector = sample_collector
@@ -284,7 +293,8 @@ def main():
     # persist IP config from sagemaker to s3
     ip_config = IpConfig(bucket=args.s3_bucket,
                          s3_prefix=args.s3_prefix,
-                         region_name=args.aws_region)
+                         region_name=args.aws_region,
+                         s3_endpoint_url=args.s3_endpoint_url)
     ip_config.persist(s3_kms_extra_args=utils.get_s3_kms_extra_args())
 
     use_pretrained_model = args.pretrained_s3_bucket and args.pretrained_s3_prefix
@@ -295,6 +305,7 @@ def main():
         checkpoint = Checkpoint(bucket=args.pretrained_s3_bucket,
                                 s3_prefix=args.pretrained_s3_prefix,
                                 region_name=args.aws_region,
+                                s3_endpoint_url=args.s3_endpoint_url,
                                 agent_name='agent',
                                 checkpoint_dir=args.pretrained_checkpoint_dir)
         # make coach checkpoint compatible
@@ -325,6 +336,7 @@ def main():
     checkpoint = Checkpoint(bucket=args.s3_bucket,
                             s3_prefix=args.s3_prefix,
                             region_name=args.aws_region,
+                            s3_endpoint_url=args.s3_endpoint_url,
                             agent_name='agent',
                             checkpoint_dir=args.checkpoint_dir)
     checkpoint_dict = {'agent': checkpoint}

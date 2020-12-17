@@ -11,6 +11,7 @@ class SampleCollector:
     Sample Collector class to collect sample and persist to S3.
     """
     def __init__(self, bucket, s3_prefix, region_name,
+                 s3_endpoint_url=None,
                  max_sample_count=None, sampling_frequency=None,
                  max_retry_attempts=5, backoff_time_sec=1.0):
         '''Sample Collector class to collect sample and persist to S3.
@@ -35,6 +36,7 @@ class SampleCollector:
         self._cur_frequency = 0
         self._bucket = bucket
         self._s3_client = S3Client(region_name,
+                                   s3_endpoint_url,
                                    max_retry_attempts,
                                    backoff_time_sec)
 
