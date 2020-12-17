@@ -1,5 +1,6 @@
-BYOC
-====
+#########################
+Bring Your Own Container
+#########################
 
 Examples on how to use your own containers or extend pre-built containers on SageMaker.
 
