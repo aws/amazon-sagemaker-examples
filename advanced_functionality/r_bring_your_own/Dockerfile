@@ -1,9 +1,11 @@
-FROM ubuntu:16.04
+FROM ubuntu:20.04
 
-MAINTAINER Amazon SageMaker Examples <amazon-sagemaker-examples@amazon.com>
+ARG DEBIAN_FRONTEND=noninteractive 
 
 RUN apt-get -y update && apt-get install -y --no-install-recommends \
     wget \
+    libcurl4-openssl-dev\
+    libsodium-dev \
     r-base \
     r-base-dev \
     ca-certificates
