@@ -10,7 +10,7 @@ import os
 import smdebug.pytorch as smd
 from smdebug import modes
 from smdebug.core.modes import ModeKeys
-from custom_hook import CustomHook
+import custom_hook
 
 def get_dataloaders(batch_size_train, batch_size_val):
     train_transform =  transforms.Compose([
@@ -72,20 +72,10 @@ def train_model(epochs, batch_size_train, batch_size_val):
 
     # optimizer
     optimizer = optim.SGD(model.parameters(), lr=args.learning_rate, momentum=args.momentum)
-
-    #configure smdebug hook: 
-    #save all iterations from validation phase
-    #save only first iteration from training phase
-    save_config = smd.SaveConfig(mode_save_configs={
-        smd.modes.TRAIN: smd.SaveConfigMode(save_steps=[0]),
-        smd.modes.EVAL: smd.SaveConfigMode(save_interval=1)
-    })
     
     #create custom hook that has a customized forward function, so that we can get gradients of outputs   
-    hook = CustomHook(args.smdebug_dir, save_config=save_config, include_regex='.*bn|.*bias|.*downsample|.*ResNet_input|.*image|.*fc_output' )
-    
-    #register hook
-    hook.register_module(model)  
+    hook = custom_hook.CustomHook.create_from_json_file()
+    hook.register_module(model)
     
     #get the dataloaders for train and test data
     train_loader, val_loader = get_dataloaders(batch_size_train, batch_size_val)
@@ -95,7 +85,7 @@ def train_model(epochs, batch_size_train, batch_size_val):
         
         epoch_loss = 0
         epoch_acc = 0
-        
+            
         #set hook training phase
         hook.set_mode(modes.TRAIN)
         model.train()
@@ -126,6 +116,10 @@ def train_model(epochs, batch_size_train, batch_size_val):
             epoch_loss += loss.item() 
             epoch_acc += torch.sum(preds == labels.data)
 
+
+        print('Epoch {}/{} Loss: {:.4f} Acc: {:.4f}'.format(
+            epoch, epochs - 1, epoch_loss, epoch_acc))
+
         #set hook validation phase
         hook.set_mode(modes.EVAL)
         model.eval()
@@ -149,10 +143,7 @@ def train_model(epochs, batch_size_train, batch_size_val):
             
             #compute gradients with respect to outputs 
             agg.backward()
-
-        print('Epoch {}/{} Loss: {:.4f} Acc: {:.4f}'.format(
-            epoch, epochs - 1, epoch_loss, epoch_acc))
-
+            
     return model
 
 if __name__ =='__main__':
@@ -175,3 +166,4 @@ if __name__ =='__main__':
 
     #train model
     model = train_model(epochs=args.epochs, batch_size_train=args.batch_size_train, batch_size_val=args.batch_size_val)
+

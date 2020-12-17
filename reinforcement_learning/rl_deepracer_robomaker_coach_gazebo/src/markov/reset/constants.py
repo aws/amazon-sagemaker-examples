@@ -26,6 +26,7 @@ class AgentCtrlStatus(Enum):
     PREV_PROGRESS = "prev_progress"
     PREV_PNT_DIST = "prev_pnt_dist"
     AGENT_PHASE = "agent_phase"
+    START_NDIST = "start_ndist"
 
     @classmethod
     def validate_dict(cls, input_dict):
@@ -39,6 +40,7 @@ class AgentInfo(Enum):
     LAP_COUNT = "lap_count"
     CURRENT_PROGRESS = "current_progress"
     CRASHED_OBJECT_NAME = "crashed_object_name"
+    START_NDIST = "start_ndist"
 
     @classmethod
     def validate_dict(cls, input_dict):

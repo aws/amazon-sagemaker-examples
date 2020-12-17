@@ -2,17 +2,19 @@
 from enum import Enum
 
 # SimApp Version
-SIMAPP_VERSION = "2.0"
+SIMAPP_VERSION_3 = 3.0
+SIMAPP_VERSION_2 = 2.0
+SIMAPP_VERSION_1 = 1.0
+
 DEFAULT_COLOR = "Black"
 # The robomaker team has asked us to wait 5 minutes to let their workflow cancel
 # the simulation job
 ROBOMAKER_CANCEL_JOB_WAIT_TIME = 60 * 5
-# The current checkpoint key
-CHKPNT_KEY_SUFFIX = "model/.coach_checkpoint"
-# This is the key for the best checkpoint
-DEEPRACER_CHKPNT_KEY_SUFFIX = "model/deepracer_checkpoints.json"
 # The number of times to retry a failed boto call
 NUM_RETRIES = 5
+# The time in seconds till a timeout exception is thrown when attempting to make a connection
+# default is 60 seconds
+CONNECT_TIMEOUT = 120
 
 BEST_CHECKPOINT = 'best_checkpoint'
 LAST_CHECKPOINT = 'last_checkpoint'

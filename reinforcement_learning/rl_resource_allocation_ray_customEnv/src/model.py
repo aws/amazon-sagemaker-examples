@@ -1,8 +1,14 @@
 import tensorflow as tf
-import tensorflow.contrib.slim as slim
+try:
+    import tensorflow.contrib.slim as slim
+except ImportError:
+    import tf_slim as slim
+try:
+    from ray.rllib.models.misc import normc_initializer
+except ImportError:
+    from ray.rllib.models.tf.misc import normc_initializer
 
 from ray.rllib.models import Model, ModelCatalog
-from ray.rllib.models.misc import normc_initializer
 
 
 class ActionMaskModel(Model):
@@ -34,7 +40,7 @@ class ActionMaskModel(Model):
             return action_logits, last_layer
 
         # Mask out invalid actions (use tf.float32.min for stability)
-        inf_mask = tf.maximum(tf.log(mask), tf.float32.min)
+        inf_mask = tf.maximum(tf.math.log(mask), tf.float32.min)
         masked_logits = inf_mask + action_logits
 
         return masked_logits, last_layer

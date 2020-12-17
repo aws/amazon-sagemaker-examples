@@ -28,4 +28,5 @@ class CrashResetRule(AbstractResetRule):
             pos_dict[AgentPos.LINK_POINTS.value],
             self._agent_name)
         self._done = crashed_object_name is not ''
-        return {AgentInfo.CRASHED_OBJECT_NAME.value: crashed_object_name}
+        return {AgentInfo.CRASHED_OBJECT_NAME.value: crashed_object_name,
+                AgentInfo.START_NDIST.value: agent_status[AgentCtrlStatus.START_NDIST.value]}
