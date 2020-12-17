@@ -94,14 +94,16 @@ def generate_griffiths_data(num_documents=5000, average_document_length=150,
             beta[i+image_dim,i,:] = dirichlet_eta.rvs(size=1)
     beta.resize(num_topics, vocabulary_size)
 
-    # generate documents using the LDA model / provess
-    #
+   # generate documents using the LDA model / provess
+   #
     document_lengths = sp.stats.poisson(average_document_length).rvs(size=num_documents)
-    documents = np.zeros((num_documents,vocabulary_size), dtype=np.float)
+    documents = np.zeros((num_documents,vocabulary_size), dtype=np.float64)
     thetas = dirichlet_alpha.rvs(size=num_documents)  # precompute topic distributions for performance
     for m in range(num_documents):
         document_length = document_lengths[m]
         theta = thetas[m]
+        theta = np.asarray(theta).astype('float64')
+        theta = theta / np.sum(theta)
         topic = sp.stats.multinomial.rvs(1, theta, size=document_length)  # precompute topics for performance
 
         # generate word counts within document
@@ -109,11 +111,13 @@ def generate_griffiths_data(num_documents=5000, average_document_length=150,
             word_topic = topic[n]
             topic_index = np.argmax(word_topic)
             topic_word_distribution = beta[topic_index]
+            topic_word_distribution = np.asarray(topic_word_distribution).astype('float64')
+            topic_word_distribution = topic_word_distribution / np.sum(topic_word_distribution) 
             word = sp.stats.multinomial.rvs(1, topic_word_distribution, size=1).reshape(vocabulary_size)
             documents[m] += word
 
     return alpha, beta, documents, thetas
-
+  
 def plot_topic_data(data, nrows, ncols, with_colorbar=True, cmap=cm.viridis):
     """Helper function for plotting arrays of image"""
     fig, ax = plt.subplots(nrows, ncols, figsize=(ncols,nrows))
