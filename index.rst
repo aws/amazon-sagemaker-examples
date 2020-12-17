@@ -21,10 +21,8 @@ On SageMaker Studio, you will need to open a terminal, go to your home folder, t
    git clone https://github.com/aws/amazon-sagemaker-examples.git
 
 
-
 .. toctree::
    :maxdepth: 1
-   :hidden:
    :caption: Get started
 
    get_started/index
@@ -32,9 +30,10 @@ On SageMaker Studio, you will need to open a terminal, go to your home folder, t
 
 .. toctree::
    :maxdepth: 1
-   :caption: Featured examples
+   :caption: SageMaker Studio
 
    aws_sagemaker_studio/index
+   sagemaker-lineage/index
 
 
 .. toctree::
@@ -46,10 +45,30 @@ On SageMaker Studio, you will need to open a terminal, go to your home folder, t
 
 .. toctree::
    :maxdepth: 1
-   :caption: Preprocessing
+   :caption: Ingest Data
 
-   preprocessing/index
-   ground_truth_labeling_jobs/index
+   ingest_data/index
+
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Label Data
+
+   label_data/index
+
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Prep Data
+
+   prep_data/index
+
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Feature Store
+
+   sagemaker-featurestore/index
 
 
 .. toctree::
@@ -57,6 +76,13 @@ On SageMaker Studio, you will need to open a terminal, go to your home folder, t
    :caption: Training
 
    training/index
+   training/algorithms
+   training/frameworks
+   training/debugger/index
+   training/tuning
+   training/distributed_training/index
+   training/bring_your_own_container
+   training/management
 
 
 .. toctree::
@@ -77,6 +103,7 @@ On SageMaker Studio, you will need to open a terminal, go to your home folder, t
    :maxdepth: 1
    :caption: Workflows
 
+   sagemaker-pipelines/index
    sagemaker_processing/index
    sagemaker-spark/index
    step-functions-data-science-sdk/index

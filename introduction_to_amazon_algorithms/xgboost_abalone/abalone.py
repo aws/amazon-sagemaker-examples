@@ -56,8 +56,11 @@ if __name__ == '__main__':
     parser.add_argument('--gamma', type=int)
     parser.add_argument('--min_child_weight', type=int)
     parser.add_argument('--subsample', type=float)
+    parser.add_argument('--verbosity', type=int)
     parser.add_argument('--objective', type=str)
     parser.add_argument('--num_round', type=int)
+    parser.add_argument('--tree_method', type=str, default="auto")
+    parser.add_argument('--predictor', type=str, default="auto")
 
     # Sagemaker specific arguments. Defaults are set in the environment variables.
     parser.add_argument('--output_data_dir', type=str, default=os.environ.get('SM_OUTPUT_DATA_DIR'))
@@ -83,8 +86,11 @@ if __name__ == '__main__':
         'gamma': args.gamma,
         'min_child_weight': args.min_child_weight,
         'subsample': args.subsample,
-        'objective': args.objective
-        }
+        'verbosity': args.verbosity,
+        'objective': args.objective,
+        'tree_method': args.tree_method,
+        'predictor': args.predictor,
+    }
 
     xgb_train_args = dict(
         params=train_hp,

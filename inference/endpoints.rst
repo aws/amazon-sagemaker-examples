@@ -1,8 +1,7 @@
-Examples on how to use your own model serving containers or extend pre-built containers on SageMaker.
-
-
 Get started with endpoints
 ==========================
+
+Examples on how to use your own model serving containers or extend pre-built containers on SageMaker.
 
 A/B testing
 ===========
