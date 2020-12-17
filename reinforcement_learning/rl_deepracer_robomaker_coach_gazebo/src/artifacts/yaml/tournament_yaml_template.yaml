@@ -1,0 +1,94 @@
+JOB_TYPE:                             "EVALUATION"
+WORLD_NAME:                           ""
+MODEL_S3_BUCKET:
+ - 
+ - 
+ - 
+ - 
+MODEL_S3_PREFIX:
+ - 
+ - 
+ - 
+ - 
+AWS_REGION:                           ""
+MODEL_METADATA_FILE_S3_KEY:
+ - 
+ - 
+ - 
+ - 
+METRICS_S3_BUCKET:
+ - 
+ - 
+ - 
+ - 
+METRICS_S3_PREFIX:
+ - 
+ - 
+ - 
+ - 
+SIMTRACE_S3_BUCKET:
+ - 
+ - 
+ - 
+ - 
+SIMTRACE_S3_PREFIX:
+ - 
+ - 
+ - 
+ - 
+NUMBER_OF_TRIALS:                     "3"
+ROBOMAKER_SIMULATION_JOB_ACCOUNT_ID:  ""
+NUMBER_OF_RESETS:                     "10000"
+PENALTY_SECONDS:                      "2.0"
+IS_CONTINUOUS:                        "false"
+OFF_TRACK_PENALTY:                    "2.0"
+COLLISION_PENALTY:                    "5.0"
+ENABLE_DOMAIN_RANDOMIZATION:          "false"
+REVERSE_DIR:                          "false"
+
+# Modify this for obstacle avoidance (Having NUMBER_OF_OBSTACLES = 0 nullifies all these parameters)
+NUMBER_OF_OBSTACLES:                  "0"
+MIN_DISTANCE_BETWEEN_OBSTACLES:       "2.0"
+RANDOMIZE_OBSTACLE_LOCATIONS:         "true"
+IS_OBSTACLE_BOT_CAR:                  "true"
+
+# Modify this for Head to bot (Having NUMBER_OF_BOT_CARS = 0 nullifies all these parameters)
+NUMBER_OF_BOT_CARS:                   "0"
+IS_LANE_CHANGE:                       "false"
+LOWER_LANE_CHANGE_TIME:               "1.0"
+UPPER_LANE_CHANGE_TIME:               "10.0"
+LANE_CHANGE_DISTANCE:                 "1.0"
+MIN_DISTANCE_BETWEEN_BOT_CARS:        "2.0"
+RANDOMIZE_BOT_CAR_LOCATIONS:          "true"
+BOT_CAR_SPEED:                        "0.2"
+
+# Only for the mp4 videos
+MP4_S3_BUCKET:
+ - 
+ - 
+ - 
+ - 
+MP4_S3_OBJECT_PREFIX:
+ - 
+ - 
+ - 
+ - 
+RACE_TYPE:                            "TIME_TRIAL"
+VIDEO_JOB_TYPE:                       "RACING"
+DISPLAY_NAME:
+ - Racer1
+ - Racer2
+ - Racer3
+ - Racer4
+RACER_NAME:
+ - RacerAlias1LongLongRacerNameBlaBlaBla
+ - RacerAlias2LongLongRacerNameBlaBlaBla
+ - RacerAlias3LongLongRacerNameBlaBlaBla
+ - RacerAlias4LongLongRacerNameBlaBlaBla
+MODEL_NAME:
+ - model1-created-in-console
+ - model2-created-in-console
+ - model3-created-in-console
+ - model4-created-in-console
+LEADERBOARD_TYPE:                     "LEAGUE"
+LEADERBOARD_NAME:                     "2020 MARCH QUALIFIER"

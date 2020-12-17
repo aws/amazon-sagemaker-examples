@@ -1,0 +1,24 @@
+#!/bin/bash
+
+umask 0002
+chmod g+w /data
+
+echo SERVER_PORT=${SERVER_PORT}
+
+if [ $(id -u) = 0 ]; then
+  if [[ -v UID && $UID != $(id -u) ]]; then
+    usermod -u $UID minecraft
+  fi
+  if [[ -v GID ]]; then
+    groupmod -o -g $GID minecraft
+  fi
+
+  if [[ $(stat -c "%u" /data) != $UID ]]; then
+    echo "Changing ownership of /data to $UID ..."
+    chown -R minecraft:minecraft /data
+  fi
+
+  exec su-exec minecraft:minecraft /start-configuration $@
+else
+  exec /start-configuration $@
+fi

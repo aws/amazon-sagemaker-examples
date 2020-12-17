@@ -3,7 +3,7 @@ import numpy as np
 import dgl.backend as F
 
 backend = os.environ.get('DGLBACKEND')
-if backend.lower() == 'mxnet':
+if backend and backend.lower() == 'mxnet':
     from .mxnet.tensor_models import logsigmoid
     from .mxnet.tensor_models import get_device
     from .mxnet.tensor_models import norm

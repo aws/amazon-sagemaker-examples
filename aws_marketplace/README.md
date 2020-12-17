@@ -12,6 +12,13 @@ This example notebook shows you how to package a model-package/algorithm for lis
 
 - [Creating Algorithm and Model Package - Listing on AWS Marketplace](creating_marketplace_products) provides a detailed walkthrough on how to package a scikit learn algorithm to create SageMaker Algorithm and SageMaker Model Package entities that can be used with the enhanced SageMaker Train/Transform/Hosting/Tuning APIs and listed on AWS Marketplace.
 
+Once you have created an algorithm or a model package to be listed in the AWS Marketplace, the next step is to list it in AWS Marketplace, and provide a sample notebook that users can use to try your algorithm or model package. 
+
+* [Curate your AWS Marketplace Model Package listing and sample notebook](curating_aws_marketplace_listing_and_sample_notebook/ModelPackage) provides instructions on how to craft a sample notebook to be associated with your Model Package listing and how to curate a good AWS Marketplace listing that makes it easy for your customers to consume your Model Package.
+
+* [Curate your AWS Marketplace algorithm listing and sample notebook](curating_aws_marketplace_listing_and_sample_notebook/Algorithm) provides instructions on how to craft a sample notebook to be associated with your listing and how to curate a good AWS Marketplace listing that makes it easy for your customers to consume your algorithm. 
+
+
 #### Use algorithms and model packages from AWS Marketplace for machine learning.
 
 These examples show you how to use model-packages and algorithms from AWS Marketplace for machine learning.
@@ -21,12 +28,12 @@ These examples show you how to use model-packages and algorithms from AWS Market
 	- [Using AutoML algorithm](using_algorithms/automl) provides a detailed walkthrough on how to use AutoML algorithm from AWS Marketplace.
 
 - [Using Model Packages](using_model_packages)
-	- [Using Model Packages From AWS Marketplace](using_model_packages/amazon_demo_product) provides a detailed walkthrough on how to use Model Package entities with the enhanced SageMaker Transform/Hosting APIs by choosing a canonical product listed on AWS Marketplace.
+	- [Using Model Packages From AWS Marketplace](using_model_packages/generic_sample_notebook) is a generic notebook which provides sample code snippets you can modify and use for performing inference on Model Packages from AWS Marketplace, using Amazon SageMaker.
+	- [Using Amazon Demo product From AWS Marketplace](using_model_packages/amazon_demo_product) provides a detailed walkthrough on how to use Model Package entities with the enhanced SageMaker Transform/Hosting APIs by choosing a canonical product listed on AWS Marketplace.
 	- [Using models for extracting vehicle metadata](using_model_packages/auto_insurance) provides a detailed walkthrough on how to use pre-trained models from AWS Marketplace for extracting metadata for a sample use-case of auto-insurance claim processing.
 	- [Using models for identifying non-compliance at a workplace](using_model_packages/improving_industrial_workplace_safety) provides a detailed walkthrough on how to use pre-trained models from AWS Marketplace for extracting metadata for a sample use-case of generating summary reports for identifying non-compliance at a construction/industrial workplace.
-
-- [Using Data](using_data)
-	- [Using data and algorithm from AWS Marketplace for training a model](using_data/using_data_from_aws_data_exchange_to_predict_product_popularity) provides a detailed walkthrough on how to use data from AWS Marketplace for training a model that predicts popularity of a bath product.
+	- [Extracting insights from your credit card statements](using_model_packages/financial_transaction_processing) provides a detailed walkthrough on how to use pre-trained models from AWS Marketplace for efficiently processing financial transaction logs.
+	- [Creative writing using GPT-2 Text Generation](using_model_packages/creative-writing-using-gpt-2-text-generation) will show you how to use AWS Marketplace GPT-2-XL pre-trained model on Amazon SageMaker to generate text based on your prompt to help you author prose and poetry.
 
 ## FAQ
 
@@ -38,4 +45,3 @@ These examples show you how to use model-packages and algorithms from AWS Market
   - An [Amazon SageMaker Notebook Instance](http://docs.aws.amazon.com/sagemaker/latest/dg/gs-setup-working-env.html)
   - An [S3 bucket](http://docs.aws.amazon.com/sagemaker/latest/dg/gs-config-permissions.html)
   - [AWS Marketplace Subscription](https://aws.amazon.com/marketplace/help/200799470#topic1) to the algorithm/model you wish to use.
-

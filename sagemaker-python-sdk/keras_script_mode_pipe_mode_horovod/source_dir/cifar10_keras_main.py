@@ -1,25 +1,22 @@
-#     Copyright 2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# Copyright 2018-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
 #
-#     Licensed under the Apache License, Version 2.0 (the "License").
-#     You may not use this file except in compliance with the License.
-#     A copy of the License is located at
-#    
-#         https://aws.amazon.com/apache-2-0/
-#    
-#     or in the "license" file accompanying this file. This file is distributed
-#     on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
-#     express or implied. See the License for the specific language governing
-#     permissions and limitations under the License.
-
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+# Licensed under the Apache License, Version 2.0 (the "License").
+# You may not use this file except in compliance with the License.
+# A copy of the License is located at
+#
+#     https://aws.amazon.com/apache-2-0/
+#
+# or in the "license" file accompanying this file. This file is distributed
+# on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+# express or implied. See the License for the specific language governing
+# permissions and limitations under the License.
+from __future__ import absolute_import, division, print_function
 
 import argparse
 import json
 import logging
-import os
 import re
+import os
 
 import keras
 import tensorflow as tf
@@ -31,6 +28,7 @@ from keras.optimizers import Adam, SGD, RMSprop
 
 logging.getLogger().setLevel(logging.INFO)
 tf.logging.set_verbosity(tf.logging.INFO)
+
 HEIGHT = 32
 WIDTH = 32
 DEPTH = 3
@@ -42,13 +40,8 @@ INPUT_TENSOR_NAME = 'inputs_input'  # needs to match the name of the first layer
 
 def keras_model_fn(learning_rate, weight_decay, optimizer, momentum, mpi=False, hvd=False):
     """keras_model_fn receives hyperparameters from the training job and returns a compiled keras model.
-    The model will be transformed into a TensorFlow Estimator before training and it will be saved in a 
+    The model is transformed into a TensorFlow Estimator before training and saved in a
     TensorFlow Serving SavedModel at the end of training.
-
-    Args:
-        hyperparameters: The hyperparameters passed to the SageMaker TrainingJob that runs your TensorFlow 
-                         training script.
-    Returns: A compiled Keras model
     """
     model = Sequential()
     model.add(Conv2D(32, (3, 3), padding='same', name='inputs', input_shape=(HEIGHT, WIDTH, DEPTH)))
@@ -105,13 +98,6 @@ def keras_model_fn(learning_rate, weight_decay, optimizer, momentum, mpi=False, 
     return model
 
 
-def get_filenames(channel_name, channel):
-    if channel_name in ['train', 'validation', 'eval']:
-        return [os.path.join(channel, channel_name + '.tfrecords')]
-    else:
-        raise ValueError('Invalid data subset "%s"' % channel_name)
-
-
 def train_input_fn():
     return _input(args.epochs, args.batch_size, args.train, 'train')
 
@@ -124,39 +110,41 @@ def validation_input_fn():
     return _input(args.epochs, args.batch_size, args.validation, 'validation')
 
 
+def _get_filenames(channel_name, channel):
+    if channel_name in ['train', 'validation', 'eval']:
+        return [os.path.join(channel, channel_name + '.tfrecords')]
+    else:
+        raise ValueError('Invalid data subset "%s"' % channel_name)
+
+
 def _input(epochs, batch_size, channel, channel_name):
+    """Uses the tf.data input pipeline for CIFAR-10 dataset."""
     mode = args.data_config[channel_name]['TrainingInputMode']
-    """Uses the tf.data input pipeline for CIFAR-10 dataset.
-    Args:
-        mode: Standard names for model modes (tf.estimators.ModeKeys).
-        batch_size: The number of samples per batch of input requested.
-    """
-    filenames = get_filenames(channel_name, channel)
-    # Repeat infinitely.
     logging.info("Running {} in {} mode".format(channel_name, mode))
+
     if mode == 'Pipe':
         from sagemaker_tensorflow import PipeModeDataset
         dataset = PipeModeDataset(channel=channel_name, record_format='TFRecord')
     else:
+        filenames = _get_filenames(channel_name, channel)
         dataset = tf.data.TFRecordDataset(filenames)
 
-    dataset = dataset.repeat(epochs)
+    # Repeat infinitely.
+    dataset = dataset.repeat()
     dataset = dataset.prefetch(10)
 
     # Parse records.
-    dataset = dataset.map(
-        _dataset_parser, num_parallel_calls=10)
+    dataset = dataset.map(_dataset_parser, num_parallel_calls=10)
 
     # Potentially shuffle records.
     if channel_name == 'train':
-        # Ensure that the capacity is sufficiently large to provide good random
-        # shuffling.
+        # Ensure that the capacity is sufficiently large to provide good random shuffling.
         buffer_size = int(NUM_EXAMPLES_PER_EPOCH_FOR_TRAIN * 0.4) + 3 * batch_size
         dataset = dataset.shuffle(buffer_size=buffer_size)
 
     # Batch it up.
     dataset = dataset.batch(batch_size, drop_remainder=True)
-    iterator = dataset.make_one_shot_iterator()
+    iterator = tf.compat.v1.data.make_one_shot_iterator(dataset)
     image_batch, label_batch = iterator.get_next()
 
     return {INPUT_TENSOR_NAME: image_batch}, label_batch
@@ -190,7 +178,8 @@ def _dataset_parser(value):
     # Reshape from [depth * height * width] to [depth, height, width].
     image = tf.cast(
         tf.transpose(tf.reshape(image, [DEPTH, HEIGHT, WIDTH]), [1, 2, 0]),
-        tf.float32)
+        tf.float32,
+    )
     label = tf.cast(example['label'], tf.int32)
     image = _train_preprocess_fn(image)
     return image, tf.one_hot(label, NUM_CLASSES)
@@ -198,7 +187,8 @@ def _dataset_parser(value):
 
 def save_model(model, output):
     signature = tf.saved_model.signature_def_utils.predict_signature_def(
-        inputs={'image': model.input}, outputs={'scores': model.output})
+        inputs={'image': model.input}, outputs={'scores': model.output}
+    )
 
     builder = tf.saved_model.builder.SavedModelBuilder(output+'/1/')
     builder.add_meta_graph_and_variables(
@@ -207,19 +197,21 @@ def save_model(model, output):
         signature_def_map={
             tf.saved_model.signature_constants.DEFAULT_SERVING_SIGNATURE_DEF_KEY:
                 signature
-        })
+        },
+    )
+
     builder.save()
     logging.info("Model successfully saved at: {}".format(output))
-    return
 
 
 def main(args):
-    mpi = False
     if 'sourcedir.tar.gz' in args.tensorboard_dir:
         tensorboard_dir = re.sub('source/sourcedir.tar.gz', 'model', args.tensorboard_dir)
     else:
         tensorboard_dir = args.tensorboard_dir
     logging.info("Writing TensorBoard logs to {}".format(tensorboard_dir))
+
+    mpi = False
     if 'sagemaker_mpi_enabled' in args.fw_params:
         if args.fw_params['sagemaker_mpi_enabled']:
             import horovod.keras as hvd
@@ -234,8 +226,8 @@ def main(args):
             K.set_session(tf.Session(config=config))
     else:
         hvd = None
-
     logging.info("Running with MPI={}".format(mpi))
+
     logging.info("getting data")
     train_dataset = train_input_fn()
     eval_dataset = eval_input_fn()
@@ -243,6 +235,7 @@ def main(args):
 
     logging.info("configuring model")
     model = keras_model_fn(args.learning_rate, args.weight_decay, args.optimizer, args.momentum, mpi, hvd)
+
     callbacks = []
     if mpi:
         callbacks.append(hvd.callbacks.BroadcastGlobalVariablesCallback(0))
@@ -256,16 +249,23 @@ def main(args):
         callbacks.append(keras.callbacks.ReduceLROnPlateau(patience=10, verbose=1))
         callbacks.append(ModelCheckpoint(args.output_dir + '/checkpoint-{epoch}.h5'))
         callbacks.append(TensorBoard(log_dir=tensorboard_dir, update_freq='epoch'))
+
     logging.info("Starting training")
     size = 1
     if mpi:
         size = hvd.size()
-    model.fit(x=train_dataset[0], y=train_dataset[1],
-              steps_per_epoch=(num_examples_per_epoch('train') // args.batch_size) // size,
-              epochs=args.epochs, validation_data=validation_dataset,
-              validation_steps=(num_examples_per_epoch('validation') // args.batch_size) // size, callbacks=callbacks)
 
-    score = model.evaluate(eval_dataset[0], eval_dataset[1], steps=num_examples_per_epoch('eval') // args.batch_size,
+    model.fit(x=train_dataset[0],
+              y=train_dataset[1],
+              steps_per_epoch=(num_examples_per_epoch('train') // args.batch_size) // size,
+              epochs=args.epochs,
+              validation_data=validation_dataset,
+              validation_steps=(num_examples_per_epoch('validation') // args.batch_size) // size,
+              callbacks=callbacks)
+
+    score = model.evaluate(eval_dataset[0],
+                           eval_dataset[1],
+                           steps=num_examples_per_epoch('eval') // args.batch_size,
                            verbose=0)
 
     logging.info('Test loss:{}'.format(score[0]))
