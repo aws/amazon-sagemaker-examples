@@ -49,7 +49,7 @@ if __name__=='__main__':
     parser.add_argument('--batch-size', type=int, default=64)
 
     # Data, model, and output directories. These are required.
-    parser.add_argument('--output-data-dir', type=str, default=os.environ['SM_OUTPUT_DATA_DIR'])
+    parser.add_argument('--output-dir', type=str, default=os.environ['SM_OUTPUT_DIR'])
     parser.add_argument('--model-dir', type=str, default=os.environ['SM_MODEL_DIR'])
     parser.add_argument('--train', type=str, default=os.environ['SM_CHANNEL_TRAIN'])
     parser.add_argument('--test', type=str, default=os.environ['SM_CHANNEL_TEST'])
@@ -96,7 +96,7 @@ if __name__=='__main__':
         updater = training.StandardUpdater(train_iter, optimizer, device=device)
 
     # Write output files to output_data_dir. These are zipped and uploaded to S3 output path as output.tar.gz.
-    trainer = training.Trainer(updater, (args.epochs, 'epoch'), out=args.output_data_dir)
+    trainer = training.Trainer(updater, (args.epochs, 'epoch'), out=args.output_dir)
 
     # Evaluate the model with the test dataset for each epoch
     trainer.extend(extensions.Evaluator(test_iter, model, device=device))

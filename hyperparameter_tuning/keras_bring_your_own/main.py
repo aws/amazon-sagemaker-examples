@@ -80,7 +80,7 @@ if __name__ == '__main__':
 
     tensorflow_version_tag = get_tensorflow_version_tag(args.tf_version, args.instance_type)
 
-    image_name = get_image_name(args.ecr_repository, args.tensorflow_version_tag)
+    image_name = get_image_name(args.ecr_repository, tensorflow_version_tag)
 
     build_image(image_name, tensorflow_version_tag)
 

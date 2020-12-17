@@ -16,7 +16,7 @@ logging.basicConfig(level=logging.DEBUG)
 # Globals
 #########
 
-batch_size = 40
+batch_size = 1024
 
 
 ##########
@@ -43,10 +43,9 @@ def train(channel_input_dirs, hyperparameters, hosts, num_gpus, **kwargs):
     net = MFBlock(max_users=customer_index.shape[0], 
                   max_items=product_index.shape[0],
                   num_emb=num_embeddings,
-                  dropout_p=0.)
-    net.collect_params()
+                  dropout_p=0.5)
     
-    net.collect_params().initialize(mx.init.Xavier(magnitude=2.24),
+    net.collect_params().initialize(mx.init.Xavier(magnitude=60),
                                     ctx=ctx,
                                     force_reinit=True)
     net.hybridize()
@@ -75,18 +74,23 @@ class MFBlock(gluon.HybridBlock):
         with self.name_scope():
             self.user_embeddings = gluon.nn.Embedding(max_users, num_emb)
             self.item_embeddings = gluon.nn.Embedding(max_items, num_emb)
-            self.dropout = gluon.nn.Dropout(dropout_p)
-            self.dense = gluon.nn.Dense(num_emb, activation='relu')
+
+            self.dropout_user = gluon.nn.Dropout(dropout_p)
+            self.dropout_item = gluon.nn.Dropout(dropout_p)
+
+            self.dense_user   = gluon.nn.Dense(num_emb, activation='relu')
+            self.dense_item = gluon.nn.Dense(num_emb, activation='relu')
             
     def hybrid_forward(self, F, users, items):
         a = self.user_embeddings(users)
-        a = self.dense(a)
+        a = self.dense_user(a)
         
         b = self.item_embeddings(items)
-        b = self.dense(b)
+        b = self.dense_item(b)
 
-        predictions = self.dropout(a) * self.dropout(b)      
+        predictions = self.dropout_user(a) * self.dropout_item(b)      
         predictions = F.sum(predictions, axis=1)
+
         return predictions
 
     
@@ -95,17 +99,17 @@ def execute(train_iter, test_iter, net, trainer, epochs, ctx):
     for e in range(epochs):
         print("epoch: {}".format(e))
         for i, (user, item, label) in enumerate(train_iter):
-            try:
-                user = user.as_in_context(ctx).reshape((batch_size,))
-                item = item.as_in_context(ctx).reshape((batch_size,))
-                label = label.as_in_context(ctx).reshape((batch_size,))
+
+                user = user.as_in_context(ctx)
+                item = item.as_in_context(ctx)
+                label = label.as_in_context(ctx)
+
                 with mx.autograd.record():
                     output = net(user, item)               
                     loss = loss_function(output, label)
                 loss.backward()
                 trainer.step(batch_size)
-            except:
-                pass
+
         print("EPOCH {}: MSE ON TRAINING and TEST: {}. {}".format(e,
                                                                    eval_net(train_iter, net, ctx, loss_function),
                                                                    eval_net(test_iter, net, ctx, loss_function)))
@@ -116,14 +120,14 @@ def execute(train_iter, test_iter, net, trainer, epochs, ctx):
 def eval_net(data, net, ctx, loss_function):
     acc = MSE()
     for i, (user, item, label) in enumerate(data):
-        try:
-            user = user.as_in_context(ctx).reshape((batch_size,))
-            item = item.as_in_context(ctx).reshape((batch_size,))
-            label = label.as_in_context(ctx).reshape((batch_size, 1))
+
+            user = user.as_in_context(ctx)
+            item = item.as_in_context(ctx)
+            label = label.as_in_context(ctx)
+
             predictions = net(user, item).reshape((batch_size, 1))
             acc.update(preds=[predictions], labels=[label])
-        except:
-            pass
+
     return acc.get()[1]
 
 
@@ -145,23 +149,6 @@ def save(model, model_dir):
 # Data
 ######
 
-class SparseMatrixDataset(gluon.data.Dataset):
-    def __init__(self, data, label):
-        assert data.shape[0] == len(label)
-        self.data = data
-        self.label = label
-        if isinstance(label, ndarray.NDArray) and len(label.shape) == 1:
-            self._label = label.asnumpy()
-        else:
-            self._label = label       
-        
-    def __getitem__(self, idx):
-        return self.data[idx, 0], self.data[idx, 1], self.label[idx]
-    
-    def __len__(self):
-        return self.data.shape[0]        
-
-    
 def prepare_train_data(training_dir):
     f = os.listdir(training_dir)
     df = pd.read_csv(os.path.join(training_dir, f[0]), delimiter='\t', error_bad_lines=False)
@@ -193,17 +180,17 @@ def prepare_train_data(training_dir):
     train_df = train_df[(train_df['_merge'] == 'left_only')]
 
     # MXNet data iterators
-    train_iter = gluon.data.DataLoader(SparseMatrixDataset(nd.array(train_df[['user', 'item']].values, dtype=np.float32), 
-                                                           nd.array(train_df['star_rating'].values, dtype=np.float32)), 
-                                       shuffle=True,
-                                       batch_size=batch_size)
-    test_iter = gluon.data.DataLoader(SparseMatrixDataset(nd.array(test_df[['user', 'item']].values, dtype=np.float32), 
-                                                          nd.array(test_df['star_rating'].values, dtype=np.float32)),
-                                      shuffle=True,
-                                      batch_size=batch_size)
+    train = gluon.data.ArrayDataset(nd.array(train_df['user'].values, dtype=np.float32), 
+                                    nd.array(train_df['item'].values, dtype=np.float32),
+                                    nd.array(train_df['star_rating'].values, dtype=np.float32))
+    test  = gluon.data.ArrayDataset(nd.array(test_df['user'].values, dtype=np.float32), 
+                                    nd.array(test_df['item'].values, dtype=np.float32),
+                                    nd.array(test_df['star_rating'].values, dtype=np.float32))
+
+    train_iter = gluon.data.DataLoader(train, shuffle=True, num_workers=4, batch_size=batch_size, last_batch='rollover')
+    test_iter = gluon.data.DataLoader(train, shuffle=True, num_workers=4, batch_size=batch_size, last_batch='rollover')
 
     return train_iter, test_iter, customer_index, product_index 
-
 
 #########
 # Hosting
