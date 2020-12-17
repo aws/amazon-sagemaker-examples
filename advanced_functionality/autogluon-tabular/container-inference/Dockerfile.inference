@@ -1,0 +1,8 @@
+ARG REGISTRY_URI
+FROM ${REGISTRY_URI}
+
+RUN pip install autogluon
+RUN pip install PrettyTable
+
+# Defines inference.py as script entrypoint
+ENV SAGEMAKER_PROGRAM inference.py
