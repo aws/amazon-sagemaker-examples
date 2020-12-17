@@ -15,6 +15,7 @@ class SimtraceVideo():
     def __init__(self, upload_type, bucket, s3_prefix,
                  region_name="us-east-1", local_path="./custom_files/iteration_data/\
                  agent/file",
+                 s3_endpoint_url=None,
                  max_retry_attempts=5, backoff_time_sec=1.0):
         '''This class is for all s3 simtrace and video upload
 
@@ -36,6 +37,7 @@ class SimtraceVideo():
         self._local_path = local_path
         self._upload_num = 0
         self._s3_client = S3Client(region_name,
+                                   s3_endpoint_url, 
                                    max_retry_attempts,
                                    backoff_time_sec)
 

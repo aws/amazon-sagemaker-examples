@@ -8,78 +8,6 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 # ------------------------------------------------------------ #
-# Neo host methods                                             #
-# ------------------------------------------------------------ #  
-
-def neo_preprocess(payload, content_type):
-
-    def _read_input_shape(signature):
-        shape = signature[-1]['shape']
-        shape[0] = 1
-        return shape
-
-    def _transform_image(image, shape_info):
-        # Fetch image size
-        input_shape = _read_input_shape(shape_info)
-
-        # Perform color conversion
-        if input_shape[-3] == 3:
-            # training input expected is 3 channel RGB
-            image = image.convert('RGB')
-        elif input_shape[-3] == 1:
-            # training input expected is grayscale
-            image = image.convert('L')
-        else:
-            # shouldn't get here
-            raise RuntimeError('Wrong number of channels in input shape')
-
-        # Resize
-        image = np.asarray(image.resize((input_shape[-2], input_shape[-1])))
-
-        # Normalize
-        mean_vec = np.array([0.485, 0.456, 0.406])
-        stddev_vec = np.array([0.229, 0.224, 0.225])
-        image = (image/255- mean_vec)/stddev_vec
-
-        # Transpose
-        if len(image.shape) == 2:  # for greyscale image
-            image = np.expand_dims(image, axis=2)
-        image = np.rollaxis(image, axis=2, start=0)[np.newaxis, :]
-
-        return image
-
-        
-    logging.info('Invoking user-defined pre-processing function')
-
-    if content_type != 'image/jpeg':
-        raise RuntimeError('Content type must be image/jpeg')
-    
-    shape_info = [{"shape":[1,3,320,320], "name":"data"}]
-    f = io.BytesIO(payload)
-    dtest = _transform_image(PIL.Image.open(f), shape_info)
-    return {'data':dtest}
-
-    
-def neo_postprocess(result):
-
-    logging.info('Invoking user-defined post-processing function')
- 
-    js = {'prediction':[],'instance':[]}
-    for r in result:
-        r = np.squeeze(r)
-        js['instance'].append(r.tolist())
-    idx, score, bbox = js['instance']
-    bbox = np.asarray(bbox)
-    res = np.hstack((np.column_stack((idx,score)),bbox))
-    for r in res:
-        js['prediction'].append(r.tolist())
-    del js['instance']
-    response_body = json.dumps(js)
-    content_type = 'application/json'
-
-    return response_body, content_type
-
-# ------------------------------------------------------------ #
 # Training methods                                             #
 # ------------------------------------------------------------ #  
 
@@ -189,20 +117,6 @@ def get_dataset(dataset, args):
     val_metric = VOC07MApMetric(iou_thresh=0.5, class_names=object_categories)
     args.no_random_shape = True
 
-    # if dataset.lower() == 'voc':
-    #     train_dataset = gdata.VOCDetection(
-    #         splits=[(2007, 'trainval'), (2012, 'trainval')])
-    #     val_dataset = gdata.VOCDetection(
-    #         splits=[(2007, 'test')])
-    #     val_metric = VOC07MApMetric(iou_thresh=0.5, class_names=val_dataset.classes)
-    # elif dataset.lower() == 'coco':
-    #     train_dataset = gdata.COCODetection(splits='instances_train2017', use_crowd=False)
-    #     val_dataset = gdata.COCODetection(splits='instances_val2017', skip_empty=False)
-    #     val_metric = COCODetectionMetric(
-    #         val_dataset, args.save_prefix + '_eval', cleanup=True,
-    #         data_shape=(args.data_shape, args.data_shape))
-    # else:
-    #     raise NotImplementedError('Dataset: {} not implemented.'.format(dataset))
     if args.num_samples < 0:
         args.num_samples = len(train_dataset)
     if args.mixup:
@@ -212,8 +126,6 @@ def get_dataset(dataset, args):
 
 def get_dataloader(net, train_dataset, val_dataset, data_shape, batch_size, num_workers, args):
 
-    import os
-    os.system('pip3 install gluoncv')
     import gluoncv as gcv
     gcv.utils.check_version('0.6.0')
     from gluoncv import data as gdata
@@ -292,8 +204,6 @@ def validate(net, val_data, ctx, eval_metric):
 
 def train(net, train_data, val_data, eval_metric, ctx, args):
 
-    import os
-    os.system('pip3 install gluoncv')
     import gluoncv as gcv
     gcv.utils.check_version('0.6.0')
     from gluoncv import data as gdata
@@ -448,8 +358,6 @@ def train(net, train_data, val_data, eval_metric, ctx, args):
 
 if __name__ == '__main__':
 
-    import os
-    os.system('pip3 install gluoncv')
     import gluoncv as gcv
     gcv.utils.check_version('0.6.0')
     from gluoncv import data as gdata
@@ -524,11 +432,24 @@ def model_fn(model_dir):
     :param: model_dir The directory where model files are stored.
     :return: a model (in this case a Gluon network)
     """
+    logging.info('Invoking user-defined model_fn')
+
+    import neomxnet # noqa: F401
+
+    #select GPU context
+    ctx = mx.gpu()
+
     net = gluon.SymbolBlock.imports(
-        '%s/model-symbol.json' % model_dir,
+        '%s/compiled-symbol.json' % model_dir,
         ['data'],
-        '%s/model-0000.params' % model_dir,
+        '%s/compiled-0000.params' % model_dir,
+        ctx=ctx
     )
+    net.hybridize(static_alloc=True, static_shape=True)
+
+    #run warm-up inference on empty data
+    warmup_data = mx.nd.empty((1,3,320,320), ctx=ctx)
+    class_IDs, scores, bounding_boxes = net(warmup_data)
    
     return net
     
@@ -536,9 +457,7 @@ def transform_fn(net, data, content_type, output_content_type):
     """
     Transform incoming requests.
     """
-    import os
-
-    os.system('pip3 install gluoncv')
+    logging.info('Invoking user-defined transform_fn')
 
     import gluoncv as gcv
     
@@ -548,10 +467,8 @@ def transform_fn(net, data, content_type, output_content_type):
     #preprocess image   
     x, image = gcv.data.transforms.presets.yolo.transform_test(mx.nd.array(data), 320)
     
-    #check if GPUs area available
-    ctx = mx.gpu() if mx.context.num_gpus() > 0 else mx.cpu()
-    
-    net.collect_params().reset_ctx(ctx)
+    #select GPU context
+    ctx = mx.gpu()
 
     #load image onto right context
     x = x.as_in_context(ctx)

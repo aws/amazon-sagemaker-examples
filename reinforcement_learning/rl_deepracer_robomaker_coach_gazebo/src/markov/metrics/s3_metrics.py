@@ -70,7 +70,8 @@ class TrainingMetrics(MetricsInterface, ObserverInterface, AbstractTracker):
         self._deepracer_checkpoint_json = deepracer_checkpoint_json
         self._s3_metrics = Metrics(bucket=s3_dict_metrics[MetricsS3Keys.METRICS_BUCKET.value],
                                    s3_key=s3_dict_metrics[MetricsS3Keys.METRICS_KEY.value],
-                                   region_name=s3_dict_metrics[MetricsS3Keys.REGION.value])
+                                   region_name=s3_dict_metrics[MetricsS3Keys.REGION.value],
+                                   s3_endpoint_url=s3_dict_metrics[MetricsS3Keys.ENDPOINT_URL.value])
         self._start_time_ = time.time()
         self._episode_ = 0
         self._episode_reward_ = 0.0
@@ -239,7 +240,8 @@ class EvalMetrics(MetricsInterface, AbstractTracker):
         self._agent_name_ = agent_name
         self._s3_metrics = Metrics(bucket=s3_dict_metrics[MetricsS3Keys.METRICS_BUCKET.value],
                                    s3_key=s3_dict_metrics[MetricsS3Keys.METRICS_KEY.value],
-                                   region_name=s3_dict_metrics[MetricsS3Keys.REGION.value])
+                                   region_name=s3_dict_metrics[MetricsS3Keys.REGION.value],
+                                   s3_endpoint_url=s3_dict_metrics[MetricsS3Keys.ENDPOINT_URL.value])
         self._is_continuous = is_continuous
         self._start_time_ = time.time()
         self._number_of_trials_ = 0

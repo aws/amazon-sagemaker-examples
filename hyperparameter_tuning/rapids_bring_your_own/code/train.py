@@ -14,59 +14,67 @@
 # limitations under the License.
 #
 
-import sys, os, time, traceback
-from rapids_cloud_ml import RapidsCloudML 
+import sys
+import traceback
+import logging
 
-""" Airline dataset specific target variable and feature column names 
-    Note: If you plan to bring in your own dataset modify the variables below
-""" 
-dataset_label_column = 'ArrDel15'
-dataset_feature_columns = [ 'Year', 'Quarter', 'Month', 'DayOfWeek', 
-                            'Flight_Number_Reporting_Airline', 'DOT_ID_Reporting_Airline',
-                            'OriginCityMarketID', 'DestCityMarketID',
-                            'DepTime', 'DepDelay', 'DepDel15', 'ArrDel15',
-                            'AirTime', 'Distance' ]
+from HPOConfig import HPOConfig
+from MLWorkflow import create_workflow
+
+
+def train():
+    hpo_config = HPOConfig(input_args=sys.argv[1:])
+    ml_workflow = create_workflow(hpo_config)
+
+    # cross-validation to improve robustness via multiple train/test reshuffles
+    for i_fold in range(hpo_config.cv_folds):
+        # ingest
+        dataset = ml_workflow.ingest_data()
+
+        # handle missing samples [ drop ]
+        dataset = ml_workflow.handle_missing_data(dataset)
+
+        # split into train and test set
+        X_train, X_test, y_train, y_test = ml_workflow.split_dataset(
+            dataset,
+            random_state=i_fold
+        )
+
+        # train model
+        trained_model = ml_workflow.fit(X_train, y_train)
+
+        # use trained model to predict target labels of test data
+        predictions = ml_workflow.predict(trained_model, X_test)
+
+        # score test set predictions against ground truth
+        score = ml_workflow.score(y_test, predictions)
+
+        # save trained model [ if it sets a new-high score ]
+        ml_workflow.save_best_model(score, trained_model)
+
+        # restart cluster to avoid memory creep [ for multi-CPU/GPU ]
+        ml_workflow.cleanup(i_fold)
+
+    # emit final score to cloud HPO [i.e., SageMaker]
+    ml_workflow.emit_final_score()
+
+
+def configure_logging():
+    hpo_log = logging.getLogger('hpo_log')
+    log_handler = logging.StreamHandler()
+    log_handler.setFormatter(
+        logging.Formatter('%(asctime)-15s %(levelname)8s %(name)s %(message)s')
+    )
+    hpo_log.addHandler(log_handler)
+    hpo_log.setLevel(logging.DEBUG)
+    hpo_log.propagate = False
+
 
 if __name__ == "__main__":
-
-    start_time = time.time()
-
-    # parse inputs and build cluster
-    rapids_sagemaker = RapidsCloudML ( input_args = sys.argv[1:] )
-    
+    configure_logging()
     try:
-        print( '--- starting workflow --- \n ')
-
-        # [ optional cross-validation] improves robustness/confidence in the best hyper-params        
-        for i_fold in range ( rapids_sagemaker.cv_folds ):
-
-            # run ETL [  ingest -> repartition -> drop missing -> split -> persist ]
-            X_train, X_test, y_train, y_test = rapids_sagemaker.ETL ( columns = dataset_feature_columns, 
-                                                                      label_column = dataset_label_column,
-                                                                      random_seed = i_fold ) 
-
-            # train model
-            trained_model = rapids_sagemaker.train_model ( X_train, y_train )
-
-            # evaluate perf
-            score = rapids_sagemaker.predict ( trained_model, X_test, y_test )
-
-            # restart cluster to avoid memory creep [ for multi-CPU/GPU ]
-            rapids_sagemaker.cluster_reinitialize( i_fold )
-
-        # save
-        rapids_sagemaker.save_model ( trained_model )
-                
-        # emit final score to sagemaker
-        rapids_sagemaker.emit_final_score()
-                        
-        print( f'total elapsed time = { round( time.time() - start_time) } seconds\n' )
-    
-        sys.exit(0) # success exit code
-
-    except Exception as error:
-
-        trc = traceback.format_exc()           
-        print( ' ! exception: ' + str(error) + '\n' + trc, file = sys.stderr)
-        
-        sys.exit(-1) # a non-zero exit code causes the training job to be marked as failed
+        train()
+        sys.exit(0)  # success exit code
+    except Exception:
+        traceback.print_exc()
+        sys.exit(-1)  # failure exit code
