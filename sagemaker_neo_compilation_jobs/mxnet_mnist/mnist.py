@@ -3,11 +3,11 @@ import gzip
 import json
 import logging
 import os
+import io
 import struct
-
 import mxnet as mx
 import numpy as np
-
+from collections import namedtuple
 
 def load_data(path):
     with gzip.open(find_file(path, "labels.gz")) as flbl:
@@ -107,42 +107,59 @@ def parse_args():
 
     return parser.parse_args()
 
-### NOTE: this function cannot use MXNet
-def neo_preprocess(payload, content_type):
-    import logging
-    import numpy as np
-    import io
+### NOTE: model_fn and transform_fn are used to load the model and serve inference
+def model_fn(model_dir):
+    import neomxnet  # noqa: F401
+    
+    logging.info('Invoking user-defined model_fn')
+    
+    # change context to mx.gpu() when optimizing and deploying with Neo for GPU endpoints
+    ctx = mx.cpu()
+    
+    Batch = namedtuple('Batch', ['data'])
+    sym, arg_params, aux_params = mx.model.load_checkpoint(os.path.join(model_dir, 'compiled'), 0)
+    mod = mx.mod.Module(symbol=sym, context=ctx, label_names=None)
+    exe = mod.bind(for_training=False,
+                   data_shapes=[('data', (1,784))],
+                   label_shapes=mod._label_shapes)
+    mod.set_params(arg_params, aux_params, allow_missing=True)
+    # run warm-up inference on empty data
+    data = mx.nd.empty((1,784), ctx=ctx)
+    mod.forward(Batch([data]))
+    return mod
 
-    logging.info('Invoking user-defined pre-processing function')
+def transform_fn(mod, payload, input_content_type, output_content_type):
+    
+    logging.info('Invoking user-defined transform_fn')
+    Batch = namedtuple('Batch', ['data'])
+    
+    # change context to mx.gpu() when optimizing and deploying with Neo for GPU endpoints
+    ctx = mx.cpu()
+    
+    if input_content_type != 'application/x-npy':
+        raise RuntimeError('Input content type must be application/x-npy')
 
-    if content_type != 'application/vnd+python.numpy+binary':
-        raise RuntimeError('Content type must be application/vnd+python.numpy+binary')
-
-    f = io.BytesIO(payload)
-    return np.load(f)
-
-### NOTE: this function cannot use MXNet
-def neo_postprocess(result):
-    import logging
-    import numpy as np
-    import json
-
-    logging.info('Invoking user-defined post-processing function')
-
-    # Softmax (assumes batch size 1)
+    # pre-processing
+    io_bytes_obj = io.BytesIO(payload)
+    npy_payload = np.load(io_bytes_obj)
+    mx_ndarray = mx.nd.array(npy_payload)
+    inference_payload = mx_ndarray.as_in_context(ctx)
+    
+    # prediction/inference
+    mod.forward(Batch([inference_payload]))
+    
+    # post-processing
+    result = mod.get_outputs()[0].asnumpy()
     result = np.squeeze(result)
     result_exp = np.exp(result - np.max(result))
     result = result_exp / np.sum(result_exp)
-
-    response_body = json.dumps(result.tolist())
-    content_type = 'application/json'
-
-    return response_body, content_type
-
+    output_json = json.dumps(result.tolist())
+    output_content_type = 'application/json'
+    return output_json, output_content_type
 
 if __name__ == '__main__':
     args = parse_args()
     num_gpus = int(os.environ['SM_NUM_GPUS'])
-
-    train(args.batch_size, args.epochs, args.learning_rate, num_gpus, args.train, args.test,
-          args.hosts, args.current_host, args.model_dir)
+    train(args.batch_size, args.epochs, args.learning_rate,
+          num_gpus, args.train, args.test, args.hosts,
+          args.current_host, args.model_dir)

@@ -221,7 +221,6 @@ class MultiAgentEnvironment(EnvironmentInterface):
         self.total_reward_in_current_episode = self.reward = [0.0] * self.num_agents
         self.last_action = [0] * self.num_agents
         self.current_episode_steps_counter = 0
-        self._update_state()
 
         self.last_env_response = \
             [EnvResponse(
@@ -240,10 +239,8 @@ class MultiAgentEnvironment(EnvironmentInterface):
 
         :return: a numpy array with a random action
         """
-        if type(self.action_space) == ActionType:
-            return self.action_space.sample()
-        else:
-            return [action_space.sample() for action_space in self.action_space]
+        return self.action_space.sample() if isinstance(self.action_space, ActionType) else \
+            [action_space.sample() for action_space in self.action_space]
 
     def get_goal(self) -> GoalType:
         """
@@ -291,6 +288,13 @@ class MultiAgentEnvironment(EnvironmentInterface):
         :param force_environment_reset: Force the environment to reset even if the episode is not done yet.
         :return: None
         """
+        raise NotImplementedError("")
+
+    def _notify_phase(self, phase: RunPhase):
+        '''
+        This is a hook that notifies the enviroment that the phase has changed
+        phase - The value of the pahse after it has changed
+        '''
         raise NotImplementedError("")
 
     def get_target_success_rate(self) -> float:

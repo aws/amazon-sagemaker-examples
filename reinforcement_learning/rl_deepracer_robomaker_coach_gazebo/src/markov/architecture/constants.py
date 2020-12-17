@@ -28,9 +28,15 @@ class Input(Enum):
     '''
     OBSERVATION = 'observation'
     LIDAR = 'LIDAR'
+    SECTOR_LIDAR = 'SECTOR_LIDAR'
     CAMERA = 'FRONT_FACING_CAMERA'
     LEFT_CAMERA = 'LEFT_CAMERA'
     STEREO = 'STEREO_CAMERAS'
+    
+    @classmethod
+    def validate_inputs(cls, input_list):
+        '''Returns True if the all the inputs in input_list is supported, False otherwise'''
+        return all([_input in cls._value2member_map_ for _input in input_list])
 
 class ActivationFunctions(Enum):
     '''Enum containing the available activation functions for rl coach.'''
