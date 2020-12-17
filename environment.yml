@@ -1,0 +1,9 @@
+channels:
+   - conda-forge
+
+dependencies:
+   - nbsphinx==0.7.1
+   - sphinx==3.1.1
+   - pip
+   - pip:
+      - sagemaker==2.15.0

@@ -29,8 +29,8 @@ class MultiAgentLevelManager(EnvironmentInterface):
                  real_environment: Environment = None,
                  steps_limit: EnvironmentSteps = EnvironmentSteps(1),
                  should_reset_agent_state_after_time_limit_passes: bool = False,
-                 spaces_definition: SpacesDefinition = None
-                 ):
+                 spaces_definition: SpacesDefinition = None,
+                 done_condition=any):
         """
         A level manager controls a single or multiple composite agents and a single environment.
         The environment can be either a real environment or another level manager behaving as an environment.
@@ -52,6 +52,7 @@ class MultiAgentLevelManager(EnvironmentInterface):
             agents = {agents.name: agents}
         if real_environment is None:
             self._real_environment = real_environment = environment
+        self.done_condition = done_condition
         self.agents = agents
         self.environment = environment
         self.real_environment = real_environment
@@ -216,8 +217,7 @@ class MultiAgentLevelManager(EnvironmentInterface):
 
         for i in range(self.steps_limit.num_steps):
             # let the agent observe the result and decide if it wants to terminate the episode
-            done = any([agent.observe(env_response) for agent, env_response in zip(self.agents.values(), env_responses)])
-
+            done = self.done_condition([agent.observe(env_response) for agent, env_response in zip(self.agents.values(), env_responses)])
             if done:
                 break
             else:
@@ -245,7 +245,7 @@ class MultiAgentLevelManager(EnvironmentInterface):
         # if the environment terminated the episode -> let the agent observe the last response
         # in HRL,excluding top level one, we will always enter the below if clause
         # (because should_reset_agent_state_after_time_limit_passes is set to True)
-        done = any(env_response.game_over for env_response in env_responses)
+        done = self.done_condition(env_response.game_over for env_response in env_responses)
         if done or self.should_reset_agent_state_after_time_limit_passes:
             # this is the agent's only opportunity to observe this transition - he will not get another one
             [agent.observe(env_response) for agent, env_response in zip(self.agents.values(), env_responses)]

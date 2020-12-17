@@ -1,5 +1,4 @@
 '''This module implements concrete agent controllers for the rollout worker'''
-import bisect
 import math
 import numpy as np
 import os
@@ -9,29 +8,34 @@ import rospy
 import threading
 
 from gazebo_msgs.msg import ModelState
-from gazebo_msgs.srv import SetModelState, SpawnModel
+from gazebo_msgs.srv import SpawnModel
 from geometry_msgs.msg import Pose
-from rosgraph_msgs.msg import Clock
 
-from markov.agent_ctrl.constants import ConfigParams, BOT_CAR_Z
-from markov.track_geom.constants import SET_MODEL_STATE, SPAWN_SDF_MODEL, ObstacleDimensions
-from markov.track_geom.track_data import TrackData, TrackLine
+from markov.agent_ctrl.constants import BOT_CAR_Z
+from markov.agent_ctrl.utils import get_normalized_progress
+from markov.track_geom.constants import (SPAWN_SDF_MODEL, ObstacleDimensions,
+                                         TrackLane)
+from markov.track_geom.track_data import TrackData
+from markov.track_geom.spline.track_spline import TrackSpline
+from markov.track_geom.spline.lane_change_spline import LaneChangeSpline
 from markov.track_geom.utils import euler_to_quaternion
 from markov.agent_ctrl.agent_ctrl_interface import AgentCtrlInterface
 from markov.rospy_wrappers import ServiceProxyWrapper
 from markov import utils
 from markov.reset.constants import AgentPhase, AgentInfo
-from markov.deepracer_exceptions import GenericRolloutException
+from markov.log_handler.deepracer_exceptions import GenericRolloutException
+from markov.domain_randomizations.randomizer_manager import RandomizerManager
+from markov.domain_randomizations.visual.model_visual_randomizer import ModelVisualRandomizer
+from markov.domain_randomizations.constants import ModelRandomizerType
+from markov.gazebo_tracker.trackers.set_model_state_tracker import SetModelStateTracker
+from markov.gazebo_tracker.abs_tracker import AbstractTracker
+from markov.gazebo_tracker.constants import TrackerPriority
 
-from scipy.interpolate import splprep, spalde
 from shapely.geometry import Point
-from shapely.geometry.polygon import LineString
 
-SPLINE_DEGREE = 3
 
-class BotCarsCtrl(AgentCtrlInterface):
+class BotCarsCtrl(AgentCtrlInterface, AbstractTracker):
     def __init__(self):
-        self.track_data = TrackData.get_instance()
         self.lock = threading.Lock()
 
         # Read ros parameters
@@ -51,69 +55,34 @@ class BotCarsCtrl(AgentCtrlInterface):
         self.bot_car_phase = AgentPhase.RUN.value
         self.bot_car_dimensions = ObstacleDimensions.BOT_CAR_DIMENSION
         self.bot_car_crash_count = 0
-        self.pause_end_time = 0.0
+        self.pause_duration = 0.0
+
+        # track date
+        self.track_data = TrackData.get_instance()
+        self.reverse_dir = self.track_data.reverse_dir
 
         # Wait for ros services
-        rospy.wait_for_service(SET_MODEL_STATE)
         rospy.wait_for_service(SPAWN_SDF_MODEL)
-        self.set_model_state = ServiceProxyWrapper(SET_MODEL_STATE, SetModelState)
         self.spawn_sdf_model = ServiceProxyWrapper(SPAWN_SDF_MODEL, SpawnModel)
 
         # Build splines for inner/outer lanes
-        self.inner_lane = self._build_lane(self.track_data._inner_lane_)
-        self.outer_lane = self._build_lane(self.track_data._outer_lane_)
+        self.inner_lane = TrackSpline(lane_name=TrackLane.INNER_LANE.value)
+        self.outer_lane = TrackSpline(lane_name=TrackLane.OUTER_LANE.value)
 
         # Spawn the bot cars
+        self.current_sim_time = 0.0
         self._reset_sim_time()
         self._spawn_bot_cars()
 
-        # Subscribe to the Gazebo clock and model states
-        rospy.Subscriber('/clock', Clock, self._update_sim_time)
+        self._configure_randomizer()
+        AbstractTracker.__init__(self, priority=TrackerPriority.HIGH)
 
-    def _build_lane(self, lane):
-        '''Take in the track lane and return a track lane dictionary
-
-        Args:
-            lane (TrackLine): TrackLine instance
-
-        Returns:
-            dict: Dictionary contains input track lane, track lane point distance,
-                  prepared track lane spline.
+    def _configure_randomizer(self):
+        '''configure domain randomizer
         '''
-        center_line = self.track_data._center_line_
-        lane_dists = [center_line.project(Point(c)) for c in lane.coords]
-        # projecting inner/outer lane into center line cannot
-        # guarantee monotonic increase along starting and ending position
-        # if wrap around along start (more than half of track length),
-        # subtract track length
-        for i in range(len(lane_dists)):
-            if lane_dists[i] < 0.5 * center_line.length:
-                break
-            lane_dists[i] -= center_line.length
-        # if wrap around along finish (less than half of track length),
-        # add track length
-        for i in range(len(lane_dists) - 1, 0, -1):
-            if lane_dists[i] > 0.5 * center_line.length:
-                break
-            lane_dists[i] += center_line.length
-        u,ui = np.unique(lane_dists, return_index=True)
-        x = np.array(lane.coords.xy)[:,ui]
-        if u[0] > 0.0:
-            p0 = lane.interpolate(lane.project(Point(center_line.coords[0])))
-            u[0] = 0.0
-            x[:,:1] = p0.xy
-        if u[-1] < center_line.length:
-            pN = lane.interpolate(lane.project(Point(center_line.coords[-1])))
-            u[-1] = center_line.length
-            x[:,-1:] = pN.xy
-        if self.track_data.is_loop:
-            x[:,-1] = x[:,0]
-            lane_spline, _ = splprep(x, u=u, k=SPLINE_DEGREE, s=0, per=1)
-        else:
-            lane_spline, _ = splprep(x, u=u, k=SPLINE_DEGREE, s=0)
-        return {"track_line": lane,
-                "dists": lane_dists,
-                "spline": lane_spline}
+        for bot_car_name in self.bot_car_names:
+            RandomizerManager.get_instance().add(ModelVisualRandomizer(model_name=bot_car_name,
+                                                                       model_randomizer_type=ModelRandomizerType.VISUAL))
 
     def _reset_sim_time(self):
         '''reset simulation start time
@@ -121,13 +90,17 @@ class BotCarsCtrl(AgentCtrlInterface):
         sim_time = rospy.get_rostime()
         self.start_sim_time = self.current_sim_time = sim_time.secs + 1.e-9*sim_time.nsecs
 
-    def _update_sim_time(self, sim_time):
-        '''Gazebo clock call back to update current time
+    def update_tracker(self, delta_time, sim_time):
+        """
+        Callback when sim time is updated
 
         Args:
-            sim_time (Clock): gazebo clock
-        '''
+            delta_time (float): time diff from last call
+            sim_time (Clock): simulation time
+        """
         self.current_sim_time = sim_time.clock.secs + 1.e-9*sim_time.clock.nsecs
+        if self.pause_duration > 0.0:
+            self.pause_duration -= delta_time
 
     def _get_dist_from_sim_time(self, initial_dist, sim_time):
         '''Get the bot car travel distance since the simulation start time
@@ -143,42 +116,21 @@ class BotCarsCtrl(AgentCtrlInterface):
                           self.penalty_seconds
         bot_car_traveled_dist = seconds_elapsed * self.bot_car_speed
         bot_car_center_dist = (initial_dist + bot_car_traveled_dist) \
-                              % self.track_data._center_line_.length
+                              % self.track_data.center_line.length
         return bot_car_center_dist
-
-    def _eval_spline(self, initial_dist, sim_time, spline):
-        '''Use spline to generate point
-
-        Args:
-            initial_dist (float): bot car initial distance
-            sim_time (float): current simulation time
-            spline (splprep): B-spline representation of an N-dimensional curve.
-            https://docs.scipy.org/doc/scipy-0.14.0/reference/generated/scipy.interpolate.splprep.html
-
-        Returns:
-            spalde: Evaluate all derivatives of a B-spline.
-            https://docs.scipy.org/doc/scipy-0.18.1/reference/generated/scipy.interpolate.spalde.html
-        '''
-        center_line = self.track_data._center_line_
-        dist = self._get_dist_from_sim_time(initial_dist, sim_time)
-        min_dist = spline[0][SPLINE_DEGREE]
-        max_dist = spline[0][-SPLINE_DEGREE-1]
-        if dist < min_dist: dist += center_line.length
-        if dist > max_dist: dist -= center_line.length
-        return spalde(max(min_dist, min(dist, max_dist)), spline)
 
     def _compute_bot_car_initial_states(self):
         '''Compute the bot car initial distance and spline
         '''
         # Start with equally spaced
         bot_car_start_dist = self.min_bot_car_dist
-        bot_car_end_dist = self.track_data._center_line_.length - 1.0
+        bot_car_end_dist = self.track_data.center_line.length - 1.0
         bot_cars_initial_dists = np.linspace(bot_car_start_dist, bot_car_end_dist,
                                              self.num_bot_cars)
 
         # Perturb to achieve randomness
-        self.bot_cars_lanes = []
-        self.bot_cars_opposite_lanes = []
+        self.bot_cars_lane_splines = []
+        self.bot_cars_opposite_lane_splines = []
         self.bot_cars_lane_change_end_times = [0.0] * self.num_bot_cars if self.is_lane_change \
                                               else [float('inf')] * self.num_bot_cars
         lane_choices = (self.inner_lane, self.outer_lane)
@@ -196,124 +148,63 @@ class BotCarsCtrl(AgentCtrlInterface):
             # Select a random lane for each bot car
             for _ in bot_cars_initial_dists:
                 use_outer_lane = random.choice((False, True))
-                self.bot_cars_lanes.append(lane_choices[use_outer_lane])
-                self.bot_cars_opposite_lanes.append(lane_choices[not use_outer_lane])
+                self.bot_cars_lane_splines.append(lane_choices[use_outer_lane])
+                self.bot_cars_opposite_lane_splines.append(lane_choices[not use_outer_lane])
         else:
             # Alternate between lanes for each bot car
             use_outer_lane = False
             for _ in bot_cars_initial_dists:
-                self.bot_cars_lanes.append(lane_choices[use_outer_lane])
-                self.bot_cars_opposite_lanes.append(lane_choices[not use_outer_lane])
+                self.bot_cars_lane_splines.append(lane_choices[use_outer_lane])
+                self.bot_cars_opposite_lane_splines.append(lane_choices[not use_outer_lane])
                 use_outer_lane = not use_outer_lane
 
         # Minimal critical section
         with self.lock:
             self.bot_cars_initial_dists = bot_cars_initial_dists
-            self.bot_car_splines = [lane["spline"] for lane in self.bot_cars_lanes]
+            self.bot_cars_trajectories = list(self.bot_cars_lane_splines)
 
     def _compute_bot_car_lane_changes(self):
         '''Compute the bot car lane change splines and update bot car lane change end times
         '''
-        center_line = self.track_data._center_line_
-
-        bot_car_splines = []
+        bot_cars_trajectories = []
         for i_bot_car, lane_change_end_time in enumerate(self.bot_cars_lane_change_end_times):
 
             # See if the last lane change has finished
             if self.current_sim_time >= lane_change_end_time:
                 # Swap lanes
                 if lane_change_end_time > 0.0:
-                    self.bot_cars_lanes[i_bot_car], self.bot_cars_opposite_lanes[i_bot_car] = \
-                        self.bot_cars_opposite_lanes[i_bot_car], self.bot_cars_lanes[i_bot_car]
-
-                start_lane = self.bot_cars_lanes[i_bot_car]
-                start_lane_line = start_lane["track_line"]
-                start_lane_dists = start_lane["dists"]
-                start_lane_spline = start_lane["spline"]
-                end_lane = self.bot_cars_opposite_lanes[i_bot_car]
-                end_lane_line = end_lane["track_line"]
-                end_lane_dists = end_lane["dists"]
-                end_lane_spline = end_lane["spline"]
-
+                    self.bot_cars_lane_splines[i_bot_car], self.bot_cars_opposite_lane_splines[i_bot_car] = \
+                        self.bot_cars_opposite_lane_splines[i_bot_car], self.bot_cars_lane_splines[i_bot_car]
+                # Get start lane and end lane
+                start_lane = self.bot_cars_lane_splines[i_bot_car]
+                end_lane = self.bot_cars_opposite_lane_splines[i_bot_car]
+                # Get initial and curent distance
+                initial_dist = self.bot_cars_initial_dists[i_bot_car]
+                current_dist = self._get_dist_from_sim_time(initial_dist, self.current_sim_time)
                 # Set the next lane change time
                 lane_change_end_time = self.bot_cars_lane_change_end_times[i_bot_car] = \
                     self.current_sim_time \
                     + random.uniform(self.lower_lane_change_time, self.upper_lane_change_time) \
                     + self.lane_change_duration
                 lane_change_start_time = lane_change_end_time - self.lane_change_duration
+                # Set the next lane change distance
+                lane_change_start_dist = self._get_dist_from_sim_time(initial_dist,
+                                                                      lane_change_start_time)
+                lane_change_end_dist = self._get_dist_from_sim_time(initial_dist,
+                                                                    lane_change_end_time)
+                # Get bot car lane change spline
+                bot_car_lane_change_spline = LaneChangeSpline(start_lane=start_lane, end_lane=end_lane,
+                                                  current_dist=current_dist,
+                                                  lane_change_start_dist=lane_change_start_dist,
+                                                  lane_change_end_dist=lane_change_end_dist)
 
-                # Get center dists for relevant lane change times
-                initial_dist = self.bot_cars_initial_dists[i_bot_car]
-                current_dist = self._get_dist_from_sim_time(initial_dist, self.current_sim_time)
-                start_dist = self._get_dist_from_sim_time(initial_dist, lane_change_start_time)
-                end_dist = self._get_dist_from_sim_time(initial_dist, lane_change_end_time)
-                end_offset = 0.0 if (start_dist < end_dist) else center_line.length
-
-                # Grab start/end lane points from the times
-                start_lane_point = Point(np.array(self._eval_spline(initial_dist,
-                                                                    lane_change_start_time,
-                                                                    start_lane_spline))[:,0])
-                end_lane_point = Point(np.array(self._eval_spline(initial_dist,
-                                                                  lane_change_end_time,
-                                                                  end_lane_spline))[:,0])
-
-                # Find prev/next points on each lane
-                current_prev_index = bisect.bisect_left(start_lane_dists, current_dist) - 1
-                start_prev_index = bisect.bisect_left(start_lane_dists, start_dist) - 1
-                end_next_index = bisect.bisect_right(end_lane_dists, end_dist)
-
-                # Define intervals on start/end lanes to build the spline from
-                num_start_coords = len(start_lane_line.coords)
-                num_end_coords = len(end_lane_line.coords)
-                if self.track_data.is_loop:
-                    num_start_coords -= 1
-                    num_end_coords -= 1
-                start_index_0 = (current_prev_index - 3) % num_start_coords
-                start_index_1 = start_prev_index % num_start_coords
-                end_index_0 = end_next_index % num_end_coords
-                end_index_1 = (end_next_index + 3) % num_end_coords
-
-                # Grab waypoint indices for these intervals (some corner cases here...)
-                if start_index_0 < start_index_1:
-                    start_indices = list(range(start_index_0, start_index_1 + 1))
-                    start_offsets = [0.0] * len(start_indices)
-                else:
-                    start_indices_0 = list(range(start_index_0, num_start_coords))
-                    start_indices_1 = list(range(start_index_1 + 1))
-                    start_indices = start_indices_0 + start_indices_1
-                    start_offsets = [-center_line.length] * len(start_indices_0) \
-                                    + [0.0] * len(start_indices_1)
-                if end_index_0 < end_index_1:
-                    end_indices = list(range(end_index_0, end_index_1 + 1))
-                    end_offsets = [end_offset] * len(end_indices)
-                else:
-                    end_indices_0 = list(range(end_index_0, num_end_coords))
-                    end_indices_1 = list(range(end_index_1 + 1))
-                    end_indices = end_indices_0 + end_indices_1
-                    end_offsets = [end_offset] * len(end_indices_0) \
-                                  + [end_offset + center_line.length] * len(end_indices_1)
-
-                # Build the spline
-                u = np.hstack((
-                    np.array(start_lane_dists)[start_indices] + np.array(start_offsets),
-                    start_dist,
-                    end_dist + end_offset,
-                    np.array(end_lane_dists)[end_indices] + np.array(end_offsets)))
-                x = np.hstack((
-                    np.array(start_lane_line.coords.xy)[:,start_indices],
-                    start_lane_point.xy,
-                    end_lane_point.xy,
-                    np.array(end_lane_line.coords.xy)[:,end_indices]))
-                u,ui = np.unique(u, return_index=True)
-                x = x[:,ui]
-                bot_car_spline, _ = splprep(x, u=u, k=SPLINE_DEGREE, s=0)
-                bot_car_splines.append((i_bot_car, bot_car_spline))
+                bot_cars_trajectories.append((i_bot_car, bot_car_lane_change_spline))
 
         # Minimal critical section
-        if bot_car_splines:
+        if bot_cars_trajectories:
             with self.lock:
-                for i_bot_car, bot_car_spline in bot_car_splines:
-                    self.bot_car_splines[i_bot_car] = bot_car_spline
+                for i_bot_car, bot_car_lane_change_spline in bot_cars_trajectories:
+                    self.bot_cars_trajectories[i_bot_car] = bot_car_lane_change_spline
 
     def _compute_bot_car_poses(self):
         '''Compute bot car poses
@@ -324,9 +215,10 @@ class BotCarsCtrl(AgentCtrlInterface):
         # Evaluate the splines
         with self.lock:
             bot_cars_spline_derivs = \
-                [self._eval_spline(initial_dist, self.current_sim_time, spline)
+                [spline.eval_spline(self._get_dist_from_sim_time(initial_dist,
+                                                                 self.current_sim_time))
                  for initial_dist, spline in zip(self.bot_cars_initial_dists,
-                                                 self.bot_car_splines)]
+                                                 self.bot_cars_trajectories)]
 
         # Compute the bot car poses
         bot_car_poses = []
@@ -379,21 +271,32 @@ class BotCarsCtrl(AgentCtrlInterface):
             bot_car_state.twist.angular.x = 0
             bot_car_state.twist.angular.y = 0
             bot_car_state.twist.angular.z = 0
-            self.set_model_state(bot_car_state)
-            self.track_data.reset_object(bot_car_name, bot_car_pose)
+            SetModelStateTracker.get_instance().set_model_state(bot_car_state)
+
+    def _update_track_data_bot_car_poses(self):
+        '''update bot car poses in track data'''
+        for bot_car_name, bot_car_pose in zip(self.bot_car_names, self.bot_car_poses):
+            self.track_data.update_object_pose(bot_car_name, bot_car_pose)
 
     @property
     def action_space(self):
         return None
 
     def reset_agent(self):
-        '''reset bot car when a new episode start by resetting simulation time and
-        initial position.
+        '''reset bot car when a new episode start by resetting simulation time,
+        initial position and reverse direction potentially.
         '''
         self.bot_car_crash_count = 0
+        self.bot_car_phase = AgentPhase.RUN.value
+        self.pause_duration = 0.0
+        if self.reverse_dir != self.track_data.reverse_dir:
+            self.reverse_dir = self.track_data.reverse_dir
+            self.inner_lane.build_spline()
+            self.outer_lane.build_spline()
         self._reset_sim_time()
         self._compute_bot_car_initial_states()
         self._update_bot_cars()
+        self._update_track_data_bot_car_poses()
 
     def send_action(self, action):
         '''Send bot car action to Gazebo for rendering
@@ -414,11 +317,13 @@ class BotCarsCtrl(AgentCtrlInterface):
         Returns:
             dict: dictionary of bot car info after action is taken
         '''
+        self._update_track_data_bot_car_poses()
         for bot_car_name, bot_car_pose in zip(self.bot_car_names, self.bot_car_poses):
             bot_car_progress = self.track_data.get_norm_dist(
                 Point(bot_car_pose.position.x, bot_car_pose.position.y)) * 100.0
             self.bot_car_progresses.update(
-                {bot_car_name:{AgentInfo.CURRENT_PROGRESS.value:bot_car_progress}})
+                {bot_car_name: {AgentInfo.CURRENT_PROGRESS.value: bot_car_progress,
+                                AgentInfo.START_NDIST.value: 0.0}})
         return self.bot_car_progresses
 
     def judge_action(self, agents_info_map):
@@ -432,32 +337,35 @@ class BotCarsCtrl(AgentCtrlInterface):
             tuple: None, None, None
 
         Raises:
-            GenericRolloutException: bot car pahse is not defined
+            GenericRolloutException: bot car phase is not defined
         '''
         if self.bot_car_phase == AgentPhase.RUN.value:
-            self.pause_end_time = self.current_sim_time
-            for agent_name, _ in agents_info_map.items():
+            self.pause_duration = 0.0
+            for agent_name, agent_info in agents_info_map.items():
+                if not self.track_data.is_object_collidable(agent_name):
+                    continue
                 # check racecar crash with a bot_car
-                crashed_object_name = agents_info_map[agent_name]\
-                    [AgentInfo.CRASHED_OBJECT_NAME.value] \
-                    if AgentInfo.CRASHED_OBJECT_NAME.value in agents_info_map[agent_name] else None
-                if 'racecar' in agent_name and \
-                        crashed_object_name and 'bot_car' in crashed_object_name:
-                    racecar_progress = agents_info_map[agent_name]\
-                                                      [AgentInfo.CURRENT_PROGRESS.value]
-                    bot_car_progress = agents_info_map[crashed_object_name]\
-                                                      [AgentInfo.CURRENT_PROGRESS.value]
+                crashed_object_name = agent_info[AgentInfo.CRASHED_OBJECT_NAME.value] \
+                    if AgentInfo.CRASHED_OBJECT_NAME.value in agent_info else ''
+                # only trainable racecar agent has 'bot_car' as possible crashed object
+                if 'bot_car' in crashed_object_name:
+                    racecar_progress = get_normalized_progress(agent_info[AgentInfo.CURRENT_PROGRESS.value],
+                                                               start_ndist=agent_info[AgentInfo.START_NDIST.value])
+                    bot_car_info = agents_info_map[crashed_object_name]
+                    bot_car_progress = get_normalized_progress(bot_car_info[AgentInfo.CURRENT_PROGRESS.value],
+                                                               start_ndist=bot_car_info[AgentInfo.START_NDIST.value])
+
                     # transition to AgentPhase.PAUSE.value
                     if racecar_progress > bot_car_progress:
                         self.bot_cars_lane_change_end_times = \
                             [t + self.penalty_seconds for t in self.bot_cars_lane_change_end_times]
                         self.bot_car_crash_count += 1
-                        self.pause_end_time += self.penalty_seconds
+                        self.pause_duration += self.penalty_seconds
                         self.bot_car_phase = AgentPhase.PAUSE.value
                         break
         elif self.bot_car_phase == AgentPhase.PAUSE.value:
             # transition to AgentPhase.RUN.value
-            if self.current_sim_time > self.pause_end_time:
+            if self.pause_duration <= 0.0:
                 self.bot_car_phase = AgentPhase.RUN.value
         else:
             raise GenericRolloutException('bot car phase {} is not defined'.\
