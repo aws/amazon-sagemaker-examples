@@ -141,3 +141,6 @@ def get_execution_role(role_name="sagemaker", aws_account=None, aws_region=None)
     return client.get_role(RoleName=role_name)['Role']['Arn']
 
 
+def wait_for_training_job_to_complete(job_name):
+    sagemaker_client = boto3.client('sagemaker')
+    sagemaker_client.get_waiter('training_job_completed_or_stopped').wait(TrainingJobName=job_name)

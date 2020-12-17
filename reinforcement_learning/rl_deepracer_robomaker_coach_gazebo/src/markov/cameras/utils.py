@@ -56,7 +56,7 @@ def project_to_2d(point_on_plane, plane_center, plane_width, plane_height, plane
     # Rotate pitch 90 degree and yaw 90 degree, so plane will align to x and y axis
     # Remember rotation order is roll, pitch, yaw in euler_to_quaternion method
     project_2d_quaternion = euler_to_quaternion(pitch=np.pi / 2.0, yaw=np.pi / 2.0)
-    point_on_2d_plane = apply_orientation(project_2d_quaternion, point_on_y_axis)
+    point_on_2d_plane = apply_orientation(np.array(project_2d_quaternion), point_on_y_axis)
 
     # Align plane to origin at x, y = (0, 0)
     point_on_2d_plane = point_on_2d_plane + np.array([plane_width / 2.0, plane_height / 2.0, 0.0])

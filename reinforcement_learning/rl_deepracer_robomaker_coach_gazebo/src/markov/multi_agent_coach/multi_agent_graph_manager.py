@@ -33,8 +33,10 @@ class MultiAgentGraphManager(object):
     def __init__(self, agents_params: List[AgentParameters], env_params: EnvironmentParameters,
                  schedule_params: ScheduleParameters,
                  vis_params: VisualizationParameters = VisualizationParameters(),
-                 preset_validation_params: PresetValidationParameters = PresetValidationParameters()):
-        self.sess = {agent_params.name: None for agent_params in agents_params}
+                 preset_validation_params: PresetValidationParameters = PresetValidationParameters(),
+                 done_condition=any):
+        self.done_condition = done_condition
+        self.sess = None
         self.level_managers = []  # type: List[MultiAgentLevelManager]
         self.top_level_manager = None
         self.environments = []
@@ -59,7 +61,7 @@ class MultiAgentGraphManager(object):
         }
         self.checkpoint_id = 0
 
-        self.checkpoint_saver = {agent_params.name: None for agent_params in agents_params}
+        self.checkpoint_saver = None
         self.checkpoint_state_updater = None
         self.graph_logger = Logger()
         self.data_store = None
@@ -147,7 +149,7 @@ class MultiAgentGraphManager(object):
                                                                                        agent_params.name)
 
         # set level manager
-        level_manager = MultiAgentLevelManager(agents=agents, environment=env, name="main_level")
+        level_manager = MultiAgentLevelManager(agents=agents, environment=env, name="main_level", done_condition=self.done_condition)
         return [level_manager], [env]
 
     @staticmethod
@@ -245,6 +247,7 @@ class MultiAgentGraphManager(object):
 
         # Create parameter saver
         self.checkpoint_saver = {agent_params.name: SaverCollection() for agent_params in self.agents_params}
+        self.checkpoint_state_updater = {agent_params.name: None for agent_params in self.agents_params}
         for level in self.level_managers:
             for agent_params in self.agents_params:
                 self.checkpoint_saver[agent_params.name].update(level.collect_savers(agent_params.name))
@@ -535,10 +538,8 @@ class MultiAgentGraphManager(object):
         if self.task_parameters.checkpoint_restore_path:
             restored_checkpoint_paths = []
             for agent_params in self.agents_params:
-                if len(self.agents_params) == 1:
-                    agent_checkpoint_restore_path = self.task_parameters.checkpoint_restore_path
-                else:
-                    agent_checkpoint_restore_path = os.path.join(self.task_parameters.checkpoint_restore_path, agent_params.name)
+                # for single agent name is 'agent'. For multi agent name is 'agent_0' ... 
+                agent_checkpoint_restore_path = os.path.join(self.task_parameters.checkpoint_restore_path, agent_params.name)
                 if os.path.isdir(agent_checkpoint_restore_path):
                     # a checkpoint dir
                     if self.task_parameters.framework_type == Frameworks.tensorflow and\
@@ -617,20 +618,17 @@ class MultiAgentGraphManager(object):
         if not os.path.exists(self.task_parameters.checkpoint_save_dir):
             os.mkdir(self.task_parameters.checkpoint_save_dir)  # Create directory structure
 
-        if self.checkpoint_state_updater is None:
-            self.checkpoint_state_updater = CheckpointStateUpdater(self.task_parameters.checkpoint_save_dir)
-
         checkpoint_name = "{}_Step-{}.ckpt".format(
             self.checkpoint_id, self.total_steps_counters[RunPhase.TRAIN][EnvironmentSteps])
 
         saved_checkpoint_paths = []
         for agent_params in self.agents_params:
-            if len(self.agents_params) == 1:
-                agent_checkpoint_save_dir =self.task_parameters.checkpoint_save_dir
-            else:
-                agent_checkpoint_save_dir = os.path.join(self.task_parameters.checkpoint_save_dir, agent_params.name)
+            agent_checkpoint_save_dir = os.path.join(self.task_parameters.checkpoint_save_dir, agent_params.name)
             if not os.path.exists(agent_checkpoint_save_dir):
                 os.mkdir(agent_checkpoint_save_dir)
+
+            if self.checkpoint_state_updater[agent_params.name] is None:
+                self.checkpoint_state_updater[agent_params.name] = CheckpointStateUpdater(agent_checkpoint_save_dir)
 
             agent_checkpoint_path = os.path.join(agent_checkpoint_save_dir, checkpoint_name)
             if not isinstance(self.task_parameters, DistributedTaskParameters):
@@ -638,8 +636,8 @@ class MultiAgentGraphManager(object):
             else:
                 saved_checkpoint_paths.append(agent_checkpoint_path)
 
-            if self.num_checkpoints_to_keep < len(self.checkpoint_state_updater.all_checkpoints):
-                checkpoint_to_delete = self.checkpoint_state_updater.all_checkpoints[-self.num_checkpoints_to_keep - 1]
+            if self.num_checkpoints_to_keep < len(self.checkpoint_state_updater[agent_params.name].all_checkpoints):
+                checkpoint_to_delete = self.checkpoint_state_updater[agent_params.name].all_checkpoints[-self.num_checkpoints_to_keep - 1]
                 agent_checkpoint_to_delete = os.path.join(agent_checkpoint_save_dir, checkpoint_to_delete.name)
                 for file in glob.glob("{}*".format(agent_checkpoint_to_delete)):
                     os.remove(file)
@@ -656,7 +654,8 @@ class MultiAgentGraphManager(object):
             self.save_onnx_graph()
 
         # write the new checkpoint name to a file to signal this checkpoint has been fully saved
-        self.checkpoint_state_updater.update(SingleCheckpoint(self.checkpoint_id, checkpoint_name))
+        for agent_params in self.agents_params:
+            self.checkpoint_state_updater[agent_params.name].update(SingleCheckpoint(self.checkpoint_id, checkpoint_name))
 
         screen.log_dict(
             OrderedDict([
@@ -750,11 +749,19 @@ class MultiAgentGraphManager(object):
         return data_store_creator(param)
 
     def signal_ready(self):
+        # save .ready locally for centralized training. When a training job starts,
+        # rollout_worker.py will wait for the .ready file while training_worker.py will write
+        # .ready file here. For distributed training, .ready will be uploaded to the s3
+        # while for centrazlied training, .ready file will be saved locally.
         if self.task_parameters.checkpoint_save_dir and os.path.exists(self.task_parameters.checkpoint_save_dir):
-                open(os.path.join(self.task_parameters.checkpoint_save_dir, SyncFiles.TRAINER_READY.value), 'w').close()
+            for agent_params in self.agents_params:
+                agent_checkpoint_save_dir = os.path.join(self.task_parameters.checkpoint_save_dir, agent_params.name)
+                if not os.path.exists(agent_checkpoint_save_dir):
+                    os.mkdir(agent_checkpoint_save_dir)
+                open(os.path.join(agent_checkpoint_save_dir, SyncFiles.TRAINER_READY.value), 'w').close()
         if hasattr(self, 'data_store_params'):
-                data_store = self.get_data_store(self.data_store_params)
-                data_store.save_to_store()
+            data_store = self.get_data_store(self.data_store_params)
+            data_store.signal_ready()
 
     def close(self) -> None:
         """
@@ -776,11 +783,20 @@ class MultiAgentGraphManager(object):
         To indicate the training has finished, writes a `.finished` file to the checkpoint directory and calls
         the data store to updload that file.
         """
+        # save .finished locally for centralized training. When a training job ends,
+        # rollout_worker.py will check .finished to persist file and exit
+        # while training_worker.py will write .finished file here.
+        # For distributed training, .finished will be uploaded to the s3
+        # while for centrazlied training, .finished file will be saved locally.
         if self.task_parameters.checkpoint_save_dir and os.path.exists(self.task_parameters.checkpoint_save_dir):
-            open(os.path.join(self.task_parameters.checkpoint_save_dir, SyncFiles.FINISHED.value), 'w').close()
+            for agent_params in self.agents_params:
+                agent_checkpoint_save_dir = os.path.join(self.task_parameters.checkpoint_save_dir, agent_params.name)
+                if not os.path.exists(agent_checkpoint_save_dir):
+                    os.mkdir(agent_checkpoint_save_dir)
+                open(os.path.join(agent_checkpoint_save_dir, SyncFiles.FINISHED.value), 'w').close()
         if hasattr(self, 'data_store_params'):
             data_store = self.get_data_store(self.data_store_params)
-            data_store.save_to_store()
+            data_store.flush_finished()
 
     def set_schedule_params(self, schedule_params: ScheduleParameters):
         """

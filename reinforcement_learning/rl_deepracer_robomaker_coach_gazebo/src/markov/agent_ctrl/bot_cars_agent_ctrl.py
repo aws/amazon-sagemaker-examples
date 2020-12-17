@@ -1,5 +1,4 @@
 '''This module implements concrete agent controllers for the rollout worker'''
-import bisect
 import math
 import numpy as np
 import os
@@ -9,15 +8,14 @@ import rospy
 import threading
 
 from gazebo_msgs.msg import ModelState
-from gazebo_msgs.srv import SetModelState, SpawnModel
+from gazebo_msgs.srv import SpawnModel
 from geometry_msgs.msg import Pose
-from rosgraph_msgs.msg import Clock
 
-from markov.agent_ctrl.constants import ConfigParams, BOT_CAR_Z
-from markov.track_geom.constants import (SPLINE_DEGREE, SET_MODEL_STATE,
-                                         SPAWN_SDF_MODEL, ObstacleDimensions,
+from markov.agent_ctrl.constants import BOT_CAR_Z
+from markov.agent_ctrl.utils import get_normalized_progress
+from markov.track_geom.constants import (SPAWN_SDF_MODEL, ObstacleDimensions,
                                          TrackLane)
-from markov.track_geom.track_data import TrackData, TrackLine
+from markov.track_geom.track_data import TrackData
 from markov.track_geom.spline.track_spline import TrackSpline
 from markov.track_geom.spline.lane_change_spline import LaneChangeSpline
 from markov.track_geom.utils import euler_to_quaternion
@@ -29,12 +27,14 @@ from markov.log_handler.deepracer_exceptions import GenericRolloutException
 from markov.domain_randomizations.randomizer_manager import RandomizerManager
 from markov.domain_randomizations.visual.model_visual_randomizer import ModelVisualRandomizer
 from markov.domain_randomizations.constants import ModelRandomizerType
+from markov.gazebo_tracker.trackers.set_model_state_tracker import SetModelStateTracker
+from markov.gazebo_tracker.abs_tracker import AbstractTracker
+from markov.gazebo_tracker.constants import TrackerPriority
 
-from scipy.interpolate import splprep, spalde
 from shapely.geometry import Point
-from shapely.geometry.polygon import LineString
 
-class BotCarsCtrl(AgentCtrlInterface):
+
+class BotCarsCtrl(AgentCtrlInterface, AbstractTracker):
     def __init__(self):
         self.lock = threading.Lock()
 
@@ -55,16 +55,14 @@ class BotCarsCtrl(AgentCtrlInterface):
         self.bot_car_phase = AgentPhase.RUN.value
         self.bot_car_dimensions = ObstacleDimensions.BOT_CAR_DIMENSION
         self.bot_car_crash_count = 0
-        self.pause_end_time = 0.0
+        self.pause_duration = 0.0
 
         # track date
         self.track_data = TrackData.get_instance()
         self.reverse_dir = self.track_data.reverse_dir
 
         # Wait for ros services
-        rospy.wait_for_service(SET_MODEL_STATE)
         rospy.wait_for_service(SPAWN_SDF_MODEL)
-        self.set_model_state = ServiceProxyWrapper(SET_MODEL_STATE, SetModelState)
         self.spawn_sdf_model = ServiceProxyWrapper(SPAWN_SDF_MODEL, SpawnModel)
 
         # Build splines for inner/outer lanes
@@ -72,13 +70,12 @@ class BotCarsCtrl(AgentCtrlInterface):
         self.outer_lane = TrackSpline(lane_name=TrackLane.OUTER_LANE.value)
 
         # Spawn the bot cars
+        self.current_sim_time = 0.0
         self._reset_sim_time()
         self._spawn_bot_cars()
 
         self._configure_randomizer()
-
-        # Subscribe to the Gazebo clock and model states
-        rospy.Subscriber('/clock', Clock, self._update_sim_time)
+        AbstractTracker.__init__(self, priority=TrackerPriority.HIGH)
 
     def _configure_randomizer(self):
         '''configure domain randomizer
@@ -93,13 +90,17 @@ class BotCarsCtrl(AgentCtrlInterface):
         sim_time = rospy.get_rostime()
         self.start_sim_time = self.current_sim_time = sim_time.secs + 1.e-9*sim_time.nsecs
 
-    def _update_sim_time(self, sim_time):
-        '''Gazebo clock call back to update current time
+    def update_tracker(self, delta_time, sim_time):
+        """
+        Callback when sim time is updated
 
         Args:
-            sim_time (Clock): gazebo clock
-        '''
+            delta_time (float): time diff from last call
+            sim_time (Clock): simulation time
+        """
         self.current_sim_time = sim_time.clock.secs + 1.e-9*sim_time.clock.nsecs
+        if self.pause_duration > 0.0:
+            self.pause_duration -= delta_time
 
     def _get_dist_from_sim_time(self, initial_dist, sim_time):
         '''Get the bot car travel distance since the simulation start time
@@ -270,8 +271,12 @@ class BotCarsCtrl(AgentCtrlInterface):
             bot_car_state.twist.angular.x = 0
             bot_car_state.twist.angular.y = 0
             bot_car_state.twist.angular.z = 0
-            self.set_model_state(bot_car_state)
-            self.track_data.reset_object(bot_car_name, bot_car_pose)
+            SetModelStateTracker.get_instance().set_model_state(bot_car_state)
+
+    def _update_track_data_bot_car_poses(self):
+        '''update bot car poses in track data'''
+        for bot_car_name, bot_car_pose in zip(self.bot_car_names, self.bot_car_poses):
+            self.track_data.update_object_pose(bot_car_name, bot_car_pose)
 
     @property
     def action_space(self):
@@ -282,6 +287,8 @@ class BotCarsCtrl(AgentCtrlInterface):
         initial position and reverse direction potentially.
         '''
         self.bot_car_crash_count = 0
+        self.bot_car_phase = AgentPhase.RUN.value
+        self.pause_duration = 0.0
         if self.reverse_dir != self.track_data.reverse_dir:
             self.reverse_dir = self.track_data.reverse_dir
             self.inner_lane.build_spline()
@@ -289,6 +296,7 @@ class BotCarsCtrl(AgentCtrlInterface):
         self._reset_sim_time()
         self._compute_bot_car_initial_states()
         self._update_bot_cars()
+        self._update_track_data_bot_car_poses()
 
     def send_action(self, action):
         '''Send bot car action to Gazebo for rendering
@@ -309,11 +317,13 @@ class BotCarsCtrl(AgentCtrlInterface):
         Returns:
             dict: dictionary of bot car info after action is taken
         '''
+        self._update_track_data_bot_car_poses()
         for bot_car_name, bot_car_pose in zip(self.bot_car_names, self.bot_car_poses):
             bot_car_progress = self.track_data.get_norm_dist(
                 Point(bot_car_pose.position.x, bot_car_pose.position.y)) * 100.0
             self.bot_car_progresses.update(
-                {bot_car_name:{AgentInfo.CURRENT_PROGRESS.value:bot_car_progress}})
+                {bot_car_name: {AgentInfo.CURRENT_PROGRESS.value: bot_car_progress,
+                                AgentInfo.START_NDIST.value: 0.0}})
         return self.bot_car_progresses
 
     def judge_action(self, agents_info_map):
@@ -330,28 +340,32 @@ class BotCarsCtrl(AgentCtrlInterface):
             GenericRolloutException: bot car phase is not defined
         '''
         if self.bot_car_phase == AgentPhase.RUN.value:
-            self.pause_end_time = self.current_sim_time
+            self.pause_duration = 0.0
             for agent_name, agent_info in agents_info_map.items():
+                if not self.track_data.is_object_collidable(agent_name):
+                    continue
                 # check racecar crash with a bot_car
                 crashed_object_name = agent_info[AgentInfo.CRASHED_OBJECT_NAME.value] \
                     if AgentInfo.CRASHED_OBJECT_NAME.value in agent_info else ''
                 # only trainable racecar agent has 'bot_car' as possible crashed object
                 if 'bot_car' in crashed_object_name:
-                    racecar_progress = agents_info_map[agent_name]\
-                                                      [AgentInfo.CURRENT_PROGRESS.value]
-                    bot_car_progress = agents_info_map[crashed_object_name]\
-                                                      [AgentInfo.CURRENT_PROGRESS.value]
+                    racecar_progress = get_normalized_progress(agent_info[AgentInfo.CURRENT_PROGRESS.value],
+                                                               start_ndist=agent_info[AgentInfo.START_NDIST.value])
+                    bot_car_info = agents_info_map[crashed_object_name]
+                    bot_car_progress = get_normalized_progress(bot_car_info[AgentInfo.CURRENT_PROGRESS.value],
+                                                               start_ndist=bot_car_info[AgentInfo.START_NDIST.value])
+
                     # transition to AgentPhase.PAUSE.value
                     if racecar_progress > bot_car_progress:
                         self.bot_cars_lane_change_end_times = \
                             [t + self.penalty_seconds for t in self.bot_cars_lane_change_end_times]
                         self.bot_car_crash_count += 1
-                        self.pause_end_time += self.penalty_seconds
+                        self.pause_duration += self.penalty_seconds
                         self.bot_car_phase = AgentPhase.PAUSE.value
                         break
         elif self.bot_car_phase == AgentPhase.PAUSE.value:
             # transition to AgentPhase.RUN.value
-            if self.current_sim_time > self.pause_end_time:
+            if self.pause_duration <= 0.0:
                 self.bot_car_phase = AgentPhase.RUN.value
         else:
             raise GenericRolloutException('bot car phase {} is not defined'.\

@@ -34,6 +34,7 @@ class DeepRacerRacetrackEnvParameters(MultiAgentEnvironmentParameters):
         self.non_trainable_agents = None
         self.run_phase_subject = None
         self.enable_domain_randomization = False
+        self.done_condition = any
 
     @property
     def path(self):
@@ -50,6 +51,7 @@ class DeepRacerRacetrackEnv(MultiAgentEnvironment):
                  non_trainable_agents: List[Agent],
                  run_phase_subject: RunPhaseSubject,
                  enable_domain_randomization: bool,
+                 done_condition=any,
                  target_success_rate: float = 1.0,  **kwargs):
         super().__init__(level, seed, frame_skip,
                          custom_reward_threshold, visualization_parameters,
@@ -71,6 +73,11 @@ class DeepRacerRacetrackEnv(MultiAgentEnvironment):
 
             # Enable domain randomization
             self.enable_domain_randomization = enable_domain_randomization
+
+            # Set done condition. If set to any, a single racer finishing race terminates the race.
+            # If set to all, all racers finishing race terminates the race.
+            self.done_condition = done_condition
+
             # Initialize step count
             self.steps = 0
         except GenericTrainerException as ex:
@@ -131,8 +138,8 @@ class DeepRacerRacetrackEnv(MultiAgentEnvironment):
             self.steps += 1
             if MAX_STEPS <= self.steps:
                 self.done = [True] * self.num_agents
-            # Terminate the episode if any agent is done
-            if any(self.done):
+            # Terminate the episode based on done condition is any or all
+            if self.done_condition(self.done):
                 [agent.finish_episode() for agent in self.non_trainable_agents]
                 [agent.finish_episode() for agent in self.agent_list]
         except GenericTrainerException as ex:

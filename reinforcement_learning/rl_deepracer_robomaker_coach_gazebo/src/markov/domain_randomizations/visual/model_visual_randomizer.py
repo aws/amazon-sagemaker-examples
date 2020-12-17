@@ -7,12 +7,13 @@ from markov.log_handler.logger import Logger
 from markov.domain_randomizations.constants import (ModelRandomizerType, GazeboServiceName,
                                                     Color,
                                                     RANGE_MIN, RANGE_MAX)
+from markov.gazebo_tracker.trackers.set_visual_color_tracker import SetVisualColorTracker
+
 import rospy
 from gazebo_msgs.srv import GetModelProperties, GetModelPropertiesRequest
 from std_msgs.msg import ColorRGBA
 
-from deepracer_msgs.srv import (GetVisualNames, GetVisualNamesRequest,
-                                SetVisualColors, SetVisualColorsRequest, SetVisualColorsResponse)
+from deepracer_msgs.srv import (GetVisualNames, GetVisualNamesRequest)
 
 
 logger = Logger(__name__, logging.INFO).get_logger()
@@ -62,11 +63,9 @@ class ModelVisualRandomizer(AbstractRandomizer):
         # ROS Services Setup
         rospy.wait_for_service(GazeboServiceName.GET_MODEL_PROPERTIES.value)
         rospy.wait_for_service(GazeboServiceName.GET_VISUAL_NAMES.value)
-        rospy.wait_for_service(GazeboServiceName.SET_VISUAL_COLORS.value)
 
         get_model_prop = ServiceProxyWrapper(GazeboServiceName.GET_MODEL_PROPERTIES.value, GetModelProperties)
         get_visual_names = ServiceProxyWrapper(GazeboServiceName.GET_VISUAL_NAMES.value, GetVisualNames)
-        self.set_visual_colors = ServiceProxyWrapper(GazeboServiceName.SET_VISUAL_COLORS.value, SetVisualColors)
 
         # Get all model's link names
         body_names = get_model_prop(GetModelPropertiesRequest(model_name=self.model_name)).body_names
@@ -125,26 +124,16 @@ class ModelVisualRandomizer(AbstractRandomizer):
         specular = ColorRGBA(0.0, 0.0, 0.0, 1.0)
         emissive = ColorRGBA(0.0, 0.0, 0.0, 1.0)
 
-        req = SetVisualColorsRequest()
-        req.visual_names = []
-        req.link_names = []
-
-        req.ambients = []
-        req.diffuses = []
-        req.speculars = []
-        req.emissives = []
-
         for link_name in link_names:
             for idx, visual_name in enumerate(self.link_visuals_map[link_name]):
                 if visual_name not in visual_names:
                     continue
-
-                req.visual_names.append(visual_name)
-                req.link_names.append(link_name)
-                req.ambients.append(ambient)
-                req.diffuses.append(diffuse)
-                req.speculars.append(specular)
-                req.emissives.append(emissive)
+                SetVisualColorTracker.get_instance().set_visual_color(visual_name=visual_name,
+                                                                      link_name=link_name,
+                                                                      ambient=ambient,
+                                                                      diffuse=diffuse,
+                                                                      specular=specular,
+                                                                      emissive=emissive)
 
                 if self.model_randomizer_type == ModelRandomizerType.VISUAL:
                     # Visual-level random color
@@ -157,4 +146,3 @@ class ModelVisualRandomizer(AbstractRandomizer):
                 color = self._get_random_color()
                 ambient = color
                 diffuse = color
-        self.set_visual_colors(req)

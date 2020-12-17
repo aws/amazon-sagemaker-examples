@@ -1,14 +1,15 @@
 '''This module houses the constants for the camera package'''
 from enum import Enum, unique
+import numpy as np
 
 # Define Gazebo World default direction unit vectors
 class GazeboWorld(object):
-    forward = (1.0, 0, 0)
-    back = (-1.0, 0, 0)
-    right = (0, -1.0, 0)
-    left = (0, 1.0, 0)
-    up = (0, 0, 1.0)
-    down = (0, 0, -1.0)
+    forward = np.array((1.0, 0, 0))
+    back = np.array((-1.0, 0, 0))
+    right = np.array((0, -1.0, 0))
+    left = np.array((0, 1.0, 0))
+    up = np.array((0, 0, 1.0))
+    down = np.array((0, 0, -1.0))
 
 @unique
 class CameraSettings(Enum):

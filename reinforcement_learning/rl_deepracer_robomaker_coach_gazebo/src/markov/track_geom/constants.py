@@ -4,12 +4,17 @@ from enum import Enum, unique
 GET_LINK_STATE = '/gazebo/get_link_state'
 GET_MODEL_STATE = '/gazebo/get_model_state'
 SET_MODEL_STATE = '/gazebo/set_model_state'
+GET_LINK_STATES = '/gazebo/get_link_states'
+GET_MODEL_STATES = '/gazebo/get_model_states'
+SET_MODEL_STATES = '/gazebo/set_model_states'
 SPAWN_SDF_MODEL = '/gazebo/spawn_sdf_model'
 SPAWN_URDF_MODEL = '/gazebo/spawn_urdf_model'
 
 SPLINE_DEGREE = 3
 
 DIST_THRESHOLD = 0.02
+
+START_POS_OFFSET = 0.5
 
 class TrackLane(Enum):
     INNER_LANE = "inner_lane"

@@ -6,9 +6,9 @@ import rospkg
 import rospy
 
 from gazebo_msgs.msg import ModelState
-from gazebo_msgs.srv import SetModelState, SpawnModel
-from markov.agent_ctrl.constants import ConfigParams, BOT_CAR_Z, OBSTACLE_Z
-from markov.track_geom.constants import SET_MODEL_STATE, SPAWN_SDF_MODEL, SPAWN_URDF_MODEL, ObstacleDimensions
+from gazebo_msgs.srv import SpawnModel
+from markov.agent_ctrl.constants import BOT_CAR_Z, OBSTACLE_Z, OBSTACLE_NAME_PREFIX
+from markov.track_geom.constants import SPAWN_SDF_MODEL, SPAWN_URDF_MODEL, ObstacleDimensions
 from markov.track_geom.track_data import TrackData
 from markov.agent_ctrl.agent_ctrl_interface import AgentCtrlInterface
 from markov.rospy_wrappers import ServiceProxyWrapper
@@ -17,6 +17,8 @@ from markov.reset.constants import AgentInfo
 from markov.domain_randomizations.randomizer_manager import RandomizerManager
 from markov.domain_randomizations.visual.model_visual_randomizer import ModelVisualRandomizer
 from markov.domain_randomizations.constants import ModelRandomizerType
+from markov.gazebo_tracker.trackers.set_model_state_tracker import SetModelStateTracker
+
 
 class ObstaclesCtrl(AgentCtrlInterface):
     def __init__(self):
@@ -28,7 +30,7 @@ class ObstaclesCtrl(AgentCtrlInterface):
         self.min_obstacle_dist = float(rospy.get_param("MIN_DISTANCE_BETWEEN_OBSTACLES", 2.0))
         self.randomize = utils.str2bool(rospy.get_param("RANDOMIZE_OBSTACLE_LOCATIONS", False))
         self.use_bot_car = utils.str2bool(rospy.get_param("IS_OBSTACLE_BOT_CAR", False))
-        self.obstacle_names = ["obstacle_{}".format(i) for i in range(self.num_obstacles)]
+        self.obstacle_names = ["{}_{}".format(OBSTACLE_NAME_PREFIX, i) for i in range(self.num_obstacles)]
         self.obstacle_dimensions = ObstacleDimensions.BOT_CAR_DIMENSION if self.use_bot_car \
                                    else ObstacleDimensions.BOX_OBSTACLE_DIMENSION
 
@@ -36,10 +38,8 @@ class ObstaclesCtrl(AgentCtrlInterface):
         self.track_data = TrackData.get_instance()
 
         # Wait for ros services
-        rospy.wait_for_service(SET_MODEL_STATE)
         rospy.wait_for_service(SPAWN_SDF_MODEL)
         rospy.wait_for_service(SPAWN_URDF_MODEL)
-        self.set_model_state = ServiceProxyWrapper(SET_MODEL_STATE, SetModelState)
         self.spawn_sdf_model = ServiceProxyWrapper(SPAWN_SDF_MODEL, SpawnModel)
         self.spawn_urdf_model = ServiceProxyWrapper(SPAWN_URDF_MODEL, SpawnModel)
 
@@ -137,8 +137,12 @@ class ObstaclesCtrl(AgentCtrlInterface):
             obstacle_state.twist.angular.x = 0
             obstacle_state.twist.angular.y = 0
             obstacle_state.twist.angular.z = 0
-            self.set_model_state(obstacle_state)
-            self.track_data.reset_object(obstacle_name, obstacle_pose)
+            SetModelStateTracker.get_instance().set_model_state(obstacle_state)
+
+    def _update_track_data_object_poses(self):
+        '''update object poses in track data'''
+        for obstacle_name, obstacle_pose in zip(self.obstacle_names, self.obstacle_poses):
+            self.track_data.update_object_pose(obstacle_name, obstacle_pose)
 
     @property
     def action_space(self):
@@ -147,11 +151,13 @@ class ObstaclesCtrl(AgentCtrlInterface):
     def reset_agent(self):
         self.obstacle_poses = self._compute_obstacle_poses()
         self._reset_obstacles()
+        self._update_track_data_object_poses()
 
     def send_action(self, action):
         pass
 
     def update_agent(self, action):
+        self._update_track_data_object_poses()
         return {}
 
     def judge_action(self, agents_info_map):
@@ -160,7 +166,7 @@ class ObstaclesCtrl(AgentCtrlInterface):
             crashed_object_name = agent_info[AgentInfo.CRASHED_OBJECT_NAME.value] \
                 if AgentInfo.CRASHED_OBJECT_NAME.value in agent_info else ''
             # only trainable racecar agent has 'obstacle' as possible crashed object
-            if 'obstacle' in crashed_object_name:
+            if OBSTACLE_NAME_PREFIX in crashed_object_name:
                 self._reset_obstacles()
                 break
         return None, None, None

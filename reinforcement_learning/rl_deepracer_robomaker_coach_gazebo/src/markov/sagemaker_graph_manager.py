@@ -3,6 +3,7 @@ from markov.architecture.constants import Input
 from markov.architecture.embedder_factory import create_input_embedder, create_middle_embedder
 from markov.environments.deepracer_racetrack_env import DeepRacerRacetrackEnvParameters
 from markov.multi_agent_coach.multi_agent_graph_manager import MultiAgentGraphManager
+from markov.memories.deepracer_memory import DeepRacerMemoryParameters
 
 from rl_coach.agents.clipped_ppo_agent import ClippedPPOAgentParameters
 from rl_coach.base_parameters import VisualizationParameters, PresetValidationParameters, \
@@ -29,7 +30,8 @@ class DeepRacerAgentParams(ClippedPPOAgentParameters):
         self.env_agent = None
 
 
-def get_graph_manager(hp_dict, agent_list, run_phase_subject, enable_domain_randomization=False):
+def get_graph_manager(hp_dict, agent_list, run_phase_subject, enable_domain_randomization=False,
+                      done_condition=any):
     ####################
     # All Default Parameters #
     ####################
@@ -137,7 +139,7 @@ def get_graph_manager(hp_dict, agent_list, run_phase_subject, enable_domain_rand
                 agent_params.exploration.epsilon_schedule = LinearSchedule(1.0,
                                                                            params["e_greedy_value"],
                                                                            params["epsilon_steps"])
-
+            agent_params.memory = DeepRacerMemoryParameters()
             trainable_agents_list.append(agent_params)
         else:
             non_trainable_agents_list.append(agent)
@@ -151,7 +153,7 @@ def get_graph_manager(hp_dict, agent_list, run_phase_subject, enable_domain_rand
     env_params.level = 'DeepRacerRacetrackEnv-v0'
     env_params.run_phase_subject = run_phase_subject
     env_params.enable_domain_randomization = enable_domain_randomization
-
+    env_params.done_condition = done_condition
     vis_params = VisualizationParameters()
     vis_params.dump_mp4 = False
 
@@ -166,5 +168,6 @@ def get_graph_manager(hp_dict, agent_list, run_phase_subject, enable_domain_rand
     graph_manager = MultiAgentGraphManager(agents_params=trainable_agents_list,
                                            env_params=env_params,
                                            schedule_params=schedule_params, vis_params=vis_params,
-                                           preset_validation_params=preset_validation_params)
+                                           preset_validation_params=preset_validation_params,
+                                           done_condition=done_condition)
     return graph_manager, params_json
