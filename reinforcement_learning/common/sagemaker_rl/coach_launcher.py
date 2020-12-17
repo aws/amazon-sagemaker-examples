@@ -191,6 +191,7 @@ class SageMakerCoachPresetLauncher(CoachLauncher):
         ckpt_dir = '/opt/ml/output/data/checkpoint'
         model_dir = '/opt/ml/model'
 
+        import tensorflow as tf # importing tensorflow here so that MXNet docker image is compatible with this file.
         # Re-Initialize from the checkpoint so that you will have the latest models up.
         tf.train.init_from_checkpoint(ckpt_dir,
                                       {'main_level/agent/online/network_0/': 'main_level/agent/online/network_0'})
