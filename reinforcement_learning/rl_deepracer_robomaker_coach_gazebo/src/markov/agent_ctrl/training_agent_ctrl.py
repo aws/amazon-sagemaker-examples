@@ -24,11 +24,11 @@ class TrainingCtrl(AgentCtrlInterface):
     def send_action(self, action):
         pass
 
-    def judge_action(self, action):
+    def update_agent(self, action):
+        return {}
+
+    def judge_action(self, agents_info_map):
         return None, None, None
 
     def finish_episode(self):
-        pass
-
-    def clear_data(self):
         pass

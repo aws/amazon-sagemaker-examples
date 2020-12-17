@@ -99,7 +99,6 @@ class SageMakerRayLauncher(object):
         hyperparams_dict["rl.training.local_dir"] = INTERMEDIATE_DIR
         hyperparams_dict["rl.training.checkpoint_at_end"] = True
         hyperparams_dict["rl.training.checkpoint_freq"] = config['training'].get('checkpoint_freq', 10)
-
         self.hyperparameters = ConfigurationList()  # TODO: move to shared
         for name, value in hyperparams_dict.items():
             # self.map_hyperparameter(name, val) #TODO
@@ -126,9 +125,9 @@ class SageMakerRayLauncher(object):
         config = {"num_cpus": num_workers, "num_gpus": self.num_gpus}
 
         if self.is_master_node:
-            all_wokers_host_names = self.get_all_host_names()[1:]
+            all_workers_host_names = self.get_all_host_names()[1:]
             # Single machine job
-            if len(all_wokers_host_names) == 0:
+            if len(all_workers_host_names) == 0:
                 return config
             master_ip = get_ip_from_host(host_name=self.host_name)
             self.start_ray_cluster(master_ip)
@@ -136,10 +135,13 @@ class SageMakerRayLauncher(object):
                                                              host_name="%s:%s" % (
                                                              self.cluster_type.value, self.host_name))
             self.sage_cluster_communicator.create_s3_signal("%s:%s" % (self.cluster_type.value, self.host_name))
-            print("Waiting for %s worker nodes to join!" % (len(all_wokers_host_names)))
-            self.sage_cluster_communicator.wait_for_signals(all_wokers_host_names)
+            print("Waiting for %s worker nodes to join!" % (len(all_workers_host_names)))
+            self.sage_cluster_communicator.wait_for_signals(all_workers_host_names)
             print("All worker nodes have joined the cluster. Now training...")
-            config = {"redis_address": "%s:6379" % master_ip}
+            if ray.__version__ >= "0.8.2":
+                config = {"address": "%s:6379" % master_ip}
+            else:
+                config = {"redis_address": "%s:6379" % master_ip}
         else:
             master_ip, master_hostname = self.sage_cluster_communicator.get_master_config()
             node_ip = get_ip_from_host(host_name=self.host_name)
@@ -168,8 +170,12 @@ class SageMakerRayLauncher(object):
             raise RuntimeError("Could not start Ray server.")
 
     def join_ray_cluster(self, master_ip, node_ip):
-        p = subprocess.Popen("ray start --redis-address=%s:6379 --node-ip-address=%s" % (master_ip, node_ip),
-                             shell=True, stderr=subprocess.STDOUT)
+        if ray.__version__ >= "0.8.2":
+            p = subprocess.Popen("ray start --address=%s:6379" % (master_ip),
+                             shell=True, stderr=subprocess.STDOUT, stdout=subprocess.PIPE)
+        else:
+            p = subprocess.Popen("ray start --redis-address=%s:6379 --node-ip-address=%s" % (master_ip, node_ip),
+                                shell=True, stderr=subprocess.STDOUT)
         time.sleep(3)
         if p.poll() != 0:
             raise RuntimeError("Could not join Ray server running at %s:6379" % master_ip)
@@ -205,18 +211,29 @@ class SageMakerRayLauncher(object):
             copyfile(source_path, destination_path)
             print("Saved the checkpoint file %s as %s" % (source_path, destination_path))
 
-    def save_experiment_config(self, config):
-        with open(os.path.join(MODEL_OUTPUT_DIR, "params.json"), "w") as f:
-            json.dump(config, f, indent=2)
+    def save_experiment_config(self):
+        config_found = False
+        for root, directories, filenames in os.walk(INTERMEDIATE_DIR):
+            if config_found:
+                break
+            else:
+                for filename in filenames:
+                    if filename == "params.json":
+                        source = os.path.join(root, filename)
+                        config_found = True
+        copyfile(source, os.path.join(MODEL_OUTPUT_DIR, "params.json"))
         print("Saved model configuration.")
 
-    def create_tf_serving_model(self, algorithm=None, env_string=None, config=None):
+    def create_tf_serving_model(self, algorithm=None, env_string=None):
         self.register_env_creator()
         if ray.__version__ >= "0.6.5":
             from ray.rllib.agents.registry import get_agent_class
         else:
             from ray.rllib.agents.agent import get_agent_class
         cls = get_agent_class(algorithm)
+        with open(os.path.join(MODEL_OUTPUT_DIR, "params.json")) as config_json:
+            config = json.load(config_json)
+        print("Loaded config for TensorFlow serving.")
         config["monitor"] = False
         config["num_workers"] = 1
         config["num_gpus"] = 0
@@ -225,10 +242,13 @@ class SageMakerRayLauncher(object):
         agent.restore(checkpoint)
         export_tf_serving(agent, MODEL_OUTPUT_DIR)
 
-    def save_checkpoint_and_serving_model(self, algorithm=None, env_string=None, config=None):
-        self.save_experiment_config(config)
+    def save_checkpoint_and_serving_model(self, algorithm=None, env_string=None, use_pytorch=False):
+        self.save_experiment_config()
         self.copy_checkpoints_to_model_output()
-        self.create_tf_serving_model(algorithm, env_string, config)
+        if use_pytorch:
+            print("Skipped PyTorch serving.")
+        else:
+            self.create_tf_serving_model(algorithm, env_string)
 
         # To ensure SageMaker local mode works fine
         change_permissions_recursive(INTERMEDIATE_DIR, 0o777)
@@ -305,24 +325,22 @@ class SageMakerRayLauncher(object):
         experiment_config = self.customize_experiment_config(experiment_config)
         experiment_config = self.set_up_checkpoint(experiment_config)
         
-        print("Running experiment with config %s" % json.dumps(experiment_config, indent=2))
-        print("Important! Ray with version <=7.2 may report \"Did not find checkpoint file\" even if the",
+        print("Important! Ray with version <=0.7.2 may report \"Did not find checkpoint file\" even if the",
               "experiment is actually restored successfully. If restoration is expected, please check",
               "\"training_iteration\" in the experiment info to confirm."
              )
         run_experiments(experiment_config)
-        all_wokers_host_names = self.get_all_host_names()[1:]
+        all_workers_host_names = self.get_all_host_names()[1:]
         # If distributed job, send TERMINATION_SIGNAL to all workers.
-        if len(all_wokers_host_names) > 0:
+        if len(all_workers_host_names) > 0:
             self.sage_cluster_communicator.create_s3_signal(TERMINATION_SIGNAL)
 
         algo = experiment_config["training"]["run"]
         env_string = experiment_config["training"]["config"]["env"]
-        config = experiment_config["training"]["config"]
+        use_pytorch = experiment_config["training"]["config"].get("use_pytorch", False)
         self.save_checkpoint_and_serving_model(algorithm=algo,
                                                env_string=env_string,
-                                               config=config)
-
+                                               use_pytorch=use_pytorch)
 
     @classmethod
     def train_main(cls):

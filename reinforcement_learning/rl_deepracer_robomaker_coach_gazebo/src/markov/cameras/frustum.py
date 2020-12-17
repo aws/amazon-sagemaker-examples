@@ -1,33 +1,20 @@
 import numpy as np
 import math
 import threading
-from markov.deepracer_exceptions import GenericRolloutException
-from markov.rospy_wrappers import ServiceProxyWrapper
+from markov.log_handler.deepracer_exceptions import GenericRolloutException
 from markov.architecture.constants import Input
 from markov.track_geom.utils import euler_to_quaternion, quaternion_to_euler, apply_orientation
 from markov.cameras.constants import GazeboWorld
 from markov.cameras.utils import normalize, project_to_2d, ray_plane_intersect
-
-import rospy
-from gazebo_msgs.srv import GetModelState
-
+from markov.constants import SIMAPP_VERSION_3
 
 class Frustum(object):
-    _instance_ = None
+    def __init__(self, agent_name, observation_list, version):
+        self.agent_name = agent_name
 
-    @staticmethod
-    def get_instance():
-        if Frustum._instance_ is None:
-            Frustum()
-        return Frustum._instance_
-
-    def __init__(self):
         # define inward direction
         self.ccw = True
 
-        rospy.wait_for_service('/gazebo/get_model_state')
-        self.model_state_client = ServiceProxyWrapper('/gazebo/get_model_state', GetModelState)
-        self.camera_topics = []
         self.frustums = []
         self.cam_poses = []
         self.near_plane_infos = []
@@ -40,12 +27,25 @@ class Frustum(object):
         self.horizontal_fov = 1.13  # rad ~ 65 degree
         self.view_ratio = 480.0 / 640.0
 
-        # TODO: Remove below two variables if we can get Camera pose directly
+        # TODO: Remove below camera_offsets and camera_pitch variables if we can get Camera pose directly
         self.camera_offsets = []
-        self.camera_pitch = 0.261799
-
-        Frustum._instance_ = self
-
+        # simapp version 3 has different and accurate camera locations
+        if version >= SIMAPP_VERSION_3:
+            # camera offset is calculcated in homogeneous coordinates according to v3 physics at
+            # https://quip-amazon.com/Z2CyAS06rU5R/DeepRacer-Physics
+            # by applying base_link, zed_camera_joint_(rightcam/leftcam), and camera_joint_(rightcam/leftcam)
+            if Input.STEREO.value in observation_list:
+                self.camera_offsets.append(np.array([0.14529379, -0.03, 0.13032555]))
+                self.camera_offsets.append(np.array([0.14529379, 0.03, 0.13032555]))
+            else:
+                self.camera_offsets.append(np.array([0.14529379, 0, 0.13032555]))
+        else:
+            if Input.STEREO.value in observation_list:
+                self.camera_offsets.append(np.array([0.2, -0.03, 0.164]))
+                self.camera_offsets.append(np.array([0.2, 0.03, 0.164]))
+            else:
+                self.camera_offsets.append(np.array([0.2, 0, 0.164]))
+        self.camera_pitch = 0.2618
     @staticmethod
     def get_forward_vec(quaternion):
         return apply_orientation(quaternion, GazeboWorld.forward)
@@ -58,76 +58,39 @@ class Frustum(object):
     def get_right_vec(quaternion):
         return apply_orientation(quaternion, GazeboWorld.right)
 
-    def add_camera(self, model_name, entity_name):
-        with self.lock:
-            self.camera_topics.append((model_name, entity_name))
+    def update(self, car_pose):
+        """
+        Update the frustums
 
-    # TODO: Remove this function if we are able to get actual cam pose directly
-    def add_cameras(self, observation_list):
-        with self.lock:
-            if Input.STEREO.value in observation_list:
-                # Hard coded Stereo Camera Offset Position from basis_link
-                self.camera_offsets.append(np.array([0.2, -0.03, 0.164]))
-                self.camera_offsets.append(np.array([0.2, 0.03, 0.164]))
-            else:
-                # Hard coded Front Facing Camera Offset Position from basis_link
-                self.camera_offsets.append(np.array([0.2, 0, 0.164]))
-
-    # TODO: Remove this function if we are able to get actual cam pose directly
-    def _update_temp(self):
+        Args:
+            car_pose (Pose): Gazebo Pose of the agent
+        """
         with self.lock:
             self.frustums = []
             self.cam_poses = []
             self.near_plane_infos = []
-            car_model_state = self.model_state_client('racecar', '')
-            car_pos = np.array([car_model_state.pose.position.x, car_model_state.pose.position.y,
-                                car_model_state.pose.position.z])
-            car_quaternion = [car_model_state.pose.orientation.x,
-                              car_model_state.pose.orientation.y,
-                              car_model_state.pose.orientation.z,
-                              car_model_state.pose.orientation.w]
+            # Retrieve car pose to calculate camera pose.
+            car_pos = np.array([car_pose.position.x, car_pose.position.y,
+                                car_pose.position.z])
+            car_quaternion = [car_pose.orientation.x,
+                              car_pose.orientation.y,
+                              car_pose.orientation.z,
+                              car_pose.orientation.w]
             for camera_offset in self.camera_offsets:
+                # Get camera position by applying position offset from the car position.
                 cam_pos = car_pos + apply_orientation(car_quaternion, camera_offset)
+                # Get camera rotation by applying car rotation and pitch angle of camera.
                 _, _, yaw = quaternion_to_euler(x=car_quaternion[0],
                                                 y=car_quaternion[1],
                                                 z=car_quaternion[2],
                                                 w=car_quaternion[3])
                 cam_quaternion = np.array(euler_to_quaternion(pitch=self.camera_pitch, yaw=yaw))
+                # Calculate frustum with camera position and rotation.
                 planes, cam_pose, near_plane_info = self._calculate_frustum_planes(cam_pos=cam_pos,
                                                                                    cam_quaternion=cam_quaternion)
                 self.frustums.append(planes)
                 self.cam_poses.append(cam_pose)
                 self.near_plane_infos.append(near_plane_info)
-
-    def update(self):
-        """
-        Update the frustums
-        """
-        # Short-circuit to temporary update
-        self._update_temp()
-        # TODO: When camera pose is directly retrieved instead of hard coded values
-        #       - Remove above short-circuiting line
-        #       - Uncomment below implementation to properly calculate the frustums.
-        '''
-        with self.lock:
-            self.frustums = []
-            self.cam_poses = []
-            self.near_plane_infos = []
-            for camera_topic in self.camera_topics:
-                model_name, entity_name = camera_topic
-                camera_model_state = self.model_state_client(model_name, entity_name)
-                cam_pos = [camera_model_state.pose.position.x, camera_model_state.pose.position.y,
-                           camera_model_state.pose.position.z]
-                cam_quaternion = [camera_model_state.pose.orientation.x,
-                                  camera_model_state.pose.orientation.y,
-                                  camera_model_state.pose.orientation.z,
-                                  camera_model_state.pose.orientation.w]
-                planes, cam_pose, near_plane_info = self._calculate_frustum_planes(cam_pos=cam_pos,
-                                                                                   cam_quaternion=cam_quaternion)
-                self.frustums.append(planes)
-                self.cam_poses.append(cam_pose)
-                self.near_plane_infos.append(near_plane_info)
-        '''
 
     def _calculate_frustum_planes(self, cam_pos, cam_quaternion):
         cam_pos = np.array(cam_pos)
