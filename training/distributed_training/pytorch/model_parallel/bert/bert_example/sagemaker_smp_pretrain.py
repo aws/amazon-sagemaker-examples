@@ -58,7 +58,6 @@ from apex.amp import _amp_state
 import smdistributed.modelparallel.torch as smp
 import configparser
 
-import dllogger
 from concurrent.futures import ProcessPoolExecutor
 
 torch._C._jit_set_profiling_mode(False)
@@ -139,6 +138,68 @@ class BertPretrainingCriterion(torch.nn.Module):
         total_loss = masked_lm_loss + next_sentence_loss
         return total_loss
 
+
+def aws_s3_sync(source, destination):
+    """aws s3 sync in quiet mode and time profile"""
+    import time, subprocess
+    cmd = ["aws", "s3", "sync", "--quiet", source, destination]
+    print(f"Syncing files from {source} to {destination}")
+    start_time = time.time()
+    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    p.wait()
+    end_time = time.time()
+    print("Time Taken to Sync: ", (end_time-start_time))
+    return
+
+def sync_local_checkpoints_to_s3(local_path, s3_path):
+    """ sample function to sync checkpoints from local path to s3 """
+
+    import boto3, botocore
+    #check if local path exists
+    if not os.path.exists(local_path):
+        raise RuntimeError("Provided local path {local_path} does not exist. Please check")
+
+    #check if s3 bucket exists
+    s3 = boto3.resource('s3')
+    if 's3://' not in s3_path:
+        raise ValueError("Provided s3 path {s3_path} is not valid. Please check")
+
+    s3_bucket = s3_path.replace('s3://','').split('/')[0]
+    print(f"Destination S3 Bucket which will store model artifacts: {s3_bucket}")
+    try:
+        s3.meta.client.head_bucket(Bucket=s3_bucket)
+    except botocore.exceptions.ClientError as e:
+        error_code = e.response['Error']['Code']
+        if error_code == '404':
+            raise RuntimeError('S3 bucket does not exist. Please check')
+    aws_s3_sync(local_path, s3_path)
+    return
+
+def sync_s3_checkpoints_to_local(local_path, s3_uri):
+    """ sample function to sync checkpoints from s3 to local path """
+
+    import boto3
+    #try to create path if it does not exist
+    if not os.path.exists(local_path):
+        print(f"Provided local path {local_path} does not exist. Creating...")
+        try:
+            os.makedirs(local_path)
+        except Exception as e:
+            raise RuntimeError(f"failed to create {local_path}")
+
+    #check if s3 bucket exists
+    s3 = boto3.resource('s3')
+    if not s3_uri.startswith("s3://"):
+        raise ValueError("Provided s3 uri {s3_uri} is not valid. Please check")
+
+    s3_bucket = s3_uri.replace('s3://','').split('/')[0]
+    print(f"S3 Bucket: {s3_bucket}")
+    try:
+        s3.meta.client.head_bucket(Bucket=s3_bucket)
+    except Exception as e:
+        raise e
+    aws_s3_sync(s3_uri, local_path)
+    return
 
 def parse_arguments():
 
@@ -238,6 +299,10 @@ def parse_arguments():
                         default=0,
                         type=int,
                         help="Whether to resume training from checkpoint.")
+    parser.add_argument("--s3_checkpoint_uri",
+                        default=None,
+                        type=str,
+                        help="S3 Checkpoint URI")
     parser.add_argument('--resume_step',
                         type=int,
                         default=-1,
@@ -274,9 +339,6 @@ def parse_arguments():
                         default=0,
                         type=int,
                         help="Whether to run training.")
-    parser.add_argument('--json-summary', type=str, default="results/dllogger.json",
-                        help='If provided, the json summary will be written to'
-                             'the specified file.')
     parser.add_argument("--use_env",
                         default=0,
                         type=int,
@@ -345,16 +407,6 @@ def setup_training(args):
         args.allreduce_post_accumulation = False
         args.allreduce_post_accumulation_fp16 = False
 
-    if is_main_process():
-        dllogger.init(
-            backends=[
-                dllogger.JSONStreamBackend(verbosity=dllogger.Verbosity.VERBOSE, filename=args.json_summary),
-                # dllogger.StdOutBackend(verbosity=dllogger.Verbosity.VERBOSE, step_format=format_step)
-                ]
-            )
-    else:
-        dllogger.init(backends=[])
-
     print("device: {} n_gpu: {}, mp_rank: {}, rank: {}, distributed training: {}, 16-bits training: {}".format(
         device, args.n_gpu, smp.mp_rank(), smp.rank(), bool(args.local_rank != -1), args.fp16))
 
@@ -404,6 +456,12 @@ def prepare_model_and_optimizer(args, device):
     if not args.resume_from_checkpoint:
         global_step = 0
     else:
+        if not args.init_checkpoint:
+            if not args.s3_checkpoint_uri:
+                raise ValueError("Need to set s3_checkpoint_uri, if init_checkpoint not set")
+            if smp.local_rank() == 0:
+                sync_s3_checkpoints_to_local(args.output_dir, args.s3_checkpoint_uri)
+            smp.barrier()
         if args.resume_step == -1 and not args.init_checkpoint:
             model_names = [f for f in os.listdir(args.output_dir) if ".pt" in f]
             args.resume_step = max([int(x.split('.pt')[0].split('_')[1].strip()) for x in model_names])
@@ -525,7 +583,6 @@ def take_optimizer_step(args, optimizer, model, overflow_buf, global_step):
             skipped_steps += 1
             if is_main_process():
                 scaler = _amp_state.loss_scalers[0]
-                dllogger.log(step="PARAMETER", data={"loss_scale": scaler.loss_scale()})
             if _amp_state.opt_properties.master_weights:
                 for param in optimizer._amp_stash.all_fp32_from_fp16_params:
                     param.grad = None
@@ -591,21 +648,10 @@ def main():
 
     device, args = setup_training(args)
 
-    if is_main_process():
-        dllogger.log(step="PARAMETER", data={"Config": [str(args)]})
-
     # Prepare optimizer
     model, optimizer, lr_scheduler, checkpoint, global_step, criterion = prepare_model_and_optimizer(args, device)
 
-    if is_main_process():
-        dllogger.log(step="PARAMETER", data={"SEED": args.seed})
-
     raw_train_start = None
-    if is_main_process():
-        dllogger.log(step="PARAMETER", data={"train_start": True})
-        dllogger.log(step="PARAMETER", data={"batch_size_per_gpu": args.train_batch_size})
-        dllogger.log(step="PARAMETER", data={"learning_rate": args.learning_rate})
-
     most_recent_ckpts_paths = []
     average_loss = 0.0  # averaged loss every args.log_freq steps
     epoch = 0
@@ -706,23 +752,13 @@ def main():
                             average_loss /= get_world_size()
                             torch.distributed.all_reduce(average_loss)
                         final_loss = loss.item()
-                        if is_main_process():
-                            dllogger.log(step=(epoch, global_step, ), data={"final_loss": final_loss})
                     elif training_steps % (args.log_freq * args.gradient_accumulation_steps) == 0:
-                        if is_main_process():
-                            dllogger.log(step=(epoch, global_step, ), data={"average_loss": average_loss / (args.log_freq * divisor),
-                                                                            "step_loss": loss.item() * args.gradient_accumulation_steps / divisor,
-                                                                            "learning_rate": optimizer.param_groups[0]['lr']})
                         average_loss = 0
 
 
                     if global_step >= args.steps_this_run or training_steps % (
                             args.num_steps_per_checkpoint * args.gradient_accumulation_steps) == 0 or timeout_sent:
                         if smp.dp_rank() == 0 and not args.skip_checkpoint:
-                            # Save a trained model
-                            dllogger.log(step="PARAMETER", data={"checkpoint_step": global_step})
-                            # model_to_save = model.module if hasattr(model,
-                            #                                         'module') else model  # Only save the model it-self
                             if args.resume_step < 0 or not args.phase2:
                                 output_save_file = os.path.join(args.output_dir, "ckpt_{}.pt".format(global_step))
                             else:
@@ -762,6 +798,13 @@ def main():
                                 # SMP: Save a single checkpoint containing entire model parameters
                                 smp.save(save_dict, output_save_file, partial=False)
                             smp.barrier()
+                            if smp.local_rank() == 0:
+                                print(f"Start syncing model checkpoints to s3")
+                                base_s3_path = os.path.dirname(os.path.dirname(os.getenv('SM_MODULE_DIR', '')))
+                                curr_host = os.getenv('SM_CURRENT_HOST')
+                                full_s3_path = f'{base_s3_path}/checkpoints/{curr_host}/'
+                                sync_local_checkpoints_to_s3(local_path=args.output_dir, s3_path=full_s3_path)
+                                print(f"Finished syncing model checkpoints to s3")
                             return args, final_loss, train_time_raw, global_step
                 else:
                     model.eval()
@@ -797,12 +840,9 @@ if __name__ == "__main__":
             e2e_time = time.time() - now
             training_perf = args.train_batch_size * args.gradient_accumulation_steps * gpu_count\
                             * (global_step - args.resume_step + skipped_steps) / train_time_raw
-            print(f"[SMP_METRIC]__Bert{nonsequential}__Loss__{final_loss:.3f}")
-            print(f"[SMP_METRIC]__Bert{nonsequential}__Time_to_train__{train_time_raw:.4f}")
-            print(f"[SMP_METRIC]__Bert{nonsequential}__Sequences/second__{training_perf:.2f}")
-            dllogger.log(step=tuple(), data={"e2e_train_time": e2e_time, "training_sequences_per_second": training_perf,
-                                            "final_loss": final_loss, "raw_train_time": train_time_raw })
+            print(f"[SMP_METRIC]__Bert__Loss__{final_loss:.3f}")
+            print(f"[SMP_METRIC]__Bert__Time_to_train__{train_time_raw:.4f}")
+            print(f"[SMP_METRIC]__Bert__Sequences/second__{training_perf:.2f}")
     else:
         avg_loss = main()
-    dllogger.flush()
     sys.exit(0)
