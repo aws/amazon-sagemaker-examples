@@ -96,7 +96,7 @@ def random_search(train_fn,
         train_fn(job, hps)
         running_jobs[job] = True
         while len(running_jobs) == max_parallel_jobs:
-            for job in running_jobs.keys():
+            for job in list(running_jobs):
                 if client.describe_training_job(TrainingJobName=job)['TrainingJobStatus'] != 'InProgress':
                     running_jobs.pop(job)
             time.sleep(20)
@@ -119,7 +119,7 @@ def get_metrics(jobs, regex):
         which contains the objective metric from each log stream.
     '''
     job_metrics = {}
-    for job in jobs.keys():
+    for job in list(jobs):
         client = boto3.client('logs')
         streams = client.describe_log_streams(logGroupName='/aws/sagemaker/TrainingJobs',
                                               logStreamNamePrefix=job + '/')
@@ -145,7 +145,7 @@ def table_metrics(jobs, metrics):
     Returns Pandas DataFrame of jobs, hyperparameter values, and objective metric value
     '''
     job_metrics = jobs.copy()
-    for job in job_metrics.keys():
+    for job in list(job_metrics):
         objective = float(metrics[job][-1]) if len(metrics[job]) > 0 else np.nan
         job_metrics[job].update({'objective': objective,
                                  'job_number': int(job.split('-')[-1])})

@@ -1,6 +1,9 @@
 import os
 import tensorflow as tf
+import argparse
 from tensorflow.python.estimator.model_fn import ModeKeys as Modes
+import numpy as np
+import json
 
 INPUT_TENSOR_NAME = 'inputs'
 SIGNATURE_NAME = 'predictions'
@@ -43,7 +46,6 @@ def model_fn(features, labels, mode, params):
 
     # Define operations
     if mode in (Modes.PREDICT, Modes.EVAL):
-        predicted_indices = tf.argmax(input=logits, axis=1)
         probabilities = tf.nn.softmax(logits, name='softmax_tensor')
 
     if mode in (Modes.TRAIN, Modes.EVAL):
@@ -55,7 +57,6 @@ def model_fn(features, labels, mode, params):
 
     if mode == Modes.PREDICT:
         predictions = {
-            'classes': predicted_indices,
             'probabilities': probabilities
         }
         export_outputs = {
@@ -67,17 +68,18 @@ def model_fn(features, labels, mode, params):
     if mode == Modes.TRAIN:
         optimizer = tf.train.AdamOptimizer(learning_rate=0.001)
         train_op = optimizer.minimize(loss, global_step=global_step)
+        print("Returning from Modes.Train")
         return tf.estimator.EstimatorSpec(mode, loss=loss, train_op=train_op)
 
     if mode == Modes.EVAL:
         eval_metric_ops = {
-            'accuracy': tf.metrics.accuracy(label_indices, predicted_indices)
+            'accuracy': tf.metrics.accuracy(label_indices, tf.argmax(input=logits, axis=1))
         }
         return tf.estimator.EstimatorSpec(
             mode, loss=loss, eval_metric_ops=eval_metric_ops)
 
 
-def serving_input_fn(params):
+def serving_input_fn():
     inputs = {INPUT_TENSOR_NAME: tf.placeholder(tf.float32, [None, 784])}
     return tf.estimator.export.ServingInputReceiver(inputs, inputs)
 
@@ -101,11 +103,11 @@ def read_and_decode(filename_queue):
     return image, label
 
 
-def train_input_fn(training_dir, params):
+def _train_input_fn(training_dir):
     return _input_fn(training_dir, 'train.tfrecords', batch_size=100)
 
 
-def eval_input_fn(training_dir, params):
+def _eval_input_fn(training_dir):
     return _input_fn(training_dir, 'test.tfrecords', batch_size=100)
 
 
@@ -120,35 +122,39 @@ def _input_fn(training_dir, training_filename, batch_size=100):
 
     return {INPUT_TENSOR_NAME: images}, labels
 
-def neo_preprocess(payload, content_type):
-    import logging
-    import numpy as np
-    import io
+if __name__ =='__main__':
 
-    logging.info('Invoking user-defined pre-processing function')
+    parser = argparse.ArgumentParser()
 
-    if content_type != 'application/x-image' and content_type != 'application/vnd+python.numpy+binary':
-        raise RuntimeError('Content type must be application/x-image or application/vnd+python.numpy+binary')
+    # hyperparameters sent by the client are passed as command-line arguments to the script.
+    parser.add_argument('--epochs', type=int, default=10)
+    parser.add_argument('--batch_size', type=int, default=100)
+    parser.add_argument('--learning_rate', type=float, default=0.1)
+
+    # input data and model directories
+    parser.add_argument('--model_dir', type=str)
+    parser.add_argument('--sm-model-dir', type=str, default=os.environ.get('SM_MODEL_DIR'))
+    parser.add_argument('--train', type=str, default=os.environ.get('SM_CHANNEL_TRAINING'))
+    parser.add_argument('--hosts', type=list, default=json.loads(os.environ.get('SM_HOSTS')))
+    parser.add_argument('--current-host', type=str, default=os.environ.get('SM_CURRENT_HOST'))
+
     
-    f = io.BytesIO(payload)
-    image = np.load(f)*255
+    args, _ = parser.parse_known_args()
 
-    return image
-
-### NOTE: this function cannot use MXNet
-def neo_postprocess(result):
-    import logging
-    import numpy as np
-    import json
-
-    logging.info('Invoking user-defined post-processing function')
+    # Create the Estimator
+    mnist_classifier = tf.estimator.Estimator(
+        model_fn=model_fn, model_dir=args.model_dir)
     
-    # Softmax (assumes batch size 1)
-    result = np.squeeze(result)
-    result_exp = np.exp(result - np.max(result))
-    result = result_exp / np.sum(result_exp)
+    def train_input_fn():
+        return _train_input_fn(args.train)
+    
+    def eval_input_fn():
+        return _eval_input_fn(args.train)
+    
+    train_spec = tf.estimator.TrainSpec(train_input_fn, max_steps=1000)
+    eval_spec = tf.estimator.EvalSpec(eval_input_fn)
 
-    response_body = json.dumps(result.tolist())
-    content_type = 'application/json'
-
-    return response_body, content_type
+    tf.estimator.train_and_evaluate(mnist_classifier, train_spec, eval_spec)
+    
+    if args.current_host == args.hosts[0]:
+        mnist_classifier.export_savedmodel(args.sm_model_dir, serving_input_fn)

@@ -13,11 +13,12 @@
 from __future__ import absolute_import
 from __future__ import print_function
 
-import keras
-from keras.preprocessing.image import ImageDataGenerator
-from keras.models import Sequential
-from keras.layers import Dense, Dropout, Activation, Flatten
-from keras.layers import Conv2D, MaxPooling2D
+import tensorflow as tf
+from tensorflow import keras
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense, Dropout, Activation, Flatten
+from tensorflow.keras.layers import Conv2D, MaxPooling2D
 import os
 import numpy as np
 
@@ -71,7 +72,7 @@ model.add(Dense(NUM_CLASSES))
 model.add(Activation('softmax'))
 
 # initiate RMSprop optimizer
-opt = keras.optimizers.rmsprop(lr=learning_rate, decay=1e-6)
+opt = keras.optimizers.RMSprop(lr=learning_rate, decay=1e-6)
 
 # Let's train the model using RMSprop
 model.compile(loss='categorical_crossentropy', optimizer=opt, metrics=['accuracy'])
