@@ -1,5 +1,6 @@
-HPO
-===
+#########################
+Tuning
+#########################
 
 Examples on how to use hyperparameter tuning on SageMaker.
 
