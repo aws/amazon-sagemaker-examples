@@ -8,8 +8,6 @@ import struct
 import mxnet as mx
 import numpy as np
 
-from sagemaker_mxnet_container.training_utils import scheduler_host
-
 
 def load_data(path):
     with gzip.open(find_file(path, "labels.gz")) as flbl:
@@ -48,9 +46,11 @@ def get_training_context(num_gpus):
 
 def train(batch_size, epochs, learning_rate, num_gpus, training_channel, testing_channel,
           hosts, current_host, model_dir):
+    checkpoints_dir = '/opt/ml/checkpoints'
+    checkpoints_enabled = os.path.exists(checkpoints_dir)
+
     (train_labels, train_images) = load_data(training_channel)
     (test_labels, test_images) = load_data(testing_channel)
-
     # Data parallel training - shard the data so each host
     # only trains on a subset of the total data.
     shard_size = len(train_images) // len(hosts)
@@ -70,16 +70,26 @@ def train(batch_size, epochs, learning_rate, num_gpus, training_channel, testing
 
     mlp_model = mx.mod.Module(symbol=build_graph(),
                               context=get_training_context(num_gpus))
+
+    checkpoint_callback = None
+    if checkpoints_enabled:
+        # Create a checkpoint callback that checkpoints the model params and
+        # the optimizer state at the given path after every epoch.
+        checkpoint_callback = mx.callback.module_checkpoint(mlp_model,
+                                                            os.path.join(checkpoints_dir, "mnist"),
+                                                            period=1,
+                                                            save_optimizer_states=True)
     mlp_model.fit(train_iter,
                   eval_data=val_iter,
                   kvstore=kvstore,
                   optimizer='sgd',
                   optimizer_params={'learning_rate': learning_rate},
                   eval_metric='acc',
+                  epoch_end_callback=checkpoint_callback,
                   batch_end_callback=mx.callback.Speedometer(batch_size, 100),
                   num_epoch=epochs)
 
-    if current_host == scheduler_host(hosts):
+    if current_host == hosts[0]:
         save(model_dir, mlp_model)
 
 
@@ -108,6 +118,40 @@ def parse_args():
     parser.add_argument('--hosts', type=list, default=json.loads(os.environ['SM_HOSTS']))
 
     return parser.parse_args()
+
+
+### NOTE: this function cannot use MXNet
+def neo_preprocess(payload, content_type):
+    import logging
+    import numpy as np
+    import io
+
+    logging.info('Invoking user-defined pre-processing function')
+
+    if content_type != 'application/vnd+python.numpy+binary':
+        raise RuntimeError('Content type must be application/vnd+python.numpy+binary')
+
+    f = io.BytesIO(payload)
+    return np.load(f)
+
+
+### NOTE: this function cannot use MXNet
+def neo_postprocess(result):
+    import logging
+    import numpy as np
+    import json
+
+    logging.info('Invoking user-defined post-processing function')
+
+    # Softmax (assumes batch size 1)
+    result = np.squeeze(result)
+    result_exp = np.exp(result - np.max(result))
+    result = result_exp / np.sum(result_exp)
+
+    response_body = json.dumps(result.tolist())
+    content_type = 'application/json'
+
+    return response_body, content_type
 
 
 if __name__ == '__main__':

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+ <?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+ <!-- Put site-specific property overrides in this file. -->
+
+ <configuration>
+     <property>
+         <name>fs.defaultFS</name>
+         <value>hdfs://nn_uri/</value>
+         <description>NameNode URI</description>
+     </property>
+     <property>
+         <name>fs.s3a.aws.credentials.provider</name>
+         <value>com.amazonaws.auth.ContainerCredentialsProvider</value>
+         <description>AWS S3 credential provider</description>
+     </property>
+     <property>
+         <name>fs.AbstractFileSystem.s3a.imp</name>
+         <value>org.apache.hadoop.fs.s3a.S3A</value>
+         <description>s3a filesystem implementation</description>
+     </property>
+ </configuration>

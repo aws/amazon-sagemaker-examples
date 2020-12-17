@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+ <?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+ <!-- Put site-specific property overrides in this file. -->
+
+ <configuration>
+     <property>
+         <name>dfs.datanode.data.dir</name>
+         <value>file:///opt/amazon/hadoop/hdfs/datanode</value>
+         <description>Comma separated list of paths on the local filesystem of a DataNode where it should store its\
+  blocks.</description>
+     </property>
+
+     <property>
+         <name>dfs.namenode.name.dir</name>
+         <value>file:///opt/amazon/hadoop/hdfs/namenode</value>
+         <description>Path on the local filesystem where the NameNode stores the namespace and transaction logs per\
+ sistently.</description>
+     </property>
+ </configuration>

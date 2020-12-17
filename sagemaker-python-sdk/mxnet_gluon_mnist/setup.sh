@@ -1,5 +1,13 @@
 #!/bin/bash
 
+sudo -n true
+if [ $? -eq 0 ]; then
+  echo "The user has root access."
+else
+  echo "The user does not have root access. Everything required to run the notebook is already installed and setup. We are good to go!"
+  exit 0
+fi
+
 # Do we have GPU support?
 nvidia-smi > /dev/null 2>&1
 if [ $? -eq 0 ]; then
@@ -56,7 +64,7 @@ DOCKER_NET=`ip route | grep $SAGEMAKER_INTERFACE | cut -d" " -f1`
 DOCKER_IP=`ip route | grep $SAGEMAKER_INTERFACE | cut -d" " -f12`
 
 # check if both IPTables and the Route Table are OK.
-IPTABLES_PATCHED=`sudo iptables -S PREROUTING -t nat | grep -c 169.254.0.2`
+IPTABLES_PATCHED=`sudo iptables -S PREROUTING -t nat | grep -c $SAGEMAKER_INTERFACE`
 ROUTE_TABLE_PATCHED=`sudo ip route show table agent | grep -c $SAGEMAKER_INTERFACE`
 
 if [ $RUNNING_ON_NOTEBOOK_INSTANCE -gt 0 ]; then
