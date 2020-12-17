@@ -151,7 +151,7 @@ def train():
     
     if not is_master:
         print(f'Worker: {current_host}')
-        process_search_term = "/usr/local/bin/python3.6 /mask-rcnn-tensorflow/MaskRCNN/train.py"
+        process_search_term = "python3 /mask-rcnn-tensorflow/MaskRCNN/train.py"
         wait_for_training_processes_to_appear_and_finish(process_search_term, current_host)
         print(f'Worker {current_host} has completed')
     else:
@@ -262,7 +262,7 @@ mpirun -np {numprocesses} \\
 -x HOROVOD_CYCLE_TIME -x HOROVOD_FUSION_THRESHOLD \\
 -x LD_LIBRARY_PATH -x PATH \\
 --output-filename {model_dir}  \\
-/usr/local/bin/python3.6 /mask-rcnn-tensorflow/MaskRCNN/train.py \
+python3 /mask-rcnn-tensorflow/MaskRCNN/train.py \
 --logdir {log_dir} \
 --fp16 \
 --throughput_log_freq=2000 \
