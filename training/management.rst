@@ -1,3 +1,6 @@
+Management Features
+===================
+
 Examples on how to use SageMaker's training management features.
 
 Early stopping

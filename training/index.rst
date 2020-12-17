@@ -1,3 +1,7 @@
+#########################
+Train Models on SageMaker
+#########################
+
 Examples on how to train models with SageMaker.
 
 Algorithms
@@ -42,7 +46,7 @@ Distributed Training
 .. toctree::
    :maxdepth: 1
 
-   distributed
+   distributed_training/index
 
 
 Experiments
@@ -58,7 +62,7 @@ Frameworks
 ============
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
 
    frameworks
 

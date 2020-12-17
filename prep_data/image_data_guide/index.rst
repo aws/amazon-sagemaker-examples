@@ -1,5 +1,5 @@
 
-.. image:: image/data_prep_header.png
+.. image:: ../image/data_prep_header.png
   :width: 600
   :alt: data prep
 

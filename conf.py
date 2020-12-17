@@ -18,7 +18,7 @@
 # -- Project information -----------------------------------------------------
 
 project = 'Amazon SageMaker Examples'
-copyright = '2020, Aaron Markham'
+copyright = '2020, Amazon Web Services, Inc. or its affiliates. All rights reserved.'
 author = 'Aaron Markham'
 
 # The full version, including alpha/beta/rc tags
@@ -60,4 +60,4 @@ html_theme = 'sphinx_rtd_theme'
 html_static_path = ['_static']
 
 # For Adobe Analytics
-html_js_files = ["https://a0.awsstatic.com/s_code/js/1.0/awshome_s_code.js", "js/analytics.js"]
+html_js_files = ["https://a0.awsstatic.com/s_code/js/3.0/awshome_s_code.js", "js/analytics.js"]

@@ -1,5 +1,7 @@
-Examples on how to use your own model serving containers or extend pre-built containers on SageMaker.
+BYOC
+====
 
+Examples on how to use your own model serving containers or extend pre-built containers on SageMaker.
 
 PyTorch
 ============
