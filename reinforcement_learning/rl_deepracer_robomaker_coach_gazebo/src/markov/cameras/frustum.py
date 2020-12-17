@@ -6,10 +6,10 @@ from markov.architecture.constants import Input
 from markov.track_geom.utils import euler_to_quaternion, quaternion_to_euler, apply_orientation
 from markov.cameras.constants import GazeboWorld
 from markov.cameras.utils import normalize, project_to_2d, ray_plane_intersect
-
+from markov.constants import SIMAPP_VERSION_3
 
 class Frustum(object):
-    def __init__(self, agent_name, observation_list):
+    def __init__(self, agent_name, observation_list, version):
         self.agent_name = agent_name
 
         # define inward direction
@@ -29,15 +29,23 @@ class Frustum(object):
 
         # TODO: Remove below camera_offsets and camera_pitch variables if we can get Camera pose directly
         self.camera_offsets = []
-        if Input.STEREO.value in observation_list:
-            # Hard coded Stereo Camera Offset Position from basis_link
-            self.camera_offsets.append(np.array([0.2, -0.03, 0.164]))
-            self.camera_offsets.append(np.array([0.2, 0.03, 0.164]))
+        # simapp version 3 has different and accurate camera locations
+        if version >= SIMAPP_VERSION_3:
+            # camera offset is calculcated in homogeneous coordinates according to v3 physics at
+            # https://quip-amazon.com/Z2CyAS06rU5R/DeepRacer-Physics
+            # by applying base_link, zed_camera_joint_(rightcam/leftcam), and camera_joint_(rightcam/leftcam)
+            if Input.STEREO.value in observation_list:
+                self.camera_offsets.append(np.array([0.14529379, -0.03, 0.13032555]))
+                self.camera_offsets.append(np.array([0.14529379, 0.03, 0.13032555]))
+            else:
+                self.camera_offsets.append(np.array([0.14529379, 0, 0.13032555]))
         else:
-            # Hard coded Front Facing Camera Offset Position from basis_link
-            self.camera_offsets.append(np.array([0.2, 0, 0.164]))
-        self.camera_pitch = 0.261799
-
+            if Input.STEREO.value in observation_list:
+                self.camera_offsets.append(np.array([0.2, -0.03, 0.164]))
+                self.camera_offsets.append(np.array([0.2, 0.03, 0.164]))
+            else:
+                self.camera_offsets.append(np.array([0.2, 0, 0.164]))
+        self.camera_pitch = 0.2618
     @staticmethod
     def get_forward_vec(quaternion):
         return apply_orientation(quaternion, GazeboWorld.forward)
