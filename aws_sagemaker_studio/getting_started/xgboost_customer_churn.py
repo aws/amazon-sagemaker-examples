@@ -25,7 +25,7 @@ def parse_args():
     parser.add_argument("--num_round", type=int, default=50)
     parser.add_argument("--smdebug_path", type=str, default=None)
     parser.add_argument("--smdebug_frequency", type=int, default=1)
-    parser.add_argument("--smdebug_collections", type=str, default=None)
+    parser.add_argument("--smdebug_collections", type=str, default='metrics')
     parser.add_argument("--output_uri", type=str, default="/opt/ml/output/tensors",
                         help="S3 URI of the bucket where tensor data will be stored.")
 

@@ -1,0 +1,18 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Lambda layer with utilities used by Bring your own Active Learning lambdas.
+Resources:
+  ByoalUtil:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: ByoalUtil
+      Description: ByoalUtil layer helps abstract s3 operations and minor string utilities.
+      ContentUri: ./dependency
+      CompatibleRuntimes:
+        - python3.6
+        - python3.7
+      RetentionPolicy: Retain
+Outputs:
+  ByoalUtil:
+    Value: !Ref ByoalUtil
+
