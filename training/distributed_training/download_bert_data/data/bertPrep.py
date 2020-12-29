@@ -93,7 +93,7 @@ def main(args):
             wiki_path = directory_structure['extracted']
             output_filename = directory_structure['formatted'] + '/wikicorpus_en_one_article_per_line.txt'
             wiki_formatter = WikicorpusTextFormatting.WikicorpusTextFormatting(wiki_path, output_filename, recursive=True)
-            wiki_formatter.merge()
+            wiki_formatter.merge_abstract()
 
         elif args.dataset == 'wikicorpus_zh':
             assert False, 'wikicorpus_zh not fully supported at this time. The simplified/tradition Chinese data needs to be translated and properly segmented still, and should work once this step is added.'
@@ -191,9 +191,11 @@ def main(args):
 
         if not os.path.exists(directory_structure['hdf5'] + "/" + args.dataset):
             os.makedirs(directory_structure['hdf5'] + "/" + args.dataset)
+        
 
         def create_record_worker(filename_prefix, shard_id, output_format='hdf5'):
-            bert_preprocessing_command = 'python /workspace/bert/create_pretraining_data.py'
+            # bert_preprocessing_command = 'python /workspace/bert/create_pretraining_data.py'
+            bert_preprocessing_command = 'python /home/ubuntu/DeepLearningExamples/PyTorch/LanguageModeling/BERT/create_pretraining_data.py'
             bert_preprocessing_command += ' --input_file=' + directory_structure['sharded'] + '/' + args.dataset + '/' + filename_prefix + '_' + str(shard_id) + '.txt'
             bert_preprocessing_command += ' --output_file=' + directory_structure['hdf5'] + '/' + args.dataset + '/' + filename_prefix + '_' + str(shard_id) + '.' + output_format
             bert_preprocessing_command += ' --vocab_file=' + args.vocab_file

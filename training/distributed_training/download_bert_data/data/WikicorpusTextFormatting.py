@@ -23,24 +23,39 @@ class WikicorpusTextFormatting:
 
     # This puts one article per line
     def merge(self):
+        print('Wikipath is', self.wiki_path)
+        # TODO recover the original code when training on real wiki data
         with open(self.output_filename, mode='w', newline='\n') as ofile:
-            for dirname in glob.glob(self.wiki_path + '/*/', recursive=False):
-                for filename in glob.glob(dirname + 'wiki_*', recursive=self.recursive):
-                    print(filename)
-                    article_lines = []
-                    article_open = False
+            # for dirname in glob.glob(self.wiki_path + '/*/', recursive=False):
+            # for filename in glob.glob(self.wiki_path + '/' + 'wiki_*', recursive=self.recursive):
+            filename = os.path.join(self.wiki_path, 'wiki_latest_abstract_short.xml')
+            print(filename)
+            article_lines = []
+            article_open = False
 
-                    with open(filename, mode='r', newline='\n') as file:
-                        for line in file:
-                            if '<doc id=' in line:
-                                article_open = True
-                            elif '</doc>' in line:
-                                article_open = False
-                                for oline in article_lines[1:]:
-                                    if oline != '\n':
-                                        ofile.write(oline.rstrip() + " ")
-                                ofile.write("\n\n")
-                                article_lines = []
-                            else:
-                                if article_open:
-                                    article_lines.append(line)
+            with open(filename, mode='r', newline='\n') as file:
+                for line in file.readlines():
+                    if '<abstract>' in line:
+                        article_open = True
+                    elif '</abstract>' in line:
+                        article_open = False
+                        for oline in article_lines[1:]:
+                            if oline != '\n':
+                                ofile.write(oline.rstrip() + " ")
+                        ofile.write("\n\n")
+                        article_lines = []
+                    else:
+                        if article_open:
+                            article_lines.append(line)
+    
+    def merge_abstract(self):
+        filename = os.path.join(self.wiki_path, 'wiki_latest_abstract_short.xml')
+        with open(self.output_filename, mode='w', newline='\n') as ofile:
+            with open(filename, mode='r', newline='\n') as f:
+                for line in f.readlines():
+                    if line.startswith('<abstract>'):
+                        # write the line to the ofile
+                        line = line.strip()[10:][:-11] 
+                        ofile.write(line)
+                        ofile.write('\n\n')
+
