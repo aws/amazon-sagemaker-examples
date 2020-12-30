@@ -92,7 +92,7 @@ def create_pretraining_dataset(input_file, max_pred_length, shared_list, args, w
     train_dataloader = DataLoader(train_data, sampler=train_sampler,
                                   batch_size=args.train_batch_size * args.n_gpu,
                                   num_workers=4, worker_init_fn=worker_init,
-                                  pin_memory=True)
+                                  pin_memory=True, drop_last=True)
     return train_dataloader, input_file
 
 
@@ -696,7 +696,7 @@ def main():
             train_dataloader = DataLoader(train_data, sampler=train_sampler,
                                         batch_size=args.train_batch_size * args.n_gpu,
                                         num_workers=4, worker_init_fn=worker_init,
-                                        pin_memory=True)
+                                        pin_memory=True, drop_last=True)
             # shared_file_list["0"] = (train_dataloader, data_file)
         else:
             train_dataloader = restored_data_loader
