@@ -19,6 +19,11 @@ import matplotlib.pyplot as plt
 import shutil
 import networkx as nx
 
+import shap
+import smdebug.mxnet as smd
+from sagemaker.debugger import DebuggerHookConfig
+from smdebug.core.writer import FileWriter
+
 with warnings.catch_warnings():
     warnings.filterwarnings('ignore', category=DeprecationWarning)
     from prettytable import PrettyTable
@@ -47,7 +52,8 @@ def __load_input_data(path: str) -> TabularDataset:
     input_data_files = os.listdir(path)
     try:
         input_dfs = [pd.read_csv(f'{path}/{data_file}') for data_file in input_data_files]
-        return task.Dataset(df=pd.concat(input_dfs))
+        return pd.concat(input_dfs)
+        #return task.Dataset(df=pd.concat(input_dfs))
     except:
         print(f'No csv data in {path}!')
         return None
@@ -107,6 +113,18 @@ def get_roc_auc(y_test_true, y_test_pred, labels, class_labels_internal, model_o
     plt.legend(loc="lower right")
     plt.show()
     plt.savefig(f'{model_output_dir}/roc_auc_curve.png')
+
+class AutogluonWrapper:
+    def __init__(self, predictor, feature_names):
+        self.ag_model = predictor
+        self.feature_names = feature_names
+    
+    def predict_proba(self, X):
+        if isinstance(X, pd.Series):
+            X = X.values.reshape(1,-1)
+        if not isinstance(X, pd.DataFrame):
+            X = pd.DataFrame(X, columns=self.feature_names)
+        return self.ag_model.predict_proba(X)   
     
 def train(args):
     model_output_dir = f'{args.output_dir}/data'
@@ -205,6 +223,20 @@ def train(args):
         else:
             warnings.warn('Skipping eval on test data since label column is not included.')
 
+    # Calculates SHAP values
+    NSHAP_SAMPLES = args.num_shap_samples
+    baseline = train_data.sample(NSHAP_SAMPLES, random_state=args.seed)
+    X_test = test_data.sample(NSHAP_SAMPLES, random_state=args.seed)
+    ag_wrapper = AutogluonWrapper(predictor, train_data.columns)
+    explainer = shap.KernelExplainer(ag_wrapper.predict_proba, baseline)
+    print(f'Calculating SHAP values for {NSHAP_SAMPLES} samples')
+    shap_values = explainer.shap_values(X_test, nsamples=NSHAP_SAMPLES, silent=True)
+    hook.save_tensor(tensor_name="shap_values", tensor_value=shap_values, collections_to_write="shap")
+    hook.writer = FileWriter(trial_dir=hook.out_dir, step=hook.step, worker=hook.worker)
+    tensor_value, collection_names = hook.custom_tensors_to_save["shap_values"]
+    save_collections = hook._get_collections_with_tensor("shap_values")
+    hook._write_for_tensor("shap_values", tensor_value, save_collections)
+    
     # Files summary
     print(f'Model export summary:')
     print(f"/opt/ml/model/: {os.listdir('/opt/ml/model/')}")
@@ -228,13 +260,17 @@ def parse_args():
     parser.add_argument('--model-dir', type=str, default=os.environ['SM_MODEL_DIR'])
     parser.add_argument('--output-dir', type=str, default=os.environ['SM_OUTPUT_DIR'])
     parser.add_argument('--train', type=str, default=os.environ['SM_CHANNEL_TRAINING'])
+    
     # Arguments to be passed to task.fit()
     parser.add_argument('--fit_args', type=lambda s: ast.literal_eval(s),
                         default="{'presets': ['optimize_for_deployment']}",
                         help='https://autogluon.mxnet.io/api/autogluon.task.html#tabularprediction')
     # Additional options
     parser.add_argument('--feature_importance', type='bool', default=True)
-
+    # for SHAP
+    parser.add_argument('--num_shap_samples', type=int, default=100)
+    parser.add_argument('--seed', type=int, default=0)
+          
     return parser.parse_args()
 
 
@@ -263,6 +299,12 @@ if __name__ == "__main__":
         args.test = os.environ['SM_CHANNEL_TESTING']
     else:
         args.test = None
+          
+    #implementing a hook for SageMaker debugger
+    hook = smd.Hook.create_from_json_file()
+    hook.get_collection("shap").tensor_names = ["shap_values"]
+    hook.get_collection("shap").include_regex= ["shap_values"]
+    hook.include_collections = ["shap"]
 
     train(args)
 
