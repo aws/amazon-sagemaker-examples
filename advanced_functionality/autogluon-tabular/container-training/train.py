@@ -21,7 +21,6 @@ import networkx as nx
 
 import shap
 import smdebug.mxnet as smd
-from sagemaker.debugger import DebuggerHookConfig
 from smdebug.core.writer import FileWriter
 
 with warnings.catch_warnings():
