@@ -77,7 +77,6 @@ The following provide examples demonstrating different capabilities of Amazon Sa
 - [Knapsack Problem](reinforcement_learning/rl_knapsack_coach_custom) demonstrates how to solve the knapsack problem using a custom environment.
 - [Mountain Car](reinforcement_learning/rl_mountain_car_coach_gymEnv) Mountain car is a classic RL problem. This notebook explains how to solve this using the OpenAI Gym environment.
 - [Distributed Neural Network Compression](reinforcement_learning/rl_network_compression_ray_custom) This notebook explains how to compress ResNets using RL, using a custom environment and the RLLib toolkit.
-- [Turtlebot Tracker](reinforcement_learning/rl_objecttracker_robomaker_coach_gazebo) This notebook demonstrates object tracking using AWS Robomaker and RL Coach in the Gazebo environment.
 - [Portfolio Management](reinforcement_learning/rl_portfolio_management_coach_customEnv) This notebook uses a custom Gym environment to manage multiple financial investments.
 - [Autoscaling](reinforcement_learning/rl_predictive_autoscaling_coach_customEnv) demonstrates how to adjust load depending on demand. This uses RL Coach and a custom environment.
 - [Roboschool](reinforcement_learning/rl_roboschool_ray) is an open source physics simulator that is commonly used to train RL policies for robotic systems. This notebook demonstrates training a few agents using it.
@@ -141,7 +140,7 @@ These examples provide you an introduction to how to use Neo to optimizes deep l
 - [Distributed TensorFlow](sagemaker_neo_compilation_jobs/tensorflow_distributed_mnist) Adapts form [tensorflow mnist](sagemaker-python-sdk/tensorflow_distributed_mnist) including Neo API and comparsion between the baseline
 - [Predicting Customer Churn](sagemaker_neo_compilation_jobs/xgboost_customer_churn) Adapts form [xgboost customer churn](introduction_to_applying_machine_learning/xgboost_customer_churn) including Neo API and comparsion between the baseline
 
-### Amazon SageMaker Procesing
+### Amazon SageMaker Processing
 
 These examples show you how to use SageMaker Processing jobs to run data processing workloads.
 

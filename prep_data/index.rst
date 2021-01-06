@@ -1,0 +1,52 @@
+
+.. image:: image/data_prep_header.png
+  :width: 600
+  :alt: data prep
+
+
+Get started with data prep
+==========================
+
+SageMaker has several options for data preparation.
+The options best for you will depend on your use case, the kind of data, volume of data, and timing of how often you need to process the data.
+The following examples and guides can help you get started.
+Each includes example datasets for you to experiment with.
+If you want to use your own data, start with the `data ingestion examples <../data_ingestion/index.html>`_.
+
+
+Detect pre-training data bias
+=============================
+
+.. toctree::
+   :maxdepth: 1
+
+   /sagemaker_processing/fairness_and_explainability/fairness_and_explainability
+
+
+Image data guide
+================
+
+.. toctree::
+   :maxdepth: 1
+
+   image_data_guide/index
+
+
+Tabular data guide
+==================
+
+.. toctree::
+   :maxdepth: 1
+
+   tabular_data/01_preprocessing_tabular_data
+   tabular_data/02_feature_selection_tabular_data
+   tabular_data/03_training_model_on_tabular_data
+
+
+Text data guide
+==================
+
+.. toctree::
+   :maxdepth: 1
+
+   text_data/04_preprocessing_text_data_v3
