@@ -29,16 +29,14 @@ def predict_fn(input_data, model):
     logger.info('Performing EIA inference with Torch JIT context with input of size {}'.format(input_data.shape))
     # With EI, client instance should be CPU for cost-efficiency. Subgraphs with unsupported arguments run locally. Server runs with CUDA
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    model = model.to(device)
     input_data = input_data.to(device)
-    model = model.eval()
+    # Please make sure model is loaded to cpu and has been eval(), in this example, we have done this step in model_fn()
     with torch.no_grad():
         if torch.__version__ in VERSIONS_USE_NEW_API:
+            # Please make sure torcheia has been imported
             import torcheia
-            # we need to set the profiling executor for EIA
+            # We need to set the profiling executor for EIA
             torch._C._jit_set_profiling_executor(False)
-            # Here want to use the first attached accelerator, so we specify ordinal 0.
-            model = torcheia.jit.attach_eia(model, 0)
             with torch.jit.optimized_execution(True):
                 return model.forward(input_data)
         # Set the target device to the accelerator ordinal
@@ -47,16 +45,17 @@ def predict_fn(input_data, model):
                 return model(input_data)
 
 
+
 def model_fn(model_dir):
-    logger.info('model_fn: Loading model with TorchScript from {}'.format(model_dir))
-    # Scripted model is serialized with torch.jit.save().
-    # No need to instantiate model definition then load state_dict
-    model = torch.jit.load('model.pth')
-    return model
-
-
-def save_model(model, model_dir):
-    logger.info("Saving the model to {}.".format(model_dir))
-    path = os.path.join(model_dir, 'model.pth')
-    torch.jit.save(model, path)
+    try:
+        loaded_model = torch.jit.load('model.pth', map_location=torch.device('cpu'))
+        if torch.__version__ in VERSIONS_USE_NEW_API:
+            import torcheia
+            loaded_model = loaded_model.eval()
+            loaded_model = torcheia.jit.attach_eia(loaded_model, 0)
+        return loaded_model
+    except Exception as e:
+        logger.exception(f"Exception in model fn {e}")
+        return None
+    
 
