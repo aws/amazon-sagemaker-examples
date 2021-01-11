@@ -78,15 +78,6 @@ Auto insurance
    using_model_packages/auto_insurance/automating_auto_insurance_claim_processing
 
 
-Financial transaction processing
---------------------------------
-
-.. toctree::
-   :maxdepth: 0
-
-   using_model_packages/financial_transaction_processing/Extracting_insights_from_your_credit_card_statement
-
-
 Improving industrial workplace safety
 -------------------------------------
 
