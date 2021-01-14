@@ -11,7 +11,7 @@ from markov.log_handler.logger import Logger
 from markov.log_handler.deepracer_exceptions import GenericRolloutException
 from rl_coach.spaces import DiscreteActionSpace
 from scipy.spatial.transform import Rotation
-
+from markov.constants import SIMAPP_VERSION_1, SIMAPP_VERSION_2, SIMAPP_VERSION_3
 
 LOGGER = Logger(__name__, logging.INFO).get_logger()
 
@@ -66,10 +66,12 @@ def set_reward_and_metrics(reward_params, step_metrics, agent_name, pos_dict, tr
             reward_params[RewardParam.PROG.value[0]] = current_progress
         reward_params[RewardParam.CENTER_DIST.value[0]] = \
             nearest_dist_dict[TrackNearDist.NEAR_DIST_CENT.value]
+        reward_params[RewardParam.PROJECTION_DISTANCE.value[0]] = \
+            current_ndist * track_data.get_track_length()
         reward_params[RewardParam.CLS_WAYPNY.value[0]] = [prev_index, next_index]
         reward_params[RewardParam.LEFT_CENT.value[0]] = \
-            nearest_dist_dict[TrackNearDist.NEAR_DIST_IN.value] < \
-            nearest_dist_dict[TrackNearDist.NEAR_DIST_OUT.value]
+            (nearest_dist_dict[TrackNearDist.NEAR_DIST_IN.value] < \
+            nearest_dist_dict[TrackNearDist.NEAR_DIST_OUT.value]) ^ (not track_data.is_ccw)
         reward_params[RewardParam.WAYPNTS.value[0]] = track_data.get_way_pnts()
         reward_params[RewardParam.TRACK_WIDTH.value[0]] = \
             nearest_pnts_dict[TrackNearPnts.NEAR_PNT_IN.value] \
@@ -98,7 +100,6 @@ def set_reward_and_metrics(reward_params, step_metrics, agent_name, pos_dict, tr
         model_heading = reward_params[RewardParam.HEADING.value[0]]
         obstacle_reward_params = track_data.get_object_reward_params(agent_name,
                                                                      model_point,
-                                                                     reverse_dir,
                                                                      car_pose)
         if obstacle_reward_params:
             reward_params.update(obstacle_reward_params)
@@ -125,6 +126,22 @@ def compute_current_prog(current_progress, prev_progress):
         current_progress -= 100.0
     current_progress = min(current_progress, 100)
     return current_progress
+
+
+def get_normalized_progress(current_progress, start_ndist):
+    """
+    Return normalized current progress with respect to START LINE of the track.
+
+    Args:
+        current_progress: current_progress to normalize (0 - 100)
+        start_ndist: start_ndist to offset (0.0 - 1.0)
+
+    Returns:
+        normalized current progress with respect to START LINE of the track.
+
+    """
+    return (current_progress + start_ndist * 100) % 100
+
 
 def send_action(velocity_pub_dict, steering_pub_dict, steering_angle, speed):
     '''Publishes the given action to all the topics in the given dicts
@@ -167,9 +184,11 @@ def get_speed_factor(version):
     ''' Returns the velocity factor for a given physics version
         version (float): Sim app version for which to retrieve the velocity factor
     '''
-    if version == "2.0":
+    if version == SIMAPP_VERSION_3:
+        return 2.77
+    elif version == SIMAPP_VERSION_2:
         return 3.5
-    elif version == "1.0":
+    elif version == SIMAPP_VERSION_1:
         return 1.0
     else:
         raise Exception("No velocity factor for given version")

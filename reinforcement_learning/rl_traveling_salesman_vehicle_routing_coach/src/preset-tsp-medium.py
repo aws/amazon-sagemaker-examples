@@ -41,7 +41,7 @@ vis_params.dump_gifs=True
 ####################
 
 schedule_params=SimpleSchedule()
-schedule_params.improve_steps = TrainingSteps(5000000)
+schedule_params.improve_steps = TrainingSteps(200000)
 schedule_params.steps_between_evaluation_periods = EnvironmentEpisodes(20)
 schedule_params.evaluation_steps = EnvironmentEpisodes(5)
 schedule_params.heatup_steps = EnvironmentSteps(1000)

@@ -139,6 +139,11 @@ class ObstaclesCtrl(AgentCtrlInterface):
             obstacle_state.twist.angular.z = 0
             SetModelStateTracker.get_instance().set_model_state(obstacle_state)
 
+    def _update_track_data_object_poses(self):
+        '''update object poses in track data'''
+        for obstacle_name, obstacle_pose in zip(self.obstacle_names, self.obstacle_poses):
+            self.track_data.update_object_pose(obstacle_name, obstacle_pose)
+
     @property
     def action_space(self):
         return None
@@ -146,14 +151,13 @@ class ObstaclesCtrl(AgentCtrlInterface):
     def reset_agent(self):
         self.obstacle_poses = self._compute_obstacle_poses()
         self._reset_obstacles()
+        self._update_track_data_object_poses()
 
     def send_action(self, action):
         pass
 
     def update_agent(self, action):
-        for obstacle_name, obstacle_pose in zip(self.obstacle_names, self.obstacle_poses):
-            # Update the obstacle position in track data during update_agent
-            self.track_data.update_object_pose(obstacle_name, obstacle_pose)
+        self._update_track_data_object_poses()
         return {}
 
     def judge_action(self, agents_info_map):

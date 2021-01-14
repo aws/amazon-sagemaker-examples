@@ -34,6 +34,8 @@ class GazeboServiceName(Enum):
     SET_VISUAL_POSES = '/gazebo/set_visual_poses'
     SET_VISUAL_MESH = '/gazebo/set_visual_mesh'
     SET_VISUAL_MESHES = '/gazebo/set_visual_meshes'
+    PAUSE_PHYSICS = '/gazebo/pause_physics_dr'
+    UNPAUSE_PHYSICS = '/gazebo/unpause_physics_dr'
 
 
 class ModelRandomizerType(Enum):

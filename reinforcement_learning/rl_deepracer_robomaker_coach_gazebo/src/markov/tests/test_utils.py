@@ -4,10 +4,11 @@ import multiprocessing
 import json
 import botocore
 from markov import utils
-from markov.s3_client import SageS3Client
 from markov.log_handler.constants import (SIMAPP_EVENT_SYSTEM_ERROR,
                                           SIMAPP_SIMULATION_WORKER_EXCEPTION,
                                           SIMAPP_EVENT_ERROR_CODE_500, EXCEPTION_HANDLER_SYNC_FILE)
+from markov.s3.s3_client import S3Client
+from markov.s3.files.model_metadata import ModelMetadata
 
 @pytest.mark.robomaker
 def test_test_internet_connection(aws_region):
@@ -22,61 +23,23 @@ def test_test_internet_connection(aws_region):
     """
     utils.test_internet_connection(aws_region)
 
-@pytest.mark.robomaker
-@pytest.mark.sagemaker
-def test_load_model_metadata(s3_bucket, s3_prefix, aws_region, model_metadata_s3_key):
-    """This function checks the functionality of load_model_metadata function
-    in markov/utils.py
-
-    The function checks if model_metadata.json file is downloaded into the required directory.
-    If the function fails, it will generate an exception which will call log_and_exit internally.
-    Hence the test will fail.
-
-    Args:
-        s3_bucket (String): S3_BUCKET
-        s3_prefix (String): S3_PREFIX
-        aws_region (String): AWS_REGION
-        model_metadata_s3_key (String): MODEL_METADATA_S3_KEY
-    """
-    s3_client = SageS3Client(bucket=s3_bucket, s3_prefix=s3_prefix, aws_region=aws_region)
-    model_metadata_local_path = 'test_model_metadata.json'
-    utils.load_model_metadata(s3_client, model_metadata_s3_key, model_metadata_local_path)
-    assert os.path.isfile(model_metadata_local_path)
-    # Remove file downloaded
-    if os.path.isfile(model_metadata_local_path):
-        os.remove(model_metadata_local_path)
-
-@pytest.mark.robomaker
-@pytest.mark.sagemaker
-def test_has_current_ckpnt_name(s3_bucket, s3_prefix, aws_region):
-    """This function checks the functionality of has_current_ckpnt_name function
-    in markov/utils.py
-
-    <utils.has_current_ckpnt_name> checks if the checkpoint key (.coach_checkpoint) is present in S3
-
-    Args:
-        s3_bucket (String): S3_BUCKET
-        s3_prefix (String): S3_PREFIX
-        aws_region (String): AWS_REGION
-    """
-    assert utils.has_current_ckpnt_name(s3_bucket, s3_prefix, aws_region)
 
 @pytest.mark.robomaker
 @pytest.mark.sagemaker
 @pytest.mark.parametrize("error, expected", [("Exception that doesn't contain any keyword", False),
                                              ("Exception that contains keyword checkpoint", True)])
-def test_is_error_bad_ckpnt(error, expected):
-    """This function checks the functionality of is_error_bad_ckpnt function
+def test_is_user_error(error, expected):
+    """This function checks the functionality of is_user_error function
     in markov/utils.py
 
-    <is_error_bad_ckpnt> determines whether a value error is caused by an invalid checkpoint
-    by looking for keywords 'tensor', 'shape', 'checksum', 'checkpoint' in the exception message
+    <is_user_error> determines whether a value error is caused by an invalid checkpoint or model_metadata
+    by looking for keywords 'tensor', 'shape', 'checksum', 'checkpoint', 'model_metadata' in the exception message
 
     Args:
         error (String): Error message to be parsed
         expected (Boolean): Expected return from function
     """
-    assert utils.is_error_bad_ckpnt(error) == expected
+    assert utils.is_user_error(error) == expected
 
 @pytest.mark.robomaker
 @pytest.mark.parametrize("racecar_num, racer_names", [(1, ['racecar']),
