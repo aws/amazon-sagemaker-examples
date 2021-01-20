@@ -2,6 +2,9 @@ FROM ubuntu:20.04
 
 ARG DEBIAN_FRONTEND=noninteractive 
 
+# Don't prompt for tzdata on new versions of Ubuntu:
+ARG DEBIAN_FRONTEND=noninteractive
+
 RUN apt-get -y update && apt-get install -y --no-install-recommends \
     wget \
     libcurl4-openssl-dev\
