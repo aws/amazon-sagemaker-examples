@@ -78,3 +78,12 @@ Model monitor
    :maxdepth: 1
 
    ../sagemaker_model_monitor/index
+   
+Multi-Model Deployment
+======================
+
+.. toctree::
+   :maxdepth: 1
+
+   ../advanced_functionality/multi_model_sklearn_no_cache
+
