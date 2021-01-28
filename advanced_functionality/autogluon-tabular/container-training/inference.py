@@ -76,28 +76,36 @@ def transform_fn(models, data, input_content_type, output_content_type):
     start = timer()
     net = models[0]
     column_dict = models[1]
+    label_map = net.class_labels_internal_map
+    
 
     # text/csv
-    if input_content_type == 'text/csv':
-        
-        # Load dataset
+    if 'text/csv' in input_content_type:
         columns = column_dict['columns']
+        if type(data) == str:
+            # Load dataset
+            df = pd.read_csv(StringIO(data), header=None)
+        else:
+            df = pd.read_csv(StringIO(data.decode()), header=None)
+
         df = pd.read_csv(StringIO(data), header=None)
         df_preprosessed = preprocess(df, columns, net.label_column)
         ds = task.Dataset(df=df_preprosessed)
-        
-        try:
-            predictions = net.predict(ds)
+        try:       
+            predictions = net.predict_proba(ds)
         except:
             try:
-                predictions = net.predict(ds.fillna(0.0))
+                predictions = net.predict_proba(ds.fillna(0.0))
                 warnings.warn('Filled NaN\'s with 0.0 in order to predict.')
             except Exception as e:
                 response_body = e
                 return response_body, output_content_type
-        
+                
+        threshold = 0.5
+        predictions_label = [[k for k, v in label_map.items() if v == 1][0] if i > threshold else [k for k, v in label_map.items() if v == 0][0] for i in predictions]
+
         # Print prediction counts, limit in case of regression problem
-        pred_counts = Counter(predictions.tolist())
+        pred_counts = Counter(predictions_label)
         n_display_items = 30
         if len(pred_counts) > n_display_items:
             print(f'Top {n_display_items} prediction counts: '
@@ -109,7 +117,7 @@ def transform_fn(models, data, input_content_type, output_content_type):
         output = StringIO()
         pd.DataFrame(predictions).to_csv(output, header=False, index=False)
         response_body = output.getvalue() 
-
+        
         # If target column passed, evaluate predictions performance
         target = net.label_column
         if target in ds:
@@ -117,13 +125,14 @@ def transform_fn(models, data, input_content_type, output_content_type):
                   'Therefore, evaluating prediction performance...')    
             try:
                 performance = net.evaluate_predictions(y_true=ds[target], 
-                                                       y_pred=predictions, 
+                                                       y_pred=np.array(predictions_label), 
                                                        auxiliary_metrics=True)                
                 print(json.dumps(performance, indent=4, default=pd.DataFrame.to_json))
                 time.sleep(0.1)
             except Exception as e:
                 # Print exceptions on evaluate, continue to return predictions
                 print(f'Exception: {e}')
+        
     else:
         raise NotImplementedError("content_type must be 'text/csv'")
 

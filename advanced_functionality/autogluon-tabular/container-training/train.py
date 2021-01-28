@@ -221,20 +221,6 @@ def train(args):
                 get_roc_auc(y_test_true, y_test_pred_prob, predictor.class_labels, predictor.class_labels_internal, model_output_dir)
         else:
             warnings.warn('Skipping eval on test data since label column is not included.')
-
-    # Calculates SHAP values
-    NSHAP_SAMPLES = args.num_shap_samples
-    baseline = train_data.sample(NSHAP_SAMPLES, random_state=args.seed)
-    X_test = test_data.sample(NSHAP_SAMPLES, random_state=args.seed)
-    ag_wrapper = AutogluonWrapper(predictor, train_data.columns)
-    explainer = shap.KernelExplainer(ag_wrapper.predict_proba, baseline)
-    print(f'Calculating SHAP values for {NSHAP_SAMPLES} samples')
-    shap_values = explainer.shap_values(X_test, nsamples=NSHAP_SAMPLES, silent=True)
-    hook.save_tensor(tensor_name="shap_values", tensor_value=shap_values, collections_to_write="shap")
-    hook.writer = FileWriter(trial_dir=hook.out_dir, step=hook.step, worker=hook.worker)
-    tensor_value, collection_names = hook.custom_tensors_to_save["shap_values"]
-    save_collections = hook._get_collections_with_tensor("shap_values")
-    hook._write_for_tensor("shap_values", tensor_value, save_collections)
     
     # Files summary
     print(f'Model export summary:')
@@ -266,9 +252,6 @@ def parse_args():
                         help='https://autogluon.mxnet.io/api/autogluon.task.html#tabularprediction')
     # Additional options
     parser.add_argument('--feature_importance', type='bool', default=True)
-    # for SHAP
-    parser.add_argument('--num_shap_samples', type=int, default=100)
-    parser.add_argument('--seed', type=int, default=0)
           
     return parser.parse_args()
 
@@ -298,12 +281,6 @@ if __name__ == "__main__":
         args.test = os.environ['SM_CHANNEL_TESTING']
     else:
         args.test = None
-          
-    #implementing a hook for SageMaker debugger
-    hook = smd.Hook.create_from_json_file()
-    hook.get_collection("shap").tensor_names = ["shap_values"]
-    hook.get_collection("shap").include_regex= ["shap_values"]
-    hook.include_collections = ["shap"]
 
     train(args)
 
