@@ -6,6 +6,7 @@ Get started with Model Monitor
 
    introduction/SageMaker-ModelMonitoring
 
+
 Enable model monitor
 ====================
 
@@ -14,6 +15,7 @@ Enable model monitor
 
    enable_model_monitor/SageMaker-Enable-Model-Monitor
 
+
 Visualization
 =============
 
@@ -21,3 +23,12 @@ Visualization
    :maxdepth: 1
 
    visualization/SageMaker-Model-Monitor-Visualize
+
+
+Detect post-training data and model bias
+========================================
+
+.. toctree::
+   :maxdepth: 1
+
+   /sagemaker_model_monitor/fairness_and_explainability/SageMaker-Model-Monitor-Fairness-and-Explainability

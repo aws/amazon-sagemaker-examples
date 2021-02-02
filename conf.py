@@ -60,4 +60,4 @@ html_theme = 'sphinx_rtd_theme'
 html_static_path = ['_static']
 
 # For Adobe Analytics
-html_js_files = ["https://a0.awsstatic.com/s_code/js/1.0/awshome_s_code.js", "js/analytics.js"]
+html_js_files = ["https://a0.awsstatic.com/s_code/js/3.0/awshome_s_code.js", "js/analytics.js"]
