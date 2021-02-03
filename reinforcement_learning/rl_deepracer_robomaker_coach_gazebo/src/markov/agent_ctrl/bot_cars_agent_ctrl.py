@@ -12,6 +12,7 @@ from gazebo_msgs.srv import SpawnModel
 from geometry_msgs.msg import Pose
 
 from markov.agent_ctrl.constants import BOT_CAR_Z
+from markov.agent_ctrl.utils import get_normalized_progress
 from markov.track_geom.constants import (SPAWN_SDF_MODEL, ObstacleDimensions,
                                          TrackLane)
 from markov.track_geom.track_data import TrackData
@@ -272,6 +273,11 @@ class BotCarsCtrl(AgentCtrlInterface, AbstractTracker):
             bot_car_state.twist.angular.z = 0
             SetModelStateTracker.get_instance().set_model_state(bot_car_state)
 
+    def _update_track_data_bot_car_poses(self):
+        '''update bot car poses in track data'''
+        for bot_car_name, bot_car_pose in zip(self.bot_car_names, self.bot_car_poses):
+            self.track_data.update_object_pose(bot_car_name, bot_car_pose)
+
     @property
     def action_space(self):
         return None
@@ -281,6 +287,8 @@ class BotCarsCtrl(AgentCtrlInterface, AbstractTracker):
         initial position and reverse direction potentially.
         '''
         self.bot_car_crash_count = 0
+        self.bot_car_phase = AgentPhase.RUN.value
+        self.pause_duration = 0.0
         if self.reverse_dir != self.track_data.reverse_dir:
             self.reverse_dir = self.track_data.reverse_dir
             self.inner_lane.build_spline()
@@ -288,6 +296,7 @@ class BotCarsCtrl(AgentCtrlInterface, AbstractTracker):
         self._reset_sim_time()
         self._compute_bot_car_initial_states()
         self._update_bot_cars()
+        self._update_track_data_bot_car_poses()
 
     def send_action(self, action):
         '''Send bot car action to Gazebo for rendering
@@ -308,13 +317,13 @@ class BotCarsCtrl(AgentCtrlInterface, AbstractTracker):
         Returns:
             dict: dictionary of bot car info after action is taken
         '''
+        self._update_track_data_bot_car_poses()
         for bot_car_name, bot_car_pose in zip(self.bot_car_names, self.bot_car_poses):
-            # Update the bot car position in track data during update_agent
-            self.track_data.update_object_pose(bot_car_name, bot_car_pose)
             bot_car_progress = self.track_data.get_norm_dist(
                 Point(bot_car_pose.position.x, bot_car_pose.position.y)) * 100.0
             self.bot_car_progresses.update(
-                {bot_car_name:{AgentInfo.CURRENT_PROGRESS.value:bot_car_progress}})
+                {bot_car_name: {AgentInfo.CURRENT_PROGRESS.value: bot_car_progress,
+                                AgentInfo.START_NDIST.value: 0.0}})
         return self.bot_car_progresses
 
     def judge_action(self, agents_info_map):
@@ -333,15 +342,19 @@ class BotCarsCtrl(AgentCtrlInterface, AbstractTracker):
         if self.bot_car_phase == AgentPhase.RUN.value:
             self.pause_duration = 0.0
             for agent_name, agent_info in agents_info_map.items():
+                if not self.track_data.is_object_collidable(agent_name):
+                    continue
                 # check racecar crash with a bot_car
                 crashed_object_name = agent_info[AgentInfo.CRASHED_OBJECT_NAME.value] \
                     if AgentInfo.CRASHED_OBJECT_NAME.value in agent_info else ''
                 # only trainable racecar agent has 'bot_car' as possible crashed object
                 if 'bot_car' in crashed_object_name:
-                    racecar_progress = agents_info_map[agent_name]\
-                                                      [AgentInfo.CURRENT_PROGRESS.value]
-                    bot_car_progress = agents_info_map[crashed_object_name]\
-                                                      [AgentInfo.CURRENT_PROGRESS.value]
+                    racecar_progress = get_normalized_progress(agent_info[AgentInfo.CURRENT_PROGRESS.value],
+                                                               start_ndist=agent_info[AgentInfo.START_NDIST.value])
+                    bot_car_info = agents_info_map[crashed_object_name]
+                    bot_car_progress = get_normalized_progress(bot_car_info[AgentInfo.CURRENT_PROGRESS.value],
+                                                               start_ndist=bot_car_info[AgentInfo.START_NDIST.value])
+
                     # transition to AgentPhase.PAUSE.value
                     if racecar_progress > bot_car_progress:
                         self.bot_cars_lane_change_end_times = \

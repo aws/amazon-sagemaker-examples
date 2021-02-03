@@ -32,16 +32,16 @@ training_path <- paste(input_path, channel_name, sep='/')
 
 # Setup training function
 train <- function() {
-
     # Read in hyperparameters
     training_params <- read_json(param_path)
 
     target <- training_params$target
 
     if (!is.null(training_params$degree)) {
-        degree <- as.numeric(training_params$degree)}
-    else {
-        degree <- 2}
+        degree <- as.numeric(training_params$degree)
+    } else {
+        degree <- 2
+    }
 
     # Bring in data
     training_files = list.files(path=training_path, full.names=TRUE)
@@ -51,8 +51,10 @@ train <- function() {
     training_X <- model.matrix(~., training_data[, colnames(training_data) != target])
 
     # Save factor levels for scoring
-    factor_levels <- lapply(training_data[, sapply(training_data, is.factor), drop=FALSE],
-                            function(x) {levels(x)})
+    factor_levels <- lapply(
+        training_data[, sapply(training_data, is.factor), drop=FALSE],
+        function(x) { levels(x) }
+    )
     
     # Run multivariate adaptive regression splines algorithm
     model <- mars(x=training_X, y=training_data[, target], degree=degree)
@@ -64,18 +66,22 @@ train <- function() {
     print(summary(mars_model))
 
     write.csv(model$fitted.values, paste(output_path, 'data/fitted_values.csv', sep='/'), row.names=FALSE)
-    write('success', file=paste(output_path, 'success', sep='/'))}
+    write('success', file=paste(output_path, 'success', sep='/'))
+}
 
 
 # Setup scoring function
 serve <- function() {
     app <- plumb(paste(prefix, 'plumber.R', sep='/'))
-    app$run(host='0.0.0.0', port=8080)}
+    app$run(host='0.0.0.0', port=8080)
+}
 
 
 # Run at start-up
 args <- commandArgs()
 if (any(grepl('train', args))) {
-    train()}
+    train()
+}
 if (any(grepl('serve', args))) {
-    serve()}
+    serve()
+}
