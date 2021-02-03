@@ -26,6 +26,7 @@ These examples show you how to use model-packages and algorithms from AWS Market
 - [Using Algorithms](using_algorithms)
 	- [Using Algorithm From AWS Marketplace](using_algorithms/amazon_demo_product) provides a detailed walkthrough on how to use Algorithm with the enhanced SageMaker Train/Transform/Hosting/Tuning APIs by choosing a canonical product listed on AWS Marketplace.
 	- [Using AutoML algorithm](using_algorithms/automl) provides a detailed walkthrough on how to use AutoML algorithm from AWS Marketplace.
+	- [Using Implicit BPR Algorithm](using_algorithms/implicit_bpr) provides a detailed walkthrough on how to build a recommender system for implicit feedback datasets to train, evaluate and host your model to perform the batch and rea- time inferences.
 
 - [Using Model Packages](using_model_packages)
 	- [Using Model Packages From AWS Marketplace](using_model_packages/generic_sample_notebook) is a generic notebook which provides sample code snippets you can modify and use for performing inference on Model Packages from AWS Marketplace, using Amazon SageMaker.
