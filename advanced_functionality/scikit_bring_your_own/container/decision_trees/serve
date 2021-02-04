@@ -13,7 +13,6 @@
 # number of workers        MODEL_SERVER_WORKERS              the number of CPU cores
 # timeout                  MODEL_SERVER_TIMEOUT              60 seconds
 
-from __future__ import print_function
 import multiprocessing
 import os
 import signal
@@ -48,7 +47,7 @@ def start_server():
     nginx = subprocess.Popen(['nginx', '-c', '/opt/program/nginx.conf'])
     gunicorn = subprocess.Popen(['gunicorn',
                                  '--timeout', str(model_server_timeout),
-                                 '-k', 'gevent',
+                                 '-k', 'sync',
                                  '-b', 'unix:/tmp/gunicorn.sock',
                                  '-w', str(model_server_workers),
                                  'wsgi:app'])
