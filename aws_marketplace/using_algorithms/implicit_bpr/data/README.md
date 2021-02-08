@@ -1,0 +1,1 @@
+This folder will be used for downloading and storing the original dataset, data for training, testing and the batch requests payload that will be used to analyze further and train our model
