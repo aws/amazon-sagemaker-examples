@@ -60,6 +60,15 @@ AutoML
    using_algorithms/automl/AutoML_-_Train_multiple_models_in_parallel
 
 
+ImplicitBPR
+------
+
+.. toctree::
+   :maxdepth: 0
+
+   using_algorithms/implicit_bpr/recommender_system_with_implicit_bpr
+
+
 Use AWS Marketplace model packages
 ==================================
 
