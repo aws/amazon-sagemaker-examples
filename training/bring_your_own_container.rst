@@ -35,3 +35,12 @@ TensorFlow
    :maxdepth: 1
 
    ../advanced_functionality/tensorflow_bring_your_own/tensorflow_bring_your_own
+
+
+JAX
+============
+
+.. toctree::
+   :maxdepth: 1
+
+   ../advanced_functionality/jax_bring_your_own/train_deploy_jax

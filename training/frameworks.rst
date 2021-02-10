@@ -98,3 +98,12 @@ TensorFlow
    ../sagemaker-python-sdk/tensorflow-eager-script-mode/tf-eager-sm-scriptmode
    ../sagemaker-python-sdk/tensorflow_script_mode_training_and_serving/tensorflow_script_mode_training_and_serving
    ../sagemaker-python-sdk/tensorboard_keras/tensorboard_keras
+
+
+JAX
+============
+
+.. toctree::
+   :maxdepth: 1
+
+   ../advanced_functionality/jax_bring_your_own/train_deploy_jax

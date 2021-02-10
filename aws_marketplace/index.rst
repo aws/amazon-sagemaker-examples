@@ -60,6 +60,15 @@ AutoML
    using_algorithms/automl/AutoML_-_Train_multiple_models_in_parallel
 
 
+ImplicitBPR
+------
+
+.. toctree::
+   :maxdepth: 0
+
+   using_algorithms/implicit_bpr/recommender_system_with_implicit_bpr
+
+
 Use AWS Marketplace model packages
 ==================================
 
@@ -78,15 +87,6 @@ Auto insurance
    using_model_packages/auto_insurance/automating_auto_insurance_claim_processing
 
 
-Financial transaction processing
---------------------------------
-
-.. toctree::
-   :maxdepth: 0
-
-   using_model_packages/financial_transaction_processing/Extracting_insights_from_your_credit_card_statement
-
-
 Improving industrial workplace safety
 -------------------------------------
 
@@ -103,3 +103,12 @@ Generic sample notebook
    :maxdepth: 0
 
    using_model_packages/generic_sample_notebook/A_generic_sample_notebook_to_perform_inference_on_ML_model_packages_from_AWS_Marketplace
+
+
+GPT-2 XL use cases
+-----------------------
+
+.. toctree::
+   :maxdepth: 0
+
+   using_model_packages/creative-writing-using-gpt-2-text-generation/creative-writing-using-gpt-2-text-generation

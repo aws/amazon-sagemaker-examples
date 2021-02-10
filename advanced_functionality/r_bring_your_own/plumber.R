@@ -11,14 +11,14 @@
 #' Ping to show server is there
 #' @get /ping
 function() {
-    return('')}
+    return('')
+}
 
 
 #' Parse input and return prediction from model
 #' @param req The http request sent
 #' @post /invocations
 function(req) {
-
     # Setup locations
     prefix <- '/opt/ml'
     model_path <- paste(prefix, 'model', sep='/')
@@ -35,4 +35,5 @@ function(req) {
     scoring_X <- model.matrix(~., data, xlev=factor_levels)
 
     # Return prediction
-    return(paste(predict(mars_model, scoring_X, row.names=FALSE), collapse=','))}
+    return(paste(predict(mars_model, scoring_X, row.names=FALSE), collapse=','))
+}
