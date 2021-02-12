@@ -683,11 +683,21 @@ def main():
 
         shared_file_list = {}
 
-        if torch.distributed.is_initialized() and get_world_size() > num_files:
-            remainder = get_world_size() % num_files
-            data_file = files[(f_start_id*get_world_size()+get_rank() + remainder*f_start_id)%num_files]
+        if smp.is_initialized():
+            dpsize = smp.dp_size()
+            dprank = smp.dp_rank()
+        elif torch.distributed.is_initialized():
+            dpsize = get_world_size()
+            dprank = get_rank()
         else:
-            data_file = files[(f_start_id*get_world_size()+get_rank())%num_files]
+            dpsize = 1
+            dprank = 0
+        dparallel = dpsize > 1
+        if dparallel and dpsize > num_files:
+            remainder = dpsize % num_files
+            data_file = files[(f_start_id * dpsize + dprank + remainder*f_start_id)%num_files]
+        else:
+            data_file = files[(f_start_id * dpsize + dprank) % num_files]
 
         previous_file = data_file
 

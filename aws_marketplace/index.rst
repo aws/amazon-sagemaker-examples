@@ -60,6 +60,15 @@ AutoML
    using_algorithms/automl/AutoML_-_Train_multiple_models_in_parallel
 
 
+ImplicitBPR
+------
+
+.. toctree::
+   :maxdepth: 0
+
+   using_algorithms/implicit_bpr/recommender_system_with_implicit_bpr
+
+
 Use AWS Marketplace model packages
 ==================================
 
@@ -103,3 +112,12 @@ GPT-2 XL use cases
    :maxdepth: 0
 
    using_model_packages/creative-writing-using-gpt-2-text-generation/creative-writing-using-gpt-2-text-generation
+
+
+Amazon Augmented AI (A2I) with AWS Marketplace ML models
+--------------------------------------------------------
+
+.. toctree::
+   :maxdepth: 0
+
+   using_model_packages/amazon_augmented_ai_with_aws_marketplace_ml_models/amazon_augmented_ai_with_aws_marketplace_ml_models
