@@ -121,3 +121,15 @@ Amazon Augmented AI (A2I) with AWS Marketplace ML models
    :maxdepth: 0
 
    using_model_packages/amazon_augmented_ai_with_aws_marketplace_ml_models/amazon_augmented_ai_with_aws_marketplace_ml_models
+
+
+Use AWS Marketplace open source model packages
+==================================
+
+PyTorch image classification models
+--------------------------------------------------------
+
+.. toctree::
+   :maxdepth: 0
+
+   using-open-source-model-packages/pytorch-ic-model/using-image-classification-models
