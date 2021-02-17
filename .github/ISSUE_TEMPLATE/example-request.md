@@ -11,7 +11,7 @@ assignees: ''
 
 
 
-**Describe what SageMaker services are involved**
+**Describe which SageMaker services are involved**
 
 
 
