@@ -11,9 +11,9 @@ assignees: ''
 
 
 
-**Describe what SageMaker services are involved**
+**Describe which SageMaker services are involved**
 
 
 
 
-**Describe what AWS services (other than SageMaker) are involved***
+**Describe what other services (other than SageMaker) are involved***
