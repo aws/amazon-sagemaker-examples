@@ -1,7 +1,7 @@
 ---
 name: Example request
 about: Suggest an use case example you want to see
-title: I want to see ...
+title: "[Example Request]"
 labels: ''
 assignees: ''
 
