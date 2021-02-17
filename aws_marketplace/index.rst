@@ -132,4 +132,4 @@ PyTorch image classification models
 .. toctree::
    :maxdepth: 0
 
-   using-open-source-model-packages/pytorch-ic-model/notebook
+   using-open-source-model-packages/pytorch-ic-model/using-image-classification-models
