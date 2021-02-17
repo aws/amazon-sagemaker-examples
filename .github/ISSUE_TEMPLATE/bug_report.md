@@ -8,7 +8,7 @@ assignees: ''
 ---
 
 **Link to the notebook**
-Which notebook you run into trouble
+Add the link to the notebook
 
 **Describe the bug**
 A clear and concise description of what the bug is.
