@@ -1,0 +1,30 @@
+ARG FROM_IMAGE_NAME=763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training:1.6.0-gpu-py36-cu110-ubuntu18.04
+FROM ${FROM_IMAGE_NAME}
+
+RUN apt-get update
+
+RUN apt-get install -y numactl
+
+RUN pip install -v --no-cache-dir torchvision==0.7.0
+
+RUN git clone https://github.com/johnbensnyder/cocoapi && cd cocoapi/PythonAPI && pip install -v --no-cache-dir -e .
+
+RUN pip install --no-cache-dir https://github.com/mlperf/logging/archive/9ea0afa.zip
+
+RUN pip install opencv-python==3.4.11.45
+
+RUN pip install yacs
+
+RUN mkdir apex_build
+
+WORKDIR apex_build
+
+RUN git clone https://github.com/NVIDIA/apex && cd apex && pip install -v --no-cache-dir --global-option="--cpp_ext" --global-option="--cuda_ext" ./ 
+
+WORKDIR / 
+
+RUN git clone -b smp-mrcnn https://github.com/karakusc/training_results_v0.7/ && cd training_results_v0.7/NVIDIA/benchmarks/maskrcnn/implementations/pytorch && rm -rf build && pip install -v --no-cache-dir -e . 
+
+RUN pip install tqdm
+
+RUN wget https://dl.fbaipublicfiles.com/detectron/ImageNetPretrained/MSRA/R-50.pkl -P /root/.torch/models/ 
