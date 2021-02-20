@@ -35,6 +35,7 @@ These examples show you how to use model-packages and algorithms from AWS Market
 	- [Using models for identifying non-compliance at a workplace](using_model_packages/improving_industrial_workplace_safety) provides a detailed walkthrough on how to use pre-trained models from AWS Marketplace for extracting metadata for a sample use-case of generating summary reports for identifying non-compliance at a construction/industrial workplace.
 	- [Creative writing using GPT-2 Text Generation](using_model_packages/creative-writing-using-gpt-2-text-generation) will show you how to use AWS Marketplace GPT-2-XL pre-trained model on Amazon SageMaker to generate text based on your prompt to help you author prose and poetry.
 	- [Amazon Augmented AI with AWS Marketplace ML models](using_model_packages/amazon_augmented_ai_with_aws_marketplace_ml_models) will show you how to use AWS Marketplace pre-trained ML models with Amazon Augmented AI to implement human-in-loop workflow reviews with your ML model predictions.
+	- [Monitoring data quality in third-party models from AWS Marketplace](using_model_packages/data_quality_monitoring) will show you how to perform Data Quality monitoring on a pre-trained third-party model from AWS Marketplace.	
 
 ## FAQ
 
