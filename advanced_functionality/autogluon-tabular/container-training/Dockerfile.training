@@ -1,7 +1,7 @@
 ARG REGISTRY_URI
 FROM ${REGISTRY_URI}
 
-RUN pip install autogluon==0.1.0b20210211
+RUN pip install autogluon==0.1.0
 RUN pip install PrettyTable
 RUN pip install bokeh
 
