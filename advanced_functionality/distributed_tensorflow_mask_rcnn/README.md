@@ -62,11 +62,17 @@ This option is only recommended for advanced AWS users. Make sure your existing 
 
 ### Launch SageMaker tranining jobs
 
-In SageMaker console, open the SageMaker notebook instance you created in the previous step. In this SageMaker notebook instance, there are three Jupyter notebooks for training Mask R-CNN:
+In SageMaker console, open the SageMaker notebook instance you created in the previous step. In this SageMaker notebook instance, there are three Jupyter notebooks for training Mask R-CNN. All three notebooks use [SageMaker TensorFlow Estimator](https://sagemaker.readthedocs.io/en/stable/frameworks/tensorflow/sagemaker.tensorflow.html) in script mode. The use of SageMaker TensorFlow Estimator greatly simplifes the custom Docker container because SageMaker interface script does not need to be included in the Docker container. The three script mode notebooks are listed below:
 
-- Mask R-CNN notebook that uses S3 bucket as data source: [```mask-rcnn-s3.ipynb```](mask-rcnn-s3.ipynb)
-- Mask R-CNN notebook that uses EFS file-system as data source: [```mask-rcnn-efs.ipynb```](mask-rcnn-efs.ipynb)
-- Mask R-CNN notebook that uses FSx Lustre file-system as data source: [```mask-rcnn-fsx.ipynb```](mask-rcnn-fsx.ipynb)
+- Mask R-CNN notebook that uses S3 bucket as data source: [```mask-rcnn-scriptmode-s3.ipynb```](mask-rcnn-scriptmode-s3.ipynb)
+- Mask R-CNN notebook that uses EFS file-system as data source: [```mask-rcnn-scriptmode-efs.ipynb```](mask-rcnn-scriptmode-efs.ipynb)
+- Mask R-CNN notebook that uses FSx Lustre file-system as data source: [```mask-rcnn-scriptmode-fsx.ipynb```](mask-rcnn-scriptmode-fsx.ipynb)
+
+Following notebooks that used [SageMaker Estimator](https://sagemaker.readthedocs.io/en/stable/api/training/estimators.html) in non-script mode are deprecated in favor of the notebooks listed above:
+
+- [```mask-rcnn-s3.ipynb```](mask-rcnn-s3.ipynb)
+- [```mask-rcnn-efs.ipynb```](mask-rcnn-efs.ipynb)
+- [```mask-rcnn-fsx.ipynb```](mask-rcnn-fsx.ipynb)
 
 Below, we compare the three options, [Amazon S3](https://aws.amazon.com/s3/), [Amazon EFS](https://aws.amazon.com/efs/) and [Amazon FSx Lustre](https://aws.amazon.com/fsx/):
 
