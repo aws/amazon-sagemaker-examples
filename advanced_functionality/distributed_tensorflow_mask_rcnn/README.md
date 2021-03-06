@@ -62,7 +62,7 @@ This option is only recommended for advanced AWS users. Make sure your existing 
 
 ### Launch SageMaker tranining jobs
 
-In SageMaker console, open  the Juypter Lab notebook server you created in the previous step. In this Juypter Lab instance, there are three Jupyter notebooks for training Mask R-CNN. All three notebooks use [SageMaker TensorFlow Estimator](https://sagemaker.readthedocs.io/en/stable/frameworks/tensorflow/sagemaker.tensorflow.html) in [SageMaker Script Mode](https://sagemaker.readthedocs.io/en/v1.33.0/using_tf.html). In Script mode, we keep the SageMaker entry point script outside the Docker container, and pass it as a parameter to SageMaker TensorFlow Estimator. The TensorFlow Estimator also allows us to specify the ```distribution``` type, which means we don't have to write code in the entry point script for managing SageMaker distributed training, which greatly simpllifies the entry point script. 
+In SageMaker console, open  the Juypter Lab notebook server you created in the previous step. In this Juypter Lab instance, there are three Jupyter notebooks for training Mask R-CNN. All three notebooks use [SageMaker TensorFlow Estimator](https://sagemaker.readthedocs.io/en/stable/frameworks/tensorflow/sagemaker.tensorflow.html) in Script Mode, whereby we can keep the SageMaker entry point script outside the Docker container, and pass it as a parameter to SageMaker TensorFlow Estimator. The TensorFlow Estimator also allows us to specify the ```distribution``` type, which means we don't have to write code in the entry point script for managing SageMaker distributed training, which greatly simplifies the entry point script. 
 
 The three SageMaker Script Mode notebooks for training Mask R-CNN are listed below:
 
