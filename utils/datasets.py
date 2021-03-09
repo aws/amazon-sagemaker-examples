@@ -1,4 +1,6 @@
 import boto3
+import os
+
 
 PUBLIC_BUCKET = "sagemaker-sample-files"
 
