@@ -1,6 +1,7 @@
 import boto3
 import os
 
+
 PUBLIC_BUCKET = "sagemaker-sample-files"
 
 def download_mnist(data_dir='/tmp/data', train=True):
