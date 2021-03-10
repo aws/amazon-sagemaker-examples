@@ -6,6 +6,7 @@ import pickle
 
 import numpy as np
 import torch
+import neopytorch
 import torchvision.transforms as transforms
 from PIL import Image  # Training container doesn't have this package
 
@@ -55,10 +56,9 @@ def transform_fn(model, payload, request_content_type,
 def model_fn(model_dir):
 
     logger.info('model_fn')
-    with torch.neo.config(model_dir=model_dir, neo_runtime=True):
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        # The compiled model is saved as "compiled.pt"
-        model = torch.jit.load(os.path.join(model_dir, 'model.pth'))
-        model = model.to(device)
+    neopytorch.config(model_dir=model_dir, neo_runtime=True)
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    # The compiled model is saved as "compiled.pt"
+    model = torch.jit.load(os.path.join(model_dir, 'model.pth'), map_location=device)
 
-        return model
+    return model
