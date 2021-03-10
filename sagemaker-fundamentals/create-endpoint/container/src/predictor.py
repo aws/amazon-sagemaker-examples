@@ -1,6 +1,7 @@
 # This is the file that implements a flask server to do inferences. It's the file that you will modify to adapt to your own inference logic.
 
 import flask
+from flask import request
 
 # The flask app for serving predictions
 app = flask.Flask(__name__)
@@ -36,6 +37,6 @@ def inference():
     return flask.Response(
         response=msg,
         status=200,
-        header = header,
+        # header = header,
         mimetype='text/plain')
 
