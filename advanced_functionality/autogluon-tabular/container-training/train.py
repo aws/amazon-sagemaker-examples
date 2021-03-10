@@ -129,13 +129,13 @@ def train(args):
     train_data = __load_input_data(args.train)
     
     # Extract column info
+    target = args.init_args['label']
     columns = train_data.columns.tolist()
     column_dict = {"columns":columns}
     with open('columns.pkl', 'wb') as f:
         pickle.dump(column_dict, f)
     
     # Train models
-    target = args.init_args['label']
     args.init_args['path'] = args.model_dir
     #args.fit_args.pop('label', None)
     predictor = TabularPredictor(
@@ -288,3 +288,5 @@ if __name__ == "__main__":
     elapsed_time = round(timer()-start,3)
     print(f'Elapsed time: {elapsed_time} seconds. Training Completed!')
 
+
+          
