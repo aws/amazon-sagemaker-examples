@@ -4,7 +4,7 @@
 ## Introduction to Feature Store
 In `feature_store_introduction.ipynb` we demonstrate how to get started with Feature Store, create feature groups, and ingest data into them.
 
-This notebook requires these data sets, `./data/customer.csv`, `./data/orders.csv`, and uses these images, `./images/feature-store-policy.png`, `./images/feature_store_data_ingest.svg`.
+This notebook requires these data sets, `./data/feature_store_introduction_customer.csv`, `./data/feature_store_introduction_orders.csv`, and uses these images, `./images/feature-store-policy.png`, `./images/feature_store_data_ingest.svg`.
 
 
 ## Fraud Detection with Feature Store
