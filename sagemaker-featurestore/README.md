@@ -1,5 +1,6 @@
 # Amazon SageMaker Feature Store
 
+
 ## Introduction to Feature Store
 In `feature_store_introduction.ipynb` we demonstrate how to get started with Feature Store, create feature groups, and ingest data into them.
 
