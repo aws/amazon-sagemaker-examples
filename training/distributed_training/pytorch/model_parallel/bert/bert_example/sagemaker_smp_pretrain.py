@@ -500,11 +500,9 @@ def prepare_model_and_optimizer(args, device):
                                        total_steps=args.max_steps)
 
     if args.fp16:
-        if args.loss_scale == 0:
-            model, optimizer = amp.initialize(model, optimizer, opt_level="O2", loss_scale="dynamic", cast_model_outputs=torch.float16)
-        else:
-            model, optimizer = amp.initialize(model, optimizer, opt_level="O2", loss_scale=args.loss_scale, cast_model_outputs=torch.float16)
-        amp._amp_state.loss_scalers[0]._loss_scale = args.init_loss_scale
+        scaler = smp.amp.GradScaler()
+    else:
+        scaler = None
 
 
     if args.resume_from_checkpoint:
@@ -537,9 +535,9 @@ def prepare_model_and_optimizer(args, device):
 
     criterion = BertPretrainingCriterion(config.vocab_size)
 
-    return model, optimizer, lr_scheduler, checkpoint, global_step, criterion
+    return model, optimizer, lr_scheduler, checkpoint, global_step, criterion, scaler
 
-def take_optimizer_step(args, optimizer, model, overflow_buf, global_step):
+def take_optimizer_step(args, optimizer, model, scaler, overflow_buf, global_step):
 
     global skipped_steps
     if args.allreduce_post_accumulation:
@@ -591,7 +589,13 @@ def take_optimizer_step(args, optimizer, model, overflow_buf, global_step):
             param.grad = None
     else:
         if args.apply_optimizer > 0:
-            optimizer.step()
+            if args.fp16:
+                scaler.step(optimizer)
+                scaler.update()
+            else:
+                optimizer.step()
+
+            #optimizer.step()
         # optimizer.zero_grad()
         for param in model.parameters():
             param.grad = None
@@ -602,14 +606,15 @@ def take_optimizer_step(args, optimizer, model, overflow_buf, global_step):
 # SMP: Define smp step. Pass the necessary arguments for the train_step call
 # and return any tensors needed outside
 @smp.step
-def smp_step(args, device, input_ids, segment_ids, input_mask, masked_lm_labels, next_sentence_labels, model, optimizer, criterion, step):
-    rval = train_step(args, device, input_ids, segment_ids, input_mask, masked_lm_labels, next_sentence_labels, model, optimizer, criterion, step)
+def smp_step(args, device, input_ids, segment_ids, input_mask, masked_lm_labels, next_sentence_labels, model, optimizer, criterion, step, scaler):
+    rval = train_step(args, device, input_ids, segment_ids, input_mask, masked_lm_labels, next_sentence_labels, model, optimizer, criterion, step, scaler)
     return rval
 
-def train_step(args, device, input_ids, segment_ids, input_mask, masked_lm_labels, next_sentence_labels, model, optimizer, criterion, step):
-    prediction_scores, seq_relationship_score = model(input_ids=input_ids, token_type_ids=segment_ids, attention_mask=input_mask)
+def train_step(args, device, input_ids, segment_ids, input_mask, masked_lm_labels, next_sentence_labels, model, optimizer, criterion, step, scaler):
+    with torch.cuda.amp.autocast(bool(args.fp16)):
+        prediction_scores, seq_relationship_score = model(input_ids=input_ids, token_type_ids=segment_ids, attention_mask=input_mask)
 
-    loss = criterion(prediction_scores, seq_relationship_score, masked_lm_labels, next_sentence_labels)
+        loss = criterion(prediction_scores, seq_relationship_score, masked_lm_labels, next_sentence_labels)
     if args.n_gpu > 1:
         loss = loss.mean()  # mean() to average on multi-gpu.
 
@@ -620,8 +625,13 @@ def train_step(args, device, input_ids, segment_ids, input_mask, masked_lm_label
     #        loss = loss / args.gradient_accumulation_steps
     #        divisor = 1.0
     if args.fp16:
-        with amp.scale_loss(loss, optimizer, delay_overflow_check=args.allreduce_post_accumulation) as scaled_loss:
-            model.backward(scaled_loss)
+        #with amp.scale_loss(loss, optimizer, delay_overflow_check=args.allreduce_post_accumulation) as scaled_loss:
+        if scaler is not None:
+             scaled_loss = scaler.scale(loss)
+        else:
+             scaled_loss = loss 
+
+        model.backward(scaled_loss)
     else:
         if args.smp > 0:
             model.backward(loss)
@@ -650,7 +660,7 @@ def main():
     device, args = setup_training(args)
 
     # Prepare optimizer
-    model, optimizer, lr_scheduler, checkpoint, global_step, criterion = prepare_model_and_optimizer(args, device)
+    model, optimizer, lr_scheduler, checkpoint, global_step, criterion, scaler = prepare_model_and_optimizer(args, device)
 
     raw_train_start = None
     most_recent_ckpts_paths = []
@@ -740,7 +750,7 @@ def main():
                     from smdistributed.modelparallel.test.torch.utils import verify, dump_model
                     model.train()
                     if args.smp > 0:
-                        loss_mbs = smp_step(args, device, input_ids, segment_ids, input_mask, masked_lm_labels, next_sentence_labels, model, optimizer, criterion, step)
+                        loss_mbs = smp_step(args, device, input_ids, segment_ids, input_mask, masked_lm_labels, next_sentence_labels, model, optimizer, criterion, step, scaler)
                         loss = loss_mbs.reduce_mean()
                         if smp.rank() == 0:
                             print("Loss:", loss.item())
@@ -751,7 +761,7 @@ def main():
 
                     if training_steps % args.gradient_accumulation_steps == 0:
                         lr_scheduler.step()  # learning rate warmup
-                        global_step = take_optimizer_step(args, optimizer, model, overflow_buf, global_step)
+                        global_step = take_optimizer_step(args, optimizer, model, scaler, overflow_buf, global_step)
 
                     if global_step >= args.steps_this_run or timeout_sent:
                         train_time_raw = time.time() - raw_train_start
