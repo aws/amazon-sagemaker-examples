@@ -133,3 +133,12 @@ PyTorch image classification models
    :maxdepth: 0
 
    using-open-source-model-packages/pytorch-ic-model/using-image-classification-models
+   
+
+TensorFlow image classification models
+--------------------------------------------------------
+
+.. toctree::
+  :maxdepth: 0
+
+  using-open-source-model-packages/tensorflow-ic-model/using-image-classification-models
