@@ -9,8 +9,10 @@ iam = boto3.client('iam')
 # get the ARN of the user
 caller_arn = boto3.client('sts').get_caller_identity()['Arn']
 
+
 def create_execution_role(role_name="basic-role"):
     """Create an service role to procure services on your behalf
+
     
     Args:
         role_name (str): name of the role
@@ -19,19 +21,32 @@ def create_execution_role(role_name="basic-role"):
         dict
     """    
     # if the role already exists, delete it
-    
     # Note: you need to make sure the role is not
     # used in production, because the code below
     # will delete the role and create a new one
-    role = None
-    for rol in iam.list_roles()['Roles']:
-        if rol['RoleName'] == role_name:
-            # detach policy from the role before deleting it
+    
+    def find_role(role_res, role_name):
+        for r in role_res['Roles']:
+            if r['RoleName'] == role_name:
+                return True
+        return False
+
+    def delete_role(role_res, role_name):
+        if find_role(role_res, role_name):
             role = boto3.resource('iam').Role(role_name)
-            
             for p in role.attached_policies.all():
                 role.detach_policy(PolicyArn=p.arn)
-            break
+
+            iam.delete_role(RoleName=role.name)
+            print('role deleted')
+            return
+
+    role_res = iam.list_roles(MaxItems=10)
+    find_role(role_res, role_name)
+
+    while 'Marker' in role_res:
+        role_res = iam.list_roles(MaxItems=10, Marker=role_res['Marker'])
+        delete_role(role_res, role_name)
     
     # Trust policy document
     trust_relation_policy_doc = {
@@ -51,15 +66,11 @@ def create_execution_role(role_name="basic-role"):
     }
     
     
-    if role is not None:
-        iam.delete_role(RoleName=role.name)
-    
     res = iam.create_role(
         RoleName=role_name,
         AssumeRolePolicyDocument=json.dumps(trust_relation_policy_doc)
     )
     return res
-
 
 
 def attach_permission(role_name, policy_name, policy_doc):
