@@ -42,7 +42,7 @@ def create_execution_role(role_name="basic-role"):
             return
 
     role_res = iam.list_roles(MaxItems=10)
-    find_role(role_res, role_name)
+    delete_role(role_res, role_name)
 
     while 'Marker' in role_res:
         role_res = iam.list_roles(MaxItems=10, Marker=role_res['Marker'])
