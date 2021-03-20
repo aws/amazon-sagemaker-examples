@@ -36,7 +36,7 @@ def main():
     # using test data
     print("== Files in the test channel ==")
     for f in os.listdir(os.path.join(data_dir, 'test')):
-       print(f)
+        print(f)
     
     print("== Saving model checkpoint ==")
     with open(os.path.join(model_dir, 'model.pkl'), 'wb') as f:
