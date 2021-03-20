@@ -23,8 +23,8 @@ log_dir="/opt/ml/output"
 
 def main():
     print("== Files in train channel ==")
-    #for f in os.listdir(os.path.join(data_dir, 'train')):
-    #    print(f)
+    for f in os.listdir(os.path.join(data_dir, 'train')):
+        print(f)
     
     # define your training logic here
     # import tensorflow as pd
@@ -35,8 +35,8 @@ def main():
     # validate / test your model
     # using test data
     print("== Files in the test channel ==")
-    #for f in os.listdir(os.path.join(data_dir, 'test')):
-    #   print(f)
+    for f in os.listdir(os.path.join(data_dir, 'test')):
+       print(f)
     
     print("== Saving model checkpoint ==")
     with open(os.path.join(model_dir, 'model.pkl'), 'wb') as f:
