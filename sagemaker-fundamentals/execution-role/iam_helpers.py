@@ -38,7 +38,6 @@ def create_execution_role(role_name="basic-role"):
                 role.detach_policy(PolicyArn=p.arn)
 
             iam.delete_role(RoleName=role.name)
-            print('role deleted')
             return
 
     role_res = iam.list_roles(MaxItems=10)
