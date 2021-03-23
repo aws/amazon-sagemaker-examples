@@ -43,14 +43,15 @@ fi
 # Build the docker image locally with the image name and then push it to ECR
 # with the full name.
 
-# Get the login command from ECR and execute it directly
-$(aws ecr get-login --no-include-email --region us-west-2  --registry-ids 763104351884)
+aws ecr get-login-password --region us-west-2 \
+    | docker login --username AWS --password-stdin 763104351884.dkr.ecr.us-west-2.amazonaws.com
 
 docker build  -t ${image} $DIR/..
 docker tag ${image} ${fullname}
 
-# Get the login command from ECR and execute it directly
-$(aws ecr get-login --region ${region} --no-include-email)
+aws ecr get-login-password --region ${region} \
+    | docker login --username AWS --password-stdin ${account}.dkr.ecr.${region}.amazonaws.com
+    
 docker push ${fullname}
 if [ $? -eq 0 ]; then
 	echo "Amazon ECR URI: ${fullname}"
