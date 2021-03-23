@@ -25,6 +25,7 @@ try:
 except ModuleNotFoundError:
     from callbacks import CustomCallbacks
 
+
 class RayExperimentBuilder:
     EXAMPLE_USAGE = """
         Training example:
@@ -36,10 +37,11 @@ class RayExperimentBuilder:
 
         Note that -f overrides all other trial-specific command-line options.
         """
+
     def __init__(self, **kwargs):
         parser = self.create_parser()
         self.args, _ = parser.parse_known_args()
-        
+
         if kwargs is not None:
             for k, v in kwargs.items():
                 self.args.__dict__[k] = v
@@ -48,46 +50,46 @@ class RayExperimentBuilder:
         self.args.scheduler_config = self.try_convert_json_to_dict(self.args.scheduler_config)
         self.args.config = self.try_convert_json_to_dict(self.args.config)
         self.args.stop = self.try_convert_json_to_dict(self.args.stop)
-            
+
     def try_convert_json_to_dict(self, json_string):
         try:
             return json.loads(json_string)
         except TypeError:
             return json_string
-        
+
     def make_parser(self, **kwargs):
-        #TODO import method from starter-kit
+        # TODO import method from starter-kit
         # Taken from https://github.com/ray-project/ray/blob/5303c3abe322cbd90f75bcf03ee1f9c3dad23aae/python/ray/tune/config_parser.py
         parser = argparse.ArgumentParser(**kwargs)
-        
+
         parser.add_argument(
             "--run",
             default=None,
             type=str,
             help="The algorithm or model to train. This may refer to the name "
-            "of a built-on algorithm (e.g. RLLib's DQN or PPO), or a "
-            "user-defined trainable function or class registered in the "
-            "tune registry.")
+                 "of a built-on algorithm (e.g. RLLib's DQN or PPO), or a "
+                 "user-defined trainable function or class registered in the "
+                 "tune registry.")
         parser.add_argument(
             "--stop",
             default="{}",
             help="The stopping criteria, specified in JSON. The keys may be any "
-            "field returned by 'train()' e.g. "
-            "'{\"time_total_s\": 600, \"training_iteration\": 100000}' to stop "
-            "after 600 seconds or 100k iterations, whichever is reached first.")
+                 "field returned by 'train()' e.g. "
+                 "'{\"time_total_s\": 600, \"training_iteration\": 100000}' to stop "
+                 "after 600 seconds or 100k iterations, whichever is reached first.")
         parser.add_argument(
             "--config",
             default="{}",
             help="Algorithm-specific configuration (e.g. env, hyperparams), "
-            "specified in JSON.")
+                 "specified in JSON.")
         parser.add_argument(
             "--resources-per-trial",
             default=None,
             type=json_to_resources,
             help="Override the machine resources to allocate per trial, e.g. "
-            "'{\"cpu\": 64, \"gpu\": 8}'. Note that GPUs will not be assigned "
-            "unless you specify them here. For RLlib, you probably want to "
-            "leave this alone and use RLlib configs to control parallelism.")
+                 "'{\"cpu\": 64, \"gpu\": 8}'. Note that GPUs will not be assigned "
+                 "unless you specify them here. For RLlib, you probably want to "
+                 "leave this alone and use RLlib configs to control parallelism.")
         parser.add_argument(
             "--num-samples",
             default=1,
@@ -98,52 +100,52 @@ class RayExperimentBuilder:
             default=0,
             type=int,
             help="How many training iterations between checkpoints. "
-            "A value of 0 (default) disables checkpointing.")
+                 "A value of 0 (default) disables checkpointing.")
         parser.add_argument(
             "--checkpoint-at-end",
             action="store_true",
             help="Whether to checkpoint at the end of the experiment. "
-            "Default is False.")
+                 "Default is False.")
         parser.add_argument(
             "--sync-on-checkpoint",
             action="store_true",
             help="Enable sync-down of trial checkpoint to guarantee "
-            "recoverability. If unset, checkpoint syncing from worker "
-            "to driver is asynchronous, so unset this only if synchronous "
-            "checkpointing is too slow and trial restoration failures "
-            "can be tolerated.")
+                 "recoverability. If unset, checkpoint syncing from worker "
+                 "to driver is asynchronous, so unset this only if synchronous "
+                 "checkpointing is too slow and trial restoration failures "
+                 "can be tolerated.")
         parser.add_argument(
             "--keep-checkpoints-num",
             default=None,
             type=int,
             help="Number of best checkpoints to keep. Others get "
-            "deleted. Default (None) keeps all checkpoints.")
+                 "deleted. Default (None) keeps all checkpoints.")
         parser.add_argument(
             "--checkpoint-score-attr",
             default="training_iteration",
             type=str,
             help="Specifies by which attribute to rank the best checkpoint. "
-            "Default is increasing order. If attribute starts with min- it "
-            "will rank attribute in decreasing order. Example: "
-            "min-validation_loss")
+                 "Default is increasing order. If attribute starts with min- it "
+                 "will rank attribute in decreasing order. Example: "
+                 "min-validation_loss")
         parser.add_argument(
             "--export-formats",
             default=None,
             help="List of formats that exported at the end of the experiment. "
-            "Default is None. For RLlib, 'checkpoint' and 'model' are "
-            "supported for TensorFlow policy graphs.")
+                 "Default is None. For RLlib, 'checkpoint' and 'model' are "
+                 "supported for TensorFlow policy graphs.")
         parser.add_argument(
             "--max-failures",
             default=3,
             type=int,
             help="Try to recover a trial from its last checkpoint at least this "
-            "many times. Only applies if checkpointing is enabled.")
+                 "many times. Only applies if checkpointing is enabled.")
         parser.add_argument(
             "--scheduler",
             default="FIFO",
             type=str,
             help="FIFO (default), MedianStopping, AsyncHyperBand, "
-            "HyperBand, or HyperOpt.")
+                 "HyperBand, or HyperOpt.")
         parser.add_argument(
             "--scheduler-config",
             default="{}",
@@ -171,7 +173,7 @@ class RayExperimentBuilder:
             default=None,
             type=str,
             help="Connect to an existing Ray cluster at this address instead "
-            "of starting a new one.")
+                 "of starting a new one.")
         parser.add_argument(
             "--ray-num-cpus",
             default=None,
@@ -253,7 +255,7 @@ class RayExperimentBuilder:
             default=None,
             type=str,
             help="If specified, use config options from this file. Note that this "
-            "overrides any trial-specific options set via flags above.")
+                 "overrides any trial-specific options set via flags above.")
 
         return parser
 
@@ -262,8 +264,8 @@ class RayExperimentBuilder:
             with open(self.args.config_file) as f:
                 experiments = yaml.safe_load(f)
                 exp_name_list = list(experiments.keys())
-                assert len(exp_name_list)==1
-                # overwirte experiment name for SageMaker to recognize
+                assert len(exp_name_list) == 1
+                # overwrite experiment name for SageMaker to recognize
                 experiments['training'] = experiments.pop(exp_name_list[0])
         else:
             experiments = {
@@ -274,8 +276,8 @@ class RayExperimentBuilder:
                     "checkpoint_score_attr": self.args.checkpoint_score_attr,
                     "local_dir": self.args.local_dir,
                     "resources_per_trial": (
-                        self.args.resources_per_trial and
-                        resources_to_json(self.args.resources_per_trial)),
+                            self.args.resources_per_trial and
+                            resources_to_json(self.args.resources_per_trial)),
                     "stop": self.args.stop,
                     "config": dict(self.args.config, env=self.args.env),
                     "restore": self.args.restore,
@@ -295,7 +297,7 @@ class RayExperimentBuilder:
                 rllib_dir = Path(__file__).parent
                 input_file = rllib_dir.absolute().joinpath(exp["config"]["input"])
                 exp["config"]["input"] = str(input_file)
-            
+
             if not exp.get("run"):
                 raise ValueError("The following arguments are required: run")
             if not exp.get("env") and not exp.get("config", {}).get("env"):
@@ -315,7 +317,7 @@ class RayExperimentBuilder:
                 if not exp["config"].get("eager"):
                     raise ValueError("Must enable --eager to enable tracing.")
                 exp["config"]["eager_tracing"] = True
-                
-            ### Add Custom Callbacks
+
+            # Add Custom Callbacks
             exp["config"]["callbacks"] = CustomCallbacks
         return experiments, self.args, verbose

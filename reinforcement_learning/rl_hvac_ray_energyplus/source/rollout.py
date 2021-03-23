@@ -127,8 +127,10 @@ class RolloutSaver:
     def __exit__(self, type, value, traceback):
         if self._shelf:
             # Close the shelf file, and store the number of episodes for ease
-            self._shelf["num_episodes"] = self._num_episodes
-            self._shelf.close()
+            try:
+                self._shelf["num_episodes"] = self._num_episodes
+            finally:
+                self._shelf.close()
         elif self._outfile and not self._use_shelve:
             # Dump everything as one big pickle:
             pickle.dump(self._rollouts, open(self._outfile, "wb"))

@@ -10,18 +10,14 @@
 # on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
 # express or implied. See the License for the specific language governing 
 # permissions and limitations under the License.
-
+import ast
 import os
 import json
 import subprocess
-from shutil import copytree
 
-import gym
 import ray
-from ray.tune.registry import register_env
-from ray.tune import registry
+
 from ray.tune.tune import run_experiments, run, _make_scheduler
-from ray.tune.experiment import convert_to_experiment_list, Experiment
 
 from sagemaker_rl.ray_launcher import SageMakerRayLauncher
 from sagemaker_rl.tf_serving_utils import export_tf_serving, natural_keys
@@ -87,7 +83,7 @@ class HVACSageMakerRayLauncher(SageMakerRayLauncher):
             if 'callbacks' in config:
                 callback_cls_str = config['callbacks']
                 callback_cls = callback_cls_str.split("'")[-2].split(".")[-1]
-                config['callbacks'] = eval(callback_cls)
+                config['callbacks'] = ast.literal_eval()(callback_cls)
             print("Loaded config for TensorFlow serving.")
             config["monitor"] = False
             config["num_workers"] = 1
@@ -135,9 +131,9 @@ class HVACSageMakerRayLauncher(SageMakerRayLauncher):
             "num_cpus": args.ray_num_cpus,
             "num_gpus": args.ray_num_gpus
         }
-        all_wokers_host_names = self.get_all_host_names()[1:]
+        all_workers_host_names = self.get_all_host_names()[1:]
         # Overwrite redis address for single instance job
-        if len(all_wokers_host_names) == 0:
+        if len(all_workers_host_names) == 0:
             ray_custom_cluster_config.update({"address": args.ray_address})
         ray_cluster_config.update(ray_custom_cluster_config)
 
@@ -147,11 +143,10 @@ class HVACSageMakerRayLauncher(SageMakerRayLauncher):
         # Spot instance is back
         if os.path.exists(CHECKPOINTS_DIR) and os.listdir(CHECKPOINTS_DIR):
             print("Instance is back. Local checkpoint path detected.")
-            # Sample path in ckpt channel: opt/ml/checkpoints/training/PPO_procgen_<xxx>/checkpoint_50/checkpoint-50
             checkpoint_file = self.find_checkpoint_file_for_spot(CHECKPOINTS_DIR)
             print("Setting checkpoint path to {}".format(checkpoint_file))
             if checkpoint_file:
-                experiment_config['training']['restore'] = checkpoint_file # Overwrite
+                experiment_config['training']['restore'] = checkpoint_file  # Overwrite
         experiment_config = self.customize_experiment_config(experiment_config)
         experiment_config = self.set_up_checkpoint(experiment_config)
         experiment_config['training']['sync_to_driver'] = custom_sync_func
@@ -165,7 +160,7 @@ class HVACSageMakerRayLauncher(SageMakerRayLauncher):
             concurrent=True
             )
         # If distributed job, send TERMINATION_SIGNAL to all workers.
-        if len(all_wokers_host_names) > 0:
+        if len(all_workers_host_names) > 0:
             self.sage_cluster_communicator.create_s3_signal(TERMINATION_SIGNAL)
 
     @classmethod
