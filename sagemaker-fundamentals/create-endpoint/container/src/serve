@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-# This file implements the scoring service shell. You don't necessarily need to modify it for various
+# This file implements the scoring service shell. You can modify it as need be for your algorithms. But it should work out of the box for most cases.  
 # algorithms. It starts nginx and gunicorn with the correct configurations and then simply waits until
 # gunicorn exits.
 #

@@ -18,7 +18,7 @@ def ping():
 
 @app.route('/invocations', methods=['POST'])
 def inference():
-    """Do an inference on incoming data. 
+    """Performed an inference on incoming data. 
     In this sample server, we take data as application/json,
     print it out to confirm that the server received it.  
     """
