@@ -1,4 +1,4 @@
-# This is the file that implements a flask server to do inferences. It's the file that you will modify to adapt to your own inference logic.
+# This file implements a flask server for inference. You can modify the file to align with your own inference logic.
 
 import flask
 from flask import request
