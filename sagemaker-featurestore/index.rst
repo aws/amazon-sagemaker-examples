@@ -7,3 +7,4 @@ Feature Store is a centralized store for features and associated metadata so fea
    :maxdepth: 1
 
    sagemaker_featurestore_fraud_detection_python_sdk
+   feature_store_introduction
