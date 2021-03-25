@@ -1,0 +1,60 @@
+<?xml version="1.0"?>
+<!-- Site specific YARN configuration properties -->
+ <configuration>
+     <property>
+         <name>yarn.scheduler.minimum-allocation-mb</name>
+         <value>minimum_allocation_mb</value>
+         <description>Minimum limit of memory to allocate to each container request at the Resource Manager.</description>
+     </property>
+     <property>
+         <name>yarn.scheduler.maximum-allocation-mb</name>
+         <value>maximum_allocation_mb</value>
+         <description>Maximum limit of memory to allocate to each container request at the Resource Manager.</description>
+     </property>
+     <property>
+         <name>yarn.scheduler.minimum-allocation-vcores</name>
+         <value>minimum_allocation_vcores</value>
+         <description>The minimum allocation for every container request at the RM, in terms of virtual CPU cores. Requests lower than this won't take effect, and the specified value will get allocated the minimum.</description>
+     </property>
+     <property>
+         <name>yarn.scheduler.maximum-allocation-vcores</name>
+         <value>maximum_allocation_vcores</value>
+         <description>The maximum allocation for every container request at the RM, in terms of virtual CPU cores. Requests higher than this won't take effect, and will get capped to this value.</description>
+     </property>
+     <property>
+         <name>yarn.nodemanager.resource.memory-mb</name>
+         <value>memory_mb_total</value>
+         <description>Physical memory, in MB, to be made available to running containers</description>
+     </property>
+     <property>
+         <name>yarn.nodemanager.resource.cpu-vcores</name>
+         <value>cpu_vcores_total</value>
+         <description>Number of CPU cores that can be allocated for containers.</description>
+     </property>
+     <property>
+         <name>yarn.resourcemanager.hostname</name>
+         <value>rm_hostname</value>
+         <description>The hostname of the RM.</description>
+     </property>
+     <property>
+         <name>yarn.nodemanager.hostname</name>
+         <value>nm_hostname</value>
+         <description>The hostname of the NM.</description>
+     </property>
+     <property>
+         <name>yarn.nodemanager.vmem-pmem-ratio</name>
+         <value>5</value>
+         <description>Ratio between virtual memory to physical memory.</description>
+     </property>
+     <property>
+         <name>yarn.resourcemanager.am.max-attempts</name>
+         <value>1</value>
+         <description>The maximum number of application attempts.</description>
+     </property>
+     <property>
+         <name>yarn.nodemanager.env-whitelist</name>
+         <value>JAVA_HOME,HADOOP_COMMON_HOME,HADOOP_HDFS_HOME,HADOOP_CONF_DIR,YARN_HOME,AWS_CONTAINER_CREDENTIALS_RELATIVE_URI</value>
+         <description>Environment variable whitelist</description>
+     </property>
+
+ </configuration>

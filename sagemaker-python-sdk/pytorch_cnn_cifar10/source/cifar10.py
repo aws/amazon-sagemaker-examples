@@ -1,6 +1,5 @@
 import argparse
 import logging
-import sagemaker_containers
 
 import os
 
@@ -15,6 +14,11 @@ import torchvision
 import torchvision.models
 import torchvision.transforms as transforms
 import torch.nn.functional as F
+
+try:
+    from sagemaker_inference import environment
+except:
+    from sagemaker_training import environment
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -150,7 +154,7 @@ if __name__ == '__main__':
     parser.add_argument('--momentum', type=float, default=0.9, metavar='M', help='momentum (default: 0.9)')
     parser.add_argument('--dist_backend', type=str, default='gloo', help='distributed backend (default: gloo)')
 
-    env = sagemaker_containers.training_env()
+    env = environment.Environment()
     parser.add_argument('--hosts', type=list, default=env.hosts)
     parser.add_argument('--current-host', type=str, default=env.current_host)
     parser.add_argument('--model-dir', type=str, default=env.model_dir)

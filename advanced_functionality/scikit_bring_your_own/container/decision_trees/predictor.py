@@ -6,7 +6,7 @@ from __future__ import print_function
 import os
 import json
 import pickle
-import StringIO
+import io
 import sys
 import signal
 import traceback
@@ -28,7 +28,7 @@ class ScoringService(object):
     def get_model(cls):
         """Get the model object for this instance, loading it if it's not already loaded."""
         if cls.model == None:
-            with open(os.path.join(model_path, 'decision-tree-model.pkl'), 'r') as inp:
+            with open(os.path.join(model_path, 'decision-tree-model.pkl'), 'rb') as inp:
                 cls.model = pickle.load(inp)
         return cls.model
 
@@ -65,21 +65,18 @@ def transformation():
     # Convert from CSV to pandas
     if flask.request.content_type == 'text/csv':
         data = flask.request.data.decode('utf-8')
-        s = StringIO.StringIO(data)
+        s = io.StringIO(data)
         data = pd.read_csv(s, header=None)
     else:
         return flask.Response(response='This predictor only supports CSV data', status=415, mimetype='text/plain')
 
     print('Invoked with {} records'.format(data.shape[0]))
 
-    # Drop first column, since sample notebook uses training data to show case predictions
-    data.drop(data.columns[[0]],axis=1,inplace=True)
-
     # Do the prediction
     predictions = ScoringService.predict(data)
 
     # Convert from numpy back to CSV
-    out = StringIO.StringIO()
+    out = io.StringIO()
     pd.DataFrame({'results':predictions}).to_csv(out, header=False, index=False)
     result = out.getvalue()
 
