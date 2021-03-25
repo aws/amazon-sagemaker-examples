@@ -16,23 +16,4 @@ RUN pip install markdown==3.1
 RUN git clone https://github.com/tensorpack/tensorpack.git /tensorpack
 RUN cd /tensorpack && git fetch origin db541e8ec9edeeb12f8dcc79f3ca835412d282e1 
 RUN cd /tensorpack && git reset --hard db541e8ec9edeeb12f8dcc79f3ca835412d282e1 
-RUN pip install -e /tensorpack  
-
-##########################################################################################
-# SageMaker requirements
-##########################################################################################
-## install flask
-RUN pip install flask
-
-### Install nginx notebook
-RUN apt-get -y update && apt-get install -y --no-install-recommends \
-         wget \
-         nginx \
-         ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
- 
-COPY resources/*.* /
-ADD  data /
-ENV WORKDIR /
-
-ENTRYPOINT ["python", "/serve.py"]
+RUN pip install -e /tensorpack
