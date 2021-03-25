@@ -42,8 +42,7 @@ def create_execution_role(role_name="basic-role"):
 
     role_res = iam.list_roles(MaxItems=10)
     delete_role(role_res, role_name)
-    
-    # pagination 
+
     while 'Marker' in role_res:
         role_res = iam.list_roles(MaxItems=10, Marker=role_res['Marker'])
         delete_role(role_res, role_name)
