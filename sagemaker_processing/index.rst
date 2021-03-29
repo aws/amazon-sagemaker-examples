@@ -11,3 +11,4 @@ Processing
    spark_distributed_data_processing/sagemaker-spark-processing
    fairness_and_explainability/fairness_and_explainability
    fairness_and_explainability/fairness_and_explainability_jsonlines_format
+   fairness_and_explainability/fairness_and_explainability_byoc
