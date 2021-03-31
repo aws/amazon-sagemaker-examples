@@ -22,6 +22,10 @@ import networkx as nx
 logging.basicConfig(level=logging.DEBUG)
 logging.info(subprocess.call('ls -lR /opt/ml/input'.split()))
 
+import shap
+import smdebug.mxnet as smd
+from smdebug.core.writer import FileWriter
+
 with warnings.catch_warnings():
     warnings.filterwarnings('ignore', category=DeprecationWarning)
     from prettytable import PrettyTable
@@ -129,18 +133,18 @@ def train(args):
     train_data = __load_input_data(args.train)
     
     # Extract column info
-    target = args.fit_args['label']
+    target = args.init_args['label']
     columns = train_data.columns.tolist()
     column_dict = {"columns":columns}
     with open('columns.pkl', 'wb') as f:
         pickle.dump(column_dict, f)
     
     # Train models
-
-    args.fit_args.pop('label', None)
+    args.init_args['path'] = args.model_dir
+    #args.fit_args.pop('label', None)
     predictor = TabularPredictor(
-        label=target, 
-        path=args.model_dir).fit(train_data, **args.fit_args)
+        **args.init_args
+        ).fit(train_data, **args.fit_args)
     
     # Results summary
     predictor.fit_summary(verbosity=3)
@@ -238,10 +242,14 @@ def parse_args():
     parser.add_argument('--model-dir', type=str, default=os.environ['SM_MODEL_DIR'])
     parser.add_argument('--output-dir', type=str, default=os.environ['SM_OUTPUT_DIR'])
     parser.add_argument('--train', type=str, default=os.environ['SM_CHANNEL_TRAINING'])
+    # Arguments to be passed to TabularPredictor()
+    parser.add_argument('--init_args', type=lambda s: ast.literal_eval(s),
+                        default="{'label': 'y'}",
+                        help='https://auto.gluon.ai/stable/_modules/autogluon/tabular/predictor/predictor.html#TabularPredictor')
     # Arguments to be passed to task.fit()
     parser.add_argument('--fit_args', type=lambda s: ast.literal_eval(s),
                         default="{'presets': ['optimize_for_deployment']}",
-                        help='https://autogluon.mxnet.io/api/autogluon.task.html#tabularprediction')
+                        help='https://auto.gluon.ai/stable/_modules/autogluon/tabular/predictor/predictor.html#TabularPredictor')
     # Additional options
     parser.add_argument('--feature_importance', type='bool', default=True)
 
@@ -251,10 +259,11 @@ def parse_args():
 if __name__ == "__main__":
     start = timer()
     args = parse_args()
-    
+
     # Verify label is included
-    if 'label' not in args.fit_args:
-        raise ValueError('"label" is a required parameter of "fit_args"!')
+    if 'label' not in args.init_args:
+        raise ValueError('"label" is a required parameter of "init_args"!')    
+    
 
     # Convert optional fit call hyperparameters from strings
     if 'hyperparameters' in args.fit_args:

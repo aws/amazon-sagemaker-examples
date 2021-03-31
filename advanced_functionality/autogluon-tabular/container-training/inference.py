@@ -77,30 +77,41 @@ def transform_fn(models, data, input_content_type, output_content_type):
     start = timer()
     net = models[0]
     column_dict = models[1]
+    label_map = net.class_labels_internal_map ### 
 
     # text/csv
-    if input_content_type == 'text/csv':
-        
+    if 'text/csv' in input_content_type:
         # Load dataset
         columns = column_dict['columns']
-        df = pd.read_csv(StringIO(data), header=None)
+        if type(data) == str:
+        # Load dataset
+            df = pd.read_csv(StringIO(data), header=None)
+        else:
+            df = pd.read_csv(StringIO(data.decode()), header=None)
 
         df_preprosessed = preprocess(df, columns, net.label)
 
         ds = TabularDataset(data=df_preprosessed)
         
         try:
-            predictions = net.predict(ds)
+            predictions = net.predict_proba(ds)
+            predictions_ = net.predict(ds)
         except:
             try:
-                predictions = net.predict(ds.fillna(0.0))
+                predictions = net.predict_proba(ds.fillna(0.0))
+                predictions_ = net.predict(ds.fillna(0.0))
                 warnings.warn('Filled NaN\'s with 0.0 in order to predict.')
             except Exception as e:
                 response_body = e
                 return response_body, output_content_type
-        
+
+        #threshold = 0.5
+        #predictions_label = [[k for k, v in label_map.items() if v == 1][0] if i > threshold else [k for k, v in label_map.items() if v == 0][0] for i in predictions]
+        predictions_label = predictions_.tolist()
+    
+
         # Print prediction counts, limit in case of regression problem
-        pred_counts = Counter(predictions.tolist())
+        pred_counts = Counter(predictions_label)
         n_display_items = 30
         if len(pred_counts) > n_display_items:
             print(f'Top {n_display_items} prediction counts: '
@@ -120,7 +131,7 @@ def transform_fn(models, data, input_content_type, output_content_type):
                   'Therefore, evaluating prediction performance...')    
             try:
                 performance = net.evaluate_predictions(y_true=ds[target], 
-                                                       y_pred=predictions, 
+                                                       y_pred=np.array(predictions_label), 
                                                        auxiliary_metrics=True)                
                 print(json.dumps(performance, indent=4, default=pd.DataFrame.to_json))
                 time.sleep(0.1)
