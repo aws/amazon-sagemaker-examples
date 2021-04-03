@@ -4,7 +4,7 @@ FROM ${REGISTRY_URI}
 
 RUN pip install -U pip
 RUN pip install -U wheel setuptools
-RUN pip install autogluon==0.1.0
+RUN pip install --no-cache-dir autogluon==0.1.0
 RUN pip install shap
 RUN pip install PrettyTable
 RUN pip install bokeh
