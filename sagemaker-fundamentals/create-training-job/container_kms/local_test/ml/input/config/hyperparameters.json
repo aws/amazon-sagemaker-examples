@@ -1,8 +1,0 @@
-{
-    "ciphertext_s3_key": "dont_look",
-    "master_key_id": "b54b4c32-e8bf-4918-b030-b3aeff5b346d",
-    "train_channel": "train",
-    "train_file": "a_chunk_of_secrets",
-    "key_bucket": "sagemaker-2021-04-01-00-17-41"
-}
-
