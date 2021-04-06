@@ -4,15 +4,6 @@
 
 import docker
 import os
-import argparse
-
-
-# get SageMaker session credentials to be injected into the container
-parser = argparse.ArgumentParser()
-parser.add_argument('--access-key-id', type=str)
-parser.add_argument('--secret-access-key', type=str)
-parser.add_argument('--session-token', type=str)
-args = parser.parse_args()
 
 dirname = os.path.dirname(
     os.path.realpath(__file__)
@@ -29,12 +20,6 @@ container = client.containers.run(
         os.path.join(dirname, 'ml') : {'bind': '/opt/ml', 'mode': 'rw'}, 
         },
     
-    # set environment variables in the container
-    environment={
-        "AccessKeyId": args.access_key_id,
-        "SecretAccessKey": args.secret_access_key,
-        "SessionToken": args.session_token
-    },
     stderr=True,
     detach=True,
     )
