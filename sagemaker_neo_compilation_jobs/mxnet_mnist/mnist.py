@@ -143,6 +143,7 @@ def transform_fn(mod, payload, input_content_type, output_content_type):
     io_bytes_obj = io.BytesIO(payload)
     npy_payload = np.load(io_bytes_obj)
     mx_ndarray = mx.nd.array(npy_payload)
+    mx_ndarray = mx_ndarray.expand_dims(axis=0)
     inference_payload = mx_ndarray.as_in_context(ctx)
 
     # prediction/inference

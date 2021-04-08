@@ -93,7 +93,13 @@ def focus(event):
 # setup GUI
 #######################
 # setup window
-master = Tk()
+try:
+  master = Tk()
+except TclError as ex:
+  msg = ex.args[0]
+  if 'display' in msg or 'DISPLAY' in msg:
+    print('This script must be run in a terminal shell and on a machine with a GUI display like your local computer.')
+    exit(1)
 master.title("Draw a digit")
 # register focus handler on window
 master.bind("<FocusIn>", focus)
