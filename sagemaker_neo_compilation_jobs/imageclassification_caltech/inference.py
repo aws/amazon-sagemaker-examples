@@ -1,8 +1,8 @@
 import numpy as np
 import json
 import mxnet as mx
-# Please make sure to import neomxnet
-import neomxnet  # noqa: F401
+# Please make sure to import neomx
+import neomx  # noqa: F401
 import io
 import os
 import logging
