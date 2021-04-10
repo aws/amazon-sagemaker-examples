@@ -423,8 +423,8 @@ if __name__ == '__main__':
     
 
 # ------------------------------------------------------------ #
-# Hosting methods                                              #
-# ------------------------------------------------------------ #    
+# Hosting methods for Neo compiled model                       #
+# ------------------------------------------------------------ #
     
 def model_fn(model_dir):
     """
@@ -433,12 +433,9 @@ def model_fn(model_dir):
     :return: a model (in this case a Gluon network)
     """
     logging.info('Invoking user-defined model_fn')
-
-    import neomxnet # noqa: F401
-
-    #select GPU context
+    import neomx # noqa: F401
+    #change context to mx.cpu() when optimizing and deploying with Neo for CPU endpoints
     ctx = mx.gpu()
-
     net = gluon.SymbolBlock.imports(
         '%s/compiled-symbol.json' % model_dir,
         ['data'],
@@ -446,7 +443,6 @@ def model_fn(model_dir):
         ctx=ctx
     )
     net.hybridize(static_alloc=True, static_shape=True)
-
     #run warm-up inference on empty data
     warmup_data = mx.nd.empty((1,3,320,320), ctx=ctx)
     class_IDs, scores, bounding_boxes = net(warmup_data)
@@ -455,32 +451,39 @@ def model_fn(model_dir):
     
 def transform_fn(net, data, content_type, output_content_type): 
     """
-    Transform incoming requests.
+    pre-process the incoming payload, perform prediction & convert the prediction output into response payload
     """
     logging.info('Invoking user-defined transform_fn')
 
     import gluoncv as gcv
-    
+
+    #change context to mx.cpu() when optimizing and deploying with Neo for CPU endpoints
+    ctx = mx.gpu()
+
+    """
+    pre-processing
+    """
     #decode json string into numpy array
     data = json.loads(data)
     
     #preprocess image   
     x, image = gcv.data.transforms.presets.yolo.transform_test(mx.nd.array(data), 320)
     
-    #select GPU context
-    ctx = mx.gpu()
-
     #load image onto right context
     x = x.as_in_context(ctx)
     
-    #perform inference
+    """
+    prediction/inference
+    """
     class_IDs, scores, bounding_boxes = net(x)
-    
+
+    """
+    post-processing
+    """
     #create list of results
     result = [class_IDs.asnumpy().tolist(), scores.asnumpy().tolist(), bounding_boxes.asnumpy().tolist()]
     
     #decode as json string
     response_body = json.dumps(result)
+
     return response_body, output_content_type
-
-

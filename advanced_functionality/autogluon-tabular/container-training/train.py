@@ -22,6 +22,7 @@ import networkx as nx
 logging.basicConfig(level=logging.DEBUG)
 logging.info(subprocess.call('ls -lR /opt/ml/input'.split()))
 
+
 import shap
 import smdebug.mxnet as smd
 from smdebug.core.writer import FileWriter
@@ -140,11 +141,13 @@ def train(args):
         pickle.dump(column_dict, f)
     
     # Train models
+
     args.init_args['path'] = args.model_dir
     #args.fit_args.pop('label', None)
     predictor = TabularPredictor(
         **args.init_args
         ).fit(train_data, **args.fit_args)
+
     
     # Results summary
     predictor.fit_summary(verbosity=3)

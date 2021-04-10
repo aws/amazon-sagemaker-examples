@@ -78,7 +78,7 @@ def convert_to_tfrecord(input_files, output_file):
 def install_dependencies():
     from subprocess import call
     call(["pip", "install", "--upgrade", "pip"])
-    call(["pip", "install", "tensorflow_datasets"])
+    call(["pip", "install", "tensorflow_datasets==4.1.0"])
     
 def main(data_dir):
     print('Download from {} and extract.'.format(CIFAR_DOWNLOAD_URL))
