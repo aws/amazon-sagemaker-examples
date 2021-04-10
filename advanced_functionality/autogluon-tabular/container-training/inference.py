@@ -21,7 +21,7 @@ from collections import Counter
 with warnings.catch_warnings():
     warnings.filterwarnings('ignore', category=DeprecationWarning)
     from prettytable import PrettyTable
-    from autogluon import TabularPrediction as task
+    from autogluon.tabular import TabularPredictor, TabularDataset
 
 def make_str_table(df):
     table = PrettyTable(['index']+list(df.columns))
@@ -58,7 +58,8 @@ def model_fn(model_dir):
     :return: a model (in this case a Gluon network) and the column info.
     """
     print(f'Loading model from {model_dir} with contents {os.listdir(model_dir)}')
-    net = task.load(model_dir, verbosity=True)
+
+    net = TabularPredictor.load(model_dir, verbosity=True)
     with open(f'{model_dir}/code/columns.pkl', 'rb') as f:
         column_dict = pickle.load(f)
     return net, column_dict
@@ -83,8 +84,10 @@ def transform_fn(models, data, input_content_type, output_content_type):
         # Load dataset
         columns = column_dict['columns']
         df = pd.read_csv(StringIO(data), header=None)
-        df_preprosessed = preprocess(df, columns, net.label_column)
-        ds = task.Dataset(df=df_preprosessed)
+
+        df_preprosessed = preprocess(df, columns, net.label)
+
+        ds = TabularDataset(data=df_preprosessed)
         
         try:
             predictions = net.predict(ds)
@@ -111,7 +114,7 @@ def transform_fn(models, data, input_content_type, output_content_type):
         response_body = output.getvalue() 
 
         # If target column passed, evaluate predictions performance
-        target = net.label_column
+        target = net.label
         if target in ds:
             print(f'Label column ({target}) found in input data. '
                   'Therefore, evaluating prediction performance...')    
