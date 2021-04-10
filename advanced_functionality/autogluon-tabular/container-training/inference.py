@@ -83,6 +83,7 @@ def transform_fn(models, data, input_content_type, output_content_type):
     if 'text/csv' in input_content_type:
         # Load dataset
         columns = column_dict['columns']
+
         if type(data) == str:
         # Load dataset
             df = pd.read_csv(StringIO(data), header=None)

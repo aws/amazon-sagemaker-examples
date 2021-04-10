@@ -1,6 +1,6 @@
 ARG region
 
-FROM 763104351884.dkr.ecr.us-west-2.amazonaws.com/tensorflow-training:2.3.1-gpu-py37-cu110-ubuntu18.04
+FROM 763104351884.dkr.ecr.us-west-2.amazonaws.com/tensorflow-training:2.4.1-gpu-py37-cu110-ubuntu18.04
 
 RUN 	pip --no-cache-dir --no-cache install \
         scikit-learn==0.23.1 \
