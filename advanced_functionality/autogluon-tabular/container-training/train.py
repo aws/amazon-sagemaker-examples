@@ -19,15 +19,19 @@ import matplotlib.pyplot as plt
 import shutil
 import networkx as nx
 
+logging.basicConfig(level=logging.DEBUG)
+logging.info(subprocess.call('ls -lR /opt/ml/input'.split()))
+
 with warnings.catch_warnings():
     warnings.filterwarnings('ignore', category=DeprecationWarning)
     from prettytable import PrettyTable
     import autogluon as ag
-    from autogluon import TabularPrediction as task
-    from autogluon.task.tabular_prediction import TabularDataset
-    from autogluon.utils.tabular.ml.constants import BINARY, MULTICLASS, REGRESSION, SOFTCLASS
-    
-    print(f'DEBUG AutoGluon version : {ag.__version__}')
+
+    from autogluon.tabular import TabularDataset, TabularPredictor
+
+    from autogluon.core.constants import BINARY, MULTICLASS, REGRESSION, SOFTCLASS
+
+    #print(f'DEBUG AutoGluon version : {ag.__version__}')
 
 
 # ------------------------------------------------------------ #
@@ -45,9 +49,11 @@ def __load_input_data(path: str) -> TabularDataset:
     :return: DataFrame
     """
     input_data_files = os.listdir(path)
+
     try:
         input_dfs = [pd.read_csv(f'{path}/{data_file}') for data_file in input_data_files]
-        return task.Dataset(df=pd.concat(input_dfs))
+
+        return TabularDataset(data=pd.concat(input_dfs))
     except:
         print(f'No csv data in {path}!')
         return None
@@ -68,8 +74,10 @@ def get_roc_auc(y_test_true, y_test_pred, labels, class_labels_internal, model_o
     
     if len(labels) == 2:
         # binary classification
+        
         true_label_index = class_labels_internal.index(1)
-        y_test_pred = y_test_pred[:,true_label_index]
+
+        y_test_pred = y_test_pred.values[:,true_label_index]
         y_test_pred = np.reshape(y_test_pred, (-1, 1))
         labels = labels[true_label_index:true_label_index+1]
         n_classes = 1
@@ -128,15 +136,16 @@ def train(args):
         pickle.dump(column_dict, f)
     
     # Train models
-    predictor = task.fit(
-        train_data=train_data,
-        output_directory=args.model_dir,
-        **args.fit_args,
-    )
+
+    args.fit_args.pop('label', None)
+    predictor = TabularPredictor(
+        label=target, 
+        path=args.model_dir).fit(train_data, **args.fit_args)
     
     # Results summary
     predictor.fit_summary(verbosity=3)
-    model_summary_fname_src = os.path.join(predictor.output_directory, 'SummaryOfModels.html')
+    #model_summary_fname_src = os.path.join(predictor.output_directory, 'SummaryOfModels.html')
+    model_summary_fname_src = os.path.join(args.model_dir, 'SummaryOfModels.html')
     model_summary_fname_tgt = os.path.join(model_output_dir, 'SummaryOfModels.html')
     
     if os.path.exists(model_summary_fname_src):
@@ -158,10 +167,10 @@ def train(args):
         print(f'Test files: {os.listdir(args.test)}')
         test_data = __load_input_data(args.test)
         # Test data must be labeled for scoring
-        if args.fit_args['label'] in test_data:
+        if target in test_data:
             # Leaderboard on test data
             print('Running model on test data and getting Leaderboard...')
-            leaderboard = predictor.leaderboard(dataset=test_data, silent=True)
+            leaderboard = predictor.leaderboard(test_data, silent=True)
             print(format_for_print(leaderboard), end='\n\n')
             leaderboard.to_csv(f'{model_output_dir}/leaderboard.csv', index=False)
 
@@ -172,8 +181,8 @@ def train(args):
                 print('Feature importance:')
                 # Increase rows to print feature importance                
                 pd.set_option('display.max_rows', 500)
-                feature_importance = predictor.feature_importance(test_data)
-                feature_importance_df = pd.DataFrame(feature_importance, columns=['Importance score']).rename_axis(index='Feature')
+                feature_importance_df = predictor.feature_importance(test_data)
+
                 print(feature_importance_df)
                 feature_importance_df.to_csv(f'{model_output_dir}/feature_importance.csv', index=True)
             
@@ -181,8 +190,9 @@ def train(args):
             if predictor.problem_type in [BINARY, MULTICLASS]:
                 from sklearn.metrics import classification_report, confusion_matrix
                 
-                X_test = test_data.drop(args.fit_args['label'], axis=1)
-                y_test_true = test_data[args.fit_args['label']]
+                
+                X_test = test_data.drop(target, axis=1)
+                y_test_true = test_data[target]
                 y_test_pred = predictor.predict(X_test)
                 y_test_pred_prob = predictor.predict_proba(X_test, as_multiclass=True)
                 

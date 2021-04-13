@@ -5,5 +5,6 @@ Feature Store is a centralized store for features and associated metadata so fea
 
 .. toctree::
    :maxdepth: 1
-
+   
+   feature_store_introduction
    sagemaker_featurestore_fraud_detection_python_sdk
