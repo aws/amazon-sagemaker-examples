@@ -1,1 +1,1 @@
-# music-streaming
+# music-streaming customer churn detection
