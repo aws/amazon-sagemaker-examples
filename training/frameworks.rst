@@ -56,9 +56,11 @@ R
 .. toctree::
    :maxdepth: 1
 
+   ../r_examples/r_batch_transform/r_xgboost_batch_transform
+   ../r_examples/r_byo_r_algo_hpo/tune_r_bring_your_own
+   ../r_examples/r_in_sagemaker_processing/r_in_sagemaker_processing
    ../r_examples/r_sagemaker_hello_world/r_sagemaker_hello_world
-   ../advanced_functionality/r_kernel/example_r_notebook
-
+   ../r_examples/r_xgboost_hpo_batch_transform/r_xgboost_hpo_batch_transform
 
 ..
    notebooks have no title and will not render
