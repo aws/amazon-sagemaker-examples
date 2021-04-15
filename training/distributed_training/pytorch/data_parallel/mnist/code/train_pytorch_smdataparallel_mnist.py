@@ -115,7 +115,6 @@ def main():
     args.world_size = dist.get_world_size()
     args.rank = rank = dist.get_rank()
     args.local_rank = local_rank = dist.get_local_rank()
-    args.lr = 1.0
     args.batch_size //= args.world_size // 8
     args.batch_size = max(args.batch_size, 1)
     data_path = args.data_path
