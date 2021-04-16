@@ -7,6 +7,8 @@ from markov.agents.agent import Agent
 from markov.agents.utils import construct_sensor, get_network_settings
 from markov.sensors.sensors_rollout import SensorFactory
 from markov.cameras.frustum_manager import FrustumManager
+from markov.boto.s3.constants import ModelMetadataKeys
+
 
 def create_rollout_agent(agent_config, metrics, run_phase_subject):
     '''Returns an rollout agent object
@@ -15,7 +17,10 @@ def create_rollout_agent(agent_config, metrics, run_phase_subject):
        run_phase_subject - Subject that notifies observers when the run phase changes
     '''
     model_metadata = agent_config['model_metadata']
-    observation_list, network, version = model_metadata.get_model_metadata_info()
+    model_metadata_info = model_metadata.get_model_metadata_info()
+    observation_list = model_metadata_info[ModelMetadataKeys.SENSOR.value]
+    network = model_metadata_info[ModelMetadataKeys.NEURAL_NETWORK.value]
+    version = model_metadata_info[ModelMetadataKeys.VERSION.value]
     agent_name = agent_config[ConfigParams.CAR_CTRL_CONFIG.value][ConfigParams.AGENT_NAME.value]
     sensor = construct_sensor(agent_name, observation_list, SensorFactory)
     network_settings = get_network_settings(sensor, network)
