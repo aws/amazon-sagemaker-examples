@@ -1,5 +1,7 @@
 '''This module defines the interface for all sensors'''
 import abc
+from abc import ABCMeta
+
 
 class SensorInterface(object, metaclass=abc.ABCMeta):
     ''' This class defines an interface for sensors, it defines
@@ -29,3 +31,7 @@ class SensorInterface(object, metaclass=abc.ABCMeta):
            network_type - The type of network for which to return the embedder for
         '''
         raise NotImplementedError('Sensor does not implement input embedder')
+
+
+class LidarInterface(SensorInterface, metaclass=ABCMeta):
+    pass

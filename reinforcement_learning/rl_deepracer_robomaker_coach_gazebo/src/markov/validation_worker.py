@@ -32,10 +32,11 @@ from markov.agents.training_agent_factory import create_training_agent
 from markov.s3_boto_data_store import S3BotoDataStore, S3BotoDataStoreParameters
 from markov.sagemaker_graph_manager import get_graph_manager
 from markov.architecture.constants import Input
-from markov.s3.files.model_metadata import ModelMetadata
-from markov.s3.files.checkpoint import Checkpoint
-from markov.s3.utils import get_s3_key
-from markov.s3.constants import MODEL_METADATA_S3_POSTFIX
+from markov.boto.s3.files.model_metadata import ModelMetadata
+from markov.boto.s3.files.checkpoint import Checkpoint
+from markov.boto.s3.utils import get_s3_key
+from markov.boto.s3.constants import (MODEL_METADATA_S3_POSTFIX,
+                                      ModelMetadataKeys)
 
 logger = Logger(__name__, logging.INFO).get_logger()
 
@@ -130,7 +131,9 @@ def validate(s3_bucket, s3_prefix, aws_region):
 
     try:
         # Handle backward compatibility
-        observation_list, _, version = model_metadata.get_model_metadata_info()
+        model_metadata_info = model_metadata.get_model_metadata_info()
+        observation_list = model_metadata_info[ModelMetadataKeys.SENSOR.value]
+        version = model_metadata_info[ModelMetadataKeys.VERSION.value]
     except Exception as ex:
         log_and_exit("Failed to parse model_metadata file: {}".format(ex),
                      SIMAPP_VALIDATION_WORKER_EXCEPTION,
@@ -161,7 +164,7 @@ def validate(s3_bucket, s3_prefix, aws_region):
                                                          ConfigParams.STEERING_LIST.value: {},
                                                          ConfigParams.CHANGE_START.value: None,
                                                          ConfigParams.ALT_DIR.value: None,
-                                                         ConfigParams.ACTION_SPACE_PATH.value: model_metadata.local_path,
+                                                         ConfigParams.MODEL_METADATA.value: model_metadata,
                                                          ConfigParams.REWARD.value: None,
                                                          ConfigParams.AGENT_NAME.value: 'racecar'}}
 
