@@ -72,7 +72,6 @@ def get_problem_frames(lab_frame, track_labels, size_thresh=.25, iou_thresh=.4, 
                 img_arr = np.array(img)
                 img_embeds[j] = {}
                 img_crops[j] = {}
-                # need to change this to use dataframe 
                 for i,annot in enumerate(track_labels['tracking-annotations'][j]['annotations']):
                     try:
                         crop = img_arr[annot['top']:(annot['top']+annot['height']),annot['left']:(annot['left']+annot['width']),:]                    
