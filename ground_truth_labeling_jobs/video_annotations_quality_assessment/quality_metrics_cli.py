@@ -4,6 +4,7 @@ import numpy as np
 import argh
 import boto3
 from argh import arg
+from tqdm import tqdm
 from scipy.spatial import distance
 from plotting_funcs import *
 
@@ -25,10 +26,11 @@ def get_problem_frames(lab_frame, track_labels, size_thresh=.25, iou_thresh=.4, 
     Function for identifying potentially problematic frames using bounding box size, rolling IoU, and optionally embedding comparison.
     """
     if embed:
+        import torch
         model = torch.hub.load('pytorch/vision:v0.6.0', 'resnet18', pretrained=True) 
         model.eval()
         modules=list(model.children())[:-1]
-        model=nn.Sequential(*modules)
+        model=torch.nn.Sequential(*modules)
         
     frame_res = {} 
     for obj in list(np.unique(lab_frame.obj)): 
@@ -52,12 +54,12 @@ def get_problem_frames(lab_frame, track_labels, size_thresh=.25, iou_thresh=.4, 
             problem_frames = []
         frame_res[obj]['size_problem_frames'] = problem_frames
 
-        iou_vec = np.ones(len(np.unique(label_frame.frameid)))
-        for i in label_frame[label_frame.obj==obj].frameid[:-1]:
+        iou_vec = np.ones(len(np.unique(lab_frame.frameid)))
+        for i in lab_frame[lab_frame.obj==obj].frameid[:-1]:
             iou = calc_frame_int_over_union(lab_frame, obj, i)
             iou_vec[i] = iou
             
-        frame_res[obj]['iou'] = iou_vec
+        frame_res[obj]['iou'] = iou_vec.tolist()
         inds = [int(x) for x in np.where(iou_vec<iou_thresh)[0]]
         frame_res[obj]['iou_problem_frames'] = inds
         
@@ -89,7 +91,7 @@ def get_problem_frames(lab_frame, track_labels, size_thresh=.25, iou_thresh=.4, 
 
             # look for distances that are 2+ standard deviations greater than the mean distance
             prob_frames = np.where(dists>(np.mean(dists)+np.std(dists)*2))[0]
-            frame_res[obj]['embed_prob_frames'] = prob_frames
+            frame_res[obj]['embed_prob_frames'] = prob_frames.tolist()
         
     return frame_res
     
@@ -121,7 +123,7 @@ def run_quality_check(bucket = None, lab_path = None,
     lab_frame_real = create_annot_frame(tlabels['tracking-annotations'])
     
     print('Running analysis...')
-    frame_res = get_problem_frames(lab_frame_real, size_thresh=size_thresh, iou_thresh=iou_thresh, embed=embed)
+    frame_res = get_problem_frames(lab_frame_real, tlabels, size_thresh=size_thresh, iou_thresh=iou_thresh, embed=embed)
     
     with open('quality_results.json', 'w') as f:
         json.dump(frame_res, f)
