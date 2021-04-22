@@ -20,7 +20,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-MODEL_DATE_PATH = '/model_data'
+MODEL_DATA_PATH = '/model_data'
 S3_KMS_CMK_ARN_ENV = 'S3_KMS_CMK_ARN_ENV'
 
 
@@ -34,12 +34,11 @@ def ping():
     return response_handler.ping()
 
 
-def build_validation_worker_cmd_args(s3_bucket, s3_prefix, aws_region, custom_files_path):
+def build_validation_worker_cmd_args(s3_bucket, s3_prefix, aws_region):
     return ['python', '/opt/amazon/markov/validation_worker.py',
             '--s3_bucket', s3_bucket,
             '--s3_prefix', s3_prefix,
-            '--aws_region', aws_region,
-            '--custom_files_path', custom_files_path]
+            '--aws_region', aws_region]
 
 
 @app.route('/invocations', methods=['POST'])
@@ -69,16 +68,19 @@ def validate():
     except Exception as ex:
         return response_handler.argument_error(ex, session_info)
 
-    custom_files_path = os.path.join(MODEL_DATE_PATH, session_info['traceId'])
+    custom_files_path = os.path.join(MODEL_DATA_PATH, session_info['traceId'])
 
     try:
         validator_cmd = build_validation_worker_cmd_args(s3_bucket=s3_bucket,
                                                          s3_prefix=s3_prefix,
-                                                         aws_region=aws_region,
-                                                         custom_files_path=custom_files_path)
+                                                         aws_region=aws_region)
         logger.info("Executing %s [session_info=%s]", " ".join(map(str, validator_cmd)), session_info)
+        if not os.path.exists(custom_files_path):
+            os.makedirs(custom_files_path)
+        else:
+            raise Exception("Custom Files Path already exists!: {}".format(custom_files_path))
         return_code, _, stderr = run_cmd(cmd_args=validator_cmd,
-                                         change_working_directory='/opt/amazon/markov/',
+                                         change_working_directory=custom_files_path,
                                          shell=False,
                                          stdout=None,
                                          env=subprocess_env)

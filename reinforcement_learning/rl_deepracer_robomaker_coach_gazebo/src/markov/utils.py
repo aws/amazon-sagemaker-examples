@@ -9,6 +9,8 @@ import socket
 import time
 import cProfile
 import pstats
+import random
+
 from itertools import count
 from markov.log_handler.constants import (SIMAPP_ENVIRONMENT_EXCEPTION,
                                           SIMAPP_EVENT_ERROR_CODE_500,
@@ -56,24 +58,30 @@ def get_boto_config():
     '''Returns a botocore config object which specifies the number of times to retry'''
     return botocore.config.Config(retries=dict(max_attempts=NUM_RETRIES), connect_timeout=CONNECT_TIMEOUT)
 
-def cancel_simulation_job(simulation_job_arn, aws_region):
-    logger.info("cancel_simulation_job: make sure to shutdown simapp first")
-    if simulation_job_arn:
-        session = boto3.session.Session()
-        robomaker_client = session.client('robomaker', region_name=aws_region)
-        robomaker_client.cancel_simulation_job(job=simulation_job_arn)
-        time.sleep(ROBOMAKER_CANCEL_JOB_WAIT_TIME)
-    else:
-        simapp_exit_gracefully()
+def cancel_simulation_job(backoff_time_sec=1.0, max_retry_attempts=5):
+    """ros service call to cancel simulation job
 
-def restart_simulation_job(simulation_job_arn, aws_region):
-    logger.info("restart_simulation_job: make sure to shutdown simapp first")
-    if simulation_job_arn:
-        session = boto3.session.Session()
-        robomaker_client = session.client('robomaker', region_name=aws_region)
-        robomaker_client.restart_simulation_job(job=simulation_job_arn)
-    else:
-        simapp_exit_gracefully()
+    Args:
+        backoff_time_sec(float): backoff time in seconds
+        max_retry_attempts (int): maximum number of retry
+    """
+    import rospy
+    from robomaker_simulation_msgs.srv import Cancel
+    from markov.rospy_wrappers import ServiceProxyWrapper
+    requestCancel = ServiceProxyWrapper('/robomaker/job/cancel', Cancel)
+
+    try_count = 0
+    while True:
+        try_count += 1
+        response = requestCancel()
+        logger.info("cancel_simulation_job from ros service call response: {}".format(response.success))
+        if response and response.success:
+            time.sleep(ROBOMAKER_CANCEL_JOB_WAIT_TIME)
+            return
+        if try_count > max_retry_attempts:
+            simapp_exit_gracefully()
+        backoff_time = (pow(try_count, 2) + random.random()) * backoff_time_sec
+        time.sleep(backoff_time)
 
 def str2bool(flag):
     """ bool: convert flag to boolean if it is string and return it else return its initial bool value """
@@ -180,6 +188,25 @@ def get_racecar_idx(racecar_name):
                      SIMAPP_SIMULATION_WORKER_EXCEPTION,
                      SIMAPP_EVENT_ERROR_CODE_500)
 
+
+def get_s3_extra_args(s3_kms_cmk_arn=None):
+    """Generate the s3 extra arg dict with the s3 kms cmk arn passed in.
+
+    Args:
+        s3_kms_cmk_arn (str, optional): The kms arn to use for contructing 
+                                        the s3 extra arguments. 
+                                        Defaults to None.
+
+    Returns:
+        dict: A dictionary for s3 extra arguments.
+    """
+    s3_extra_args = {S3KmsEncryption.ACL.value: S3KmsEncryption.BUCKET_OWNER_FULL_CONTROL.value}
+    if s3_kms_cmk_arn is not None:
+        s3_extra_args[S3KmsEncryption.SERVER_SIDE_ENCRYPTION.value] = S3KmsEncryption.AWS_KMS.value
+        s3_extra_args[S3KmsEncryption.SSE_KMS_KEY_ID.value] = s3_kms_cmk_arn
+    return s3_extra_args
+
+
 def get_s3_kms_extra_args():
     """ Since the S3Client class is called by both robomaker and sagemaker. One has to know
     first if its coming from sagemaker or robomaker. Then alone I could decide to fetch the kms arn
@@ -215,11 +242,7 @@ def get_s3_kms_extra_args():
                 s3_kms_cmk_arn = rospy.get_param(ROBOMAKER_S3_KMS_CMK_ARN, None)
             except Exception:
                 pass
-    s3_extra_args = {S3KmsEncryption.ACL.value: S3KmsEncryption.BUCKET_OWNER_FULL_CONTROL.value}
-    if s3_kms_cmk_arn:
-        s3_extra_args[S3KmsEncryption.SERVER_SIDE_ENCRYPTION.value] = S3KmsEncryption.AWS_KMS.value
-        s3_extra_args[S3KmsEncryption.SSE_KMS_KEY_ID.value] = s3_kms_cmk_arn
-    return s3_extra_args
+    return get_s3_extra_args(s3_kms_cmk_arn)
 
 def test_internet_connection(aws_region):
     """
@@ -245,12 +268,12 @@ def test_internet_connection(aws_region):
         log_and_exit("Issue with your current VPC stack and IAM roles.\
                       You might need to reset your account resources: {}".format(ex),
                      SIMAPP_ENVIRONMENT_EXCEPTION,
-                     SIMAPP_EVENT_ERROR_CODE_400)
+                     SIMAPP_EVENT_ERROR_CODE_500)
     except botocore.exceptions.ConnectTimeoutError as ex:
         log_and_exit("Issue with your current VPC stack and IAM roles.\
                       You might need to reset your account resources: {}".format(ex),
                      SIMAPP_ENVIRONMENT_EXCEPTION,
-                     SIMAPP_EVENT_ERROR_CODE_400)
+                     SIMAPP_EVENT_ERROR_CODE_500)
     except Exception as ex:
         log_and_exit("Issue with your current VPC stack and IAM roles.\
                       You might need to reset your account resources: {}".format(ex),
@@ -278,7 +301,7 @@ class DoorMan:
     def exit_gracefully(self, signum, frame):
         self.terminate_now = True
         logger.info("DoorMan: received signal {}".format(signum))
-        simapp_exit_gracefully(SIMAPP_DONE_EXIT)
+        simapp_exit_gracefully(simapp_exit=SIMAPP_DONE_EXIT)
 
 class DoubleBuffer(object):
     def __init__(self, clear_data_on_get=True):

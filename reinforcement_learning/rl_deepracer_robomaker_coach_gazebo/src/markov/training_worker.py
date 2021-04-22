@@ -22,18 +22,21 @@ from markov.constants import SIMAPP_VERSION_2, TRAINING_WORKER_PROFILER_PATH
 from markov.agent_ctrl.constants import ConfigParams
 from markov.agents.training_agent_factory import create_training_agent
 from markov.s3_boto_data_store import S3BotoDataStore, S3BotoDataStoreParameters
+from markov.boto.s3.constants import TrainingAlgorithm
 from markov.sagemaker_graph_manager import get_graph_manager
 from markov.samples.sample_collector import SampleCollector
 from markov.deepracer_memory import DeepRacerRedisPubSubMemoryBackendParameters
-from markov.s3.files.hyperparameters import Hyperparameters
-from markov.s3.files.model_metadata import ModelMetadata
-from markov.s3.files.ip_config import IpConfig
-from markov.s3.files.checkpoint import Checkpoint
-from markov.s3.utils import get_s3_key
-from markov.s3.constants import (MODEL_METADATA_LOCAL_PATH_FORMAT,
-                                 MODEL_METADATA_S3_POSTFIX,
-                                 HYPERPARAMETER_S3_POSTFIX)
-from markov.s3.s3_client import S3Client
+from markov.boto.s3.files.hyperparameters import Hyperparameters
+from markov.boto.s3.files.model_metadata import ModelMetadata
+from markov.boto.s3.files.ip_config import IpConfig
+from markov.boto.s3.files.checkpoint import Checkpoint
+from markov.boto.s3.utils import get_s3_key
+from markov.boto.s3.constants import (MODEL_METADATA_LOCAL_PATH_FORMAT,
+                                      MODEL_METADATA_S3_POSTFIX,
+                                      HYPERPARAMETER_S3_POSTFIX,
+                                      FROZEN_HEAD_OUTPUT_GRAPH_FORMAT_MAPPING,
+                                      ModelMetadataKeys)
+from markov.boto.s3.s3_client import S3Client
 
 import tensorflow as tf
 tf.logging.set_verbosity(tf.logging.DEBUG)
@@ -46,7 +49,7 @@ SM_MODEL_OUTPUT_DIR = os.environ.get("SM_MODEL_DIR", "/opt/ml/model")
 IS_PROFILER_ON, PROFILER_S3_BUCKET, PROFILER_S3_PREFIX = utils.get_sagemaker_profiler_env()
 
 def training_worker(graph_manager, task_parameters, user_batch_size,
-                    user_episode_per_rollout):
+                    user_episode_per_rollout, training_algorithm):
     try:
         # initialize graph
         graph_manager.create_graph(task_parameters)
@@ -78,6 +81,15 @@ def training_worker(graph_manager, task_parameters, user_batch_size,
                         agent.ap.algorithm.num_consecutive_playing_steps.num_steps = episodes_in_rollout
                         agent.ap.algorithm.num_steps_between_copying_online_weights_to_target.num_steps = episodes_in_rollout
 
+                # TODO: Refactor the flow to remove conditional checks for specific algorithms
+                # ------------------------sac only---------------------------------------------
+                if training_algorithm == TrainingAlgorithm.SAC.value:
+                    rollout_steps = graph_manager.memory_backend.get_rollout_steps()
+
+                    # NOTE: you can train even more iterations than rollout_steps by increasing the number below for SAC
+                    agent.ap.algorithm.num_consecutive_training_steps = list(rollout_steps.values())[
+                        0]  # rollout_steps[agent]
+                # -------------------------------------------------------------------------------
                 if graph_manager.should_train():
                     # Make sure we have enough data for the requested batches
                     rollout_steps = graph_manager.memory_backend.get_rollout_steps()
@@ -86,12 +98,22 @@ def training_worker(graph_manager, task_parameters, user_batch_size,
                                      SIMAPP_TRAINING_WORKER_EXCEPTION,
                                      SIMAPP_EVENT_ERROR_CODE_500)
 
-                    episode_batch_size = user_batch_size if min(rollout_steps.values()) > user_batch_size else 2**math.floor(math.log(min(rollout_steps.values()), 2))
+                    # TODO: Refactor the flow to remove conditional checks for specific algorithms
+                    # DH: for SAC, check if experience replay memory has enough transitions
+                    if training_algorithm == TrainingAlgorithm.SAC.value:
+                        replay_mem_size = min([agent.memory.num_transitions()
+                                               for level in graph_manager.level_managers
+                                               for agent in level.agents.values()])
+                        episode_batch_size = user_batch_size if replay_mem_size > user_batch_size \
+                            else 2**math.floor(math.log(min(rollout_steps.values()), 2))
+                    else:
+                        episode_batch_size = user_batch_size if min(rollout_steps.values()) > user_batch_size else 2**math.floor(math.log(min(rollout_steps.values()), 2))
                     # Set the batch size to the closest power of 2 such that we have at least two batches, this prevents coach from crashing
                     # as  batch size less than 2 causes the batch list to become a scalar which causes an exception
                     for level in graph_manager.level_managers:
                         for agent in level.agents.values():
-                            agent.ap.network_wrappers['main'].batch_size = episode_batch_size
+                            for net_key in agent.ap.network_wrappers:
+                                agent.ap.network_wrappers[net_key].batch_size = episode_batch_size
 
                     steps += 1
 
@@ -179,10 +201,6 @@ def main():
                         help='(string) S3 prefix',
                         type=str,
                         default='sagemaker')
-    parser.add_argument('--s3_endpoint_url',
-                        help='(string) S3 endpoint URL',
-                        type=str,
-                        default=os.environ.get("S3_ENDPOINT_URL", None))                            
     parser.add_argument('--framework',
                         help='(string) tensorflow or mxnet',
                         type=str,
@@ -200,24 +218,23 @@ def main():
                         default=os.environ.get("AWS_REGION", "us-east-1"))
 
     args, _ = parser.parse_known_args()
-    logger.info("S3 bucket: %s \n S3 prefix: %s \n S3 endpoint URL: %s", args.s3_bucket, args.s3_prefix, args.s3_endpoint_url)
 
-    s3_client = S3Client(region_name=args.aws_region, s3_endpoint_url=args.s3_endpoint_url, max_retry_attempts=0)
+    s3_client = S3Client(region_name=args.aws_region, max_retry_attempts=0)
 
     # download model metadata
     # TODO: replace 'agent' with name of each agent
     model_metadata_download = ModelMetadata(bucket=args.s3_bucket,
                                             s3_key=args.model_metadata_s3_key,
                                             region_name=args.aws_region,
-                                            s3_endpoint_url=args.s3_endpoint_url,
                                             local_path=MODEL_METADATA_LOCAL_PATH_FORMAT.format('agent'))
-    _, network_type, version = model_metadata_download.get_model_metadata_info()
+    model_metadata_info = model_metadata_download.get_model_metadata_info()
+    network_type = model_metadata_info[ModelMetadataKeys.NEURAL_NETWORK.value]
+    version = model_metadata_info[ModelMetadataKeys.VERSION.value]
 
     # upload model metadata
     model_metadata_upload = ModelMetadata(bucket=args.s3_bucket,
                                           s3_key=get_s3_key(args.s3_prefix, MODEL_METADATA_S3_POSTFIX),
                                           region_name=args.aws_region,
-                                          s3_endpoint_url=args.s3_endpoint_url,
                                           local_path=MODEL_METADATA_LOCAL_PATH_FORMAT.format('agent'))
     model_metadata_upload.persist(s3_kms_extra_args=utils.get_s3_kms_extra_args())
 
@@ -260,7 +277,7 @@ def main():
                                                              ConfigParams.STEERING_LIST.value: {},
                                                              ConfigParams.CHANGE_START.value: None,
                                                              ConfigParams.ALT_DIR.value: None,
-                                                             ConfigParams.ACTION_SPACE_PATH.value: model_metadata_download.local_path,
+                                                             ConfigParams.MODEL_METADATA.value : model_metadata_download,
                                                              ConfigParams.REWARD.value: None,
                                                              ConfigParams.AGENT_NAME.value: 'racecar'}}
 
@@ -269,13 +286,13 @@ def main():
 
         graph_manager, robomaker_hyperparams_json = get_graph_manager(hp_dict=sm_hyperparams_dict,
                                                                       agent_list=agent_list,
-                                                                      run_phase_subject=None)
+                                                                      run_phase_subject=None,
+                                                                      run_type=str(RunType.TRAINER))
 
         # Upload hyperparameters to SageMaker shared s3 bucket
         hyperparameters = Hyperparameters(bucket=args.s3_bucket,
                                           s3_key=get_s3_key(args.s3_prefix, HYPERPARAMETER_S3_POSTFIX),
-                                          region_name=args.aws_region,
-                                          s3_endpoint_url=args.s3_endpoint_url)
+                                          region_name=args.aws_region)
         hyperparameters.persist(hyperparams_json=robomaker_hyperparams_json,
                                 s3_kms_extra_args=utils.get_s3_kms_extra_args())
 
@@ -285,7 +302,6 @@ def main():
             sample_collector = SampleCollector(bucket=args.s3_bucket,
                                                s3_prefix=args.s3_prefix,
                                                region_name=args.aws_region,
-                                               s3_endpoint_url=args.s3_endpoint_url,
                                                max_sample_count=max_sample_count,
                                                sampling_frequency=int(sm_hyperparams_dict.get("sampling_frequency", 1)))
             graph_manager.sample_collector = sample_collector
@@ -293,9 +309,11 @@ def main():
     # persist IP config from sagemaker to s3
     ip_config = IpConfig(bucket=args.s3_bucket,
                          s3_prefix=args.s3_prefix,
-                         region_name=args.aws_region,
-                         s3_endpoint_url=args.s3_endpoint_url)
+                         region_name=args.aws_region)
     ip_config.persist(s3_kms_extra_args=utils.get_s3_kms_extra_args())
+
+    training_algorithm = model_metadata_download.training_algorithm
+    output_head_format = FROZEN_HEAD_OUTPUT_GRAPH_FORMAT_MAPPING[training_algorithm]
 
     use_pretrained_model = args.pretrained_s3_bucket and args.pretrained_s3_prefix
     # Handle backward compatibility
@@ -305,9 +323,9 @@ def main():
         checkpoint = Checkpoint(bucket=args.pretrained_s3_bucket,
                                 s3_prefix=args.pretrained_s3_prefix,
                                 region_name=args.aws_region,
-                                s3_endpoint_url=args.s3_endpoint_url,
                                 agent_name='agent',
-                                checkpoint_dir=args.pretrained_checkpoint_dir)
+                                checkpoint_dir=args.pretrained_checkpoint_dir,
+                                output_head_format=output_head_format)
         # make coach checkpoint compatible
         if version < SIMAPP_VERSION_2 and not checkpoint.rl_coach_checkpoint.is_compatible():
             checkpoint.rl_coach_checkpoint.make_compatible(checkpoint.syncfile_ready)
@@ -336,9 +354,9 @@ def main():
     checkpoint = Checkpoint(bucket=args.s3_bucket,
                             s3_prefix=args.s3_prefix,
                             region_name=args.aws_region,
-                            s3_endpoint_url=args.s3_endpoint_url,
                             agent_name='agent',
-                            checkpoint_dir=args.checkpoint_dir)
+                            checkpoint_dir=args.checkpoint_dir,
+                            output_head_format=output_head_format)
     checkpoint_dict = {'agent': checkpoint}
     ds_params_instance = S3BotoDataStoreParameters(checkpoint_dict=checkpoint_dict)
 
@@ -357,7 +375,8 @@ def main():
         graph_manager=graph_manager,
         task_parameters=task_parameters,
         user_batch_size=json.loads(robomaker_hyperparams_json)["batch_size"],
-        user_episode_per_rollout=json.loads(robomaker_hyperparams_json)["num_episodes_between_training"]
+        user_episode_per_rollout=json.loads(robomaker_hyperparams_json)["num_episodes_between_training"],
+        training_algorithm=training_algorithm
     )
 
 if __name__ == '__main__':
