@@ -120,56 +120,56 @@ class Frustum(object):
 
         # near plane
         if self.ccw:
-            p0, p1, p2 = near_bottom_right, near_bottom_left, near_top_left
+            p0, p1, p2 = near_bottom_left, near_top_left, near_bottom_right
         else:
-            p0, p1, p2 = near_top_left, near_bottom_left, near_bottom_right
-        near_plane_normal = normalize(np.cross(p1 - p0, p2 - p1))
-        near_plane_offset = np.dot(near_plane_normal, p0)
+            p0, p1, p2 = near_bottom_right, near_top_right, near_bottom_left
+        near_plane_normal = normalize(np.cross(p1 - p0, p2 - p0))
+        near_plane_offset = -np.dot(near_plane_normal, p0)
         planes.append((near_plane_normal, near_plane_offset))
 
         # far plane
         if self.ccw:
-            p0, p1, p2 = far_bottom_right, far_top_right, far_top_left
+            p0, p1, p2 = far_bottom_right, far_top_right, far_bottom_left
         else:
-            p0, p1, p2 = far_top_left, far_top_right, far_bottom_right
-        far_plane_normal = normalize(np.cross(p1 - p0, p2 - p1))
-        far_plane_offset = np.dot(far_plane_normal, p0)
+            p0, p1, p2 = far_bottom_left, far_top_left, far_bottom_right
+        far_plane_normal = normalize(np.cross(p1 - p0, p2 - p0))
+        far_plane_offset = -np.dot(far_plane_normal, p0)
         planes.append((far_plane_normal, far_plane_offset))
 
         # left plane
         if self.ccw:
-            p0, p1, p2 = near_bottom_left, far_bottom_left, far_top_left
+            p0, p1, p2 = far_bottom_left, far_top_left, near_bottom_left
         else:
-            p0, p1, p2 = far_top_left, far_bottom_left, near_bottom_left
-        left_plane_normal = normalize(np.cross(p1 - p0, p2-p1))
-        left_plane_offset = np.dot(left_plane_normal, p0)
+            p0, p1, p2 = near_bottom_left, near_top_left, far_bottom_left
+        left_plane_normal = normalize(np.cross(p1 - p0, p2 - p0))
+        left_plane_offset = -np.dot(left_plane_normal, p0)
         planes.append((left_plane_normal, left_plane_offset))
 
         # right plane
         if self.ccw:
-            p0, p1, p2 = near_top_right, far_top_right, far_bottom_right
+            p0, p1, p2 = near_bottom_right, near_top_right, far_bottom_right
         else:
-            p0, p1, p2 = far_bottom_right, far_top_right, near_top_right
-        right_plane_normal = normalize(np.cross(p1 - p0, p2-p1))
-        right_plane_offset = np.dot(right_plane_normal, p0)
+            p0, p1, p2 = far_bottom_right, far_top_right, near_bottom_right
+        right_plane_normal = normalize(np.cross(p1 - p0, p2 - p0))
+        right_plane_offset = -np.dot(right_plane_normal, p0)
         planes.append((right_plane_normal, right_plane_offset))
 
         # top plane
         if self.ccw:
-            p0, p1, p2 = near_top_left, far_top_left, far_top_right
+            p0, p1, p2 = near_top_right, near_top_left, far_top_right
         else:
-            p0, p1, p2 = far_top_right, far_top_left, near_top_left
-        top_plane_normal = normalize(np.cross(p1 - p0, p2-p1))
-        top_plane_offset = np.dot(top_plane_normal, p0)
+            p0, p1, p2 = near_top_left, near_top_right, far_top_left
+        top_plane_normal = normalize(np.cross(p1 - p0, p2 - p0))
+        top_plane_offset = -np.dot(top_plane_normal, p0)
         planes.append((top_plane_normal, top_plane_offset))
 
         # bottom plane
         if self.ccw:
-            p0, p1, p2 = near_bottom_right, far_bottom_right, far_bottom_left
+            p0, p1, p2 = near_bottom_right, far_bottom_right, near_bottom_left
         else:
-            p0, p1, p2 = far_bottom_left, far_bottom_right, near_bottom_right
-        bottom_plane_normal = normalize(np.cross(p1 - p0, p2 - p1))
-        bottom_plane_offset = np.dot(bottom_plane_normal, p0)
+            p0, p1, p2 = near_bottom_left, far_bottom_left, near_bottom_right
+        bottom_plane_normal = normalize(np.cross(p1 - p0, p2 - p0))
+        bottom_plane_offset = -np.dot(bottom_plane_normal, p0)
         planes.append((bottom_plane_normal, bottom_plane_offset))
 
         cam_pose = {
@@ -220,7 +220,7 @@ class Frustum(object):
                 is_in_frustum = True
                 for plane in frustum_planes:
                     plane_normal, plane_offset = plane
-                    if np.dot(plane_normal, target_pos) - plane_offset <= 0.0:
+                    if np.dot(plane_normal, target_pos) + plane_offset <= 0.0:
                         is_in_frustum = False
                         break
                 frustum_tests.append(is_in_frustum)

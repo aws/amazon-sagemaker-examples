@@ -4,6 +4,7 @@ import json
 import logging
 import os
 import time
+from threading import Thread
 import rospy
 
 from rl_coach.base_parameters import TaskParameters
@@ -32,17 +33,19 @@ from markov.rospy_wrappers import ServiceProxyWrapper
 from markov.camera_utils import configure_camera
 from markov.track_geom.track_data import TrackData
 from markov.track_geom.utils import get_start_positions
-from markov.s3.constants import (MODEL_METADATA_LOCAL_PATH_FORMAT,
-                                 MODEL_METADATA_S3_POSTFIX,
-                                 SIMTRACE_EVAL_LOCAL_PATH_FORMAT,
-                                 CAMERA_PIP_MP4_LOCAL_PATH_FORMAT,
-                                 CAMERA_45DEGREE_LOCAL_PATH_FORMAT,
-                                 CAMERA_TOPVIEW_LOCAL_PATH_FORMAT,
-                                 SimtraceVideoNames)
-from markov.s3.files.model_metadata import ModelMetadata
-from markov.s3.files.simtrace_video import SimtraceVideo
-from markov.s3.files.checkpoint import Checkpoint
-from markov.s3.utils import get_s3_key
+from markov.boto.s3.constants import (MODEL_METADATA_LOCAL_PATH_FORMAT,
+                                      MODEL_METADATA_S3_POSTFIX,
+                                      SIMTRACE_EVAL_LOCAL_PATH_FORMAT,
+                                      CAMERA_PIP_MP4_LOCAL_PATH_FORMAT,
+                                      CAMERA_45DEGREE_LOCAL_PATH_FORMAT,
+                                      CAMERA_TOPVIEW_LOCAL_PATH_FORMAT,
+                                      SimtraceVideoNames,
+                                      ModelMetadataKeys)
+from markov.boto.s3.files.model_metadata import ModelMetadata
+from markov.boto.s3.files.simtrace_video import SimtraceVideo
+from markov.boto.s3.files.checkpoint import Checkpoint
+from markov.boto.s3.utils import get_s3_key
+from markov.reset.constants import RaceType
 
 from std_srvs.srv import Empty, EmptyRequest
 
@@ -53,7 +56,7 @@ MIN_RESET_COUNT = 10000 #TODO: change when console passes float("inf")
 IS_PROFILER_ON, PROFILER_S3_BUCKET, PROFILER_S3_PREFIX = get_robomaker_profiler_env()
 
 def evaluation_worker(graph_manager, number_of_trials, task_parameters, simtrace_video_s3_writers, is_continuous,
-                      park_positions):
+                      park_positions, race_type, pause_physics, unpause_physics):
     """ Evaluation worker function
 
     Arguments:
@@ -64,6 +67,7 @@ def evaluation_worker(graph_manager, number_of_trials, task_parameters, simtrace
         simtrace_video_s3_writers(list): Information to upload to the S3 bucket all the simtrace and mp4
         is_continuous(bool): The termination condition for the car
         park_positions(list of tuple): list of (x, y) for cars to park at
+        race_type (str): race type
     """
     # Collect profiler information only IS_PROFILER_ON is true
     with utils.Profiler(s3_bucket=PROFILER_S3_BUCKET, s3_prefix=PROFILER_S3_PREFIX,
@@ -78,6 +82,19 @@ def evaluation_worker(graph_manager, number_of_trials, task_parameters, simtrace
         graph_manager.data_store.wait_for_checkpoints()
         graph_manager.data_store.modify_checkpoint_variables()
 
+        # wait for the required cancel services to become available
+        if race_type != RaceType.F1.value:
+            # TODO: Since we are not running Grand Prix in RoboMaker,
+            # we are opting out from waiting for RoboMaker's cancel job service
+            # in case of Grand Prix execution.
+            # Otherwise, SimApp will hang as service will never come alive.
+            #
+            # If we don't depend on RoboMaker anymore in the future,
+            # we need to remove below line, or do a better job to figure out
+            # whether we are running on RoboMaker or not to decide whether
+            # we should wait for below service or not.
+            rospy.wait_for_service('/robomaker/job/cancel')
+
         # Make the clients that will allow us to pause and unpause the physics
         rospy.wait_for_service('/gazebo/pause_physics_dr')
         rospy.wait_for_service('/gazebo/unpause_physics_dr')
@@ -89,7 +106,8 @@ def evaluation_worker(graph_manager, number_of_trials, task_parameters, simtrace
             rospy.wait_for_service(mp4_unsub)
         for mp4_sub, mp4_unsub in zip(subscribe_to_save_mp4_topic, unsubscribe_from_save_mp4_topic):
             subscribe_to_save_mp4.append(ServiceProxyWrapper(mp4_sub, Empty))
-            unsubscribe_from_save_mp4.append(ServiceProxyWrapper(mp4_unsub, Empty))
+            unsubscribe_from_save_mp4.append(Thread(target=ServiceProxyWrapper(mp4_unsub, Empty),
+                                                    args=(EmptyRequest(), )))
 
         graph_manager.create_graph(task_parameters=task_parameters, stop_physics=pause_physics,
                                    start_physics=unpause_physics, empty_service_call=EmptyRequest)
@@ -116,16 +134,19 @@ def evaluation_worker(graph_manager, number_of_trials, task_parameters, simtrace
                 graph_manager.evaluate(EnvironmentSteps(1))
         if is_save_mp4_enabled:
             for unsubscribe_mp4 in unsubscribe_from_save_mp4:
-                unsubscribe_mp4(EmptyRequest())
+                unsubscribe_mp4.start()
+            for unsubscribe_mp4 in unsubscribe_from_save_mp4:
+                unsubscribe_mp4.join()
         # upload simtrace and mp4 into s3 bucket
         for s3_writer in simtrace_video_s3_writers:
             s3_writer.persist(utils.get_s3_kms_extra_args())
         time.sleep(1)
         pause_physics(EmptyRequest())
 
-    # Close the down the job
-    utils.cancel_simulation_job(os.environ.get('AWS_ROBOMAKER_SIMULATION_JOB_ARN'),
-                                rospy.get_param('AWS_REGION'))
+    if race_type != RaceType.F1.value:
+        # Close the down the job
+        utils.cancel_simulation_job()
+
 
 def main():
     """ Main function for evaluation worker """
@@ -145,10 +166,6 @@ def main():
                         type=str,
                         nargs='+',
                         default=rospy.get_param("MODEL_S3_PREFIX", ["sagemaker"]))
-    parser.add_argument('--s3_endpoint_url',
-                        help='(string) S3 endpoint URL',
-                        type=str,
-                        default=rospy.get_param("S3_ENDPOINT_URL", None))                        
     parser.add_argument('--aws_region',
                         help='(string) AWS region',
                         type=str,
@@ -194,7 +211,7 @@ def main():
     args = parser.parse_args()
     arg_s3_bucket = args.s3_bucket
     arg_s3_prefix = args.s3_prefix
-    logger.info("S3 bucket: %s \n S3 prefix: %s \n S3 endpoint URL: %s", args.s3_bucket, args.s3_prefix, args.s3_endpoint_url)
+    logger.info("S3 bucket: %s \n S3 prefix: %s", arg_s3_bucket, arg_s3_prefix)
 
     metrics_s3_buckets = rospy.get_param('METRICS_S3_BUCKET')
     metrics_s3_object_keys = rospy.get_param('METRICS_S3_OBJECT_KEY')
@@ -254,15 +271,14 @@ def main():
         model_metadata = ModelMetadata(bucket=arg_s3_bucket[agent_index],
                                        s3_key=get_s3_key(arg_s3_prefix[agent_index], MODEL_METADATA_S3_POSTFIX),
                                        region_name=args.aws_region,
-                                       s3_endpoint_url=args.s3_endpoint_url,
                                        local_path=MODEL_METADATA_LOCAL_PATH_FORMAT.format(agent_name))
-        _, _, version = model_metadata.get_model_metadata_info()
+        model_metadata_info = model_metadata.get_model_metadata_info()
+        version = model_metadata_info[ModelMetadataKeys.VERSION.value]
 
         # checkpoint s3 instance
         checkpoint = Checkpoint(bucket=arg_s3_bucket[agent_index],
                                 s3_prefix=arg_s3_prefix[agent_index],
                                 region_name=args.aws_region,
-                                s3_endpoint_url=args.s3_endpoint_url,
                                 agent_name=agent_name,
                                 checkpoint_dir=args.local_model_directory)
         # make coach checkpoint compatible
@@ -288,7 +304,7 @@ def main():
                     steering_topic.replace('racecar', racecar_name) for steering_topic in STEERING_TOPICS],
                 ConfigParams.CHANGE_START.value: utils.str2bool(rospy.get_param('CHANGE_START_POSITION', False)),
                 ConfigParams.ALT_DIR.value: utils.str2bool(rospy.get_param('ALTERNATE_DRIVING_DIRECTION', False)),
-                ConfigParams.ACTION_SPACE_PATH.value: model_metadata.local_path,
+                ConfigParams.MODEL_METADATA.value: model_metadata,
                 ConfigParams.REWARD.value: reward_function,
                 ConfigParams.AGENT_NAME.value: racecar_name,
                 ConfigParams.VERSION.value: version,
@@ -304,7 +320,6 @@ def main():
 
         metrics_s3_config = {MetricsS3Keys.METRICS_BUCKET.value: metrics_s3_buckets[agent_index],
                              MetricsS3Keys.METRICS_KEY.value: metrics_s3_object_keys[agent_index],
-                             MetricsS3Keys.ENDPOINT_URL.value: rospy.get_param('S3_ENDPOINT_URL', None),
                              # Replaced rospy.get_param('AWS_REGION') to be equal to the argument being passed
                              # or default argument set
                              MetricsS3Keys.REGION.value: args.aws_region}
@@ -316,7 +331,6 @@ def main():
                               bucket=simtrace_s3_bucket[agent_index],
                               s3_prefix=simtrace_s3_object_prefix[agent_index],
                               region_name=aws_region,
-                              s3_endpoint_url=args.s3_endpoint_url,
                               local_path=SIMTRACE_EVAL_LOCAL_PATH_FORMAT.format(agent_name)))
         if mp4_s3_bucket:
             simtrace_video_s3_writers.extend([
@@ -324,19 +338,16 @@ def main():
                               bucket=mp4_s3_bucket[agent_index],
                               s3_prefix=mp4_s3_object_prefix[agent_index],
                               region_name=aws_region,
-                              s3_endpoint_url=args.s3_endpoint_url,
                               local_path=CAMERA_PIP_MP4_LOCAL_PATH_FORMAT.format(agent_name)),
                 SimtraceVideo(upload_type=SimtraceVideoNames.DEGREE45.value,
                               bucket=mp4_s3_bucket[agent_index],
                               s3_prefix=mp4_s3_object_prefix[agent_index],
                               region_name=aws_region,
-                              s3_endpoint_url=args.s3_endpoint_url,
                               local_path=CAMERA_45DEGREE_LOCAL_PATH_FORMAT.format(agent_name)),
                 SimtraceVideo(upload_type=SimtraceVideoNames.TOPVIEW.value,
                               bucket=mp4_s3_bucket[agent_index],
                               s3_prefix=mp4_s3_object_prefix[agent_index],
                               region_name=aws_region,
-                              s3_endpoint_url=args.s3_endpoint_url,
                               local_path=CAMERA_TOPVIEW_LOCAL_PATH_FORMAT.format(agent_name))])
 
         run_phase_subject = RunPhaseSubject()
@@ -353,10 +364,19 @@ def main():
     enable_domain_randomization = utils.str2bool(rospy.get_param('ENABLE_DOMAIN_RANDOMIZATION', False))
 
     sm_hyperparams_dict = {}
+
+    # Make the clients that will allow us to pause and unpause the physics
+    rospy.wait_for_service('/gazebo/pause_physics_dr')
+    rospy.wait_for_service('/gazebo/unpause_physics_dr')
+    pause_physics = ServiceProxyWrapper('/gazebo/pause_physics_dr', Empty)
+    unpause_physics = ServiceProxyWrapper('/gazebo/unpause_physics_dr', Empty)
+
     graph_manager, _ = get_graph_manager(hp_dict=sm_hyperparams_dict, agent_list=agent_list,
                                          run_phase_subject=run_phase_subject,
                                          enable_domain_randomization=enable_domain_randomization,
-                                         done_condition=done_condition)
+                                         done_condition=done_condition,
+                                         pause_physics=pause_physics,
+                                         unpause_physics=unpause_physics)
 
     ds_params_instance = S3BotoDataStoreParameters(checkpoint_dict=checkpoint_dict)
 
@@ -374,7 +394,10 @@ def main():
         task_parameters=task_parameters,
         simtrace_video_s3_writers=simtrace_video_s3_writers,
         is_continuous=args.is_continuous,
-        park_positions=park_positions
+        park_positions=park_positions,
+        race_type=args.race_type,
+        pause_physics=pause_physics,
+        unpause_physics=unpause_physics
     )
 
 if __name__ == '__main__':
