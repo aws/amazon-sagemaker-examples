@@ -21,7 +21,7 @@ def compute_dist(img_embeds, dist_func=distance.euclidean, obj='Vehicle:1'):
                 inds.append(i)
     return dists, inds 
 
-def get_problem_frames(lab_frame, size_thresh=.25, iou_thresh=.4, embed=False, imgs=None, verbose=False, embed_std=2):
+def get_problem_frames(lab_frame, flawed_labels, size_thresh=.25, iou_thresh=.4, embed=False, imgs=None, verbose=False, embed_std=2):
     """
     Function for identifying potentially problematic frames using bounding box size, rolling IoU, and optionally embedding comparison.
     """
@@ -70,17 +70,17 @@ def get_problem_frames(lab_frame, size_thresh=.25, iou_thresh=.4, embed=False, i
                 img_arr = np.array(img)
                 img_embeds[j] = {}
                 img_crops[j] = {}
-                for i,annot in lab_frame.iterrows():
+                for i,annot in enumerate(flawed_labels['tracking-annotations'][j]['annotations']):
                     try:
                         crop = img_arr[annot['top']:(annot['top']+annot['height']),annot['left']:(annot['left']+annot['width']),:]                    
                         new_crop = np.array(Image.fromarray(crop).resize((224,224)))
-                        img_crops[j][annot['obj']] = new_crop
+                        img_crops[j][annot['object-name']] = new_crop
                         new_crop = np.reshape(new_crop, (1,224,224,3))
                         new_crop = np.reshape(new_crop, (1,3,224,224))
                         torch_arr = torch.tensor(new_crop, dtype=torch.float)
                         with torch.no_grad():
                             emb = model(torch_arr)
-                        img_embeds[j][annot['obj']] = emb.squeeze()
+                        img_embeds[j][annot['object-name']] = emb.squeeze()
                     except:
                         pass
                     
@@ -120,7 +120,7 @@ def run_quality_check(bucket = None, lab_path = None,
     lab_frame_real = create_annot_frame(tlabels['tracking-annotations'])
     
     print('Running analysis...')
-    frame_res = get_problem_frames(lab_frame_real, size_thresh=size_thresh, iou_thresh=iou_thresh, embed=embed)
+    frame_res = get_problem_frames(lab_frame_real, tlabels, size_thresh=size_thresh, iou_thresh=iou_thresh, embed=embed)
     
     with open('quality_results.json', 'w') as f:
         json.dump(frame_res, f)
