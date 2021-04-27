@@ -1,9 +1,13 @@
 import copy
 import threading
+import logging
 
 from markov.log_handler.deepracer_exceptions import GenericRolloutException
 from markov.gazebo_tracker.abs_tracker import AbstractTracker
 from markov.gazebo_tracker.trackers.get_model_state_tracker import GetModelStateTracker
+from markov.log_handler.logger import Logger
+
+LOG = Logger(__name__, logging.INFO).get_logger()
 
 
 class CameraManager(AbstractTracker):
@@ -29,6 +33,20 @@ class CameraManager(AbstractTracker):
         CameraManager._instance_ = self
         super(CameraManager, self).__init__()
 
+    def pop(self, namespace):
+        """pop camera manager namespace
+
+        Args:
+            namespace(str): camera manager namespace string
+
+        Returns:
+            set: sets of cameras under a specific namespace. Otherwise, None
+        """
+        with self.lock:
+            cameras_set = self.camera_namespaces.pop(namespace, None)
+        LOG.info("[CameraManager]: Popped camera_namespaces %s", namespace)
+        return cameras_set
+
     def add(self, camera, namespace):
         """Add a camera to manage
 
@@ -42,6 +60,7 @@ class CameraManager(AbstractTracker):
             if namespace not in self.camera_namespaces:
                 self.camera_namespaces[namespace] = set()
             self.camera_namespaces[namespace].add(camera)
+        LOG.info("[CameraManager]: Added %s to camera_namespaces %s", camera, namespace)
 
     def remove(self, camera, namespace='*'):
         """Remove the camera in given namespace from manager.
@@ -57,6 +76,7 @@ class CameraManager(AbstractTracker):
                     self.camera_namespaces[cur_namespace].discard(camera)
             else:
                 self.camera_namespaces[namespace].discard(camera)
+        LOG.info("[CameraManager]: Removed %s from camera_namespaces %s", camera, namespace)
 
     def reset(self, car_pose, namespace='*'):
         """Reset camera pose on given namespace
