@@ -35,6 +35,7 @@ class StepMetrics(Enum):
     TRACK_LEN = 'track_len'
     TIME = 'tstamp'
     EPISODE_STATUS = 'episode_status'
+    PAUSE_DURATION = 'pause_duration'
 
     @classmethod
     def make_default_metric(cls):
@@ -59,9 +60,11 @@ class EpisodeStatus(Enum):
     OFF_TRACK = 'off_track'
     IN_PROGRESS = 'in_progress'
     IMMOBILIZED = 'immobilized'
+    TIME_UP = 'time_up'
     PAUSE = 'pause'
     REVERSED = 'reversed'
     PARK = 'park'
+    PREPARE = 'prepare'
 
     @classmethod
     def get_episode_status(cls, is_done_dict):
@@ -90,7 +93,9 @@ EPISODE_STATUS_LABEL_MAP = {
     EpisodeStatus.IN_PROGRESS.value: 'In progress',
     EpisodeStatus.PAUSE.value: 'Pause',
     EpisodeStatus.REVERSED.value: 'Reversed',
-    EpisodeStatus.PARK.value: 'Park'
+    EpisodeStatus.PARK.value: 'Park',
+    EpisodeStatus.TIME_UP.value: 'Time Up',
+    EpisodeStatus.PREPARE.value: "Prepare"
 }
 
 @unique
@@ -108,6 +113,8 @@ class Mp4VideoMetrics(Enum):
     X = 'x'
     Y = 'y'
     OBJECT_LOCATIONS = 'object_locations'
+    EPISODE_STATUS = 'episode_status'
+    PAUSE_DURATION = 'pause_duration'
 
     @classmethod
     def get_empty_dict(cls):
@@ -118,3 +125,9 @@ class Mp4VideoMetrics(Enum):
         for enum_map in cls._value2member_map_.values():
             empty_dict[enum_map.value] = None
         return empty_dict
+
+
+class BestModelMetricType(Enum):
+    """This enum is used to determine the metric to use when selecting best model"""
+    PROGRESS = 'progress'
+    REWARD = 'reward'

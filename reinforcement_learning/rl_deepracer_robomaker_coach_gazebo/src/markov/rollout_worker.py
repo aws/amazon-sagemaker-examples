@@ -12,7 +12,6 @@ import logging
 import os
 import time
 import rospy
-import future_fstrings
 import botocore
 
 from rl_coach.base_parameters import TaskParameters, DistributedCoachSynchronizationType, RunType
@@ -44,24 +43,25 @@ from markov.sagemaker_graph_manager import get_graph_manager
 from markov.rospy_wrappers import ServiceProxyWrapper
 from markov.camera_utils import configure_camera
 from markov.deepracer_memory import DeepRacerRedisPubSubMemoryBackendParameters
-from markov.s3.files.hyperparameters import Hyperparameters
-from markov.s3.files.model_metadata import ModelMetadata
-from markov.s3.files.reward_function import RewardFunction
-from markov.s3.files.simtrace_video import SimtraceVideo
-from markov.s3.files.ip_config import IpConfig
-from markov.s3.files.checkpoint import Checkpoint
-from markov.s3.utils import get_s3_key
-from markov.s3.constants import (HYPERPARAMETER_LOCAL_PATH_FORMAT,
-                                 MODEL_METADATA_LOCAL_PATH_FORMAT,
-                                 REWARD_FUCTION_LOCAL_PATH_FORMAT,
-                                 HYPERPARAMETER_S3_POSTFIX,
-                                 SIMTRACE_TRAINING_LOCAL_PATH_FORMAT,
-                                 CAMERA_PIP_MP4_LOCAL_PATH_FORMAT,
-                                 CAMERA_45DEGREE_LOCAL_PATH_FORMAT,
-                                 CAMERA_TOPVIEW_LOCAL_PATH_FORMAT,
-                                 SimtraceVideoNames,
-                                 IP_ADDRESS_LOCAL_PATH)
-from markov.s3.s3_client import S3Client
+from markov.boto.s3.files.hyperparameters import Hyperparameters
+from markov.boto.s3.files.model_metadata import ModelMetadata
+from markov.boto.s3.files.reward_function import RewardFunction
+from markov.boto.s3.files.simtrace_video import SimtraceVideo
+from markov.boto.s3.files.ip_config import IpConfig
+from markov.boto.s3.files.checkpoint import Checkpoint
+from markov.boto.s3.utils import get_s3_key
+from markov.boto.s3.constants import (HYPERPARAMETER_LOCAL_PATH_FORMAT,
+                                      MODEL_METADATA_LOCAL_PATH_FORMAT,
+                                      REWARD_FUCTION_LOCAL_PATH_FORMAT,
+                                      HYPERPARAMETER_S3_POSTFIX,
+                                      SIMTRACE_TRAINING_LOCAL_PATH_FORMAT,
+                                      CAMERA_PIP_MP4_LOCAL_PATH_FORMAT,
+                                      CAMERA_45DEGREE_LOCAL_PATH_FORMAT,
+                                      CAMERA_TOPVIEW_LOCAL_PATH_FORMAT,
+                                      SimtraceVideoNames,
+                                      IP_ADDRESS_LOCAL_PATH,
+                                      ModelMetadataKeys)
+from markov.boto.s3.s3_client import S3Client
 from std_srvs.srv import Empty, EmptyRequest
 
 logger = Logger(__name__, logging.INFO).get_logger()
@@ -125,7 +125,8 @@ def exit_if_trainer_done(checkpoint_dir, simtrace_video_s3_writers, rollout_idx)
         simapp_exit_gracefully()
 
 
-def rollout_worker(graph_manager, num_workers, rollout_idx, task_parameters, simtrace_video_s3_writers):
+def rollout_worker(graph_manager, num_workers, rollout_idx, task_parameters, simtrace_video_s3_writers,
+                   pause_physics, unpause_physics):
     """
     wait for first checkpoint then perform rollouts using the model
     """
@@ -138,13 +139,14 @@ def rollout_worker(graph_manager, num_workers, rollout_idx, task_parameters, sim
     checkpoint_dir = os.path.join(task_parameters.checkpoint_restore_path, "agent")
     graph_manager.data_store.wait_for_checkpoints()
     graph_manager.data_store.wait_for_trainer_ready()
+    # wait for the required cancel services to become available
+    rospy.wait_for_service('/robomaker/job/cancel')
     # Make the clients that will allow us to pause and unpause the physics
     rospy.wait_for_service('/gazebo/pause_physics_dr')
     rospy.wait_for_service('/gazebo/unpause_physics_dr')
     rospy.wait_for_service('/racecar/save_mp4/subscribe_to_save_mp4')
     rospy.wait_for_service('/racecar/save_mp4/unsubscribe_from_save_mp4')
-    pause_physics = ServiceProxyWrapper('/gazebo/pause_physics_dr', Empty)
-    unpause_physics = ServiceProxyWrapper('/gazebo/unpause_physics_dr', Empty)
+
     subscribe_to_save_mp4 = ServiceProxyWrapper('/racecar/save_mp4/subscribe_to_save_mp4', Empty)
     unsubscribe_from_save_mp4 = ServiceProxyWrapper('/racecar/save_mp4/unsubscribe_from_save_mp4', Empty)
     graph_manager.create_graph(task_parameters=task_parameters, stop_physics=pause_physics,
@@ -308,7 +310,8 @@ def main():
                                    s3_key=args.model_metadata_s3_key,
                                    region_name=args.aws_region,
                                    local_path=MODEL_METADATA_LOCAL_PATH_FORMAT.format('agent'))
-    _, _, version = model_metadata.get_model_metadata_info()
+    model_metadata_info = model_metadata.get_model_metadata_info()
+    version = model_metadata_info[ModelMetadataKeys.VERSION.value]
 
     agent_config = {
         'model_metadata': model_metadata,
@@ -318,7 +321,7 @@ def main():
             ConfigParams.STEERING_LIST.value : STEERING_TOPICS,
             ConfigParams.CHANGE_START.value : utils.str2bool(rospy.get_param('CHANGE_START_POSITION', True)),
             ConfigParams.ALT_DIR.value : utils.str2bool(rospy.get_param('ALTERNATE_DRIVING_DIRECTION', False)),
-            ConfigParams.ACTION_SPACE_PATH.value : model_metadata.local_path,
+            ConfigParams.MODEL_METADATA.value : model_metadata,
             ConfigParams.REWARD.value : reward_function,
             ConfigParams.AGENT_NAME.value : 'racecar',
             ConfigParams.VERSION.value : version,
@@ -425,6 +428,12 @@ def main():
     sm_hyperparams_dict = hyperparameters.get_hyperparameters_dict()
 
     enable_domain_randomization = utils.str2bool(rospy.get_param('ENABLE_DOMAIN_RANDOMIZATION', False))
+    # Make the clients that will allow us to pause and unpause the physics
+    rospy.wait_for_service('/gazebo/pause_physics_dr')
+    rospy.wait_for_service('/gazebo/unpause_physics_dr')
+    pause_physics = ServiceProxyWrapper('/gazebo/pause_physics_dr', Empty)
+    unpause_physics = ServiceProxyWrapper('/gazebo/unpause_physics_dr', Empty)
+
     if preset_file_success:
         preset_location = os.path.join(CUSTOM_FILES_PATH, "preset.py")
         preset_location += ":graph_manager"
@@ -433,7 +442,9 @@ def main():
     else:
         graph_manager, _ = get_graph_manager(hp_dict=sm_hyperparams_dict, agent_list=agent_list,
                                              run_phase_subject=run_phase_subject,
-                                             enable_domain_randomization=enable_domain_randomization)
+                                             enable_domain_randomization=enable_domain_randomization,
+                                             pause_physics=pause_physics,
+                                             unpause_physics=unpause_physics)
 
     # If num_episodes_between_training is smaller than num_workers then cancel worker early.
     episode_steps_per_rollout = graph_manager.agent_params.algorithm.num_consecutive_playing_steps.num_steps
@@ -447,8 +458,7 @@ def main():
         err_msg_format += "(rollout_idx[{}] >= num_workers[{}] or num_episodes_between_training[{}])"
         logger.info(err_msg_format.format(args.rollout_idx, args.num_workers, episode_steps_per_rollout))
         # Close the down the job
-        utils.cancel_simulation_job(os.environ.get('AWS_ROBOMAKER_SIMULATION_JOB_ARN'),
-                                    rospy.get_param('AWS_REGION'))
+        utils.cancel_simulation_job()
 
     memory_backend_params = DeepRacerRedisPubSubMemoryBackendParameters(redis_address=redis_ip,
                                                                         redis_port=6379,
@@ -472,7 +482,9 @@ def main():
         num_workers=args.num_workers,
         rollout_idx=args.rollout_idx,
         task_parameters=task_parameters,
-        simtrace_video_s3_writers=simtrace_video_s3_writers
+        simtrace_video_s3_writers=simtrace_video_s3_writers,
+        pause_physics=pause_physics,
+        unpause_physics=unpause_physics
     )
 
 if __name__ == '__main__':

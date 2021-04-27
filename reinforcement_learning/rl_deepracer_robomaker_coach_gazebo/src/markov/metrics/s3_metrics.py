@@ -11,10 +11,10 @@ import botocore
 import rospy
 from deepracer_simulation_environment.srv import VideoMetricsSrvResponse, VideoMetricsSrv
 from geometry_msgs.msg import Point32
-from markov.constants import BEST_CHECKPOINT, LAST_CHECKPOINT
+from markov.constants import BEST_CHECKPOINT, LAST_CHECKPOINT, METRICS_VERSION
 from markov.common import ObserverInterface
 from markov.metrics.constants import (MetricsS3Keys, StepMetrics, EpisodeStatus,
-                                      Mp4VideoMetrics)
+                                      Mp4VideoMetrics, BestModelMetricType)
 from markov.metrics.metrics_interface import MetricsInterface
 from markov.utils import get_boto_config, get_s3_kms_extra_args
 from markov.log_handler.logger import Logger
@@ -26,11 +26,12 @@ from rl_coach.core_types import RunPhase
 from markov.gazebo_tracker.abs_tracker import AbstractTracker
 from markov.gazebo_tracker.constants import TrackerPriority
 from markov.track_geom.track_data import TrackData
-from markov.s3.constants import (SIMTRACE_EVAL_LOCAL_PATH_FORMAT,
-                                 SIMTRACE_TRAINING_LOCAL_PATH_FORMAT)
-from markov.s3.files.metrics import Metrics
+from markov.boto.s3.constants import (SIMTRACE_EVAL_LOCAL_PATH_FORMAT,
+                                      SIMTRACE_TRAINING_LOCAL_PATH_FORMAT)
+from markov.boto.s3.files.metrics import Metrics
 
 LOGGER = Logger(__name__, logging.INFO).get_logger()
+
 
 #! TODO this needs to be removed after muti part is fixed, note we don't have
 # agent name here, but we can add it to the step metrics if needed
@@ -39,8 +40,9 @@ def sim_trace_log(sim_trace_dict):
        sim_trace_dict - Ordered dict containing the step metrics, note order must match
                         precision in the string
     '''
-    LOGGER.info('SIM_TRACE_LOG:%d,%d,%.4f,%.4f,%.4f,%.2f,%.2f,%d,%.4f,%s,%s,%.4f,%d,%.2f,%s,%s\n' % \
+    LOGGER.info('SIM_TRACE_LOG:%d,%d,%.4f,%.4f,%.4f,%.2f,%.2f,%s,%.4f,%s,%s,%.4f,%d,%.2f,%s,%s,%.2f\n' % \
         (tuple(sim_trace_dict.values())))
+
 
 def write_simtrace_to_local_file(file_path: str, metrics_data: OrderedDict):
     """ Write the metrics data to s3
@@ -55,6 +57,7 @@ def write_simtrace_to_local_file(file_path: str, metrics_data: OrderedDict):
                 filepointer.write(','.join([str(key) for key, value in metrics_data.items()])+"\n")
         with open(file_path, 'a') as filepointer:
             filepointer.write(','.join([str(value) for key, value in metrics_data.items()])+"\n")
+
 
 class TrainingMetrics(MetricsInterface, ObserverInterface, AbstractTracker):
     '''This class is responsible for uploading training metrics to s3'''
@@ -81,10 +84,15 @@ class TrainingMetrics(MetricsInterface, ObserverInterface, AbstractTracker):
         self._eval_trials_ = 0
         self._checkpoint_state_ = CheckpointStateFile(ckpnt_dir)
         self._use_model_picker = use_model_picker
-        self._eval_stats_dict_ = {'chkpnt_name': None, 'avg_comp_pct': -1.0}
-        self._best_chkpnt_stats = {'name': None, 'avg_comp_pct': -1.0, 'time_stamp': time.time()}
-        self._current_eval_pct_list_ = list()
+        self._eval_stats_dict_ = {'chkpnt_name': None,
+                                  'avg_eval_metric': None}
+        self._best_chkpnt_stats = {'name': None,
+                                   'avg_eval_metric': None,
+                                   'time_stamp': time.time()}
+        self._current_eval_best_model_metric_list_ = list()
         self.is_save_simtrace_enabled = rospy.get_param('SIMTRACE_S3_BUCKET', None)
+        self._best_model_metric_type = BestModelMetricType(rospy.get_param('BEST_MODEL_METRIC',
+                                                                           BestModelMetricType.PROGRESS.value).lower())
         self.track_data = TrackData.get_instance()
         run_phase_sink.register(self)
         # Create the agent specific directories needed for storing the metric files
@@ -130,24 +138,28 @@ class TrainingMetrics(MetricsInterface, ObserverInterface, AbstractTracker):
         self._metrics_.append(training_metric)
 
     def upload_episode_metrics(self):
-        json_metrics = json.dumps({'metrics': self._metrics_})
+        json_metrics = json.dumps({'metrics': self._metrics_,
+                                   'version': METRICS_VERSION,
+                                   'best_model_metric': self._best_model_metric_type.value})
         self._s3_metrics.persist(body=json_metrics,
                                  s3_kms_extra_args=get_s3_kms_extra_args())
         if self._is_eval_:
-            self._current_eval_pct_list_.append(self._progress_)
+            if self._best_model_metric_type == BestModelMetricType.REWARD:
+                self._current_eval_best_model_metric_list_.append(self._episode_reward_)
+            else:
+                self._current_eval_best_model_metric_list_.append(self._progress_)
 
     def upload_step_metrics(self, metrics):
         self._progress_ = metrics[StepMetrics.PROG.value]
         self._episode_status = metrics[StepMetrics.EPISODE_STATUS.value]
+        self._episode_reward_ += metrics[StepMetrics.REWARD.value]
         if not self._is_eval_:
             metrics[StepMetrics.EPISODE.value] = self._episode_
-            self._episode_reward_ += metrics[StepMetrics.REWARD.value]
             StepMetrics.validate_dict(metrics)
             sim_trace_log(metrics)
             if self.is_save_simtrace_enabled:
                 write_simtrace_to_local_file(self._simtrace_local_path,
                                              metrics)
-        self._update_mp4_video_metrics(metrics)
 
     def update(self, data):
         self._is_eval_ = data != RunPhase.TRAIN
@@ -157,25 +169,30 @@ class TrainingMetrics(MetricsInterface, ObserverInterface, AbstractTracker):
                 self._eval_stats_dict_['chkpnt_name'] = self._checkpoint_state_.read().name
 
             self._eval_trials_ = 0
-            mean_pct = statistics.mean(self._current_eval_pct_list_ if \
-                                       self._current_eval_pct_list_ else [0.0])
-            LOGGER.info('Number of evaluations: {} Evaluation progresses: {}'.format(len(self._current_eval_pct_list_),
-                                                                                     self._current_eval_pct_list_))
-            LOGGER.info('Evaluation progresses mean: {}'.format(mean_pct))
-            self._current_eval_pct_list_.clear()
+            mean_metric = statistics.mean(self._current_eval_best_model_metric_list_) if self._current_eval_best_model_metric_list_ else None
+            msg_format = '[BestModelSelection] Number of evaluations: {} Evaluation episode {}: {}'
+            LOGGER.info(msg_format.format(len(self._current_eval_best_model_metric_list_),
+                                          self._best_model_metric_type.value,
+                                          self._current_eval_best_model_metric_list_))
+            LOGGER.info('[BestModelSelection] Evaluation episode {} mean: {}'.format(self._best_model_metric_type.value,
+                                                                                     mean_metric))
+            self._current_eval_best_model_metric_list_.clear()
 
             time_stamp = self._current_sim_time
-            if mean_pct >= self._eval_stats_dict_['avg_comp_pct']:
-                LOGGER.info('Current mean: {} >= Current best mean: {}'.format(mean_pct,
-                                                                               self._eval_stats_dict_['avg_comp_pct']))
-                LOGGER.info('Updating the best checkpoint to "{}" from "{}".'.format(self._eval_stats_dict_['chkpnt_name'],
-                                                                                     self._best_chkpnt_stats['name']))
-                self._eval_stats_dict_['avg_comp_pct'] = mean_pct
+            if self._eval_stats_dict_['avg_eval_metric'] is None or \
+                    mean_metric >= self._eval_stats_dict_['avg_eval_metric']:
+                msg_format = '[BestModelSelection] current {0} mean: {1} >= best {0} mean: {2}'
+                LOGGER.info(msg_format.format(self._best_model_metric_type.value,
+                                              mean_metric,
+                                              self._eval_stats_dict_['avg_eval_metric']))
+                msg_format = '[BestModelSelection] Updating the best checkpoint to "{}" from "{}".'
+                LOGGER.info(msg_format.format(self._eval_stats_dict_['chkpnt_name'], self._best_chkpnt_stats['name']))
+                self._eval_stats_dict_['avg_eval_metric'] = mean_metric
                 self._best_chkpnt_stats = {'name': self._eval_stats_dict_['chkpnt_name'],
-                                           'avg_comp_pct': mean_pct,
+                                           'avg_eval_metric': mean_metric,
                                            'time_stamp': time_stamp}
             last_chkpnt_stats = {'name': self._eval_stats_dict_['chkpnt_name'],
-                                 'avg_comp_pct': mean_pct,
+                                 'avg_eval_metric': mean_metric,
                                  'time_stamp': time_stamp}
             self._deepracer_checkpoint_json.persist(
                 body=json.dumps({BEST_CHECKPOINT: self._best_chkpnt_stats,
@@ -187,7 +204,7 @@ class TrainingMetrics(MetricsInterface, ObserverInterface, AbstractTracker):
             # is avaialble
             self._eval_stats_dict_['chkpnt_name'] = self._checkpoint_state_.read().name
 
-    def _update_mp4_video_metrics(self, metrics):
+    def update_mp4_video_metrics(self, metrics):
         agent_x, agent_y = metrics[StepMetrics.X.value], metrics[StepMetrics.Y.value]
         self._video_metrics[Mp4VideoMetrics.LAP_COUNTER.value] = 0
         self._video_metrics[Mp4VideoMetrics.COMPLETION_PERCENTAGE.value] = self._progress_
@@ -223,11 +240,14 @@ class TrainingMetrics(MetricsInterface, ObserverInterface, AbstractTracker):
                                        self._video_metrics[Mp4VideoMetrics.DONE.value],
                                        self._video_metrics[Mp4VideoMetrics.X.value],
                                        self._video_metrics[Mp4VideoMetrics.Y.value],
-                                       self._video_metrics[Mp4VideoMetrics.OBJECT_LOCATIONS.value])
+                                       self._video_metrics[Mp4VideoMetrics.OBJECT_LOCATIONS.value],
+                                       self._video_metrics[Mp4VideoMetrics.EPISODE_STATUS.value],
+                                       self._video_metrics[Mp4VideoMetrics.PAUSE_DURATION.value])
+
 
 class EvalMetrics(MetricsInterface, AbstractTracker):
     '''This class is responsible for uploading eval metrics to s3'''
-    def __init__(self, agent_name, s3_dict_metrics, is_continuous):
+    def __init__(self, agent_name, s3_dict_metrics, is_continuous, pause_time_before_start=0.0):
         '''Init eval metrics
 
         Args:
@@ -235,7 +255,10 @@ class EvalMetrics(MetricsInterface, AbstractTracker):
             s3_dict_metrics (dict): Dictionary containing the required
                 s3 info for the metrics bucket with keys specified by MetricsS3Keys
             is_continuous (bool): True if continuous race, False otherwise
+            pause_time_before_start (float): second to pause before race start
         '''
+        self._pause_time_before_start = pause_time_before_start
+        self._is_pause_time_subtracted = False
         self._agent_name_ = agent_name
         self._s3_metrics = Metrics(bucket=s3_dict_metrics[MetricsS3Keys.METRICS_BUCKET.value],
                                    s3_key=s3_dict_metrics[MetricsS3Keys.METRICS_KEY.value],
@@ -269,6 +292,19 @@ class EvalMetrics(MetricsInterface, AbstractTracker):
                       self._handle_get_video_metrics)
         AbstractTracker.__init__(self, TrackerPriority.HIGH)
 
+    def reset_metrics(self, s3_dict_metrics, is_save_simtrace_enabled):
+        """reset matrics for virtual event when next racer coming in
+
+        Args:
+            s3_dict_metrics (dict): dictionary for s3 metrics
+            is_save_simtrace_enabled (bool): True if saving simtrace. False, otherwise.
+        """
+        self._s3_metrics = Metrics(bucket=s3_dict_metrics[MetricsS3Keys.METRICS_BUCKET.value],
+                                   s3_key=s3_dict_metrics[MetricsS3Keys.METRICS_KEY.value],
+                                   region_name=s3_dict_metrics[MetricsS3Keys.REGION.value])
+        self.is_save_simtrace_enabled = is_save_simtrace_enabled
+        self.clear()
+
     def update_tracker(self, delta_time, sim_time):
         """
         Callback when sim time is updated
@@ -280,7 +316,17 @@ class EvalMetrics(MetricsInterface, AbstractTracker):
         self._current_sim_time = sim_time.clock.secs + 1.e-9 * sim_time.clock.nsecs
 
     def reset(self):
-        self._start_time_ = self._current_sim_time
+        """clear reset counter only for non-continuous racing
+        """
+        # for continuous race: add pause time for only first lap
+        if self._is_continuous:
+            self._start_time_ = self._current_sim_time
+            if not self._is_pause_time_subtracted:
+                self._start_time_ += self._pause_time_before_start
+                self._is_pause_time_subtracted = True
+        # for non-continuous race: add pause time for every lap
+        else:
+            self._start_time_ = self._current_sim_time + self._pause_time_before_start
         self._reset_count_sum += \
             self.reset_count_dict[EpisodeStatus.CRASHED.value] +\
             self.reset_count_dict[EpisodeStatus.IMMOBILIZED.value] +\
@@ -289,15 +335,22 @@ class EvalMetrics(MetricsInterface, AbstractTracker):
         for key in self.reset_count_dict.keys():
             self.reset_count_dict[key] = 0
 
-    def append_episode_metrics(self):
-        self._number_of_trials_ += 1
+    def append_episode_metrics(self, is_complete=True):
+        if not is_complete and self._number_of_trials_ != 0:
+            # Note: for virtual event, if the racer did not even finish one lap
+            # for the duration of the event, we display DNF.
+            # However, our friends at the game want the DNF ranks as well
+            # so we append the incomplete metrics for ppl who didn't finish
+            # first lap
+            LOGGER.info("Appending episode metrics for incomplete lap skipped, laps completed %s",
+                        self._number_of_trials_)
+            return
         eval_metric = dict()
         eval_metric['completion_percentage'] = int(self._progress_)
         eval_metric['metric_time'] = int(round(self._current_sim_time * 1000))
         eval_metric['start_time'] = int(round(self._start_time_ * 1000))
         eval_metric['elapsed_time_in_milliseconds'] = \
             int(round((self._current_sim_time - self._start_time_) * 1000))
-        eval_metric['trial'] = int(self._number_of_trials_)
         eval_metric['episode_status'] = EpisodeStatus.get_episode_status_label(self._episode_status)
         eval_metric['crash_count'] = self.reset_count_dict[EpisodeStatus.CRASHED.value]
         eval_metric['immobilized_count'] = self.reset_count_dict[EpisodeStatus.IMMOBILIZED.value]
@@ -307,16 +360,25 @@ class EvalMetrics(MetricsInterface, AbstractTracker):
                                      eval_metric['immobilized_count'] + \
                                      eval_metric['off_track_count'] + \
                                      eval_metric['reversed_count']
-        self._best_lap_time = min(eval_metric['elapsed_time_in_milliseconds'], self._best_lap_time)
-        self._total_evaluation_time += eval_metric['elapsed_time_in_milliseconds']
+        if is_complete:
+            self._number_of_trials_ += 1
+            self._best_lap_time = min(eval_metric['elapsed_time_in_milliseconds'], self._best_lap_time)
+            self._total_evaluation_time += eval_metric['elapsed_time_in_milliseconds']
+        eval_metric['trial'] = int(self._number_of_trials_)
         self._metrics_.append(eval_metric)
 
     def upload_episode_metrics(self):
+        # TODO: Service team can't handle "version" key in Evaluation Metrics due to
+        # unknown key in the json. Training metrics change works fine as the metrics.json
+        # file is directly loaded in Front-end Console while evaluation metrics file is loaded through
+        # Service API and Service can't handle the keys in metrics file that is not defined in the service.
+        # Keeping evaluation metrics as it is (without version key) as there is no change in the format anyway.
+        # But we should make change in the future to match the format with Training metrics.
         json_metrics = json.dumps({'metrics': self._metrics_})
         self._s3_metrics.persist(body=json_metrics,
                                  s3_kms_extra_args=get_s3_kms_extra_args())
 
-    def _update_mp4_video_metrics(self, metrics):
+    def update_mp4_video_metrics(self, metrics):
         actual_speed = 0
         cur_time = self._current_sim_time
         agent_x, agent_y = metrics[StepMetrics.X.value], metrics[StepMetrics.Y.value]
@@ -345,7 +407,7 @@ class EvalMetrics(MetricsInterface, AbstractTracker):
         self._video_metrics[Mp4VideoMetrics.STEERING.value] = metrics[StepMetrics.STEER.value]
         self._video_metrics[Mp4VideoMetrics.BEST_LAP_TIME.value] = self._best_lap_time
         self._video_metrics[Mp4VideoMetrics.TOTAL_EVALUATION_TIME.value] = self._total_evaluation_time +\
-                                int(round((self._current_sim_time - self._start_time_) * 1000))
+            int(round((self._current_sim_time - self._start_time_) * 1000))
         self._video_metrics[Mp4VideoMetrics.DONE.value] = metrics[StepMetrics.DONE.value]
         self._video_metrics[Mp4VideoMetrics.X.value] = agent_x
         self._video_metrics[Mp4VideoMetrics.Y.value] = agent_y
@@ -358,6 +420,10 @@ class EvalMetrics(MetricsInterface, AbstractTracker):
             point.x, point.y, point.z = pose.position.x, pose.position.y, 0
             object_locations.append(point)
         self._video_metrics[Mp4VideoMetrics.OBJECT_LOCATIONS.value] = object_locations
+        self._video_metrics[Mp4VideoMetrics.EPISODE_STATUS.value] = \
+            metrics[StepMetrics.EPISODE_STATUS.value]
+        self._video_metrics[Mp4VideoMetrics.PAUSE_DURATION.value] = \
+            metrics[StepMetrics.PAUSE_DURATION.value]
 
     def upload_step_metrics(self, metrics):
         metrics[StepMetrics.EPISODE.value] = self._number_of_trials_
@@ -370,7 +436,6 @@ class EvalMetrics(MetricsInterface, AbstractTracker):
         if self.is_save_simtrace_enabled:
             write_simtrace_to_local_file(self._simtrace_local_path,
                                          metrics)
-        self._update_mp4_video_metrics(metrics)
 
     def _handle_get_video_metrics(self, req):
         return VideoMetricsSrvResponse(self._video_metrics[Mp4VideoMetrics.LAP_COUNTER.value],
@@ -383,4 +448,27 @@ class EvalMetrics(MetricsInterface, AbstractTracker):
                                        self._video_metrics[Mp4VideoMetrics.DONE.value],
                                        self._video_metrics[Mp4VideoMetrics.X.value],
                                        self._video_metrics[Mp4VideoMetrics.Y.value],
-                                       self._video_metrics[Mp4VideoMetrics.OBJECT_LOCATIONS.value])
+                                       self._video_metrics[Mp4VideoMetrics.OBJECT_LOCATIONS.value],
+                                       self._video_metrics[Mp4VideoMetrics.EPISODE_STATUS.value],
+                                       self._video_metrics[Mp4VideoMetrics.PAUSE_DURATION.value])
+
+    def clear(self):
+        """clear all EvalMetrics member variable
+        """
+        self._is_pause_time_subtracted = False
+        self._start_time_ = self._current_sim_time
+        self._number_of_trials_ = 0
+        self._progress_ = 0.0
+        self._episode_status = ''
+        self._metrics_ = list()
+        self._agent_xy = list()
+        self._prev_step_time = self._current_sim_time
+        self.reset_count_dict = {EpisodeStatus.CRASHED.value: 0,
+                                 EpisodeStatus.OFF_TRACK.value: 0,
+                                 EpisodeStatus.IMMOBILIZED.value: 0,
+                                 EpisodeStatus.REVERSED.value: 0}
+        self._best_lap_time = float('inf')
+        self._total_evaluation_time = 0
+        self._video_metrics = Mp4VideoMetrics.get_empty_dict()
+        self._reset_count_sum = 0
+        self._current_sim_time = 0

@@ -10,8 +10,6 @@ import copy
 
 warnings.filterwarnings('ignore', category=FutureWarning)
 
-sys.path.append(os.path.join(os.path.dirname(__file__), '/opt/ml/code/package'))
-
 import numpy as np
 import pandas as pd
 import pickle
@@ -23,7 +21,7 @@ from collections import Counter
 with warnings.catch_warnings():
     warnings.filterwarnings('ignore', category=DeprecationWarning)
     from prettytable import PrettyTable
-    from autogluon import TabularPrediction as task
+    from autogluon.tabular import TabularPredictor, TabularDataset
 
 def make_str_table(df):
     table = PrettyTable(['index']+list(df.columns))
@@ -60,7 +58,8 @@ def model_fn(model_dir):
     :return: a model (in this case a Gluon network) and the column info.
     """
     print(f'Loading model from {model_dir} with contents {os.listdir(model_dir)}')
-    net = task.load(model_dir, verbosity=True)
+
+    net = TabularPredictor.load(model_dir, verbosity=True)
     with open(f'{model_dir}/code/columns.pkl', 'rb') as f:
         column_dict = pickle.load(f)
     return net, column_dict
@@ -78,28 +77,42 @@ def transform_fn(models, data, input_content_type, output_content_type):
     start = timer()
     net = models[0]
     column_dict = models[1]
+    label_map = net.class_labels_internal_map ### 
 
     # text/csv
-    if input_content_type == 'text/csv':
-        
+    if 'text/csv' in input_content_type:
         # Load dataset
         columns = column_dict['columns']
-        df = pd.read_csv(StringIO(data), header=None)
-        df_preprosessed = preprocess(df, columns, net.label_column)
-        ds = task.Dataset(df=df_preprosessed)
+
+        if type(data) == str:
+        # Load dataset
+            df = pd.read_csv(StringIO(data), header=None)
+        else:
+            df = pd.read_csv(StringIO(data.decode()), header=None)
+
+        df_preprosessed = preprocess(df, columns, net.label)
+
+        ds = TabularDataset(data=df_preprosessed)
         
         try:
-            predictions = net.predict(ds)
+            predictions = net.predict_proba(ds)
+            predictions_ = net.predict(ds)
         except:
             try:
-                predictions = net.predict(ds.fillna(0.0))
+                predictions = net.predict_proba(ds.fillna(0.0))
+                predictions_ = net.predict(ds.fillna(0.0))
                 warnings.warn('Filled NaN\'s with 0.0 in order to predict.')
             except Exception as e:
                 response_body = e
                 return response_body, output_content_type
-        
+
+        #threshold = 0.5
+        #predictions_label = [[k for k, v in label_map.items() if v == 1][0] if i > threshold else [k for k, v in label_map.items() if v == 0][0] for i in predictions]
+        predictions_label = predictions_.tolist()
+    
+
         # Print prediction counts, limit in case of regression problem
-        pred_counts = Counter(predictions.tolist())
+        pred_counts = Counter(predictions_label)
         n_display_items = 30
         if len(pred_counts) > n_display_items:
             print(f'Top {n_display_items} prediction counts: '
@@ -113,15 +126,15 @@ def transform_fn(models, data, input_content_type, output_content_type):
         response_body = output.getvalue() 
 
         # If target column passed, evaluate predictions performance
-        target = net.label_column
+        target = net.label
         if target in ds:
             print(f'Label column ({target}) found in input data. '
                   'Therefore, evaluating prediction performance...')    
             try:
                 performance = net.evaluate_predictions(y_true=ds[target], 
-                                                       y_pred=predictions, 
+                                                       y_pred=np.array(predictions_label), 
                                                        auxiliary_metrics=True)                
-                print(json.dumps(performance, indent=4))
+                print(json.dumps(performance, indent=4, default=pd.DataFrame.to_json))
                 time.sleep(0.1)
             except Exception as e:
                 # Print exceptions on evaluate, continue to return predictions

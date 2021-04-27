@@ -71,7 +71,7 @@ def ray_plane_intersect(ray_origin, ray_dir, plane_normal, plane_offset, thresho
     point_on_plane = None
     denominator = np.dot(plane_normal, ray_dir)
     if np.abs(denominator) >= threshold:
-        t = (plane_offset - np.dot(ray_origin, plane_normal)) / denominator
+        t = (-plane_offset - np.dot(ray_origin, plane_normal)) / denominator
         # Point on near plane that intersects the ray and the plane
         point_on_plane = ray_origin + t * ray_dir
     return point_on_plane
