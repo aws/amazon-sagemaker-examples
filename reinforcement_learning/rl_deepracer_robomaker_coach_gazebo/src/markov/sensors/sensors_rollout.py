@@ -8,7 +8,7 @@ from PIL import Image
 from markov.sensors.utils import get_observation_space, get_front_camera_embedders, \
                                  get_left_camera_embedders, get_stereo_camera_embedders, \
                                  get_lidar_embedders, get_observation_embedder
-from markov.sensors.sensor_interface import SensorInterface
+from markov.sensors.sensor_interface import SensorInterface, LidarInterface
 from markov.environments.constants import TRAINING_IMAGE_SIZE
 from markov.architecture.constants import Input
 from markov.log_handler.deepracer_exceptions import GenericRolloutException, GenericError
@@ -272,10 +272,11 @@ class DualCamera(SensorInterface):
         except Exception as ex:
             LOGGER.info("Unable to retrieve frame: %s", ex)
 
-class Lidar(SensorInterface):
+
+class Lidar(LidarInterface):
     '''This class handles the data collection for lidar'''
     def __init__(self, racecar_name):
-        self.data_buffer = utils.DoubleBuffer()
+        self.data_buffer = utils.DoubleBuffer(clear_data_on_get=False)
         rospy.Subscriber('/{}/scan'.format(racecar_name), LaserScan, self._scan_cb)
         self.sensor_type = Input.LIDAR.value
 
@@ -291,7 +292,16 @@ class Lidar(SensorInterface):
         try:
             return {self.sensor_type: self.data_buffer.get(block=block)}
         except utils.DoubleBuffer.Empty:
-            return {}
+            # For Lidar, we always call non-blocking get_state instead of
+            # block-waiting for new state, and the expectation is
+            # we always have outdated state data to be read in the worst case as
+            # we don't clear the data on get for DoubleBuffer (Refer to __init__).
+            # Thus, the expectation is utils.DoubleBuffer.Empty will be never raised.
+            # However, there can be an edge case for first call of get_state as DoubleBuffer may be
+            # Empty, in such case, this may cause issue for the inference due to
+            # incompatible input to NN. Thus, we should get sensor data with blocking if
+            # DoubleBuffer.Empty is raised.
+            return {self.sensor_type: self.data_buffer.get(block=True)}
         except Exception as ex:
             raise GenericRolloutException("Unable to set state: {}".format(ex))
 
@@ -312,10 +322,11 @@ class Lidar(SensorInterface):
         except Exception as ex:
             LOGGER.info("Unable to retrieve state: %s", ex)
 
-class SectorLidar(SensorInterface):
+
+class SectorLidar(LidarInterface):
     '''This class handles the data collection for sector lidar'''
     def __init__(self, racecar_name):
-        self.data_buffer = utils.DoubleBuffer()
+        self.data_buffer = utils.DoubleBuffer(clear_data_on_get=False)
         rospy.Subscriber('/{}/scan'.format(racecar_name), LaserScan, self._scan_cb)
         self.sensor_type = Input.SECTOR_LIDAR.value
 
@@ -331,7 +342,16 @@ class SectorLidar(SensorInterface):
         try:
             return {self.sensor_type: self.data_buffer.get(block=block)}
         except utils.DoubleBuffer.Empty:
-            return {}
+            # For Lidar, we always call non-blocking get_state instead of
+            # block-waiting for new state, and the expectation is
+            # we always have outdated state data to be read in the worst case as
+            # we don't clear the data on get for DoubleBuffer (Refer to __init__).
+            # Thus, the expectation is utils.DoubleBuffer.Empty will be never raised.
+            # However, there can be an edge case for first call of get_state as DoubleBuffer may be
+            # Empty, in such case, this may cause issue for the inference due to
+            # incompatible input to NN. Thus, we should get sensor data with blocking if
+            # DoubleBuffer.Empty is raised.
+            return {self.sensor_type: self.data_buffer.get(block=True)}
         except Exception as ex:
             raise GenericRolloutException("Unable to set state: {}".format(ex))
 

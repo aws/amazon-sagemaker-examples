@@ -18,6 +18,10 @@ class Agent(object):
     def network_settings(self):
         return self._network_settings_
 
+    @property
+    def ctrl(self):
+        return self._ctrl_
+
     def get_observation_space(self):
         '''Get the sensor obervation space
         '''
@@ -34,6 +38,7 @@ class Agent(object):
         '''
         self._ctrl_.reset_agent()
         if self._sensor_ is not None:
+            self._sensor_.reset()
             return self._sensor_.get_state()
 
     def finish_episode(self):
@@ -45,7 +50,8 @@ class Agent(object):
         '''Publish action index to gazebo
 
         Args:
-            action: Interger with the desired action to take
+            action (int or list): model metadata action_space index for discreet action spaces
+                                  or [steering, speed] float values for continuous action spaces
         '''
         self._ctrl_.send_action(action)
 
