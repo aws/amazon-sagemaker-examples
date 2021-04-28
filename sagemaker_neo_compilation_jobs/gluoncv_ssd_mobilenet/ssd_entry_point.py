@@ -180,7 +180,7 @@ def model_fn(model_dir):
     :return: a model (in this case a Gluon network)
     """
     logging.info('Invoking user-defined model_fn')
-    import neomxnet  # noqa: F401
+    import neomx  # noqa: F401
     #change context to mx.cpu() when optimizing and deploying with Neo for CPU endpoints
     ctx = mx.gpu()
     net = gluon.SymbolBlock.imports(
