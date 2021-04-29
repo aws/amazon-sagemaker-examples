@@ -106,10 +106,16 @@ def create_annot_frame(annots):
     annot_frame['height'] = heights
     return annot_frame
 
-
 def calc_frame_int_over_union(annot_frame, obj, i):
+    lframe_len = max(annot_frame['frameid'])
     annot_frame = annot_frame[annot_frame.obj==obj]
     annot_frame.index = list(np.arange(len(annot_frame)))
-    boxA = [annot_frame.left[i],annot_frame.top[i],annot_frame.left[i]+annot_frame.width[i],annot_frame.top[i]+annot_frame.height[i]]
-    boxB = [annot_frame.left[i+1],annot_frame.top[i+1],annot_frame.left[i+1]+annot_frame.width[i+1],annot_frame.top[i+1]+annot_frame.height[i+1]]
+    coord_vec = np.zeros((lframe_len+1,4))
+    coord_vec[annot_frame['frameid'].values, 0] = annot_frame['left']
+    coord_vec[annot_frame['frameid'].values, 1] = annot_frame['top']
+    coord_vec[annot_frame['frameid'].values, 2] = annot_frame['width']
+    coord_vec[annot_frame['frameid'].values, 3] = annot_frame['height']
+
+    boxA = [coord_vec[i,0], coord_vec[i,1], coord_vec[i,0] + coord_vec[i,2], coord_vec[i,1] + coord_vec[i,3]]
+    boxB = [coord_vec[i+1,0], coord_vec[i+1,1], coord_vec[i+1,0] + coord_vec[i+1,2], coord_vec[i+1,1] + coord_vec[i+1,3]]
     return bb_int_over_union(boxA, boxB)

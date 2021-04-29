@@ -3,7 +3,8 @@ FROM ${REGISTRY_URI}
 
 RUN pip install -U pip
 RUN pip install -U wheel setuptools
-RUN pip install autogluon==0.1.0
+RUN pip install --no-cache-dir autogluon==0.1.0
+
 RUN pip install PrettyTable
 
 # Defines inference.py as script entrypoint

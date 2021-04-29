@@ -14,10 +14,11 @@ from shapely.geometry.polygon import LinearRing, LineString
 
 from markov.agent_ctrl.constants import RewardParam
 from markov.cameras.frustum_manager import FrustumManager
-from markov.track_geom.constants import TrackNearPnts, TrackNearDist
+from markov.track_geom.constants import TrackNearPnts, TrackNearDist, ParkLocation
 from markov.track_geom.utils import euler_to_quaternion, apply_orientation, find_prev_next, quaternion_to_euler
 from markov.log_handler.deepracer_exceptions import GenericRolloutException
 from markov import utils
+
 
 @unique
 class FiniteDifference(Enum):
@@ -156,9 +157,16 @@ class TrackData(object):
         '''
         return self._park_positions_.popleft()
 
+    @property
+    def park_location(self):
+        '''Park location getter
+        '''
+        return self._park_location
+
     def __init__(self):
         '''Instantiates the class and creates clients for the relevant ROS services'''
         self._park_positions_ = deque()
+        self._park_location = ParkLocation(rospy.get_param("PARK_LOCATION", ParkLocation.BOTTOM.value).lower())
         self._reverse_dir_ = utils.str2bool(rospy.get_param("REVERSE_DIR", False))
         if TrackData._instance_ is not None:
             raise GenericRolloutException("Attempting to construct multiple TrackData objects")
@@ -216,6 +224,15 @@ class TrackData(object):
     def initialize_object(self, name, initial_pose, object_dimensions):
         self.object_poses[name] = initial_pose
         self.object_dims[name] = object_dimensions
+
+    def remove_object(self, name):
+        """remove object from object_poses and object_dims member variable
+
+        Args:
+            name (str): object name to remove
+        """
+        self.object_poses.pop(name, None)
+        self.object_dims.pop(name, None)
 
     def update_object_pose(self, name, object_pose):
         if name in self.object_poses:
@@ -510,3 +527,31 @@ class TrackData(object):
             if any([frustum.is_visible(p) for p in object_points]):
                 objects_in_frustum.append((idx, object_pose))
         return objects_in_frustum
+
+    def get_racecar_start_pose(self, racecar_idx, racer_num, start_position):
+        """get initial car pose on the track for spawning the follow car camera
+
+        Args:
+            racecar_idx (int): racecar index for getting start pose
+            racer_num (int): total number of racecars
+            start_position (float): racecar start position wrt starting line
+
+        Returns:
+            Pose: car model pose
+        """
+        # Compute the starting position and heading
+        # single racer: spawn at centerline
+        if racer_num == 1:
+            car_model_pose = self.center_line.interpolate_pose(
+                distance=0.0,
+                normalized=True,
+                finite_difference=FiniteDifference.FORWARD_DIFFERENCE)
+        # multi racers: spawn odd car at inner lane and even car at outer lane
+        else:
+            lane = self.inner_lane if racecar_idx % 2 else \
+                self.outer_lane
+            car_model_pose = lane.interpolate_pose(
+                distance=start_position,
+                normalized=False,
+                finite_difference=FiniteDifference.FORWARD_DIFFERENCE)
+        return car_model_pose
