@@ -2,16 +2,22 @@
 import json
 import math
 import logging
+import numpy as np
 import markov.agent_ctrl.constants as const
 
 from markov.metrics.constants import StepMetrics
 from markov.agent_ctrl.constants import RewardParam
 from markov.track_geom.constants import AgentPos, TrackNearDist, TrackNearPnts
 from markov.log_handler.logger import Logger
+from markov.log_handler.constants import (SIMAPP_EVENT_ERROR_CODE_500,
+                                          SIMAPP_SIMULATION_WORKER_EXCEPTION)
+from markov.log_handler.exception_handler import log_and_exit
 from markov.log_handler.deepracer_exceptions import GenericRolloutException
-from rl_coach.spaces import DiscreteActionSpace
+from markov.multi_agent_coach.action_space_configs import (ClippedPPOActionSpaceConfig,
+                                                           SACActionSpaceConfig)
 from scipy.spatial.transform import Rotation
-from markov.constants import SIMAPP_VERSION_1, SIMAPP_VERSION_2, SIMAPP_VERSION_3
+from markov.constants import SIMAPP_VERSION_1, SIMAPP_VERSION_2, SIMAPP_VERSION_3, SIMAPP_VERSION_4
+from markov.boto.s3.constants import ModelMetadataKeys, ActionSpaceTypes, TrainingAlgorithm
 
 LOGGER = Logger(__name__, logging.INFO).get_logger()
 
@@ -89,10 +95,10 @@ def set_reward_and_metrics(reward_params, step_metrics, agent_name, pos_dict, tr
         step_metrics[StepMetrics.TRACK_LEN.value] = track_data.get_track_length()
         step_metrics[StepMetrics.STEER.value] = \
             reward_params[RewardParam.STEER.value[0]] = \
-            float(json_actions[action]['steering_angle'])
+            float(json_actions[ModelMetadataKeys.STEERING_ANGLE.value])
         step_metrics[StepMetrics.THROTTLE.value] = \
             reward_params[RewardParam.SPEED.value[0]] = \
-            float(json_actions[action]['speed'])
+            float(json_actions[ModelMetadataKeys.SPEED.value])
         step_metrics[StepMetrics.WHEELS_TRACK.value] = \
             reward_params[RewardParam.WHEELS_ON_TRACK.value[0]] = all(wheel_on_track)
         step_metrics[StepMetrics.ACTION.value] = action
@@ -156,35 +162,37 @@ def send_action(velocity_pub_dict, steering_pub_dict, steering_angle, speed):
     for _, pub in steering_pub_dict.items():
         pub.publish(steering_angle)
 
-def load_action_space(path_to_json):
-    '''Loads the action space from a given json file, loads default action space
-       is file upload fails.
-       path_to_json - Absolute path to the json file containing the action space
-    '''
-    json_actions = None
-    try:
-        # Try loading the custom model metadata (may or may not be present)
-        with open(path_to_json, 'r') as file:
-            model_metadata = json.load(file)
-            json_actions = model_metadata['action_space']
-        LOGGER.info("Loaded action space from file: %s", json_actions)
-    except Exception as ex:
-        # Failed to load, fall back on the default action space
-        from markov.defaults import model_metadata
-        json_actions = model_metadata['action_space']
-        LOGGER.info("Exception %s on loading custom action space, using default: %s", \
-                    ex, json_actions)
-    action_space = DiscreteActionSpace(num_actions=len(json_actions),
-                                       default_action=next((i for i, v in enumerate(json_actions) \
-                                                            if v['steering_angle'] == 0), None))
-    return action_space, json_actions
+
+def load_action_space(model_metadata):
+    """Returns the action space object based on the training algorithm
+       and action space type values passed in the model_metadata.json file
+
+    Args:
+        model_metadata (ModelMetadata): ModelMetadata object containing the details in the model metadata json file
+
+    Returns:
+        ActionSpace: RL Coach ActionSpace object corresponding to the type of action space
+    """
+    # get the json_actions
+    json_actions = model_metadata.action_space
+    if model_metadata.training_algorithm == TrainingAlgorithm.CLIPPED_PPO.value:
+        action_space = ClippedPPOActionSpaceConfig(model_metadata.action_space_type).get_action_space(json_actions)
+    elif model_metadata.training_algorithm == TrainingAlgorithm.SAC.value:
+        action_space = SACActionSpaceConfig(model_metadata.action_space_type).get_action_space(json_actions)
+    else:
+        log_and_exit("Unknown training_algorithm value found while loading action space. \
+            training_algorithm: {}".format(model_metadata.training_algorithm),
+                     SIMAPP_SIMULATION_WORKER_EXCEPTION,
+                     SIMAPP_EVENT_ERROR_CODE_500)
+    LOGGER.info("Action space from file: %s", json_actions)
+    return action_space
 
 
 def get_speed_factor(version):
     ''' Returns the velocity factor for a given physics version
         version (float): Sim app version for which to retrieve the velocity factor
     '''
-    if version == SIMAPP_VERSION_3:
+    if version >= SIMAPP_VERSION_3:
         return 2.77
     elif version == SIMAPP_VERSION_2:
         return 3.5

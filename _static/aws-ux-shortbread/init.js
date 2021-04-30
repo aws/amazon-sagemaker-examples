@@ -27,8 +27,7 @@ existingShortbreadEl && existingShortbreadEl.remove();
 var shortbread = AWSCShortbread({
   domain: domainName,
   language: lang,
-  // TODO add geolocator
-  queryGeolocation: function (geolocatedIn) { geolocatedIn("EU") },
+  //queryGeolocation: function (geolocatedIn) { geolocatedIn("EU") },
 });
 
 shortbread.checkForCookieConsent();
