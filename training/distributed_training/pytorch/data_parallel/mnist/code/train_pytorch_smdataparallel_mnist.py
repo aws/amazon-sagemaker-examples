@@ -30,7 +30,13 @@ from model_def import Net
 from smdistributed.dataparallel.torch.parallel.distributed import DistributedDataParallel as DDP
 import smdistributed.dataparallel.torch.distributed as dist
 
+
+class CUDANotFoundException(Exception):
+    pass
+
+
 dist.init_process_group()
+
 
 def train(args, model, device, train_loader, optimizer, epoch):
     model.train()
@@ -142,7 +148,7 @@ def main():
               'in world size of', args.world_size)
 
     if not torch.cuda.is_available():
-        raise Exception(
+        raise CUDANotFoundException(
             "Must run smdistributed.dataparallel MNIST example on CUDA-capable devices."
         )
 
