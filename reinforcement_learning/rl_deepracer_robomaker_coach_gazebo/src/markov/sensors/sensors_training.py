@@ -1,6 +1,6 @@
 '''This module contains the available sensors for the sim app'''
 from markov.architecture.constants import Input
-from markov.sensors.sensor_interface import SensorInterface
+from markov.sensors.sensor_interface import SensorInterface, LidarInterface
 from markov.sensors.utils import get_observation_space, get_front_camera_embedders, \
                                  get_left_camera_embedders, get_stereo_camera_embedders, \
                                  get_lidar_embedders, get_observation_embedder
@@ -132,7 +132,8 @@ class DualCamera(SensorInterface):
         except Exception as ex:
             raise GenericTrainerException('{}'.format(ex))
 
-class Lidar(SensorInterface):
+
+class Lidar(LidarInterface):
     '''This class handles the data collection for lidar'''
     def get_observation_space(self):
         try:
@@ -156,7 +157,8 @@ class Lidar(SensorInterface):
         except Exception as ex:
             raise GenericTrainerException('{}'.format(ex))
 
-class SectorLidar(SensorInterface):
+
+class SectorLidar(LidarInterface):
     '''This class handles the data collection for lidar'''
     def get_observation_space(self):
         try:

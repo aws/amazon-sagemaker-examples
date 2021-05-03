@@ -12,11 +12,6 @@
 # language governing permissions and limitations under the License.
 
 from __future__ import print_function
-# Hack to add mnist dataset download https://github.com/pytorch/vision/issues/3497
-from six.moves import urllib
-opener = urllib.request.build_opener()
-opener.addheaders = [('User-agent', 'Mozilla/5.0')]
-urllib.request.install_opener(opener)
 
 import os
 import argparse
@@ -36,6 +31,19 @@ from smdistributed.dataparallel.torch.parallel.distributed import DistributedDat
 import smdistributed.dataparallel.torch.distributed as dist
 
 dist.init_process_group()
+
+# TODO: Remove after update to torchvision==0.9.1
+# See https://github.com/pytorch/vision/issues/3549
+datasets.MNIST.resources = [
+    ('https://ossci-datasets.s3.amazonaws.com/mnist/train-images-idx3-ubyte.gz',
+     'f68b3c2dcbeaaa9fbdd348bbdeb94873'),
+    ('https://ossci-datasets.s3.amazonaws.com/mnist/train-labels-idx1-ubyte.gz',
+     'd53e105ee54ea40749a09fcbcd1e9432'),
+    ('https://ossci-datasets.s3.amazonaws.com/mnist/t10k-images-idx3-ubyte.gz',
+     '9fb629c4189551a2d022fa330f9573f3'),
+    ('https://ossci-datasets.s3.amazonaws.com/mnist/t10k-labels-idx1-ubyte.gz',
+     'ec29112dd5afa0611ce80d1b7f02629c')
+]
 
 def train(args, model, device, train_loader, optimizer, epoch):
     model.train()
@@ -107,7 +115,6 @@ def main():
     args.world_size = dist.get_world_size()
     args.rank = rank = dist.get_rank()
     args.local_rank = local_rank = dist.get_local_rank()
-    args.lr = 1.0
     args.batch_size //= args.world_size // 8
     args.batch_size = max(args.batch_size, 1)
     data_path = args.data_path
@@ -131,7 +138,8 @@ def main():
                            transforms.Normalize((0.1307,), (0.3081,))
                        ]))
     else:
-        time.sleep(8)
+        # TODO: Reduce time to half when upgrade to torchvision==0.9.1
+        time.sleep(16)
         train_dataset = datasets.MNIST(data_path, train=True, download=False,
                        transform=transforms.Compose([
                            transforms.ToTensor(),

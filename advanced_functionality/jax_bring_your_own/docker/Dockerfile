@@ -21,13 +21,14 @@ RUN apt update && apt install -y python3-pip
 RUN ln -sf /usr/bin/python3 /usr/bin/python && \
     ln -sf /usr/bin/pip3 /usr/bin/pip
 
+RUN pip --no-cache-dir install --upgrade pip setuptools_rust
+
+# Install JAX built with CUDA11 support
+RUN pip --no-cache-dir install --upgrade jax jaxlib==0.1.57+cuda110 -f https://storage.googleapis.com/jax-releases/jax_releases.html
+
 # Install the SageMaker Training Toolkit
 # This provides entry points for the training script
 RUN pip --no-cache-dir install sagemaker-training
-
-# Install JAX built with CUDA11 support
-RUN pip --no-cache-dir install --upgrade pip
-RUN pip --no-cache-dir install --upgrade jax jaxlib==0.1.57+cuda110 -f https://storage.googleapis.com/jax-releases/jax_releases.html
 
 # Install Trax
 RUN pip --no-cache-dir install matplotlib trax
