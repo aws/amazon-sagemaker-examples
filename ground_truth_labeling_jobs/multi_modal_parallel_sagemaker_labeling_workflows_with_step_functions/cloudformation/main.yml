@@ -1,0 +1,47 @@
+
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+Description: 'SMGTWorkflows V0 CloudFormation Template'
+
+Parameters:
+  Prefix:
+    Type: String
+    Description: Prefix of all resources deployed in this solution.
+    Default: smgt-workflows
+  LoggingLevel:
+    Type: String
+    Description: DEBUG
+    Default: DEBUG
+  CognitoUserPoolId:
+    Type: String
+    Description: User pool backing a SageMaker workforce
+  CognitoUserPoolClientId:
+    Type: String
+    Description: User pool client ID backing a SageMaker workforce
+
+Resources:
+  WorkflowApplication:
+    Type: AWS::Serverless::Application
+    Properties:
+      Location: ./workflow.yml
+      Parameters:
+        Prefix: !Ref Prefix
+        LoggingLevel: !Ref LoggingLevel
+        CognitoUserPoolId: !Ref CognitoUserPoolId
+        CognitoUserPoolClientId: !Ref CognitoUserPoolClientId
+  ReportingApplication:
+    Type: AWS::Serverless::Application
+    Properties:
+      Location: ./reporting.yml
+      Parameters:
+        Prefix: !Ref Prefix
+        LoggingLevel: !Ref LoggingLevel
+        CognitoUserPoolId: !Ref CognitoUserPoolId
+        GlueProcessingInputBucketId:
+          !GetAtt
+            - WorkflowApplication
+            - Outputs.JobOutputBucket
+        BatchProcessingInputBucketId:
+          !GetAtt
+            - WorkflowApplication
+            - Outputs.BatchProcessingBucket
