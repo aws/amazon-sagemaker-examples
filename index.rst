@@ -34,7 +34,14 @@ On SageMaker Studio, you will need to open a terminal, go to your home folder, t
 
    aws_sagemaker_studio/index
    sagemaker-lineage/index
-   
+
+
+.. toctree::
+   :maxdepth: 1
+   :caption: SageMaker End-to-End Examples
+
+   end_to_end/index
+
 
 .. toctree::
     :maxdepth: 1
