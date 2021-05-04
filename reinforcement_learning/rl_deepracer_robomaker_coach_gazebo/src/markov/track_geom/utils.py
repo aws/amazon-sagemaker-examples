@@ -2,7 +2,7 @@
 import bisect
 import numpy as np
 import math
-from markov.track_geom.constants import START_POS_OFFSET
+from markov.track_geom.constants import START_POS_OFFSET, HIDE_POS_OFFSET, HIDE_POS_DELTA
 
 
 # The order of rotation applied: roll -> pitch -> yaw
@@ -138,4 +138,18 @@ def pose_distance(pose_a, pose_b):
 
 
 def get_start_positions(race_car_num):
-    return [-(START_POS_OFFSET + START_POS_OFFSET * idx) for idx in range(race_car_num)]
+    return [-START_POS_OFFSET * idx for idx in range(race_car_num)]
+
+
+def get_hide_positions(race_car_num):
+    """Generate hide positions for cars what will be outside of the race track environment.
+       So that idle cars are not visible to customers.
+
+    Args:
+        race_car_num (int): The number of race cars in current environment.
+
+    Returns:
+        list: List of hiding positions.
+    """
+    # TODO: Maybe implement some logic to make sure the park postion is always outside of the race track
+    return [(-(HIDE_POS_OFFSET + HIDE_POS_DELTA * idx), HIDE_POS_OFFSET) for idx in range(race_car_num)]
