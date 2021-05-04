@@ -13,7 +13,7 @@
 ---
 
 ## Background
-The purpose of this repository is to demonstrate a personalized recommendation engine solution for e-commerce data via Amazon SageMaker Studio. This will give business users a quick path towards a PrM POC. In this notebook, we focus on preprocessing engine sensor data before feature engineering and building an inital model leveraging SageMaker's algorithms. The overall topics covered in this notebook are the following:  
+The purpose of this repository is to demonstrate a personalized recommendation engine solution for e-commerce data via Amazon SageMaker Studio. This will give business users a quick path towards a PrM POC. In this notebook, we focus on preprocessing engine sensor data before feature engineering and building an initial model leveraging SageMaker's algorithms. The overall topics covered in this notebook are the following:  
 
 
 * Setup for using SageMaker
