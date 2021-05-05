@@ -1,10 +1,13 @@
+# Python Built-Ins:
 import argparse
 import gzip
 import json
 import logging
 import os
+import shutil
 import sys
 
+# External Dependencies:
 import numpy as np
 import torch
 import torch.nn as nn
@@ -12,10 +15,44 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torch.utils.data import Dataset, DataLoader
 
+# Local Dependencies:
+from inference import *
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 logger.addHandler(logging.StreamHandler(sys.stdout))
+
+
+def enable_sm_oneclick_deploy(model_dir):
+    """Copy current running source code folder to model_dir, to enable Estimator.deploy()
+    PyTorch framework containers will load custom inference code if:
+    - The code exists in a top-level code/ folder in the model.tar.gz
+    - The entry point argument matches an existing file
+    ...So to make one-click estimator.deploy() work (without creating a PyTorchModel first), we need
+    to:
+    - Copy the current working directory to model_dir/code
+    - `from inference import *` because "train.py" will still be the entry point (same as the training job)
+    """
+    code_path = os.path.join(model_dir, "code")
+    logger.info(f"Copying working folder to {code_path}")
+    for currpath, dirs, files in os.walk("."):
+        for file in files:
+            # Skip any filenames starting with dot:
+            if file.startswith("."):
+                continue
+            filepath = os.path.join(currpath, file)
+            # Skip any pycache or dot folders:
+            if ((os.path.sep + ".") in filepath) or ("__pycache__" in filepath):
+                continue
+            relpath = filepath[len("."):]
+            if relpath.startswith(os.path.sep):
+                relpath = relpath[1:]
+            outpath = os.path.join(code_path, relpath)
+            logger.info(f"Copying {filepath} to {outpath}")
+            os.makedirs(outpath.rpartition(os.path.sep)[0], exist_ok=True)
+            shutil.copy2(filepath, outpath)
+    return code_path
+
 
 # Based on https://github.com/pytorch/examples/blob/master/mnist/main.py
 class Net(nn.Module):
@@ -160,6 +197,7 @@ def save_model(model, model_dir):
     logger.info('Saving the model')
     path = os.path.join(model_dir, 'model.pth')
     torch.save(model.cpu().state_dict(), path)
+    enable_sm_oneclick_deploy(model_dir)
     return
 
 def parse_args():
