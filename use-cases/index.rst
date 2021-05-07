@@ -30,3 +30,15 @@ E-Commerce Personalization
     retail_recommend/1_retail_recommend_dataprep
     retail_recommend/2_retail_recommend_train_tune
     retail_recommend/3_retail_recommend_pipeline
+
+
+Computer Vision for Medical Imaging
+--------------------------
+
+.. toctree::
+    :maxdepth: 1
+
+    computer_vision/1-metastases-detection-train-model
+    computer_vision/2-metastases-detection-lineage-registry
+    computer_vision/3-metastases-detection-deploy-predict
+    computer_vision/4-metastases-detection-pipeline
