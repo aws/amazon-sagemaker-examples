@@ -1,14 +1,19 @@
 # Python Built-Ins:
 import argparse
+from distutils.dir_util import copy_tree
 import gzip
 import json
 import logging
 import os
 import shutil
+import subprocess
 import sys
+from tempfile import TemporaryDirectory
 
 # External Dependencies:
 import numpy as np
+from packaging import version as pkgversion
+from sagemaker_pytorch_serving_container import handler_service as default_handler_service
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -54,6 +59,46 @@ def enable_sm_oneclick_deploy(model_dir):
             os.makedirs(outpath.rpartition(os.path.sep)[0], exist_ok=True)
             shutil.copy2(filepath, outpath)
     return code_path
+
+
+def enable_torchserve_multi_model(model_dir, handler_service_file=default_handler_service.__file__):
+    """Package the contents of model_dir as a TorchServe model archive
+    SageMaker framework serving containers for PyTorch versions >=1.6 use TorchServe, for consistency with
+    the PyTorch ecosystem. TorchServe expects particular 'model archive' packaging around models.
+
+    On single-model endpoints, the SageMaker container can transparently package your model.tar.gz for
+    TorchServe at start-up. On multi-model endpoints though, as models are loaded and unloaded dynamically,
+    this is not (currently?) supported.
+
+    ...So to make your training jobs produce model.tar.gz's which are already compatible with TorchServe
+    (and therefore SageMaker Multi-Model-Endpoints, on PyTorch >=1.6), you can do something like this.
+
+    Check out the PyTorch Inference Toolkit (used by SageMaker PyTorch containers) for more details:
+    https://github.com/aws/sagemaker-pytorch-inference-toolkit
+
+    For running single-model endpoints, or MMEs on PyTorch<1.6, this function is not necessary.
+
+    If you use the SageMaker PyTorch framework containers, you won't need to change `handler_service_file`
+    unless you already know about the topic :-)  The default handler will already support `model_fn`, etc.
+    """
+    if pkgversion.parse(torch.__version__) >= pkgversion.parse("1.6"):
+        logger.info(f"Packaging {model_dir} for use with TorchServe")
+        # torch-model-archiver creates a subdirectory per `model-name` within `export-path`, but we want the
+        # contents to end up in `model_dir`'s root - so will use a temp dir and copy back:
+        with TemporaryDirectory() as temp_dir:
+            ts_model_name = "model"  # Just a placeholder, doesn't really matter for our purposes
+            subprocess.check_call([
+                "torch-model-archiver",
+                "--model-name", ts_model_name,
+                "--version", "1",
+                "--handler", handler_service_file,
+                "--extra-files", model_dir,
+                "--archive-format", "no-archive",
+                "--export-path", temp_dir,
+            ])
+            copy_tree(os.path.join(temp_dir, ts_model_name), model_dir)
+    else:
+        logger.info(f"Skipping TorchServe repackage: PyTorch version {torch.__version__} < 1.6")
 
 
 def normalize(x, axis):
@@ -189,6 +234,7 @@ def save_model(model, model_dir):
     logger.info(f"Saving model to {path}")
     torch.save(model.cpu().state_dict(), path)
     enable_sm_oneclick_deploy(model_dir)
+    enable_torchserve_multi_model(model_dir)
     return
 
 
