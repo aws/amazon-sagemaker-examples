@@ -8,7 +8,6 @@ from ray.tune.registry import register_env
 
 from sagemaker_rl.ray_launcher import SageMakerRayLauncher
 
-
 def create_environment(env_config):
     return gym.make('CartPole-v1')
 
