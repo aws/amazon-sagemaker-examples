@@ -92,7 +92,7 @@ On SageMaker Studio, you will need to open a terminal, go to your home folder, t
    training/index
    training/algorithms
    training/frameworks
-   training/debugger/index
+   sagemaker-debugger/index
    training/tuning
    training/distributed_training/index
    training/bring_your_own_container
