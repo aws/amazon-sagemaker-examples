@@ -3,6 +3,13 @@ import numpy as np
 
 
 def cross_validation(df, K, hyperparameters):
+    """
+    Perform cross validation on a dataset.
+
+    :param df: pandas.DataFrame
+    :param K: int
+    :param hyperparameters: dict
+    """
     train_indices = list(df.sample(frac=1).index)
     k_folds = np.array_split(train_indices, K)
     if K == 1:

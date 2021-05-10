@@ -47,7 +47,10 @@ def parse_args():
 
 
 def train():
-    num_round = args.num_round
+    """
+    Train the PyTorch model
+    """
+
     K = args.K
     
     hyperparameters = {
@@ -57,9 +60,9 @@ def train():
         'num_round': args.num_round
     }
     
-    train = pd.read_csv(f'{args.train}/train.csv', header=None)
+    train_df = pd.read_csv(f'{args.train}/train.csv', header=None)
     
-    rmse_list, model = cross_validation(train, K, hyperparameters)
+    rmse_list, model = cross_validation(train_df, K, hyperparameters)
     k_fold_avg = sum(rmse_list)/len(rmse_list)
     print(f'RMSE average across folds: {k_fold_avg}')
     
