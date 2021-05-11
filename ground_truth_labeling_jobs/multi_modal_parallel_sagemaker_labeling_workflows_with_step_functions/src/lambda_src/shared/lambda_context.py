@@ -1,5 +1,6 @@
 import boto3
 
+
 def get_account_id(context):
     """
     Retrieves the AWS account ID from a lambda context object.
@@ -11,7 +12,7 @@ def get_account_id(context):
     """
     # http://docs.aws.amazon.com/lambda/latest/dg/python-context-object.html
     arn = context.invoked_function_arn
-    return arn.split(':')[4]
+    return arn.split(":")[4]
 
 
 def get_region(context):
@@ -25,7 +26,7 @@ def get_region(context):
     """
     # http://docs.aws.amazon.com/lambda/latest/dg/python-context-object.html
     arn = context.invoked_function_arn
-    return arn.split(':')[3]
+    return arn.split(":")[3]
 
 
 def get_token(context):
@@ -52,7 +53,7 @@ def get_aws_account_id_from_arn(lambda_arn):
     :returns: aws account id
     :rtype: string
     """
-    return lambda_arn.split(':')[4]
+    return lambda_arn.split(":")[4]
 
 
 def get_aws_region(service_arn):
@@ -64,8 +65,9 @@ def get_aws_region(service_arn):
     :returns: AWS Account Region
     :rtype: string
     """
-    aws_region = service_arn.split(':')[3]
+    aws_region = service_arn.split(":")[3]
     return aws_region
+
 
 # function to create a client with aws for a specific service and region
 def get_boto_client(service, lambda_arn):
@@ -83,8 +85,5 @@ def get_boto_client(service, lambda_arn):
 
     :returns: returns dictionary which contains URL, bucket, key
     """
-    client = boto3.client(
-        service,
-        get_aws_region(lambda_arn)
-    )
+    client = boto3.client(service, get_aws_region(lambda_arn))
     return client

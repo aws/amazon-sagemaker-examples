@@ -22,17 +22,15 @@ def wait_for_model(model_name, relative_entity_name):
         model_name (str): wait model name
         relative_entity_name (str): relative entity name to model name
     """
-    model = GetModelStateTracker.get_instance().get_model_state(model_name,
-                                                                relative_entity_name,
-                                                                blocking=True,
-                                                                auto_sync=False)
+    model = GetModelStateTracker.get_instance().get_model_state(
+        model_name, relative_entity_name, blocking=True, auto_sync=False
+    )
     should_wait_for_model = not model.success
     while should_wait_for_model:
         time.sleep(WAIT_TO_PREVENT_SPAM)
-        model = GetModelStateTracker.get_instance().get_model_state(model_name,
-                                                                    relative_entity_name,
-                                                                    blocking=True,
-                                                                    auto_sync=False)
+        model = GetModelStateTracker.get_instance().get_model_state(
+            model_name, relative_entity_name, blocking=True, auto_sync=False
+        )
         should_wait_for_model = not model.success
 
 
@@ -62,14 +60,19 @@ def configure_camera(namespaces=None, is_wait_for_model=True):
             for namespace in namespaces:
                 if is_wait_for_model:
                     wait_for_model(model_name=namespace, relative_entity_name="")
-                main_cameras[namespace] = CameraFactory.create_instance(camera_type=main_camera_type,
-                                                                        model_name="/{}/{}".format(namespace,
-                                                                                                   "main_camera"),
-                                                                        namespace=namespace)
-            sub_camera = CameraFactory.create_instance(camera_type=sub_camera_type,
-                                                       model_name="/{}".format("sub_camera"),
-                                                       namespace=namespace)
+                main_cameras[namespace] = CameraFactory.create_instance(
+                    camera_type=main_camera_type,
+                    model_name="/{}/{}".format(namespace, "main_camera"),
+                    namespace=namespace,
+                )
+            sub_camera = CameraFactory.create_instance(
+                camera_type=sub_camera_type,
+                model_name="/{}".format("sub_camera"),
+                namespace=namespace,
+            )
             return main_cameras, sub_camera
         else:
-            err_msg = "configure_camera called more than once. configure_camera MUST be called ONLY once!"
+            err_msg = (
+                "configure_camera called more than once. configure_camera MUST be called ONLY once!"
+            )
             raise GenericRolloutException(err_msg)

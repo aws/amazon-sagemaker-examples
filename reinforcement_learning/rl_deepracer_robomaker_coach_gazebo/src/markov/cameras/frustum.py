@@ -8,6 +8,7 @@ from markov.cameras.constants import GazeboWorld
 from markov.cameras.utils import normalize, project_to_2d, ray_plane_intersect
 from markov.constants import SIMAPP_VERSION_3
 
+
 class Frustum(object):
     def __init__(self, agent_name, observation_list, version):
         self.agent_name = agent_name
@@ -46,6 +47,7 @@ class Frustum(object):
             else:
                 self.camera_offsets.append(np.array([0.2, 0, 0.164]))
         self.camera_pitch = 0.2618
+
     @staticmethod
     def get_forward_vec(quaternion):
         return apply_orientation(quaternion, GazeboWorld.forward)
@@ -70,24 +72,28 @@ class Frustum(object):
             self.cam_poses = []
             self.near_plane_infos = []
             # Retrieve car pose to calculate camera pose.
-            car_pos = np.array([car_pose.position.x, car_pose.position.y,
-                                car_pose.position.z])
-            car_quaternion = [car_pose.orientation.x,
-                              car_pose.orientation.y,
-                              car_pose.orientation.z,
-                              car_pose.orientation.w]
+            car_pos = np.array([car_pose.position.x, car_pose.position.y, car_pose.position.z])
+            car_quaternion = [
+                car_pose.orientation.x,
+                car_pose.orientation.y,
+                car_pose.orientation.z,
+                car_pose.orientation.w,
+            ]
             for camera_offset in self.camera_offsets:
                 # Get camera position by applying position offset from the car position.
                 cam_pos = car_pos + apply_orientation(car_quaternion, camera_offset)
                 # Get camera rotation by applying car rotation and pitch angle of camera.
-                _, _, yaw = quaternion_to_euler(x=car_quaternion[0],
-                                                y=car_quaternion[1],
-                                                z=car_quaternion[2],
-                                                w=car_quaternion[3])
+                _, _, yaw = quaternion_to_euler(
+                    x=car_quaternion[0],
+                    y=car_quaternion[1],
+                    z=car_quaternion[2],
+                    w=car_quaternion[3],
+                )
                 cam_quaternion = np.array(euler_to_quaternion(pitch=self.camera_pitch, yaw=yaw))
                 # Calculate frustum with camera position and rotation.
-                planes, cam_pose, near_plane_info = self._calculate_frustum_planes(cam_pos=cam_pos,
-                                                                                   cam_quaternion=cam_quaternion)
+                planes, cam_pose, near_plane_info = self._calculate_frustum_planes(
+                    cam_pos=cam_pos, cam_quaternion=cam_quaternion
+                )
                 self.frustums.append(planes)
                 self.cam_poses.append(cam_pose)
                 self.near_plane_infos.append(near_plane_info)
@@ -114,8 +120,12 @@ class Frustum(object):
 
         near_top_left = near_center + cam_up * (near_height * 0.5) - cam_right * (near_width * 0.5)
         near_top_right = near_center + cam_up * (near_height * 0.5) + cam_right * (near_width * 0.5)
-        near_bottom_left = near_center - cam_up * (near_height * 0.5) - cam_right * (near_width * 0.5)
-        near_bottom_right = near_center - cam_up * (near_height * 0.5) + cam_right * (near_width * 0.5)
+        near_bottom_left = (
+            near_center - cam_up * (near_height * 0.5) - cam_right * (near_width * 0.5)
+        )
+        near_bottom_right = (
+            near_center - cam_up * (near_height * 0.5) + cam_right * (near_width * 0.5)
+        )
         planes = []
 
         # near plane
@@ -172,10 +182,7 @@ class Frustum(object):
         bottom_plane_offset = -np.dot(bottom_plane_normal, p0)
         planes.append((bottom_plane_normal, bottom_plane_offset))
 
-        cam_pose = {
-            "position": cam_pos,
-            "orientation": cam_quaternion
-        }
+        cam_pose = {"position": cam_pos, "orientation": cam_quaternion}
 
         near_plane_info = {
             "width": near_width,
@@ -188,7 +195,7 @@ class Frustum(object):
                 "bottom_right": near_bottom_right,
             },
             "normal": near_plane_normal,
-            "offset": near_plane_offset
+            "offset": near_plane_offset,
         }
 
         return planes, cam_pose, near_plane_info
@@ -211,9 +218,14 @@ class Frustum(object):
         point - 3d position
         """
         with self.lock:
-            if not isinstance(point, list) and not isinstance(point, tuple) \
-                    and not isinstance(point, np.ndarray):
-                raise GenericRolloutException("point must be a type of list, tuple, or numpy.ndarray")
+            if (
+                not isinstance(point, list)
+                and not isinstance(point, tuple)
+                and not isinstance(point, np.ndarray)
+            ):
+                raise GenericRolloutException(
+                    "point must be a type of list, tuple, or numpy.ndarray"
+                )
             target_pos = np.array(point)
             frustum_tests = []
             for frustum_planes in self.frustums:
@@ -228,9 +240,14 @@ class Frustum(object):
 
     def to_viewport_point(self, point):
         with self.lock:
-            if not isinstance(point, list) and not isinstance(point, tuple) \
-                    and not isinstance(point, np.ndarray):
-                raise GenericRolloutException("point must be a type of list, tuple, or numpy.ndarray")
+            if (
+                not isinstance(point, list)
+                and not isinstance(point, tuple)
+                and not isinstance(point, np.ndarray)
+            ):
+                raise GenericRolloutException(
+                    "point must be a type of list, tuple, or numpy.ndarray"
+                )
             ray_origin = np.array(point)
             points_in_viewports = []
             for cam_pose, near_plane_info in zip(self.cam_poses, self.near_plane_infos):
@@ -245,18 +262,22 @@ class Frustum(object):
 
                 ray_dir = normalize(cam_pos - ray_origin)
 
-                point_on_plane = ray_plane_intersect(ray_origin=ray_origin,
-                                                     ray_dir=ray_dir,
-                                                     plane_normal=near_normal,
-                                                     plane_offset=near_offset,
-                                                     threshold=self.threshold)
+                point_on_plane = ray_plane_intersect(
+                    ray_origin=ray_origin,
+                    ray_dir=ray_dir,
+                    plane_normal=near_normal,
+                    plane_offset=near_offset,
+                    threshold=self.threshold,
+                )
                 if point_on_plane is None:
                     points_in_viewports.append((-1.0, -1.0))
                 else:
-                    point_in_viewport = project_to_2d(point_on_plane=point_on_plane,
-                                                      plane_center=near_center,
-                                                      plane_width=near_width,
-                                                      plane_height=near_height,
-                                                      plane_quaternion=cam_quaternion)
+                    point_in_viewport = project_to_2d(
+                        point_on_plane=point_on_plane,
+                        plane_center=near_center,
+                        plane_width=near_width,
+                        plane_height=near_height,
+                        plane_quaternion=cam_quaternion,
+                    )
                     points_in_viewports.append(point_in_viewport)
             return points_in_viewports

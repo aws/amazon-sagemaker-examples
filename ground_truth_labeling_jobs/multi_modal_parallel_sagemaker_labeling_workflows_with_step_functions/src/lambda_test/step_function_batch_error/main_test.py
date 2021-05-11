@@ -8,23 +8,21 @@ from test_shared.mock_objects import TestContext
 
 
 class TestCase(TestCase):
-
-    @patch('shared.db.mark_batch_and_children_failed')
+    @patch("shared.db.mark_batch_and_children_failed")
     @patch.dict(os.environ, {"DEFAULT_STATUS_SNS_ARN": "TEST_ARN"})
-    @patch('boto3.resource')
+    @patch("boto3.resource")
     def test_lambda_handler_happy_case(self, resource_mock, mark_batch_and_children_failed_mock):
         # Setup
         event = {
             "execution_id": "test",
             "input": {
                 "error-info": {
-                    "Cause" : "{\"errorType\":\"errorType\", \"errorMessage\" : \"errorMessage\"}"
+                    "Cause": '{"errorType":"errorType", "errorMessage" : "errorMessage"}'
                 },
                 "transformation_step_output": {
                     "batch_id": "test",
-
-                }
-            }
+                },
+            },
         }
 
         mark_batch_and_children_failed_mock.return_value = {}
@@ -42,13 +40,13 @@ class TestCase(TestCase):
                 "errorType": "errorType",
                 "message": "Batch processing failed",
                 "status": "FAILED",
-                "token": "test"
-            }
+                "token": "test",
+            },
         }
 
         # Assert
         self.assertEqual(expected_output, val, "Unexpected response returned")
 
-if __name__ == '__main__':
-    unittest.main()
 
+if __name__ == "__main__":
+    unittest.main()

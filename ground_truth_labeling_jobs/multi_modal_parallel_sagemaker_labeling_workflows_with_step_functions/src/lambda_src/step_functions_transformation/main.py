@@ -10,6 +10,7 @@ import boto3
 from shared import db, log
 from shared.constants import BatchCurrentStep, BatchMetadataType, BatchStatus
 
+
 def lambda_handler(event, context):
     """
     Lambda function that transforms input data and stores inital DB entry
@@ -30,7 +31,6 @@ def lambda_handler(event, context):
     batch_id = event["batchId"]
 
     error_message = ""
-
 
     """
     Example database entry input for batch

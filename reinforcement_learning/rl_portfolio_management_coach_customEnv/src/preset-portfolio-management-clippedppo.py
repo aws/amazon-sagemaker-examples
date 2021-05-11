@@ -25,16 +25,20 @@ schedule_params.heatup_steps = EnvironmentSteps(0)
 
 agent_params = ClippedPPOAgentParameters()
 
-agent_params.network_wrappers['main'].learning_rate = 0.0001
-agent_params.network_wrappers['main'].input_embedders_parameters['observation'].scheme = [Conv2d(32, [1, 3], 1)]
-agent_params.network_wrappers['main'].middleware_parameters.scheme = MiddlewareScheme.Empty
-agent_params.network_wrappers['main'].batch_size = 64
+agent_params.network_wrappers["main"].learning_rate = 0.0001
+agent_params.network_wrappers["main"].input_embedders_parameters["observation"].scheme = [
+    Conv2d(32, [1, 3], 1)
+]
+agent_params.network_wrappers["main"].middleware_parameters.scheme = MiddlewareScheme.Empty
+agent_params.network_wrappers["main"].batch_size = 64
 agent_params.algorithm.clipping_decay_schedule = LinearSchedule(1.0, 0, 150000)
 agent_params.algorithm.discount = 0.99
 agent_params.algorithm.num_steps_between_copying_online_weights_to_target = EnvironmentSteps(2048)
 
 # Distributed Coach synchronization type.
-agent_params.algorithm.distributed_coach_synchronization_type = DistributedCoachSynchronizationType.SYNC
+agent_params.algorithm.distributed_coach_synchronization_type = (
+    DistributedCoachSynchronizationType.SYNC
+)
 
 agent_params.exploration = EGreedyParameters()
 agent_params.exploration.epsilon_schedule = LinearSchedule(1.0, 0.01, 10000)
@@ -43,8 +47,8 @@ agent_params.exploration.epsilon_schedule = LinearSchedule(1.0, 0.01, 10000)
 # Environment #
 ###############
 
-env_params = GymVectorEnvironment(level='portfolio_env:PortfolioEnv')
-env_params.__dict__['observation_space_type'] = ObservationSpaceType.Tensor
+env_params = GymVectorEnvironment(level="portfolio_env:PortfolioEnv")
+env_params.__dict__["observation_space_type"] = ObservationSpaceType.Tensor
 
 ########
 # Test #
@@ -53,6 +57,10 @@ env_params.__dict__['observation_space_type'] = ObservationSpaceType.Tensor
 preset_validation_params = PresetValidationParameters()
 preset_validation_params.test = True
 
-graph_manager = BasicRLGraphManager(agent_params=agent_params, env_params=env_params,
-                                    schedule_params=schedule_params, vis_params=VisualizationParameters(),
-                                    preset_validation_params=preset_validation_params)
+graph_manager = BasicRLGraphManager(
+    agent_params=agent_params,
+    env_params=env_params,
+    schedule_params=schedule_params,
+    vis_params=VisualizationParameters(),
+    preset_validation_params=preset_validation_params,
+)

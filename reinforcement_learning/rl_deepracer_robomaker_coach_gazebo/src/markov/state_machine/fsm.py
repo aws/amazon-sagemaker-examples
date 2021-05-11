@@ -16,22 +16,19 @@ class FSM(object):
 
     @property
     def current_state(self):
-        """return current state
-        """
+        """return current state"""
         return self._current_state
 
     @current_state.setter
     def current_state(self, val):
-        """current state setter
-        """
+        """current state setter"""
         if val is not None and not isinstance(val, AbsFSMState):
             raise ValueError("Invalid current state: {}".format(val))
         self._current_state = val
 
     @property
     def is_in_terminal(self):
-        """return boolean on whether state machine is in termination state
-        """
+        """return boolean on whether state machine is in termination state"""
         return self._current_state is None
 
     def execute(self, input_val):

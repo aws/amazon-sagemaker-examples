@@ -6,14 +6,11 @@ import time
 
 
 class TicTacToeEnv(gym.Env):
-
-
-    def __init__(self, opponent='moderate'):
+    def __init__(self, opponent="moderate"):
         self.opponent = opponent
         self.episode = 0
-        self.observation_space = spaces.Box(low=-1, high=1, shape=(9, ), dtype=np.int)
+        self.observation_space = spaces.Box(low=-1, high=1, shape=(9,), dtype=np.int)
         self.action_space = spaces.Discrete(9)
-
 
     def reset(self):
         self.episode += 1
@@ -22,7 +19,6 @@ class TicTacToeEnv(gym.Env):
         self.board = np.zeros((3, 3))
         state = self.board.flatten()
         return state
-
 
     def step(self, action):
 
@@ -38,11 +34,11 @@ class TicTacToeEnv(gym.Env):
                 reward = -1
                 self.total_reward += reward
                 self.save_board(self.total_reward)
-                return self.board.flatten(), reward, True, {'reward': reward}
+                return self.board.flatten(), reward, True, {"reward": reward}
             else:
                 reward = -0.1
                 self.total_reward += reward
-                return self.board.flatten(), reward, False, {'reward': reward}
+                return self.board.flatten(), reward, False, {"reward": reward}
         else:
             self.occupied = 0
 
@@ -52,14 +48,14 @@ class TicTacToeEnv(gym.Env):
             reward = 1
             self.total_reward += reward
             self.save_board(self.total_reward)
-            return self.board.flatten(), reward, True, {'reward': reward}
+            return self.board.flatten(), reward, True, {"reward": reward}
 
         # Check if last move
         if (self.board != 0).all():
             reward = 0
             self.total_reward += reward
             self.save_board(self.total_reward)
-            return self.board.flatten(), reward, True , {'reward': reward}
+            return self.board.flatten(), reward, True, {"reward": reward}
         # If not then opponent moves
         else:
             self.move_opponent()
@@ -67,17 +63,16 @@ class TicTacToeEnv(gym.Env):
                 reward = -1
                 self.total_reward += reward
                 self.save_board(self.total_reward)
-                return self.board.flatten(), reward, True, {'reward': reward}
+                return self.board.flatten(), reward, True, {"reward": reward}
 
-        return self.board.flatten(), 0, False, {'reward': 0}
-
+        return self.board.flatten(), 0, False, {"reward": 0}
 
     def move_opponent(self):
-        if self.opponent == 'random':
+        if self.opponent == "random":
             options = np.argwhere(self.board == 0)
             idx = np.random.randint(options.shape[0])
             self.board[tuple(options[idx])] = -1
-        elif self.opponent == 'moderate':
+        elif self.opponent == "moderate":
             move = None
             options = np.argwhere(self.board == 0)
             if np.random.rand() < 0.1:
@@ -93,7 +88,7 @@ class TicTacToeEnv(gym.Env):
                         break
                 # Otherwise check for a block
                 if not move:
-                    for o in options:    
+                    for o in options:
                         board = self.board.copy()
                         board[tuple(o)] = 1
                         if check_win(board) == 1:
@@ -105,10 +100,10 @@ class TicTacToeEnv(gym.Env):
                     move = tuple(options[idx])
                 self.board[move] = -1
 
-
-    def save_board(self, reward, path='/opt/ml/output/data/'):
-        np.save(os.path.join(path, 'episode_{}_reward_{}.npy'.format(self.episode, reward)), 
-                self.board)
+    def save_board(self, reward, path="/opt/ml/output/data/"):
+        np.save(
+            os.path.join(path, "episode_{}_reward_{}.npy".format(self.episode, reward)), self.board
+        )
 
 
 def check_win(board):

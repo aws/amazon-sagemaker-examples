@@ -1,4 +1,4 @@
-'''
+"""
 Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this
@@ -13,7 +13,7 @@ PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIG
 HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-'''
+"""
 
 import json
 import os
@@ -25,105 +25,107 @@ import signal
 import socket
 import glob
 
+
 def copy_files(src, dest):
     src_files = os.listdir(src)
     for file in src_files:
         path = os.path.join(src, file)
         if os.path.isfile(path):
             shutil.copy(path, dest)
-            
+
+
 def train():
-    model_dir = os.environ['SM_MODEL_DIR']
+    model_dir = os.environ["SM_MODEL_DIR"]
     log_dir = None
-    
+
     copy_logs_to_model_dir = False
-    
+
     try:
-        log_dir = os.environ['SM_CHANNEL_LOG']
+        log_dir = os.environ["SM_CHANNEL_LOG"]
         copy_logs_to_model_dir = True
     except KeyError:
         log_dir = model_dir
-        
-    train_data_dir = os.environ['SM_CHANNEL_TRAIN']      
 
-    hyperparamters = json.loads(os.environ['SM_HPS'])
+    train_data_dir = os.environ["SM_CHANNEL_TRAIN"]
+
+    hyperparamters = json.loads(os.environ["SM_HPS"])
 
     try:
-        batch_norm = hyperparamters['batch_norm']
+        batch_norm = hyperparamters["batch_norm"]
     except KeyError:
-        batch_norm = 'FreezeBN'
-        
+        batch_norm = "FreezeBN"
+
     try:
-        mode_fpn = hyperparamters['mode_fpn']
+        mode_fpn = hyperparamters["mode_fpn"]
     except KeyError:
         mode_fpn = "True"
-        
+
     try:
-        mode_mask = hyperparamters['mode_mask']
+        mode_mask = hyperparamters["mode_mask"]
     except KeyError:
         mode_mask = "True"
 
     try:
-        eval_period = hyperparamters['eval_period']
+        eval_period = hyperparamters["eval_period"]
     except KeyError:
         eval_period = 1
 
     try:
-        lr_schedule = hyperparamters['lr_schedule']
+        lr_schedule = hyperparamters["lr_schedule"]
     except KeyError:
-        lr_schedule = '[240000, 320000, 360000]'
+        lr_schedule = "[240000, 320000, 360000]"
 
     try:
-        horovod_cycle_time = hyperparamters['horovod_cycle_time']
+        horovod_cycle_time = hyperparamters["horovod_cycle_time"]
     except KeyError:
         horovod_cycle_time = 0.5
-        
+
     try:
-        horovod_fusion_threshold = hyperparamters['horovod_fusion_threshold']
+        horovod_fusion_threshold = hyperparamters["horovod_fusion_threshold"]
     except KeyError:
         horovod_fusion_threshold = 67108864
 
     try:
-        data_train = hyperparamters['data_train']
+        data_train = hyperparamters["data_train"]
     except KeyError:
-        data_train = 'coco_train2017'
+        data_train = "coco_train2017"
 
     try:
-        data_val = hyperparamters['data_val']
+        data_val = hyperparamters["data_val"]
     except KeyError:
-        data_val = 'coco_val2017'
-     
+        data_val = "coco_val2017"
+
     try:
-        images_per_epoch = hyperparamters['images_per_epoch']
+        images_per_epoch = hyperparamters["images_per_epoch"]
     except KeyError:
         images_per_epoch = 120000
-        
+
     try:
-        backbone_weights = hyperparamters['backbone_weights']
+        backbone_weights = hyperparamters["backbone_weights"]
     except KeyError:
-        backbone_weights = 'ImageNet-R50-AlignPadding.npz'
-    
+        backbone_weights = "ImageNet-R50-AlignPadding.npz"
+
     try:
-        resnet_arch = hyperparamters['resnet_arch']
+        resnet_arch = hyperparamters["resnet_arch"]
     except KeyError:
-        resnet_arch = 'resnet50'
-        
+        resnet_arch = "resnet50"
+
     load_model = None
     try:
-        load_model = hyperparamters['load_model']
+        load_model = hyperparamters["load_model"]
     except KeyError:
         pass
-        
-    resnet_num_blocks = '[3, 4, 6, 3]'
-    if resnet_arch == 'resnet101':
-        resnet_num_blocks = '[3, 4, 23, 3]'
-        
-    gpus_per_host = int(os.environ['SM_NUM_GPUS'])
-    all_hosts = json.loads(os.environ['SM_HOSTS'])
+
+    resnet_num_blocks = "[3, 4, 6, 3]"
+    if resnet_arch == "resnet101":
+        resnet_num_blocks = "[3, 4, 23, 3]"
+
+    gpus_per_host = int(os.environ["SM_NUM_GPUS"])
+    all_hosts = json.loads(os.environ["SM_HOSTS"])
     numprocesses = len(all_hosts) * int(gpus_per_host)
 
-    steps_per_epoch = int(images_per_epoch/numprocesses)
-    
+    steps_per_epoch = int(images_per_epoch / numprocesses)
+
     _cmd = f"""/usr/bin/python3 /tensorpack/examples/FasterRCNN/train.py \
 --logdir {log_dir} \
 --config DATA.BASEDIR={train_data_dir} \
@@ -139,19 +141,24 @@ TRAIN.EVAL_PERIOD={eval_period} \
 TRAIN.LR_SCHEDULE='{lr_schedule}' \
 TRAINER=horovod"""
 
-    for key,item in hyperparamters.items():
+    for key, item in hyperparamters.items():
         if key.startswith("config:"):
-            hp=f" {key[7:]}={item}"
-            _cmd+=hp
-            
+            hp = f" {key[7:]}={item}"
+            _cmd += hp
+
     if load_model:
-        _cmd += f' --load {train_data_dir}/pretrained-models/{load_model}'
-        
+        _cmd += f" --load {train_data_dir}/pretrained-models/{load_model}"
+
     exitcode = 0
     try:
-        process = subprocess.Popen(_cmd, encoding='utf-8', 
-            cwd="/tensorpack", shell=True, 
-            stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
+        process = subprocess.Popen(
+            _cmd,
+            encoding="utf-8",
+            cwd="/tensorpack",
+            shell=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+        )
 
         while True:
             if process.poll() != None:
@@ -161,9 +168,9 @@ TRAINER=horovod"""
             if output:
                 print(output.strip())
 
-        exitcode = process.poll() 
+        exitcode = process.poll()
         print(f"Exit code:{exitcode}")
-        exitcode = 0 
+        exitcode = 0
     except Exception as e:
         print("train exception occured", file=sys.stderr)
         exitcode = 1
@@ -175,6 +182,7 @@ TRAINER=horovod"""
     sys.stdout.flush()
     sys.stderr.flush()
     sys.exit(exitcode)
+
 
 if __name__ == "__main__":
     train()

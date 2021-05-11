@@ -93,10 +93,7 @@ def handle_request():
         response = sagemaker.describe_workteam(WorkteamName=workteam_name)
         logger.info("Sagemaker describe workteam %s response: %s", workteam_name, response)
 
-        if (
-            not "Workteam" in response
-            or not "MemberDefinitions" in response["Workteam"]
-        ):
+        if not "Workteam" in response or not "MemberDefinitions" in response["Workteam"]:
             # We'll catch, log and handle at a higher level, let this bubble up.
             raise Exception("Couldn't get member definitions from work team")
 

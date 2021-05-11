@@ -2,11 +2,13 @@
 import torch.nn as nn
 import torch.nn.functional as F
 
+
 class MNISTNet(nn.Module):
     """Basic PyTorch convnet for MNIST
 
     Based on https://github.com/pytorch/examples/blob/master/mnist/main.py
     """
+
     def __init__(self):
         super(MNISTNet, self).__init__()
         self.conv1 = nn.Conv2d(1, 10, kernel_size=5)

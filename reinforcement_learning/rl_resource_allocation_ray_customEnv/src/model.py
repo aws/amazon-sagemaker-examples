@@ -1,4 +1,5 @@
 import tensorflow as tf
+
 try:
     import tensorflow.contrib.slim as slim
 except ImportError:
@@ -28,13 +29,15 @@ class ActionMaskModel(Model):
                 size,
                 weights_initializer=normc_initializer(1.0),
                 activation_fn=tf.nn.tanh,
-                scope=label)
+                scope=label,
+            )
         action_logits = slim.fully_connected(
             last_layer,
             num_outputs,
             weights_initializer=normc_initializer(0.01),
             activation_fn=None,
-            scope="fc_out")
+            scope="fc_out",
+        )
 
         if num_outputs == 1:
             return action_logits, last_layer

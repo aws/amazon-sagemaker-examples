@@ -1,4 +1,4 @@
-'''This module implements concrete reset rule for going reversed direction'''
+"""This module implements concrete reset rule for going reversed direction"""
 import rospy
 
 from markov.reset.abstract_reset_rule import AbstractResetRule
@@ -15,11 +15,11 @@ class ReverseResetRule(AbstractResetRule):
         self._reverse_count = 0
 
     def _update(self, agent_status):
-        '''Update the reset rule done flag
+        """Update the reset rule done flag
 
         Args:
             agent_status (dict): agent status dictionary
-        '''
+        """
         agent_phase = agent_status[AgentCtrlStatus.AGENT_PHASE.value]
         current_progress = agent_status[AgentCtrlStatus.CURRENT_PROGRESS.value]
         prev_progress = agent_status[AgentCtrlStatus.PREV_PROGRESS.value]

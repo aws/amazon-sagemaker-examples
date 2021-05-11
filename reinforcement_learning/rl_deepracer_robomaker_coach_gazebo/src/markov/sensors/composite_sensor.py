@@ -1,20 +1,21 @@
-'''This module contains a composite sensor class for supporting agents with multiple sensors'''
+"""This module contains a composite sensor class for supporting agents with multiple sensors"""
 from rl_coach.spaces import StateSpace
 
 from markov.sensors.sensor_interface import SensorInterface, LidarInterface
 
 
 class CompositeSensor(SensorInterface):
-    '''This class represents a composite sensor so that from the point of view of each agent there
-       is only one sensor interface
-    '''
+    """This class represents a composite sensor so that from the point of view of each agent there
+    is only one sensor interface
+    """
+
     def __init__(self):
         self.sensors = list()
 
     def add_sensor(self, sensor):
-        '''Adds a sensor to the sensor list
-           sensor - Sensor object to add to the sensor list
-        '''
+        """Adds a sensor to the sensor list
+        sensor - Sensor object to add to the sensor list
+        """
         self.sensors.append(sensor)
 
     def get_observation_space(self):
@@ -52,7 +53,7 @@ class CompositeSensor(SensorInterface):
     def get_raw_state(self):
         raw_data = dict()
         for sensor in self.sensors:
-            if hasattr(sensor, 'raw_data'):
+            if hasattr(sensor, "raw_data"):
                 raw_data[sensor.sensor_type] = sensor.raw_data
         return raw_data
 

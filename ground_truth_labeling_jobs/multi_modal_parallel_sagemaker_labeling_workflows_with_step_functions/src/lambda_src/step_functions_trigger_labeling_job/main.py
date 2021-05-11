@@ -36,26 +36,23 @@ labeler_execution_role_arn = os.getenv("SMGT_QA_LABELER_EXECUTION_ROLE_ARN")
 
 
 def construct_labeling_job_input(
-        parent_batch_id,
-        input_manifest_url,
-        audit_label_attribute_name,
-        label_category_config_uri,
-        job_params,
-        output_path,
+    parent_batch_id,
+    input_manifest_url,
+    audit_label_attribute_name,
+    label_category_config_uri,
+    job_params,
+    output_path,
 ):
     labeling_job_name = job_params["jobName"]
     labeling_job_type = job_params["jobModality"]
-    task_availibility_lifetime_seconds = int(
-        job_params["taskAvailabilityLifetimeInSeconds"]
-    )
+    task_availibility_lifetime_seconds = int(job_params["taskAvailabilityLifetimeInSeconds"])
     task_time_limit_seconds = int(job_params["taskTimeLimitInSeconds"])
     max_concurrent_task_count = int(job_params["maxConcurrentTaskCount"])
     workteam_arn = job_params["workteamArn"]
 
-
     label_attribute_name = job_params.get(
         "labelAttributeName",
-        label_arn.JobModality.job_name_to_label_attribute(labeling_job_type, labeling_job_name)
+        label_arn.JobModality.job_name_to_label_attribute(labeling_job_type, labeling_job_name),
     )
 
     if audit_label_attribute_name is not None:
@@ -70,9 +67,7 @@ def construct_labeling_job_input(
         json_content["auditLabelAttributeName"] = audit_label_attribute_name
         log.logging.info(f"Regenerating category file json : {json_content}")
         label_category_config_uri = f"s3://{batch_processing_bucket_name}/label_category_input/{parent_batch_id}-{labeling_job_name}/category-file.json"
-        put_s3(
-            label_category_config_uri, bytes(json.dumps(json_content).encode("UTF-8"))
-        )
+        put_s3(label_category_config_uri, bytes(json.dumps(json_content).encode("UTF-8")))
 
     return {
         "LabelingJobName": labeling_job_name,
@@ -82,9 +77,7 @@ def construct_labeling_job_input(
             ),
             "MaxConcurrentTaskCount": max_concurrent_task_count,
             "NumberOfHumanWorkersPerDataObject": 1,
-            "PreHumanTaskLambdaArn": label_arn.pre_human_task_lambda_arn(
-                region, labeling_job_type
-            ),
+            "PreHumanTaskLambdaArn": label_arn.pre_human_task_lambda_arn(region, labeling_job_type),
             "TaskAvailabilityLifetimeInSeconds": task_availibility_lifetime_seconds,
             "TaskDescription": "Audit the labeling job",
             "TaskTimeLimitInSeconds": task_time_limit_seconds,
@@ -148,9 +141,9 @@ def trigger_batch_job(parent_batch_id, job_input, job_params):
         labeling_job_name=job_name,
         label_attribute_name=labeling_job_request["LabelAttributeName"],
         label_category_s3_uri=labeling_job_request["LabelCategoryConfigS3Uri"],
-        job_input_s3_uri=labeling_job_request["InputConfig"]["DataSource"][
-            "S3DataSource"
-        ]["ManifestS3Uri"],
+        job_input_s3_uri=labeling_job_request["InputConfig"]["DataSource"]["S3DataSource"][
+            "ManifestS3Uri"
+        ],
         job_output_s3_uri=s3_output_path,
     )
 
@@ -162,9 +155,7 @@ def chainable_batches(parent_batch_id, job_level):
         raise Exception("can't chain in job_level 1")
 
     if job_level == 2:
-        return db.get_child_batch_metadata(
-            parent_batch_id, BatchMetadataType.FIRST_LEVEL
-        )
+        return db.get_child_batch_metadata(parent_batch_id, BatchMetadataType.FIRST_LEVEL)
 
     if job_level == 3:
         first_level_batches = db.get_child_batch_metadata(
@@ -206,8 +197,14 @@ def input_config_to_job_input(input_batch_id, job_name, job_level, input_config)
     if len(batches) == 0:
         raise Exception("no chainable batches found")
 
-    processed_job_level_batch = next(iter(
-        db.get_batch_metadata_by_labeling_job_name(chain_to_job_name, BatchMetadataType.PROCESS_LEVEL)), None)
+    processed_job_level_batch = next(
+        iter(
+            db.get_batch_metadata_by_labeling_job_name(
+                chain_to_job_name, BatchMetadataType.PROCESS_LEVEL
+            )
+        ),
+        None,
+    )
 
     prev_level_jobs = []
     for batch in batches:
@@ -218,23 +215,21 @@ def input_config_to_job_input(input_batch_id, job_name, job_level, input_config)
     for job in prev_level_jobs:
         if job[BatchMetadataTableAttributes.LABELING_JOB_NAME] == chain_from_job_name:
             # If available, use the downsampled manifest file as input to the new job
-            if processed_job_level_batch :
-                processed_data_location = processed_job_level_batch[BatchMetadataTableAttributes.JOB_INPUT_LOCATION]
+            if processed_job_level_batch:
+                processed_data_location = processed_job_level_batch[
+                    BatchMetadataTableAttributes.JOB_INPUT_LOCATION
+                ]
             else:
                 processed_data_location = None
 
-            batch_output_location = (processed_data_location
-                                     or job[BatchMetadataTableAttributes.JOB_OUTPUT_LOCATION]
-                                     )
+            batch_output_location = (
+                processed_data_location or job[BatchMetadataTableAttributes.JOB_OUTPUT_LOCATION]
+            )
 
             return JobInput(
                 input_manifest_s3_uri=batch_output_location,
-                label_attribute_name=job[
-                    BatchMetadataTableAttributes.LABEL_ATTRIBUTE_NAME
-                ],
-                label_category_s3_uri=job[
-                    BatchMetadataTableAttributes.LABEL_CATEGORY_CONFIG
-                ],
+                label_attribute_name=job[BatchMetadataTableAttributes.LABEL_ATTRIBUTE_NAME],
+                label_category_s3_uri=job[BatchMetadataTableAttributes.LABEL_CATEGORY_CONFIG],
             )
 
     raise Exception(f"chain job {chain_from_job_name} not found")
@@ -244,10 +239,7 @@ def trigger_labeling_job(input_batch_id, batch_id, job_params):
     """Start a labeling job and store metadata in JOB_LEVEL DB entry"""
 
     job_input = input_config_to_job_input(
-        input_batch_id,
-        job_params["jobName"],
-        job_params["jobLevel"],
-        job_params["inputConfig"]
+        input_batch_id, job_params["jobName"], job_params["jobLevel"], job_params["inputConfig"]
     )
 
     if job_params["jobType"] == SmgtJobType.BATCH:

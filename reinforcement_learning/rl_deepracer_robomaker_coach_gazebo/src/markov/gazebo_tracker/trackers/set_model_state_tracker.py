@@ -14,6 +14,7 @@ class SetModelStateTracker(AbstractTracker):
     """
     SetModelState Tracker class
     """
+
     _instance_ = None
 
     @staticmethod

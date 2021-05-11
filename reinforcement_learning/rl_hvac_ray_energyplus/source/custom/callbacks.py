@@ -9,12 +9,13 @@ from ray.rllib.agents.callbacks import DefaultCallbacks
 
 import numpy as np
 
+
 class CustomCallbacks(DefaultCallbacks):
     """
-    Please refer to : 
+    Please refer to :
         https://github.com/ray-project/ray/blob/master/rllib/examples/custom_metrics_and_callbacks.py
         https://docs.ray.io/en/latest/rllib-training.html#callbacks-and-custom-metrics
-    for examples on adding your custom metrics and callbacks. 
+    for examples on adding your custom metrics and callbacks.
 
     This code adapts the documentations of the individual functions from :
     https://github.com/ray-project/ray/blob/master/rllib/agents/callbacks.py
@@ -22,9 +23,14 @@ class CustomCallbacks(DefaultCallbacks):
     These callbacks can be used for custom metrics and custom postprocessing.
     """
 
-    def on_episode_start(self, worker: RolloutWorker, base_env: BaseEnv,
-                         policies: Dict[str, Policy],
-                         episode: MultiAgentEpisode, **kwargs):
+    def on_episode_start(
+        self,
+        worker: RolloutWorker,
+        base_env: BaseEnv,
+        policies: Dict[str, Policy],
+        episode: MultiAgentEpisode,
+        **kwargs
+    ):
         """Callback run on the rollout worker before each episode starts.
         Args:
             worker (RolloutWorker): Reference to the current rollout worker.
@@ -40,8 +46,9 @@ class CustomCallbacks(DefaultCallbacks):
         """
         pass
 
-    def on_episode_step(self, worker: RolloutWorker, base_env: BaseEnv,
-                        episode: MultiAgentEpisode, **kwargs):
+    def on_episode_step(
+        self, worker: RolloutWorker, base_env: BaseEnv, episode: MultiAgentEpisode, **kwargs
+    ):
         """Runs on each episode step.
         Args:
             worker (RolloutWorker): Reference to the current rollout worker.
@@ -55,9 +62,14 @@ class CustomCallbacks(DefaultCallbacks):
         """
         pass
 
-    def on_episode_end(self, worker: RolloutWorker, base_env: BaseEnv,
-                       policies: Dict[str, Policy],
-                       episode: MultiAgentEpisode, **kwargs):
+    def on_episode_end(
+        self,
+        worker: RolloutWorker,
+        base_env: BaseEnv,
+        policies: Dict[str, Policy],
+        episode: MultiAgentEpisode,
+        **kwargs
+    ):
         """Runs when an episode is done.
         Args:
             worker (RolloutWorker): Reference to the current rollout worker.
@@ -72,7 +84,7 @@ class CustomCallbacks(DefaultCallbacks):
             kwargs: Forward compatibility placeholder.
         """
         ######################################################################
-        # An example of adding a custom metric from the latest observation 
+        # An example of adding a custom metric from the latest observation
         # from your env
         ######################################################################
         # last_obs_object_from_episode = episode.last_observation_for()
@@ -81,10 +93,16 @@ class CustomCallbacks(DefaultCallbacks):
         pass
 
     def on_postprocess_trajectory(
-            self, worker: RolloutWorker, episode: MultiAgentEpisode,
-            agent_id: str, policy_id: str,
-            policies: Dict[str, Policy], postprocessed_batch: SampleBatch,
-            original_batches: Dict[str, SampleBatch], **kwargs):
+        self,
+        worker: RolloutWorker,
+        episode: MultiAgentEpisode,
+        agent_id: str,
+        policy_id: str,
+        policies: Dict[str, Policy],
+        postprocessed_batch: SampleBatch,
+        original_batches: Dict[str, SampleBatch],
+        **kwargs
+    ):
         """Called immediately after a policy's postprocess_fn is called.
         You can use this callback to do additional postprocessing for a policy,
         including looking at the trajectory data of other agents in multi-agent
@@ -105,8 +123,7 @@ class CustomCallbacks(DefaultCallbacks):
         """
         pass
 
-    def on_sample_end(self, worker: RolloutWorker, samples: SampleBatch,
-                      **kwargs):
+    def on_sample_end(self, worker: RolloutWorker, samples: SampleBatch, **kwargs):
         """Called at the end RolloutWorker.sample().
         Args:
             worker (RolloutWorker): Reference to the current rollout worker.

@@ -9,15 +9,15 @@ def preprocess_handler(inference_record):
     input_data = {}
     output_data = {}
 
-    input_data['sex'] = random.randint(1, 3)
-    input_data['shucked_wt'] = random.uniform(0, 1.6)
-    input_data['height'] = random.uniform(0, 1.6)
-    input_data['diameter'] = random.uniform(0.05, 0.8)
-    input_data['length'] = random.uniform(0.07, 2.1)
-    input_data['whole_wt'] = random.uniform(0, 3.9)
-    input_data['shell_wt'] = random.uniform(0.0005, 2.005)
-    input_data['viscera_wt'] = random.uniform(0.05, 0.75)
+    input_data["sex"] = random.randint(1, 3)
+    input_data["shucked_wt"] = random.uniform(0, 1.6)
+    input_data["height"] = random.uniform(0, 1.6)
+    input_data["diameter"] = random.uniform(0.05, 0.8)
+    input_data["length"] = random.uniform(0.07, 2.1)
+    input_data["whole_wt"] = random.uniform(0, 3.9)
+    input_data["shell_wt"] = random.uniform(0.0005, 2.005)
+    input_data["viscera_wt"] = random.uniform(0.05, 0.75)
 
-    output_data['age'] = random.uniform(1, 30)
-    
+    output_data["age"] = random.uniform(1, 30)
+
     return {**input_data, **output_data}
