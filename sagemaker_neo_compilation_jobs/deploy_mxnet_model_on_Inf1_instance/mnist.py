@@ -1,13 +1,14 @@
 import argparse
 import gzip
+import io
 import json
 import logging
 import os
-import io
 import struct
+from collections import namedtuple
+
 import mxnet as mx
 import numpy as np
-from collections import namedtuple
 
 
 def load_data(path):

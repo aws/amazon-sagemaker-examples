@@ -1,6 +1,7 @@
-from sagemaker_rl.coach_launcher import SageMakerCoachPresetLauncher
-import tensorflow as tf
 import shutil
+
+import tensorflow as tf
+from sagemaker_rl.coach_launcher import SageMakerCoachPresetLauncher
 
 
 class MyLauncher(SageMakerCoachPresetLauncher):

@@ -1,9 +1,10 @@
+import os
+import shlex
 import subprocess
 import sys
-import shlex
-import os
-from retrying import retry
 from subprocess import CalledProcessError
+
+from retrying import retry
 from sagemaker_inference import model_server
 
 

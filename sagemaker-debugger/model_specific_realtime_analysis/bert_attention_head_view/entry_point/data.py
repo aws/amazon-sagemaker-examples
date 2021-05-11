@@ -18,9 +18,9 @@ import multiprocessing as mp
 import time
 from functools import partial
 
-from mxnet.gluon.data import SimpleDataset
-from gluonnlp.data.utils import whitespace_splitter
 import numpy as np
+from gluonnlp.data.utils import whitespace_splitter
+from mxnet.gluon.data import SimpleDataset
 
 __all__ = ["SQuADTransform", "\rocess_dataset"]
 

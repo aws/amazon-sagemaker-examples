@@ -1,11 +1,11 @@
 import codecs
-import crcmod
 import io
 import json
 import logging
 import struct
-import tensorflow as tf
 
+import crcmod
+import tensorflow as tf
 from flask import Flask, Response, request
 from google.protobuf.json_format import MessageToDict
 

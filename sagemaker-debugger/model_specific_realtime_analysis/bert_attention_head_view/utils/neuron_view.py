@@ -1,10 +1,10 @@
-from bokeh.plotting import show, figure, gridplot
-from bokeh.models.annotations import Title
-from bokeh.models import ColumnDataSource, Label, Range1d
-from bokeh.io import show, output_notebook, push_notebook
-from bokeh.models.glyphs import Line, Image
-from bokeh.models.mappers import LinearColorMapper
 import numpy as np
+from bokeh.io import output_notebook, push_notebook, show
+from bokeh.models import ColumnDataSource, Label, Range1d
+from bokeh.models.annotations import Title
+from bokeh.models.glyphs import Image, Line
+from bokeh.models.mappers import LinearColorMapper
+from bokeh.plotting import figure, gridplot, show
 
 output_notebook()
 

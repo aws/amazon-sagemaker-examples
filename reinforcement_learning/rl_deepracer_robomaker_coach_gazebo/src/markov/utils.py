@@ -1,46 +1,46 @@
-import threading
+import cProfile
+import io
 import json
 import logging
 import os
-import io
-import re
-import signal
-import socket
-import time
-import cProfile
 import pstats
 import random
-
+import re
+import shutil
+import signal
+import socket
+import threading
+import time
 from itertools import count
-from markov.log_handler.constants import (
-    SIMAPP_ENVIRONMENT_EXCEPTION,
-    SIMAPP_EVENT_ERROR_CODE_500,
-    SIMAPP_S3_DATA_STORE_EXCEPTION,
-    SIMAPP_EVENT_ERROR_CODE_400,
-    SIMAPP_SIMULATION_WORKER_EXCEPTION,
-    SIMAPP_DONE_EXIT,
-)
-from markov.log_handler.logger import Logger
-from markov.log_handler.exception_handler import log_and_exit, simapp_exit_gracefully
-from markov.log_handler.deepracer_exceptions import GenericException
+
+import boto3
+import botocore
 from markov.constants import (
-    ROBOMAKER_CANCEL_JOB_WAIT_TIME,
-    NUM_RETRIES,
-    CONNECT_TIMEOUT,
     BEST_CHECKPOINT,
+    CONNECT_TIMEOUT,
+    HYPERPARAMETERS,
     LAST_CHECKPOINT,
-    SAGEMAKER_S3_KMS_CMK_ARN,
+    NUM_RETRIES,
+    ROBOMAKER_CANCEL_JOB_WAIT_TIME,
     ROBOMAKER_S3_KMS_CMK_ARN,
     S3_KMS_CMK_ARN_ENV,
-    HYPERPARAMETERS,
     SAGEMAKER_IS_PROFILER_ON,
     SAGEMAKER_PROFILER_S3_BUCKET,
     SAGEMAKER_PROFILER_S3_PREFIX,
+    SAGEMAKER_S3_KMS_CMK_ARN,
     S3KmsEncryption,
 )
-import boto3
-import botocore
-import shutil
+from markov.log_handler.constants import (
+    SIMAPP_DONE_EXIT,
+    SIMAPP_ENVIRONMENT_EXCEPTION,
+    SIMAPP_EVENT_ERROR_CODE_400,
+    SIMAPP_EVENT_ERROR_CODE_500,
+    SIMAPP_S3_DATA_STORE_EXCEPTION,
+    SIMAPP_SIMULATION_WORKER_EXCEPTION,
+)
+from markov.log_handler.deepracer_exceptions import GenericException
+from markov.log_handler.exception_handler import log_and_exit, simapp_exit_gracefully
+from markov.log_handler.logger import Logger
 
 logger = Logger(__name__, logging.INFO).get_logger()
 
@@ -82,8 +82,8 @@ def cancel_simulation_job(backoff_time_sec=1.0, max_retry_attempts=5):
         max_retry_attempts (int): maximum number of retry
     """
     import rospy
-    from robomaker_simulation_msgs.srv import Cancel
     from markov.rospy_wrappers import ServiceProxyWrapper
+    from robomaker_simulation_msgs.srv import Cancel
 
     requestCancel = ServiceProxyWrapper("/robomaker/job/cancel", Cancel)
 
@@ -104,7 +104,7 @@ def cancel_simulation_job(backoff_time_sec=1.0, max_retry_attempts=5):
 
 
 def str2bool(flag):
-    """ bool: convert flag to boolean if it is string and return it else return its initial bool value """
+    """bool: convert flag to boolean if it is string and return it else return its initial bool value"""
     if not isinstance(flag, bool):
         if flag.lower() == "false":
             flag = False
@@ -332,7 +332,7 @@ def test_internet_connection(aws_region):
 
 
 def get_sagemaker_profiler_env():
-    """ Read the sagemaker profiler environment variables """
+    """Read the sagemaker profiler environment variables"""
     is_profiler_on, profiler_s3_bucker, profiler_s3_prefix = False, None, None
     hyperparams = os.environ.get("SM_TRAINING_ENV", "")
     hyperparams_dict = json.loads(hyperparams)
@@ -431,7 +431,7 @@ class Profiler(object):
         self._enable_profiling = val
 
     def start(self):
-        """ Start the profiler """
+        """Start the profiler"""
         if self.enable_profiling:
             if not self._profiler:
                 self._profiler = cProfile.Profile()
@@ -441,7 +441,7 @@ class Profiler(object):
                 raise GenericException("Profiler is in use!")
 
     def stop(self):
-        """ Stop the profiler and upload the data to S3 """
+        """Stop the profiler and upload the data to S3"""
         if self._profiler_owner == self:
             if self._profiler:
                 self._profiler.disable()

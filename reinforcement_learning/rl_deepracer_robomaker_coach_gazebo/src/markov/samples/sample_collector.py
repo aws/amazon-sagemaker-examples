@@ -1,9 +1,9 @@
-import pickle
 import os
+import pickle
 
-from markov.utils import get_s3_kms_extra_args
 from markov.boto.s3.s3_client import S3Client
 from markov.log_handler.deepracer_exceptions import GenericTrainerException
+from markov.utils import get_s3_kms_extra_args
 
 
 class SampleCollector:

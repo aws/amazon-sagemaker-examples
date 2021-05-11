@@ -1,27 +1,27 @@
 """This module should house utility methods for the agent control classes"""
 import json
-import math
 import logging
-import numpy as np
-import markov.agent_ctrl.constants as const
+import math
 
-from markov.metrics.constants import StepMetrics
+import markov.agent_ctrl.constants as const
+import numpy as np
 from markov.agent_ctrl.constants import RewardParam
-from markov.track_geom.constants import AgentPos, TrackNearDist, TrackNearPnts
-from markov.log_handler.logger import Logger
+from markov.boto.s3.constants import ActionSpaceTypes, ModelMetadataKeys, TrainingAlgorithm
+from markov.constants import SIMAPP_VERSION_1, SIMAPP_VERSION_2, SIMAPP_VERSION_3, SIMAPP_VERSION_4
 from markov.log_handler.constants import (
     SIMAPP_EVENT_ERROR_CODE_500,
     SIMAPP_SIMULATION_WORKER_EXCEPTION,
 )
-from markov.log_handler.exception_handler import log_and_exit
 from markov.log_handler.deepracer_exceptions import GenericRolloutException
+from markov.log_handler.exception_handler import log_and_exit
+from markov.log_handler.logger import Logger
+from markov.metrics.constants import StepMetrics
 from markov.multi_agent_coach.action_space_configs import (
     ClippedPPOActionSpaceConfig,
     SACActionSpaceConfig,
 )
+from markov.track_geom.constants import AgentPos, TrackNearDist, TrackNearPnts
 from scipy.spatial.transform import Rotation
-from markov.constants import SIMAPP_VERSION_1, SIMAPP_VERSION_2, SIMAPP_VERSION_3, SIMAPP_VERSION_4
-from markov.boto.s3.constants import ModelMetadataKeys, ActionSpaceTypes, TrainingAlgorithm
 
 LOGGER = Logger(__name__, logging.INFO).get_logger()
 

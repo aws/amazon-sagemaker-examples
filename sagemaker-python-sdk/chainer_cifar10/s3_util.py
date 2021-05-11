@@ -11,10 +11,11 @@
 # ANY KIND, either express or implied. See the License for the specific
 # language governing permissions and limitations under the License.
 
-import boto3
+import os
 import tarfile
 from urllib.parse import urlparse
-import os
+
+import boto3
 
 
 def retrieve_output_from_s3(s3_url, output_dir):

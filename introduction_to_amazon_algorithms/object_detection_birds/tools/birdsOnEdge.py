@@ -4,19 +4,20 @@
 # All Rights Reserved.                               *
 #                                                    *
 # *****************************************************
-from threading import Thread, Event, Timer
-import os
-import json
-import numpy as np
-import greengrasssdk
-import sys
 import datetime
+import json
+import os
+import sys
 import time
-import awscam
-import cv2
 import urllib
 import zipfile
+from threading import Event, Thread, Timer
+
+import awscam
+import cv2
+import greengrasssdk
 import mo
+import numpy as np
 
 # Create a greengrass core sdk client
 client = greengrasssdk.client("iot-data")
@@ -55,7 +56,7 @@ class LocalDisplay(Thread):
     """
 
     def __init__(self, resolution):
-        """ resolution - Desired resolution of the project stream """
+        """resolution - Desired resolution of the project stream"""
         # Initialize the base class, so that the object can run on its own
         # thread.
         super(LocalDisplay, self).__init__()
@@ -107,7 +108,7 @@ class LocalDisplay(Thread):
 
 
 def greengrass_infinite_infer_run():
-    """ Entry point of the lambda function"""
+    """Entry point of the lambda function"""
 
     client.publish(topic=iot_topic, payload="Start of run loop...")
 

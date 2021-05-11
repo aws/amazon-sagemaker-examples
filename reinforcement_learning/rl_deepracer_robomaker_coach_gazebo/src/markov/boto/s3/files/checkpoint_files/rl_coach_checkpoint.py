@@ -1,29 +1,29 @@
 """This module implements rl coach coach_checkpoint file specifically"""
 
+import logging
 import os
 import re
-import logging
-import botocore
 
-from rl_coach.checkpoint import CheckpointStateFile
-from markov.utils import get_s3_kms_extra_args
-from markov.log_handler.logger import Logger
-from markov.log_handler.exception_handler import log_and_exit
-from markov.log_handler.constants import (
-    SIMAPP_EVENT_ERROR_CODE_500,
-    SIMAPP_EVENT_ERROR_CODE_400,
-    SIMAPP_SIMULATION_WORKER_EXCEPTION,
+import botocore
+from markov.boto.s3.constants import (
+    BEST_CHECKPOINT,
+    COACH_CHECKPOINT_LOCAL_PATH_FORMAT,
+    COACH_CHECKPOINT_POSTFIX,
+    LAST_CHECKPOINT,
+    OLD_COACH_CHECKPOINT_LOCAL_PATH_FORMAT,
+    OLD_COACH_CHECKPOINT_POSTFIX,
+    TEMP_COACH_CHECKPOINT_LOCAL_PATH_FORMAT,
 )
 from markov.boto.s3.s3_client import S3Client
-from markov.boto.s3.constants import (
-    COACH_CHECKPOINT_POSTFIX,
-    COACH_CHECKPOINT_LOCAL_PATH_FORMAT,
-    TEMP_COACH_CHECKPOINT_LOCAL_PATH_FORMAT,
-    OLD_COACH_CHECKPOINT_POSTFIX,
-    OLD_COACH_CHECKPOINT_LOCAL_PATH_FORMAT,
-    BEST_CHECKPOINT,
-    LAST_CHECKPOINT,
+from markov.log_handler.constants import (
+    SIMAPP_EVENT_ERROR_CODE_400,
+    SIMAPP_EVENT_ERROR_CODE_500,
+    SIMAPP_SIMULATION_WORKER_EXCEPTION,
 )
+from markov.log_handler.exception_handler import log_and_exit
+from markov.log_handler.logger import Logger
+from markov.utils import get_s3_kms_extra_args
+from rl_coach.checkpoint import CheckpointStateFile
 
 LOG = Logger(__name__, logging.INFO).get_logger()
 

@@ -1,14 +1,13 @@
-import gym
-import roboschool
 import os
 
+import gym
+import roboschool
 from gym.wrappers.monitoring.video_recorder import VideoRecorder
-from stable_baselines.ppo1 import PPO1
-from stable_baselines.common import set_global_seeds
-from stable_baselines.bench import Monitor
-from stable_baselines.common import tf_util
-from stable_baselines.common.policies import MlpPolicy
 from mpi4py import MPI
+from stable_baselines.bench import Monitor
+from stable_baselines.common import set_global_seeds, tf_util
+from stable_baselines.common.policies import MlpPolicy
+from stable_baselines.ppo1 import PPO1
 
 
 class RewScale(gym.RewardWrapper):

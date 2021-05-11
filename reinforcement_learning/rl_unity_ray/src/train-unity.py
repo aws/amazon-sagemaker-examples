@@ -3,14 +3,13 @@ import os
 
 import gym
 import ray
-from ray.tune import run_experiments
-from ray.tune.registry import register_env
-
-from sagemaker_rl.ray_launcher import SageMakerRayLauncher
+from gym_unity.envs import UnityToGymWrapper
 from mlagents_envs.environment import UnityEnvironment
 from mlagents_envs.exception import UnityWorkerInUseException
 from mlagents_envs.registry import default_registry
-from gym_unity.envs import UnityToGymWrapper
+from ray.tune import run_experiments
+from ray.tune.registry import register_env
+from sagemaker_rl.ray_launcher import SageMakerRayLauncher
 
 
 class UnityEnvWrapper(gym.Env):

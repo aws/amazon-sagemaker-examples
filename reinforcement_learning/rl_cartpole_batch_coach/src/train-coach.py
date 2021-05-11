@@ -1,5 +1,6 @@
-from sagemaker_rl.coach_launcher import SageMakerCoachPresetLauncher
 import shutil
+
+from sagemaker_rl.coach_launcher import SageMakerCoachPresetLauncher
 
 
 class MyLauncher(SageMakerCoachPresetLauncher):

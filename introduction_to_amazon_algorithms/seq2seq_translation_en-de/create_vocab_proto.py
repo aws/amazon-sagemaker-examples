@@ -7,22 +7,21 @@
 # or in the "license" file accompanying this file. This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 
 import argparse
-from collections import Counter
-from contextlib import ExitStack
 import gzip
 import io
-from itertools import chain, islice
 import json
 import logging
+import multiprocessing
 import os
 import pickle
 import struct
-import multiprocessing
+from collections import Counter
+from contextlib import ExitStack
+from itertools import chain, islice
+from typing import Dict, Generator, Iterable, List, Mapping
 
-from record_pb2 import Record
 import boto3
-from typing import Dict, Iterable, Mapping, Generator
-from typing import List
+from record_pb2 import Record
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

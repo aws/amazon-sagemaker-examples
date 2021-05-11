@@ -1,11 +1,12 @@
 import os
-import numpy as np
+
 import mxnet as mx
+import numpy as np
 from mxnet import gluon
 from mxnet import ndarray as nd
 
-from .score_fun import *
 from .. import *
+from .score_fun import *
 
 
 def logsigmoid(val):

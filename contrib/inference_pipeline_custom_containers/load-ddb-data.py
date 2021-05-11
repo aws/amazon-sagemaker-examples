@@ -1,5 +1,6 @@
 import argparse
 import csv
+
 import boto3
 
 parser = argparse.ArgumentParser(description="Load DynamoDB data")

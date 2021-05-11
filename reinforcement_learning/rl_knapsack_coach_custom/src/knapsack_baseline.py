@@ -1,6 +1,7 @@
-import numpy as np
-import random
 import queue
+import random
+
+import numpy as np
 
 
 def get_knapsack_solution_simple(weights, values, c_max, penalty, debug=False):

@@ -15,8 +15,9 @@
 # specific language governing permissions and limitations
 # under the License.
 
-from imdb import Imdb
 import random
+
+from imdb import Imdb
 
 
 class ConcatDB(Imdb):

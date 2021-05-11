@@ -1,6 +1,7 @@
-import numpy as np
 import math
+
 import matplotlib.pyplot as plt
+import numpy as np
 from matplotlib.animation import FuncAnimation
 
 plt.rcParams.update({"font.size": 8})

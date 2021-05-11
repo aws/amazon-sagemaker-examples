@@ -1,18 +1,17 @@
-from models import KEModel
+from distutils.version import LooseVersion
 
-from torch.utils.data import DataLoader
-import torch.optim as optim
 import torch as th
 import torch.multiprocessing as mp
-
-from distutils.version import LooseVersion
+import torch.optim as optim
+from models import KEModel
+from torch.utils.data import DataLoader
 
 TH_VERSION = LooseVersion(th.__version__)
 if TH_VERSION.version[0] == 1 and TH_VERSION.version[1] < 2:
     raise Exception("DGL-ke has to work with Pytorch version >= 1.2")
 
-import os
 import logging
+import os
 import time
 
 

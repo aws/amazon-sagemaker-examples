@@ -1,43 +1,44 @@
 """This module houses the metric objects for the sim app"""
-import math
-import time
 import json
 import logging
+import math
 import os
-from collections import OrderedDict
 import statistics
+import time
+from collections import OrderedDict
+
 import boto3
 import botocore
 import rospy
-from deepracer_simulation_environment.srv import VideoMetricsSrvResponse, VideoMetricsSrv
+from deepracer_simulation_environment.srv import VideoMetricsSrv, VideoMetricsSrvResponse
 from geometry_msgs.msg import Point32
-from markov.constants import BEST_CHECKPOINT, LAST_CHECKPOINT, METRICS_VERSION
-from markov.common import ObserverInterface
-from markov.metrics.constants import (
-    MetricsS3Keys,
-    StepMetrics,
-    EpisodeStatus,
-    Mp4VideoMetrics,
-    BestModelMetricType,
-)
-from markov.metrics.metrics_interface import MetricsInterface
-from markov.utils import get_boto_config, get_s3_kms_extra_args
-from markov.log_handler.logger import Logger
-from markov.log_handler.exception_handler import log_and_exit
-from markov.log_handler.constants import (
-    SIMAPP_SIMULATION_WORKER_EXCEPTION,
-    SIMAPP_EVENT_ERROR_CODE_500,
-)
-from rl_coach.checkpoint import CheckpointStateFile
-from rl_coach.core_types import RunPhase
-from markov.gazebo_tracker.abs_tracker import AbstractTracker
-from markov.gazebo_tracker.constants import TrackerPriority
-from markov.track_geom.track_data import TrackData
 from markov.boto.s3.constants import (
     SIMTRACE_EVAL_LOCAL_PATH_FORMAT,
     SIMTRACE_TRAINING_LOCAL_PATH_FORMAT,
 )
 from markov.boto.s3.files.metrics import Metrics
+from markov.common import ObserverInterface
+from markov.constants import BEST_CHECKPOINT, LAST_CHECKPOINT, METRICS_VERSION
+from markov.gazebo_tracker.abs_tracker import AbstractTracker
+from markov.gazebo_tracker.constants import TrackerPriority
+from markov.log_handler.constants import (
+    SIMAPP_EVENT_ERROR_CODE_500,
+    SIMAPP_SIMULATION_WORKER_EXCEPTION,
+)
+from markov.log_handler.exception_handler import log_and_exit
+from markov.log_handler.logger import Logger
+from markov.metrics.constants import (
+    BestModelMetricType,
+    EpisodeStatus,
+    MetricsS3Keys,
+    Mp4VideoMetrics,
+    StepMetrics,
+)
+from markov.metrics.metrics_interface import MetricsInterface
+from markov.track_geom.track_data import TrackData
+from markov.utils import get_boto_config, get_s3_kms_extra_args
+from rl_coach.checkpoint import CheckpointStateFile
+from rl_coach.core_types import RunPhase
 
 LOGGER = Logger(__name__, logging.INFO).get_logger()
 

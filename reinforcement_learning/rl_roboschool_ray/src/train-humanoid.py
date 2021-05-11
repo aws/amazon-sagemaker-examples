@@ -3,10 +3,9 @@ import os
 
 import gym
 import ray
+import roboschool
 from ray.tune import run_experiments
 from ray.tune.registry import register_env
-import roboschool
-
 from sagemaker_rl.ray_launcher import SageMakerRayLauncher
 
 

@@ -3,12 +3,11 @@ import os
 
 import gym
 import ray
-from ray.tune import run_experiments
 import ray.rllib.agents.a3c as a3c
 import ray.rllib.agents.ppo as ppo
-from ray.tune.registry import register_env
 from environment import NetworkCompression
-
+from ray.tune import run_experiments
+from ray.tune.registry import register_env
 from sagemaker_rl.ray_launcher import SageMakerRayLauncher
 
 

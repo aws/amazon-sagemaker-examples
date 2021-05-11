@@ -19,14 +19,16 @@
 # under the License.
 
 from __future__ import print_function
-import sys, os
+
 import argparse
+import os
 import subprocess
+import sys
 
 curr_path = os.path.abspath(os.path.dirname(__file__))
 sys.path.append(os.path.join(curr_path, ".."))
-from pascal_voc import PascalVoc
 from concat_db import ConcatDB
+from pascal_voc import PascalVoc
 
 
 def load_pascal(image_set, year, devkit_path, shuffle=False):

@@ -2,7 +2,7 @@ from math import isclose
 
 import gym
 import numpy as np
-from gym.spaces import Box, Discrete, Dict
+from gym.spaces import Box, Dict, Discrete
 from scipy.stats import truncnorm
 
 from utils import vrp_action_go_from_a_to_b

@@ -1,13 +1,15 @@
 """
 Modified from https://github.com/vermouth1992/drl-portfolio-management/blob/master/src/environment/portfolio.py
 """
+import csv
+from pprint import pprint
+
 import gym
 import gym.spaces
-from pprint import pprint
 import numpy as np
-from utils import *
-import csv
 from config import *
+
+from utils import *
 
 
 class PortfolioEnv(gym.Env):

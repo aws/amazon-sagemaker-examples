@@ -16,14 +16,13 @@ import argparse
 import json
 import logging
 import os
-import pandas as pd
 import pickle as pkl
 
-from sagemaker_containers import entry_point
-from sagemaker_xgboost_container.data_utils import get_dmatrix
-from sagemaker_xgboost_container import distributed
-
+import pandas as pd
 import xgboost as xgb
+from sagemaker_containers import entry_point
+from sagemaker_xgboost_container import distributed
+from sagemaker_xgboost_container.data_utils import get_dmatrix
 
 
 def _xgb_train(params, dtrain, evals, num_boost_round, model_dir, is_master):

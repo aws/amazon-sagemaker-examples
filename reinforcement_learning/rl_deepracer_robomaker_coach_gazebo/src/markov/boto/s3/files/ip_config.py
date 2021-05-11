@@ -1,24 +1,23 @@
 """This module implements s3 client for ip config"""
 
-import os
 import io
-import time
 import json
-import socket
 import logging
-import botocore
+import os
+import socket
+import time
 
-from markov.log_handler.exception_handler import log_and_exit
-from markov.log_handler.logger import Logger
+import botocore
+from markov.boto.s3.constants import IP_ADDRESS_POSTFIX, IP_DONE_POSTFIX, SAGEMAKER_WAIT_TIME
+from markov.boto.s3.s3_client import S3Client
 from markov.log_handler.constants import (
-    SIMAPP_SIMULATION_WORKER_EXCEPTION,
+    SIMAPP_ENVIRONMENT_EXCEPTION,
     SIMAPP_EVENT_ERROR_CODE_500,
     SIMAPP_S3_DATA_STORE_EXCEPTION,
-    SIMAPP_ENVIRONMENT_EXCEPTION,
+    SIMAPP_SIMULATION_WORKER_EXCEPTION,
 )
-
-from markov.boto.s3.constants import SAGEMAKER_WAIT_TIME, IP_ADDRESS_POSTFIX, IP_DONE_POSTFIX
-from markov.boto.s3.s3_client import S3Client
+from markov.log_handler.exception_handler import log_and_exit
+from markov.log_handler.logger import Logger
 
 LOG = Logger(__name__, logging.INFO).get_logger()
 

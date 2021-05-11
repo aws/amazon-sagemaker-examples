@@ -5,12 +5,9 @@ conversions between database types and API json.
 
 import boto3
 import botocore
-
 from shared import db
-from shared.constants import (
-    BatchMetadataTableAttributes as Attributes,
-    BatchMetadataType,
-)
+from shared.constants import BatchMetadataTableAttributes as Attributes
+from shared.constants import BatchMetadataType
 from shared.log import logger
 
 

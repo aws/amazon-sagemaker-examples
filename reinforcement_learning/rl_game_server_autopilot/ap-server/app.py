@@ -1,14 +1,15 @@
-from chalice import Chalice
 import json
-import numpy as np
-from time import gmtime, strftime
+import os
+import sys
 import time
 from datetime import datetime
-from urllib.parse import urlparse, parse_qs
+from time import gmtime, strftime
+from urllib.parse import parse_qs, urlparse
+
 import boto3
-import sys
-import os
+import numpy as np
 import requests
+from chalice import Chalice
 
 # Global Varibale from model
 content_type = "application/json"

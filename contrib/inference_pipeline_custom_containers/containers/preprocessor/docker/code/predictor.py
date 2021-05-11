@@ -3,18 +3,19 @@
 
 from __future__ import print_function
 
-import os
-import sys
-import stat
-import json
-import shutil
-import flask
-from flask import Flask, jsonify, request, make_response, Response
-import glob
-import pandas as pd
-import numpy as np
 import csv
+import glob
+import json
+import os
+import shutil
+import stat
+import sys
 from io import StringIO
+
+import flask
+import numpy as np
+import pandas as pd
+from flask import Flask, Response, jsonify, make_response, request
 from joblib import dump, load
 from sagemaker_containers.beta.framework import (
     content_types,
@@ -24,12 +25,13 @@ from sagemaker_containers.beta.framework import (
     transformer,
     worker,
 )
+
 from utils import (
-    write_failure_file,
-    print_json_object,
     load_json_object,
-    save_model_artifacts,
     print_files_in_path,
+    print_json_object,
+    save_model_artifacts,
+    write_failure_file,
 )
 
 model_artifacts_path = "/opt/ml/model/"

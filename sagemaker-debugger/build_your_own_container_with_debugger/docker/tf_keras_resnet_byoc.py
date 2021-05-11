@@ -14,13 +14,13 @@ import random
 
 # Third Party
 import numpy as np
+
+# smdebug modification: Import smdebug support for Tensorflow
+import smdebug.tensorflow as smd
 import tensorflow.compat.v2 as tf
 from tensorflow.keras.applications.resnet50 import ResNet50
 from tensorflow.keras.datasets import cifar10
 from tensorflow.keras.utils import to_categorical
-
-# smdebug modification: Import smdebug support for Tensorflow
-import smdebug.tensorflow as smd
 
 
 def train(batch_size, epoch, model, hook):

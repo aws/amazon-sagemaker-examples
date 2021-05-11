@@ -1,6 +1,6 @@
+import os
 import socket
 import xml.etree.ElementTree as ET
-import os
 
 
 class socket_builder:

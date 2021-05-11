@@ -1,6 +1,7 @@
 """This class defines an interface for how agents reset with the environment.
 """
 import abc
+
 from markov.log_handler.deepracer_exceptions import GenericRolloutException
 
 

@@ -1,8 +1,8 @@
 """This module implement reset rule manager"""
 from markov.log_handler.deepracer_exceptions import GenericRolloutException
+from markov.metrics.constants import EpisodeStatus
 from markov.reset.abstract_reset_rule import AbstractResetRule
 from markov.reset.constants import AgentCtrlStatus, AgentInfo
-from markov.metrics.constants import EpisodeStatus
 
 
 class ResetRulesManager:

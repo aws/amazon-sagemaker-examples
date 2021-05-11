@@ -1,7 +1,6 @@
 import gym
 import numpy as np
 from gym import spaces
-
 from rl_operations_research_baselines.VRP.VRP_view_2D import VRPView2D
 
 """ 

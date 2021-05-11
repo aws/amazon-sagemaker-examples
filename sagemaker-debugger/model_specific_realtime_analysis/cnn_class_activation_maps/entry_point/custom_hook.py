@@ -1,6 +1,6 @@
 import smdebug.pytorch as smd
-from smdebug.core.modes import ModeKeys
 import torch
+from smdebug.core.modes import ModeKeys
 
 
 class CustomHook(smd.Hook):

@@ -1,7 +1,6 @@
 from time import sleep
 
 import numpy as np
-
 from TSP_baseline_utils import tsp_action_go_from_a_to_b, tsp_dp_approx_sol, tsp_dp_opt_sol
 from TSP_env import TSPEasyEnv, TSPMediumEnv
 

@@ -1,7 +1,6 @@
 """This module contains a composite sensor class for supporting agents with multiple sensors"""
+from markov.sensors.sensor_interface import LidarInterface, SensorInterface
 from rl_coach.spaces import StateSpace
-
-from markov.sensors.sensor_interface import SensorInterface, LidarInterface
 
 
 class CompositeSensor(SensorInterface):

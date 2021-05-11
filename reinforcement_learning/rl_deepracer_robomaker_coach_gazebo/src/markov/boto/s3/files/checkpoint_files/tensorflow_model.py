@@ -1,33 +1,33 @@
 """This module implements tf model ckpt and pb file specifically"""
 
+import logging
 import os
+import queue
 import re
 import shutil
-import queue
-import logging
 
 import tensorflow as tf
-from rl_coach.checkpoint import CheckpointStateFile, _filter_checkpoint_files, SingleCheckpoint
 from markov import utils
-from markov.log_handler.logger import Logger
-from markov.log_handler.exception_handler import log_and_exit
-from markov.log_handler.constants import (
-    SIMAPP_EVENT_ERROR_CODE_500,
-    SIMAPP_EVENT_ERROR_CODE_400,
-    SIMAPP_SIMULATION_WORKER_EXCEPTION,
-    SIMAPP_S3_DATA_STORE_EXCEPTION,
-)
 from markov.boto.s3.constants import (
     CHECKPOINT_LOCAL_DIR_FORMAT,
     CHECKPOINT_POSTFIX_DIR,
-    NUM_MODELS_TO_KEEP,
-    TEMP_RENAME_FOLDER,
-    SM_MODEL_PB_TEMP_FOLDER,
     FROZEN_HEAD_OUTPUT_GRAPH_FORMAT_MAPPING,
+    NUM_MODELS_TO_KEEP,
+    SM_MODEL_PB_TEMP_FOLDER,
+    TEMP_RENAME_FOLDER,
     ActionSpaceTypes,
     TrainingAlgorithm,
 )
 from markov.boto.s3.s3_client import S3Client
+from markov.log_handler.constants import (
+    SIMAPP_EVENT_ERROR_CODE_400,
+    SIMAPP_EVENT_ERROR_CODE_500,
+    SIMAPP_S3_DATA_STORE_EXCEPTION,
+    SIMAPP_SIMULATION_WORKER_EXCEPTION,
+)
+from markov.log_handler.exception_handler import log_and_exit
+from markov.log_handler.logger import Logger
+from rl_coach.checkpoint import CheckpointStateFile, SingleCheckpoint, _filter_checkpoint_files
 
 LOG = Logger(__name__, logging.INFO).get_logger()
 

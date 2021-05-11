@@ -1,10 +1,10 @@
 import copy
-import threading
 import logging
+import threading
 
-from markov.log_handler.deepracer_exceptions import GenericRolloutException
 from markov.gazebo_tracker.abs_tracker import AbstractTracker
 from markov.gazebo_tracker.trackers.get_model_state_tracker import GetModelStateTracker
+from markov.log_handler.deepracer_exceptions import GenericRolloutException
 from markov.log_handler.logger import Logger
 
 LOG = Logger(__name__, logging.INFO).get_logger()

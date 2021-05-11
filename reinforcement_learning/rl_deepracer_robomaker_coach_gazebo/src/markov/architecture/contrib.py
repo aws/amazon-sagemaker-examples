@@ -9,7 +9,7 @@ class Attention(object):
     """
 
     def __init__(self, units: int):
-        """units - number of hidden units to use in the in the score wights """
+        """units - number of hidden units to use in the in the score wights"""
         self.units = units
 
     def __call__(

@@ -1,16 +1,16 @@
-from __future__ import print_function, division
+from __future__ import division, print_function
 
 import argparse
+import os
+
+import custom_hook
+import smdebug.pytorch as smd
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torchvision import datasets, models, transforms
-import os
-
-import smdebug.pytorch as smd
 from smdebug import modes
 from smdebug.core.modes import ModeKeys
-import custom_hook
+from torchvision import datasets, models, transforms
 
 
 def get_dataloaders(batch_size_train, batch_size_val):

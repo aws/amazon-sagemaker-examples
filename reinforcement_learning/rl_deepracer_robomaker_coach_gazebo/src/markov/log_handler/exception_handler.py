@@ -1,24 +1,25 @@
 # Handles logging and graceful exit
+import datetime
+import inspect
+import io
 import json
 import logging
 import os
-import io
-import datetime
-import inspect
-from collections import OrderedDict
-import traceback
 import re
+import traceback
+from collections import OrderedDict
+
 from markov.log_handler.constants import (
+    ERROR_HANDLER_EXCEPTION_FAULT_CODE,
+    EXCEPTION_HANDLER_SYNC_FILE,
+    FAULT_MAP,
+    SIMAPP_ERROR_EXIT,
     SIMAPP_ERROR_HANDLER_EXCEPTION,
+    SIMAPP_EVENT_ERROR_CODE_400,
+    SIMAPP_EVENT_ERROR_CODE_500,
     SIMAPP_EVENT_SYSTEM_ERROR,
     SIMAPP_EVENT_USER_ERROR,
-    SIMAPP_EVENT_ERROR_CODE_500,
-    SIMAPP_EVENT_ERROR_CODE_400,
-    SIMAPP_ERROR_EXIT,
-    FAULT_MAP,
     UNCLASSIFIED_FAULT_CODE,
-    EXCEPTION_HANDLER_SYNC_FILE,
-    ERROR_HANDLER_EXCEPTION_FAULT_CODE,
 )
 from markov.log_handler.logger import Logger
 

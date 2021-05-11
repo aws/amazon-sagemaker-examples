@@ -1,7 +1,6 @@
 """This module contains all s3 related prefix, key, and local path constants"""
 
 import os
-
 from enum import Enum
 
 # python version

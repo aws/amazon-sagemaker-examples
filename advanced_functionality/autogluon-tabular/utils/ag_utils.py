@@ -1,13 +1,11 @@
-from IPython.display import display, IFrame
-from ipywidgets import interact, Image, VBox, HTML, GridspecLayout, Layout, widgets
-import ipywidgets as ipyw
-
-import boto3
-
 import os
 import tarfile
 
+import boto3
+import ipywidgets as ipyw
 import pandas as pd
+from IPython.display import IFrame, display
+from ipywidgets import HTML, GridspecLayout, Image, Layout, VBox, interact, widgets
 
 
 def search_training_jobs(job_tag_name, job_tag_value):

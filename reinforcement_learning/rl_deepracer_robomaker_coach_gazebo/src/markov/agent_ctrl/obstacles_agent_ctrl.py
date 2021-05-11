@@ -1,23 +1,23 @@
 """This module implements concrete agent controllers for the rollout worker"""
-import numpy as np
 import os
 import random
+
+import numpy as np
 import rospkg
 import rospy
-
 from gazebo_msgs.msg import ModelState
 from gazebo_msgs.srv import SpawnModel
-from markov.agent_ctrl.constants import BOT_CAR_Z, OBSTACLE_Z, OBSTACLE_NAME_PREFIX
-from markov.track_geom.constants import SPAWN_SDF_MODEL, SPAWN_URDF_MODEL, ObstacleDimensions
-from markov.track_geom.track_data import TrackData
-from markov.agent_ctrl.agent_ctrl_interface import AgentCtrlInterface
-from markov.rospy_wrappers import ServiceProxyWrapper
 from markov import utils
-from markov.reset.constants import AgentInfo
+from markov.agent_ctrl.agent_ctrl_interface import AgentCtrlInterface
+from markov.agent_ctrl.constants import BOT_CAR_Z, OBSTACLE_NAME_PREFIX, OBSTACLE_Z
+from markov.domain_randomizations.constants import ModelRandomizerType
 from markov.domain_randomizations.randomizer_manager import RandomizerManager
 from markov.domain_randomizations.visual.model_visual_randomizer import ModelVisualRandomizer
-from markov.domain_randomizations.constants import ModelRandomizerType
 from markov.gazebo_tracker.trackers.set_model_state_tracker import SetModelStateTracker
+from markov.reset.constants import AgentInfo
+from markov.rospy_wrappers import ServiceProxyWrapper
+from markov.track_geom.constants import SPAWN_SDF_MODEL, SPAWN_URDF_MODEL, ObstacleDimensions
+from markov.track_geom.track_data import TrackData
 
 
 class ObstaclesCtrl(AgentCtrlInterface):

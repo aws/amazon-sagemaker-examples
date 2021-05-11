@@ -14,8 +14,8 @@
 Custom Framework Estimator for JAX
 """
 from sagemaker.estimator import Framework
-from sagemaker.vpc_utils import VPC_CONFIG_DEFAULT
 from sagemaker.tensorflow.model import TensorFlowModel
+from sagemaker.vpc_utils import VPC_CONFIG_DEFAULT
 
 
 class JaxEstimator(Framework):

@@ -17,49 +17,44 @@
 
 """BERT finetuning runner."""
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
+
+import argparse
+import configparser
 
 # ==================
 import csv
+import json
+import math
+import multiprocessing
 import os
+import pprint
+import random
+import subprocess
 import sys
 import time
-import argparse
-import random
-import h5py
-from tqdm import tqdm, trange
-import os
-import numpy as np
-import torch
-from torch.utils.data import DataLoader, RandomSampler, SequentialSampler, Dataset
-from torch.utils.data.distributed import DistributedSampler
-import math
-from apex import amp
-import multiprocessing
-import pprint
-import json
-import subprocess
+from concurrent.futures import ProcessPoolExecutor
 
-import modeling
-from schedulers import PolyWarmUpScheduler
-
-from utils import format_step, get_world_size, get_rank
-from utils import is_main_process
-from apex.parallel import DistributedDataParallel as DDP
-from smdistributed.modelparallel.torch.optimizers import FusedLAMB
-from schedulers import LinearWarmUpScheduler
-from apex.parallel.distributed import flat_dist_call
 import amp_C
 import apex_C
-from apex.amp import _amp_state
+import h5py
+import modeling
+import numpy as np
 
 # SMP: Import smp library
 import smdistributed.modelparallel.torch as smp
-import configparser
+import torch
+from apex import amp
+from apex.amp import _amp_state
+from apex.parallel import DistributedDataParallel as DDP
+from apex.parallel.distributed import flat_dist_call
+from schedulers import LinearWarmUpScheduler, PolyWarmUpScheduler
+from smdistributed.modelparallel.torch.optimizers import FusedLAMB
+from torch.utils.data import DataLoader, Dataset, RandomSampler, SequentialSampler
+from torch.utils.data.distributed import DistributedSampler
+from tqdm import tqdm, trange
 
-from concurrent.futures import ProcessPoolExecutor
+from utils import format_step, get_rank, get_world_size, is_main_process
 
 torch._C._jit_set_profiling_mode(False)
 torch._C._jit_set_profiling_executor(False)
@@ -70,6 +65,7 @@ skipped_steps = 0
 timeout_sent = False
 
 import signal
+
 
 # handle SIGTERM sent from the scheduler and mark so we
 # can gracefully save & exit
@@ -174,7 +170,8 @@ class BertPretrainingCriterion(torch.nn.Module):
 
 def aws_s3_sync(source, destination):
     """aws s3 sync in quiet mode and time profile"""
-    import time, subprocess
+    import subprocess
+    import time
 
     cmd = ["aws", "s3", "sync", "--quiet", source, destination]
     print(f"Syncing files from {source} to {destination}")
@@ -187,9 +184,10 @@ def aws_s3_sync(source, destination):
 
 
 def sync_local_checkpoints_to_s3(local_path, s3_path):
-    """ sample function to sync checkpoints from local path to s3 """
+    """sample function to sync checkpoints from local path to s3"""
 
-    import boto3, botocore
+    import boto3
+    import botocore
 
     # check if local path exists
     if not os.path.exists(local_path):
@@ -213,7 +211,7 @@ def sync_local_checkpoints_to_s3(local_path, s3_path):
 
 
 def sync_s3_checkpoints_to_local(local_path, s3_uri):
-    """ sample function to sync checkpoints from s3 to local path """
+    """sample function to sync checkpoints from s3 to local path"""
 
     import boto3
 
@@ -922,7 +920,7 @@ def main():
                 batch = [t.to(device) for t in batch]
                 input_ids, segment_ids, input_mask, masked_lm_labels, next_sentence_labels = batch
                 if args.do_train:
-                    from smdistributed.modelparallel.test.torch.utils import verify, dump_model
+                    from smdistributed.modelparallel.test.torch.utils import dump_model, verify
 
                     model.train()
                     if args.smp > 0:

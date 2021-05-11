@@ -1,16 +1,15 @@
 import json
+import logging
 from functools import partial
-
 from io import StringIO
+
 from s3_helper import (
     S3Ref,
     copy_with_query_and_transform,
-    download_with_query,
     create_ref_at_parent_key,
+    download_with_query,
 )
 from string_helper import generate_job_id_and_s3_path
-
-import logging
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)

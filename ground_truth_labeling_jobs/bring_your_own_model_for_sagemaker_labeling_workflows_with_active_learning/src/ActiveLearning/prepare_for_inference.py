@@ -1,9 +1,8 @@
 import json
-
-from io import StringIO
-from s3_helper import S3Ref, copy_with_query_and_transform, create_ref_at_parent_key
-
 import logging
+from io import StringIO
+
+from s3_helper import S3Ref, copy_with_query_and_transform, create_ref_at_parent_key
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)

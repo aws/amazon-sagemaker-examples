@@ -1,7 +1,8 @@
-import boto3  # your python gate way to all aws services
-import pprint  # print readable dictionary
 import json
+import pprint  # print readable dictionary
 import time
+
+import boto3  # your python gate way to all aws services
 
 pp = pprint.PrettyPrinter(indent=1)
 iam = boto3.client("iam")

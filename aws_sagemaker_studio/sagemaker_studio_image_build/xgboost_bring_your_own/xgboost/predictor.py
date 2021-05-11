@@ -3,16 +3,15 @@
 
 from __future__ import print_function
 
-import os
 import json
+import os
 import pickle
-from io import StringIO
-import sys
 import signal
+import sys
 import traceback
+from io import StringIO
 
 import flask
-
 import pandas as pd
 import xgboost
 

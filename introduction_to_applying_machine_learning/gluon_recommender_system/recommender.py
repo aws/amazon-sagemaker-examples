@@ -1,11 +1,12 @@
-import logging
 import json
-import time
+import logging
 import os
+import time
+
 import mxnet as mx
+import numpy as np
 from mxnet import gluon, nd, ndarray
 from mxnet.metric import MSE
-import numpy as np
 
 os.system("pip install pandas")
 import pandas as pd

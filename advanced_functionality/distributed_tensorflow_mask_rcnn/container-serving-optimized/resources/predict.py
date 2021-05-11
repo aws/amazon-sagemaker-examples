@@ -1,20 +1,21 @@
-import os, glob
+import glob
+import os
 import sys
 
 sys.path.append("/mask-rcnn-tensorflow/MaskRCNN")
 
-from model.generalized_rcnn import ResNetFPNModel
-from config import finalize_configs, config as cfg
-from dataset import DetectionDataset
-
-from tensorpack.predict.base import OfflinePredictor
-from tensorpack.tfutils.sessinit import get_model_loader
-from tensorpack.predict.config import PredictConfig
-
-import numpy as np
-import cv2
 from itertools import groupby
 from threading import Lock
+
+import cv2
+import numpy as np
+from config import config as cfg
+from config import finalize_configs
+from dataset import DetectionDataset
+from model.generalized_rcnn import ResNetFPNModel
+from tensorpack.predict.base import OfflinePredictor
+from tensorpack.predict.config import PredictConfig
+from tensorpack.tfutils.sessinit import get_model_loader
 
 
 class MaskRCNNService:
@@ -25,7 +26,7 @@ class MaskRCNNService:
     # class method to load trained model and create an offline predictor
     @classmethod
     def get_predictor(cls):
-        """ load trained model"""
+        """load trained model"""
 
         with cls.lock:
             # check if model is already loaded
@@ -172,11 +173,10 @@ class MaskRCNNService:
 # create predictor
 MaskRCNNService.get_predictor()
 
-import json
-from flask import Flask
-from flask import request
-from flask import Response
 import base64
+import json
+
+from flask import Flask, Response, request
 
 app = Flask(__name__)
 

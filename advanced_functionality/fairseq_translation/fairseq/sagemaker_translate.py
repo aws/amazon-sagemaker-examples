@@ -9,19 +9,17 @@
 Translate raw text with a trained model. Batches data on-the-fly.
 """
 
-from collections import namedtuple
-import numpy as np
-import sys
-import os
-import logging
-import json
 import copy
+import json
+import logging
+import os
+import sys
+from collections import namedtuple
 
+import numpy as np
 import torch
-
 from fairseq import data, options, tasks, tokenizer, utils
 from fairseq.sequence_generator import SequenceGenerator
-
 
 Batch = namedtuple("Batch", "srcs tokens lengths")
 Translation = namedtuple("Translation", "src_str hypos pos_scores alignments")

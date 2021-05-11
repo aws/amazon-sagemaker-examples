@@ -1,19 +1,15 @@
-import stat
-
-import shlex
-import socket
-import sys
-
-import textwrap
-from contextlib import contextmanager
-import signal
-
 import os
+import shlex
+import signal
+import socket
+import stat
 import subprocess
+import sys
+import textwrap
 import time
+from contextlib import contextmanager
 
 import sagemaker_containers
-
 from retrying import retry
 from sagemaker_containers import _logging
 from sagemaker_containers.beta import framework
@@ -204,7 +200,7 @@ class MPIMaster(object):
 
 
 class MPIWorker(object):
-    """ MPI Worker"""
+    """MPI Worker"""
 
     @retry(
         stop_max_delay=30000 * 1000, wait_fixed=1000, retry_on_result=lambda result: result is False

@@ -2,13 +2,13 @@
 from rl_coach.agents.ddqn_agent import DDQNAgentParameters
 from rl_coach.architectures.head_parameters import DuelingQHeadParameters
 from rl_coach.architectures.layers import Dense
-from rl_coach.base_parameters import VisualizationParameters, PresetValidationParameters
-from rl_coach.core_types import TrainingSteps, EnvironmentEpisodes, EnvironmentSteps
+from rl_coach.base_parameters import PresetValidationParameters, VisualizationParameters
+from rl_coach.core_types import EnvironmentEpisodes, EnvironmentSteps, TrainingSteps
 from rl_coach.environments.gym_environment import GymVectorEnvironment
 from rl_coach.graph_managers.basic_rl_graph_manager import BasicRLGraphManager
 from rl_coach.graph_managers.graph_manager import ScheduleParameters
-from rl_coach.schedules import LinearSchedule
 from rl_coach.memories.memory import MemoryGranularity
+from rl_coach.schedules import LinearSchedule
 
 #################
 # Graph Scheduling

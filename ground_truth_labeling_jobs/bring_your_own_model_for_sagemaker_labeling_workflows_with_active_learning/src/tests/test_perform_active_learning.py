@@ -1,7 +1,8 @@
-import boto3
-from moto import mock_s3
 from io import StringIO
+
+import boto3
 from ActiveLearning.perform_active_learning import lambda_handler
+from moto import mock_s3
 
 
 @mock_s3

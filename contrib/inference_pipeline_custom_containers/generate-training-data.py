@@ -1,6 +1,6 @@
 import argparse
-import random
 import csv
+import random
 
 parser = argparse.ArgumentParser(description="Generate sample data")
 parser.add_argument("--samples", type=int, default=10000, help="Number of samples to generate")

@@ -1,13 +1,12 @@
+import glob
 import json
 import os
 import shutil
+import signal
+import socket
 import subprocess
 import sys
 import time
-import signal
-import socket
-import glob
-
 from contextlib import contextmanager
 
 

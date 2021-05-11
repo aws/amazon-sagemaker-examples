@@ -1,48 +1,46 @@
-import os
-import shutil
 import argparse
 import json
 import logging
 import math
+import os
+import shutil
+
 import botocore
 import numpy as np
-
-from rl_coach.base_parameters import TaskParameters, DistributedCoachSynchronizationType, RunType
-from rl_coach import core_types
-from rl_coach.data_stores.data_store import SyncFiles
-from rl_coach.logger import screen
-from rl_coach.utils import short_dynamic_import
-
+import tensorflow as tf
 from markov import utils
-from markov.log_handler.logger import Logger
-from markov.log_handler.exception_handler import log_and_exit
+from markov.agent_ctrl.constants import ConfigParams
+from markov.agents.training_agent_factory import create_training_agent
+from markov.boto.s3.constants import (
+    FROZEN_HEAD_OUTPUT_GRAPH_FORMAT_MAPPING,
+    HYPERPARAMETER_S3_POSTFIX,
+    MODEL_METADATA_LOCAL_PATH_FORMAT,
+    MODEL_METADATA_S3_POSTFIX,
+    ModelMetadataKeys,
+    TrainingAlgorithm,
+)
+from markov.boto.s3.files.checkpoint import Checkpoint
+from markov.boto.s3.files.hyperparameters import Hyperparameters
+from markov.boto.s3.files.ip_config import IpConfig
+from markov.boto.s3.files.model_metadata import ModelMetadata
+from markov.boto.s3.s3_client import S3Client
+from markov.boto.s3.utils import get_s3_key
+from markov.constants import SIMAPP_VERSION_2, TRAINING_WORKER_PROFILER_PATH
+from markov.deepracer_memory import DeepRacerRedisPubSubMemoryBackendParameters
 from markov.log_handler.constants import (
     SIMAPP_EVENT_ERROR_CODE_500,
     SIMAPP_TRAINING_WORKER_EXCEPTION,
 )
-from markov.constants import SIMAPP_VERSION_2, TRAINING_WORKER_PROFILER_PATH
-from markov.agent_ctrl.constants import ConfigParams
-from markov.agents.training_agent_factory import create_training_agent
+from markov.log_handler.exception_handler import log_and_exit
+from markov.log_handler.logger import Logger
 from markov.s3_boto_data_store import S3BotoDataStore, S3BotoDataStoreParameters
-from markov.boto.s3.constants import TrainingAlgorithm
 from markov.sagemaker_graph_manager import get_graph_manager
 from markov.samples.sample_collector import SampleCollector
-from markov.deepracer_memory import DeepRacerRedisPubSubMemoryBackendParameters
-from markov.boto.s3.files.hyperparameters import Hyperparameters
-from markov.boto.s3.files.model_metadata import ModelMetadata
-from markov.boto.s3.files.ip_config import IpConfig
-from markov.boto.s3.files.checkpoint import Checkpoint
-from markov.boto.s3.utils import get_s3_key
-from markov.boto.s3.constants import (
-    MODEL_METADATA_LOCAL_PATH_FORMAT,
-    MODEL_METADATA_S3_POSTFIX,
-    HYPERPARAMETER_S3_POSTFIX,
-    FROZEN_HEAD_OUTPUT_GRAPH_FORMAT_MAPPING,
-    ModelMetadataKeys,
-)
-from markov.boto.s3.s3_client import S3Client
-
-import tensorflow as tf
+from rl_coach import core_types
+from rl_coach.base_parameters import DistributedCoachSynchronizationType, RunType, TaskParameters
+from rl_coach.data_stores.data_store import SyncFiles
+from rl_coach.logger import screen
+from rl_coach.utils import short_dynamic_import
 
 tf.logging.set_verbosity(tf.logging.DEBUG)
 

@@ -1,11 +1,11 @@
 """This module implements s3 client for simtrace, pip, 45degrees, and topview videos"""
 
-import os
 import logging
+import os
 
-from markov.log_handler.logger import Logger
-from markov.boto.s3.s3_client import S3Client
 from markov.boto.s3.constants import SIMTRACE_VIDEO_POSTFIX_DICT
+from markov.boto.s3.s3_client import S3Client
+from markov.log_handler.logger import Logger
 
 LOG = Logger(__name__, logging.INFO).get_logger()
 

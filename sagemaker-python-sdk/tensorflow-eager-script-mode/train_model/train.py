@@ -1,11 +1,10 @@
 import argparse
-import numpy as np
 import os
+
+import numpy as np
 import tensorflow as tf
-from tensorflow.contrib.eager.python import tfe
-
 from model_def import get_model
-
+from tensorflow.contrib.eager.python import tfe
 
 tf.enable_eager_execution()
 tf.set_random_seed(0)

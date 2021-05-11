@@ -1,5 +1,5 @@
-from collections import OrderedDict
 import logging
+from collections import OrderedDict
 
 
 class Module(object):
@@ -18,7 +18,7 @@ class Module(object):
         self.description = []
 
     def get_params(self):
-        """ Returns the parameters of the module, including all the sub parameters."""
+        """Returns the parameters of the module, including all the sub parameters."""
         if not self._leaf:
             params = {}
             for module in self._modules.values():
@@ -43,15 +43,15 @@ class Module(object):
         self.output = module.output
 
     def get_name(self):
-        """ Returns the modeule name """
+        """Returns the modeule name"""
         return self._name
 
     def get_desc(self):
-        """ Retruns the module description """
+        """Retruns the module description"""
         return self.description
 
     def pretty_print(self, prefix=""):
-        """ Prints module detail in context with all sub modules """
+        """Prints module detail in context with all sub modules"""
         if self._leaf:
             logging.info(prefix + "------------------------------")
             logging.info(prefix + "Module Name: " + self.get_name())
@@ -65,7 +65,7 @@ class Module(object):
                 self._modules[module].pretty_print(prefix + "    ")
 
     def get_sub_module(self, mod_name):
-        """ Returns the sub module of some name """
+        """Returns the sub module of some name"""
         if not isinstance(mod_name, str):
             mod_name = str(mod_name)
         if mod_name in self._modules.keys():

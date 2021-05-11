@@ -1,8 +1,12 @@
 from rl_coach.agents.clipped_ppo_agent import ClippedPPOAgentParameters
-from rl_coach.architectures.layers import Dense, Conv2d
-from rl_coach.base_parameters import VisualizationParameters, PresetValidationParameters
-from rl_coach.base_parameters import MiddlewareScheme, DistributedCoachSynchronizationType
-from rl_coach.core_types import TrainingSteps, EnvironmentEpisodes, EnvironmentSteps, RunPhase
+from rl_coach.architectures.layers import Conv2d, Dense
+from rl_coach.base_parameters import (
+    DistributedCoachSynchronizationType,
+    MiddlewareScheme,
+    PresetValidationParameters,
+    VisualizationParameters,
+)
+from rl_coach.core_types import EnvironmentEpisodes, EnvironmentSteps, RunPhase, TrainingSteps
 from rl_coach.environments.gym_environment import GymVectorEnvironment, ObservationSpaceType
 from rl_coach.exploration_policies.e_greedy import EGreedyParameters
 from rl_coach.graph_managers.basic_rl_graph_manager import BasicRLGraphManager

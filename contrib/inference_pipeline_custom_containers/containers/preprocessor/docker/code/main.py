@@ -1,44 +1,25 @@
-from __future__ import absolute_import
-from __future__ import print_function
-from string import Template
-
-import sys
-import time
-import os
-import shutil
-import multiprocessing
-import signal
-import subprocess
-
-from utils import ExitSignalHandler
-from utils import (
-    write_failure_file,
-    print_json_object,
-    load_json_object,
-    save_model_artifacts,
-    print_files_in_path,
-)
-
-
-import traceback
-from io import StringIO
-import os
+from __future__ import absolute_import, print_function
 
 import argparse
 import csv
+import decimal
 import json
-import numpy as np
-import pandas as pd
-
-from joblib import dump, load
-from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.preprocessing import LabelEncoder
+import multiprocessing
+import os
+import shutil
+import signal
+import subprocess
+import sys
+import time
+import traceback
+from io import StringIO
+from string import Template
 
 import boto3
-import decimal
-
+import numpy as np
+import pandas as pd
 from botocore.exceptions import ClientError
-
+from joblib import dump, load
 from sagemaker_containers.beta.framework import (
     content_types,
     encoders,
@@ -46,6 +27,17 @@ from sagemaker_containers.beta.framework import (
     modules,
     transformer,
     worker,
+)
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.preprocessing import LabelEncoder
+
+from utils import (
+    ExitSignalHandler,
+    load_json_object,
+    print_files_in_path,
+    print_json_object,
+    save_model_artifacts,
+    write_failure_file,
 )
 
 hyperparameters_file_path = "/opt/ml/input/config/hyperparameters.json"

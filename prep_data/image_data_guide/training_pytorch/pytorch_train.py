@@ -1,13 +1,12 @@
-import os
-import time
-import copy
-import shutil
-import pathlib
 import argparse
+import copy
+import os
+import pathlib
+import shutil
+import time
 
 import torch
 import torchvision as tv
-
 
 # the training fuction is based off the sample training fuction provided
 # by Pytorch in their transfer learning tutorial:

@@ -1,10 +1,10 @@
 """This module is used to programtically create custom archetectures, it creates input embedders
    and middle ware.
 """
-from markov.architecture.constants import SchemeInfo, ActivationFunctions, EmbedderType
-from rl_coach.architectures.middleware_parameters import FCMiddlewareParameters
+from markov.architecture.constants import ActivationFunctions, EmbedderType, SchemeInfo
 from rl_coach.architectures.embedder_parameters import InputEmbedderParameters
-from rl_coach.architectures.layers import Conv2d, Dense, BatchnormActivationDropout
+from rl_coach.architectures.layers import BatchnormActivationDropout, Conv2d, Dense
+from rl_coach.architectures.middleware_parameters import FCMiddlewareParameters
 
 
 def create_scheme(info_dict):

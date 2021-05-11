@@ -1,18 +1,17 @@
 """This module implement s3 client"""
 
 import botocore
-
-from markov.log_handler.exception_handler import log_and_exit
-from markov.log_handler.deepracer_exceptions import GenericNonFatalException
-from markov.log_handler.constants import (
-    SIMAPP_EVENT_SYSTEM_ERROR,
-    SIMAPP_EVENT_USER_ERROR,
-    SIMAPP_EVENT_ERROR_CODE_500,
-    SIMAPP_EVENT_ERROR_CODE_400,
-    SIMAPP_S3_DATA_STORE_EXCEPTION,
-)
 from markov.boto.constants import BotoClientNames
 from markov.boto.deepracer_boto_client import DeepRacerBotoClient
+from markov.log_handler.constants import (
+    SIMAPP_EVENT_ERROR_CODE_400,
+    SIMAPP_EVENT_ERROR_CODE_500,
+    SIMAPP_EVENT_SYSTEM_ERROR,
+    SIMAPP_EVENT_USER_ERROR,
+    SIMAPP_S3_DATA_STORE_EXCEPTION,
+)
+from markov.log_handler.deepracer_exceptions import GenericNonFatalException
+from markov.log_handler.exception_handler import log_and_exit
 
 
 class S3Client(DeepRacerBotoClient):

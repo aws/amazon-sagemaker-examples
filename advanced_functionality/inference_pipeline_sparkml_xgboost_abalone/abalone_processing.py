@@ -1,22 +1,20 @@
-from __future__ import print_function
-from __future__ import unicode_literals
+from __future__ import print_function, unicode_literals
 
-import time
-import sys
+import csv
 import os
 import shutil
-import csv
+import sys
+import time
+
 import boto3
-
-from awsglue.utils import getResolvedOptions
-
 import pyspark
-from pyspark.sql import SparkSession
-from pyspark.ml import Pipeline
-from pyspark.sql.types import StructField, StructType, StringType, DoubleType
-from pyspark.ml.feature import StringIndexer, VectorIndexer, OneHotEncoder, VectorAssembler
-from pyspark.sql.functions import *
+from awsglue.utils import getResolvedOptions
 from mleap.pyspark.spark_support import SimpleSparkSerializer
+from pyspark.ml import Pipeline
+from pyspark.ml.feature import OneHotEncoder, StringIndexer, VectorAssembler, VectorIndexer
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import *
+from pyspark.sql.types import DoubleType, StringType, StructField, StructType
 
 
 def csv_line(data):

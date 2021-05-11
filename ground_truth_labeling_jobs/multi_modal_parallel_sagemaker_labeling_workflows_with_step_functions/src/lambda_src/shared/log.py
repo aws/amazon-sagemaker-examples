@@ -1,9 +1,9 @@
 import json
 import logging
-from pprint import pformat
 import sys
 import time
 import traceback
+from pprint import pformat
 
 # Root-level loggers should only print when something bad happens
 logger = logging.getLogger()

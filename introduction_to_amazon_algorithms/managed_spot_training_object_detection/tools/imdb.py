@@ -15,8 +15,9 @@
 # specific language governing permissions and limitations
 # under the License.
 
-import numpy as np
 import os.path as osp
+
+import numpy as np
 
 
 class Imdb(object):

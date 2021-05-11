@@ -6,7 +6,6 @@ It is currently a no-op.
 """
 
 import boto3
-
 from shared import db, log
 from shared.constants import BatchCurrentStep, BatchMetadataType, BatchStatus
 

@@ -1,12 +1,13 @@
-import pandas as pd
+import datetime
+import io
+import json
 import time
 import uuid
-import boto3
 from urllib.parse import urlparse
-import datetime
-import json
-import io
+
+import boto3
 import numpy as np
+import pandas as pd
 
 
 def remove_underrepresented_classes(features, labels, thresh=0.0005):

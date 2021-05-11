@@ -3,11 +3,11 @@
 from markov.agent_ctrl.constants import ConfigParams
 from markov.reset.reset_rules_manager import ResetRulesManager
 from markov.reset.rules.crash_reset_rule import CrashResetRule
-from markov.reset.rules.immobilized_reset_rule import ImmobilizedResetRule
 from markov.reset.rules.episode_complete_reset_rule import EpisodeCompleteResetRule
+from markov.reset.rules.immobilized_reset_rule import ImmobilizedResetRule
 from markov.reset.rules.off_track_reset_rule import OffTrackResetRule
-from markov.reset.rules.reverse_reset_rule import ReverseResetRule
 from markov.reset.rules.race_time_rule import RaceTimeRule
+from markov.reset.rules.reverse_reset_rule import ReverseResetRule
 from markov.virtual_event.constants import DEFAULT_RACE_DURATION
 
 

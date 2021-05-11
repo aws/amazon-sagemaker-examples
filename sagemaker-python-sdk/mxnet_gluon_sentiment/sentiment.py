@@ -12,8 +12,8 @@ from itertools import chain, islice
 
 import mxnet as mx
 import numpy as np
-from mxnet import gluon, autograd, nd
-from mxnet.io import DataIter, DataBatch, DataDesc
+from mxnet import autograd, gluon, nd
+from mxnet.io import DataBatch, DataDesc, DataIter
 
 logging.basicConfig(level=logging.DEBUG)
 

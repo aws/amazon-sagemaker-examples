@@ -3,18 +3,18 @@ from __future__ import print_function
 import bisect
 import json
 import logging
-import time
 import random
 import re
+import time
 from collections import Counter, namedtuple
 from itertools import chain, islice
 
 import mxnet as mx
 import mxnet.contrib.onnx as onnx_mxnet
 import numpy as np
-from mxnet import gluon, autograd, nd
-from mxnet.io import DataIter, DataBatch, DataDesc
+from mxnet import autograd, gluon, nd
 from mxnet.gluon import nn
+from mxnet.io import DataBatch, DataDesc, DataIter
 
 logging.basicConfig(level=logging.DEBUG)
 

@@ -1,8 +1,7 @@
-import numpy
-
 import chainer
 import chainer.functions as F
 import chainer.links as L
+import numpy
 from chainer import reporter
 
 embed_init = chainer.initializers.Uniform(0.25)

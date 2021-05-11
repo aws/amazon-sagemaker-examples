@@ -2,14 +2,15 @@
 from gevent import monkey
 
 monkey.patch_all()
-import os
-import flask
-import shutil
 import logging
-from flask import request, json
+import os
+import shutil
 
-from .utils import extract_custom_attributes, run_cmd
+import flask
+from flask import json, request
+
 from .response_handlers import ResponseHandler
+from .utils import extract_custom_attributes, run_cmd
 
 response_handler = ResponseHandler
 

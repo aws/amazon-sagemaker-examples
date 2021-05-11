@@ -1,7 +1,8 @@
 from __future__ import print_function
-import os
-import torch
 
+import os
+
+import torch
 from model_def import Net
 
 

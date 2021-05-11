@@ -1,7 +1,7 @@
-import signal
-import pprint
 import json
 import os
+import pprint
+import signal
 from os import path
 
 

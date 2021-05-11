@@ -14,11 +14,11 @@
 import argparse
 import os
 import sys
-
 import tarfile
+
+import tensorflow as tf
 from six.moves import cPickle as pickle
 from six.moves import xrange  # pylint: disable=redefined-builtin
-import tensorflow as tf
 
 # import tensorflow_datasets as tfds
 

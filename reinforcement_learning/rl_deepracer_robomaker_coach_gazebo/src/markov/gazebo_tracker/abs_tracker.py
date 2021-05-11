@@ -1,6 +1,7 @@
 import abc
-from markov.gazebo_tracker.tracker_manager import TrackerManager
+
 import markov.gazebo_tracker.constants as consts
+from markov.gazebo_tracker.tracker_manager import TrackerManager
 
 # Python 2 and 3 compatible Abstract class
 ABC = abc.ABCMeta("ABC", (object,), {})

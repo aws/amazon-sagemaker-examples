@@ -1,9 +1,10 @@
-import numpy as np
-from urllib import request
 import gzip
-import os
-import boto3
 import json
+import os
+from urllib import request
+
+import boto3
+import numpy as np
 
 dirname = os.path.dirname(os.path.abspath(__file__))
 

@@ -1,29 +1,29 @@
 import io
 import logging
 import os
-import time
 import queue
+import time
 from typing import Dict
-import botocore
-import boto3
 
-from rl_coach.checkpoint import CheckpointStateFile, _filter_checkpoint_files
-from rl_coach.data_stores.data_store import DataStore, DataStoreParameters, SyncFiles
-from markov.multi_agent_coach.multi_agent_graph_manager import MultiAgentGraphManager
-from markov.utils import get_s3_kms_extra_args
-from markov.log_handler.logger import Logger
-from markov.log_handler.exception_handler import log_and_exit
-from markov.log_handler.deepracer_exceptions import GenericNonFatalException
+import boto3
+import botocore
+import tensorflow as tf
+from markov.boto.s3.files.checkpoint import Checkpoint
 from markov.log_handler.constants import (
-    SIMAPP_EVENT_SYSTEM_ERROR,
-    SIMAPP_EVENT_USER_ERROR,
     SIMAPP_EVENT_ERROR_CODE_400,
     SIMAPP_EVENT_ERROR_CODE_500,
+    SIMAPP_EVENT_SYSTEM_ERROR,
+    SIMAPP_EVENT_USER_ERROR,
     SIMAPP_S3_DATA_STORE_EXCEPTION,
     SIMAPP_SIMULATION_WORKER_EXCEPTION,
 )
-from markov.boto.s3.files.checkpoint import Checkpoint
-import tensorflow as tf
+from markov.log_handler.deepracer_exceptions import GenericNonFatalException
+from markov.log_handler.exception_handler import log_and_exit
+from markov.log_handler.logger import Logger
+from markov.multi_agent_coach.multi_agent_graph_manager import MultiAgentGraphManager
+from markov.utils import get_s3_kms_extra_args
+from rl_coach.checkpoint import CheckpointStateFile, _filter_checkpoint_files
+from rl_coach.data_stores.data_store import DataStore, DataStoreParameters, SyncFiles
 
 LOG = Logger(__name__, logging.INFO).get_logger()
 

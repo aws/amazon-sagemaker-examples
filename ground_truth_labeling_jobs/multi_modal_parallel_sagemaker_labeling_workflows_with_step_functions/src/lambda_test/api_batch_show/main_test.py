@@ -1,9 +1,9 @@
 import unittest
 from unittest import TestCase
-from unittest.mock import patch, Mock
+from unittest.mock import Mock, patch
 
 from api_batch_show.main import lambda_handler
-from test_shared.mock_objects import TestContext, InputTestData, OutputTestData
+from test_shared.mock_objects import InputTestData, OutputTestData, TestContext
 
 
 class TestCase(TestCase):

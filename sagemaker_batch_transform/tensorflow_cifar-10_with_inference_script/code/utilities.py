@@ -1,9 +1,8 @@
 import logging
 import os
+
 import tensorflow as tf
-
-from model_def import HEIGHT, WIDTH, DEPTH, NUM_CLASSES
-
+from model_def import DEPTH, HEIGHT, NUM_CLASSES, WIDTH
 
 NUM_DATA_BATCHES = 5
 NUM_EXAMPLES_PER_EPOCH_FOR_TRAIN = 10000 * NUM_DATA_BATCHES

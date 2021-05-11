@@ -1,10 +1,10 @@
 import random
-import time
-import boto3
 import re
-import pandas as pd
-import numpy as np
+import time
 
+import boto3
+import numpy as np
+import pandas as pd
 
 #################
 # Hyperparameters

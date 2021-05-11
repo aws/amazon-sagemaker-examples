@@ -1,13 +1,13 @@
 from rl_coach.agents.clipped_ppo_agent import ClippedPPOAgentParameters
 from rl_coach.architectures.layers import Dense
-from rl_coach.base_parameters import VisualizationParameters, PresetValidationParameters
+from rl_coach.base_parameters import PresetValidationParameters, VisualizationParameters
 from rl_coach.core_types import (
-    TrainingSteps,
     EnvironmentEpisodes,
     EnvironmentSteps,
+    MaxDumpFilter,
     RunPhase,
     SelectedPhaseOnlyDumpFilter,
-    MaxDumpFilter,
+    TrainingSteps,
 )
 from rl_coach.environments.gym_environment import GymVectorEnvironment
 from rl_coach.exploration_policies.e_greedy import EGreedyParameters

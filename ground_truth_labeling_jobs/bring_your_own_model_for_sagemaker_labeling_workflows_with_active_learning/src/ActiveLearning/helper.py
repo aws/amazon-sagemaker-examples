@@ -1,5 +1,5 @@
-from datetime import datetime
 import random
+from datetime import datetime
 
 AUTOANNOTATION_THRESHOLD = 0.50
 JOB_TYPE = "groundtruth/text-classification"

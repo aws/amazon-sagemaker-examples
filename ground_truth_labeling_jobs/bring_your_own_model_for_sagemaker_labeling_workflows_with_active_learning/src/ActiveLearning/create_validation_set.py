@@ -1,6 +1,6 @@
-from s3_helper import S3Ref, copy_with_query, create_ref_at_parent_key
-
 import logging
+
+from s3_helper import S3Ref, copy_with_query, create_ref_at_parent_key
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)

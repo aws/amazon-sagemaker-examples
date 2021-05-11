@@ -1,13 +1,12 @@
 from typing import Dict
 
+import numpy as np
 import ray
+from ray.rllib.agents.callbacks import DefaultCallbacks
 from ray.rllib.env import BaseEnv
+from ray.rllib.evaluation import MultiAgentEpisode, RolloutWorker
 from ray.rllib.policy import Policy
 from ray.rllib.policy.sample_batch import SampleBatch
-from ray.rllib.evaluation import MultiAgentEpisode, RolloutWorker
-from ray.rllib.agents.callbacks import DefaultCallbacks
-
-import numpy as np
 
 
 class CustomCallbacks(DefaultCallbacks):

@@ -1,12 +1,10 @@
 """This module implements concrete track spline"""
 
 import numpy as np
-
-from scipy.interpolate import splprep
-from shapely.geometry import Point
-
 from markov.track_geom.constants import SPLINE_DEGREE, TrackLane
 from markov.track_geom.spline.abstract_spline import AbstractSpline
+from scipy.interpolate import splprep
+from shapely.geometry import Point
 
 
 class TrackSpline(AbstractSpline):

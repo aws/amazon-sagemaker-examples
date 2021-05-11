@@ -1,6 +1,7 @@
-import subprocess
-import os
 import logging
+import os
+import subprocess
+
 import numpy as np
 
 logger = logging.getLogger("vw_model.VWModel")
@@ -8,7 +9,7 @@ logger.setLevel(logging.INFO)
 
 
 class VWError(Exception):
-    """ Class for errors """
+    """Class for errors"""
 
     def __init__(self, message):
         super(VWError, self).__init__()
@@ -16,7 +17,7 @@ class VWError(Exception):
 
 
 class VWModelDown(Exception):
-    """ When the model is down """
+    """When the model is down"""
 
     def __init__(self):
         super(VWModelDown, self).__init__("The model is down")

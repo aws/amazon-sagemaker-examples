@@ -1,17 +1,17 @@
-import io
-import numpy as np
-from scipy.sparse import lil_matrix
-from sklearn.model_selection import train_test_split
 import argparse
+import io
 import json
 import subprocess
 import sys
 
+import numpy as np
+from scipy.sparse import lil_matrix
+from sklearn.model_selection import train_test_split
+
 subprocess.check_call([sys.executable, "-m", "pip", "install", "sagemaker"])
 subprocess.check_call([sys.executable, "-m", "pip", "install", "awswrangler"])
-import sagemaker.amazon.common as smac
 import awswrangler as wr
-
+import sagemaker.amazon.common as smac
 
 # Parse argument variables passed via the DeployModel processing step
 parser = argparse.ArgumentParser()

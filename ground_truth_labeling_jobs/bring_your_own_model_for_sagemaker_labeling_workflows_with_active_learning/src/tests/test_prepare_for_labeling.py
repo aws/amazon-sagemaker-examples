@@ -1,6 +1,5 @@
-from moto import mock_s3
-
 from Labeling.prepare_for_labeling import lambda_handler
+from moto import mock_s3
 
 
 @mock_s3

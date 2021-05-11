@@ -11,14 +11,14 @@
 # express or implied. See the License for the specific language governing
 # permissions and limitations under the License.
 
-import os
-from pathlib import Path
 import argparse
 import json
-import yaml
+import os
+from pathlib import Path
 
+import yaml
+from ray.tune.resources import json_to_resources, resources_to_json
 from ray.tune.result import DEFAULT_RESULTS_DIR
-from ray.tune.resources import resources_to_json, json_to_resources
 
 try:
     from custom.callbacks import CustomCallbacks

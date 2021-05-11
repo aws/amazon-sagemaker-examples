@@ -11,69 +11,67 @@ import json
 import logging
 import os
 import time
-import rospy
+
 import botocore
-
-from rl_coach.base_parameters import TaskParameters, DistributedCoachSynchronizationType, RunType
-from rl_coach.checkpoint import CheckpointStateReader
-from rl_coach.core_types import RunPhase, EnvironmentSteps
-from rl_coach.logger import screen
-from rl_coach.rollout_worker import should_stop
-from rl_coach.utils import short_dynamic_import
-from rl_coach.core_types import EnvironmentEpisodes
-
+import rospy
 from markov import utils
-from markov.constants import ROLLOUT_WORKER_PROFILER_PATH
-from markov.log_handler.logger import Logger
-from markov.log_handler.exception_handler import log_and_exit, simapp_exit_gracefully
-from markov.log_handler.constants import (
-    SIMAPP_SIMULATION_WORKER_EXCEPTION,
-    SIMAPP_EVENT_ERROR_CODE_500,
-)
 from markov.agent_ctrl.constants import ConfigParams
 from markov.agents.rollout_agent_factory import (
-    create_rollout_agent,
-    create_obstacles_agent,
     create_bot_cars_agent,
+    create_obstacles_agent,
+    create_rollout_agent,
 )
 from markov.agents.utils import RunPhaseSubject
-from markov.log_handler.deepracer_exceptions import GenericRolloutError, GenericRolloutException
-from markov.environments.constants import VELOCITY_TOPICS, STEERING_TOPICS, LINK_NAMES
-from markov.metrics.s3_metrics import TrainingMetrics
-from markov.rollout_utils import (
-    PhaseObserver,
-    signal_robomaker_markov_package_ready,
-    configure_environment_randomizer,
-    get_robomaker_profiler_env,
+from markov.boto.s3.constants import (
+    CAMERA_45DEGREE_LOCAL_PATH_FORMAT,
+    CAMERA_PIP_MP4_LOCAL_PATH_FORMAT,
+    CAMERA_TOPVIEW_LOCAL_PATH_FORMAT,
+    HYPERPARAMETER_LOCAL_PATH_FORMAT,
+    HYPERPARAMETER_S3_POSTFIX,
+    IP_ADDRESS_LOCAL_PATH,
+    MODEL_METADATA_LOCAL_PATH_FORMAT,
+    REWARD_FUCTION_LOCAL_PATH_FORMAT,
+    SIMTRACE_TRAINING_LOCAL_PATH_FORMAT,
+    ModelMetadataKeys,
+    SimtraceVideoNames,
 )
-from markov.metrics.iteration_data import IterationData
-from markov.metrics.constants import MetricsS3Keys
-from markov.s3_boto_data_store import S3BotoDataStore, S3BotoDataStoreParameters
-from markov.sagemaker_graph_manager import get_graph_manager
-from markov.rospy_wrappers import ServiceProxyWrapper
-from markov.camera_utils import configure_camera
-from markov.deepracer_memory import DeepRacerRedisPubSubMemoryBackendParameters
+from markov.boto.s3.files.checkpoint import Checkpoint
 from markov.boto.s3.files.hyperparameters import Hyperparameters
+from markov.boto.s3.files.ip_config import IpConfig
 from markov.boto.s3.files.model_metadata import ModelMetadata
 from markov.boto.s3.files.reward_function import RewardFunction
 from markov.boto.s3.files.simtrace_video import SimtraceVideo
-from markov.boto.s3.files.ip_config import IpConfig
-from markov.boto.s3.files.checkpoint import Checkpoint
-from markov.boto.s3.utils import get_s3_key
-from markov.boto.s3.constants import (
-    HYPERPARAMETER_LOCAL_PATH_FORMAT,
-    MODEL_METADATA_LOCAL_PATH_FORMAT,
-    REWARD_FUCTION_LOCAL_PATH_FORMAT,
-    HYPERPARAMETER_S3_POSTFIX,
-    SIMTRACE_TRAINING_LOCAL_PATH_FORMAT,
-    CAMERA_PIP_MP4_LOCAL_PATH_FORMAT,
-    CAMERA_45DEGREE_LOCAL_PATH_FORMAT,
-    CAMERA_TOPVIEW_LOCAL_PATH_FORMAT,
-    SimtraceVideoNames,
-    IP_ADDRESS_LOCAL_PATH,
-    ModelMetadataKeys,
-)
 from markov.boto.s3.s3_client import S3Client
+from markov.boto.s3.utils import get_s3_key
+from markov.camera_utils import configure_camera
+from markov.constants import ROLLOUT_WORKER_PROFILER_PATH
+from markov.deepracer_memory import DeepRacerRedisPubSubMemoryBackendParameters
+from markov.environments.constants import LINK_NAMES, STEERING_TOPICS, VELOCITY_TOPICS
+from markov.log_handler.constants import (
+    SIMAPP_EVENT_ERROR_CODE_500,
+    SIMAPP_SIMULATION_WORKER_EXCEPTION,
+)
+from markov.log_handler.deepracer_exceptions import GenericRolloutError, GenericRolloutException
+from markov.log_handler.exception_handler import log_and_exit, simapp_exit_gracefully
+from markov.log_handler.logger import Logger
+from markov.metrics.constants import MetricsS3Keys
+from markov.metrics.iteration_data import IterationData
+from markov.metrics.s3_metrics import TrainingMetrics
+from markov.rollout_utils import (
+    PhaseObserver,
+    configure_environment_randomizer,
+    get_robomaker_profiler_env,
+    signal_robomaker_markov_package_ready,
+)
+from markov.rospy_wrappers import ServiceProxyWrapper
+from markov.s3_boto_data_store import S3BotoDataStore, S3BotoDataStoreParameters
+from markov.sagemaker_graph_manager import get_graph_manager
+from rl_coach.base_parameters import DistributedCoachSynchronizationType, RunType, TaskParameters
+from rl_coach.checkpoint import CheckpointStateReader
+from rl_coach.core_types import EnvironmentEpisodes, EnvironmentSteps, RunPhase
+from rl_coach.logger import screen
+from rl_coach.rollout_worker import should_stop
+from rl_coach.utils import short_dynamic_import
 from std_srvs.srv import Empty, EmptyRequest
 
 logger = Logger(__name__, logging.INFO).get_logger()

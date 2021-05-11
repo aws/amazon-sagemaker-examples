@@ -16,11 +16,13 @@
 # under the License.
 
 from __future__ import print_function
+
 import os
+import xml.etree.ElementTree as ET
+
+import cv2
 import numpy as np
 from imdb import Imdb
-import xml.etree.ElementTree as ET
-import cv2
 
 
 class PascalVoc(Imdb):

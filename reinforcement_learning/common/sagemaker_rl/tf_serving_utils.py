@@ -1,6 +1,7 @@
-import ray
 import os
 import re
+
+import ray
 
 try:
     from ray.rllib.utils.framework import try_import_tf

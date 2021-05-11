@@ -13,12 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from train import train, parse_args
-
-import sys
-import os
-import boto3
 import json
+import os
+import sys
+
+import boto3
+from train import parse_args, train
 
 dirname = os.path.dirname(os.path.abspath(__file__))
 with open(os.path.join(dirname, "config.json"), "r") as f:

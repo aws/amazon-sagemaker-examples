@@ -2,9 +2,12 @@ import argparse
 import json
 import logging
 import os
-from os.path import join
-import sagemaker_containers
 import sys
+import time
+from os.path import join
+
+import boto3
+import sagemaker_containers
 import torch
 import torch.distributed as dist
 import torch.nn as nn
@@ -13,10 +16,6 @@ import torch.optim as optim
 import torch.utils.data
 import torch.utils.data.distributed
 from torchvision import datasets, transforms
-
-import boto3
-
-import time
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)

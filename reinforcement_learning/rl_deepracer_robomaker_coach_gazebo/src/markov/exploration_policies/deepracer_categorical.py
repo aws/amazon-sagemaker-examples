@@ -1,8 +1,7 @@
 from typing import List
 
 import numpy as np
-
-from rl_coach.core_types import RunPhase, ActionType
+from rl_coach.core_types import ActionType, RunPhase
 from rl_coach.exploration_policies.exploration_policy import (
     DiscreteActionExplorationPolicy,
     ExplorationParameters,

@@ -1,7 +1,7 @@
 # Standard Library
 import argparse
-import time
 import os
+import time
 
 # Third Party
 import numpy as np

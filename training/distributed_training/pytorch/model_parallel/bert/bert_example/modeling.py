@@ -23,9 +23,9 @@ import logging
 import math
 import os
 import shutil
+import sys
 import tarfile
 import tempfile
-import sys
 from io import open
 
 import torch
@@ -34,14 +34,13 @@ from torch.nn import CrossEntropyLoss
 from torch.utils import checkpoint
 
 sys.path.append("/workspace/bert/")
-from file_utils import cached_path
-
-from torch.nn import Module
-from torch.nn.parameter import Parameter
+import smdistributed.modelparallel.torch as smp
 import torch.nn.functional as F
 import torch.nn.init as init
-import smdistributed.modelparallel.torch as smp
+from file_utils import cached_path
 from smdistributed.modelparallel.torch.utils import rmsg
+from torch.nn import Module
+from torch.nn.parameter import Parameter
 
 logger = logging.getLogger(__name__)
 
@@ -63,6 +62,7 @@ def load_tf_weights_in_bert(model, tf_checkpoint_path):
     """Load tf checkpoints in a pytorch model"""
     try:
         import re
+
         import numpy as np
         import tensorflow as tf
     except ImportError:

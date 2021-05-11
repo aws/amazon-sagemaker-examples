@@ -1,7 +1,8 @@
 import math
-import numpy as np
 from tkinter import *
 from tkinter import messagebox
+
+import numpy as np
 
 # track welcome status so we only display the welcome message once
 welcome = False

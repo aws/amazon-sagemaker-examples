@@ -1,6 +1,8 @@
-import os, sys
+import os
+import sys
 from urllib.parse import urlparse
-from sagemaker.processing import Processor, ProcessingInput, ProcessingOutput
+
+from sagemaker.processing import ProcessingInput, ProcessingOutput, Processor
 
 
 def get_model_monitor_container_uri(region):

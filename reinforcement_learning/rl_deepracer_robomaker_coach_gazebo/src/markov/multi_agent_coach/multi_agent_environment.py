@@ -1,13 +1,11 @@
 import time
-from typing import Union, List
+from typing import List, Union
 
 import numpy as np
-
-from rl_coach.base_parameters import Parameters
-from rl_coach.base_parameters import VisualizationParameters
-from rl_coach.core_types import GoalType, ActionType, EnvResponse, RunPhase
-from rl_coach.environments.environment_interface import EnvironmentInterface
+from rl_coach.base_parameters import Parameters, VisualizationParameters
+from rl_coach.core_types import ActionType, EnvResponse, GoalType, RunPhase
 from rl_coach.environments.environment import LevelSelection
+from rl_coach.environments.environment_interface import EnvironmentInterface
 from rl_coach.spaces import ActionSpace, ObservationSpace, RewardSpace, StateSpace
 from rl_coach.utils import force_list
 

@@ -3,13 +3,12 @@ import logging
 import time
 from datetime import datetime, timedelta
 from enum import Enum
-from threading import Thread, Event
-from packaging import version
+from threading import Event, Thread
 
 import boto3
 import docker
-
 import sagemaker
+from packaging import version
 
 logging.basicConfig()
 logger = logging.getLogger("orchestrator")
@@ -30,26 +29,24 @@ except Exception as e:
     raise e
 
 from botocore.exceptions import ClientError
-from sagemaker.local.local_session import LocalSession
-
+from orchestrator.clients.ddb.experiment_db_client import ExperimentDbClient
 from orchestrator.clients.ddb.join_db_client import JoinDbClient
 from orchestrator.clients.ddb.model_db_client import ModelDbClient
-from orchestrator.clients.ddb.experiment_db_client import ExperimentDbClient
-from orchestrator.workflow.manager.join_manager import JoinManager
-from orchestrator.workflow.manager.model_manager import ModelManager
-from orchestrator.workflow.datatypes.experiment_record import ExperimentRecord
-from orchestrator.resource_manager import Predictor
-from orchestrator.resource_manager import ResourceManager
-from orchestrator.utils.cloudwatch_logger import CloudWatchLogger
 from orchestrator.exceptions.ddb_client_exceptions import RecordAlreadyExistsException
 from orchestrator.exceptions.workflow_exceptions import (
-    UnhandledWorkflowException,
-    SageMakerHostingException,
-    SageMakerTrainingJobException,
-    WorkflowJoiningJobException,
     EvalScoreNotAvailableException,
     InvalidUsageException,
+    SageMakerHostingException,
+    SageMakerTrainingJobException,
+    UnhandledWorkflowException,
+    WorkflowJoiningJobException,
 )
+from orchestrator.resource_manager import Predictor, ResourceManager
+from orchestrator.utils.cloudwatch_logger import CloudWatchLogger
+from orchestrator.workflow.datatypes.experiment_record import ExperimentRecord
+from orchestrator.workflow.manager.join_manager import JoinManager
+from orchestrator.workflow.manager.model_manager import ModelManager
+from sagemaker.local.local_session import LocalSession
 
 
 class HostingState(str, Enum):

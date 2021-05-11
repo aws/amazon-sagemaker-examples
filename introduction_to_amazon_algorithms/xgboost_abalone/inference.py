@@ -15,7 +15,6 @@ import os
 import pickle as pkl
 
 import numpy as np
-
 import sagemaker_xgboost_container.encoder as xgb_encoders
 
 

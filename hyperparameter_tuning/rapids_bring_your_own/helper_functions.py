@@ -14,11 +14,12 @@
 # limitations under the License.
 #
 
-import random
-import uuid
-import boto3
 import os
+import random
 import traceback
+import uuid
+
+import boto3
 
 
 def recommend_instance_type(code_choice, dataset_directory):
@@ -55,7 +56,7 @@ def recommend_instance_type(code_choice, dataset_directory):
 
 
 def validate_dockerfile(rapids_base_container, dockerfile_name="Dockerfile"):
-    """ Validate that our desired rapids base image matches the Dockerfile """
+    """Validate that our desired rapids base image matches the Dockerfile"""
     with open(dockerfile_name, "r") as dockerfile_handle:
         if rapids_base_container not in dockerfile_handle.read():
             raise Exception(
@@ -116,7 +117,7 @@ def summarize_hpo_results(tuning_job_name):
 
 
 def download_best_model(bucket, s3_model_output, hpo_results, local_directory):
-    """ Download best model from S3"""
+    """Download best model from S3"""
     try:
         target_bucket = boto3.resource("s3").Bucket(bucket)
         path_prefix = os.path.join(

@@ -14,30 +14,26 @@
 # limitations under the License.
 #
 
-import time
-import os
-
-import dask
-from dask.distributed import LocalCluster, Client, wait
-
-import xgboost
-import joblib
-
-from dask_ml.model_selection import train_test_split
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import accuracy_score
-
 import logging
+import os
+import time
 import warnings
 
+import dask
+import joblib
+import xgboost
+from dask.distributed import Client, LocalCluster, wait
+from dask_ml.model_selection import train_test_split
 from MLWorkflow import MLWorkflow, timer_decorator
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score
 
 hpo_log = logging.getLogger("hpo_log")
 warnings.filterwarnings("ignore")
 
 
 class MLWorkflowMultiCPU(MLWorkflow):
-    """ Multi-CPU Workflow """
+    """Multi-CPU Workflow"""
 
     def __init__(self, hpo_config):
         hpo_log.info("Multi-CPU Workflow")
@@ -53,7 +49,7 @@ class MLWorkflowMultiCPU(MLWorkflow):
 
     @timer_decorator
     def cluster_initialize(self):
-        """ Initialize dask CPU cluster """
+        """Initialize dask CPU cluster"""
 
         cluster = None
         client = None
@@ -74,7 +70,7 @@ class MLWorkflowMultiCPU(MLWorkflow):
         return cluster, client
 
     def ingest_data(self):
-        """ Ingest dataset, CSV and Parquet supported """
+        """Ingest dataset, CSV and Parquet supported"""
 
         if self.dataset_cache is not None:
             hpo_log.info("> skipping ingestion, using cache")
@@ -102,7 +98,7 @@ class MLWorkflowMultiCPU(MLWorkflow):
         return dataset
 
     def handle_missing_data(self, dataset):
-        """ Drop samples with missing data [ inplace ] """
+        """Drop samples with missing data [ inplace ]"""
         dataset = dataset.dropna()
         return dataset
 
@@ -140,7 +136,7 @@ class MLWorkflowMultiCPU(MLWorkflow):
 
     @timer_decorator
     def fit(self, X_train, y_train):
-        """ Fit decision tree model """
+        """Fit decision tree model"""
         if "XGBoost" in self.hpo_config.model_type:
             hpo_log.info("> fit xgboost model")
             dtrain = xgboost.dask.DaskDMatrix(self.client, X_train, y_train)
@@ -164,7 +160,7 @@ class MLWorkflowMultiCPU(MLWorkflow):
 
     @timer_decorator
     def predict(self, trained_model, X_test, threshold=0.5):
-        """ Inference with the trained model on the unseen test data """
+        """Inference with the trained model on the unseen test data"""
 
         hpo_log.info("> predict with trained model ")
         if "XGBoost" in self.hpo_config.model_type:
@@ -179,7 +175,7 @@ class MLWorkflowMultiCPU(MLWorkflow):
 
     @timer_decorator
     def score(self, y_test, predictions):
-        """ Score predictions vs ground truth labels on test data """
+        """Score predictions vs ground truth labels on test data"""
         hpo_log.info("> score predictions")
 
         score = accuracy_score(
@@ -192,7 +188,7 @@ class MLWorkflowMultiCPU(MLWorkflow):
         return score
 
     def save_best_model(self, score, trained_model, filename="saved_model"):
-        """  Persist/save model that sets a new high score """
+        """Persist/save model that sets a new high score"""
 
         if score > self.best_score:
             self.best_score = score
@@ -220,7 +216,7 @@ class MLWorkflowMultiCPU(MLWorkflow):
             self.cluster, self.client = self.cluster_initialize()
 
     def emit_final_score(self):
-        """ Emit score for parsing by the cloud HPO orchestrator """
+        """Emit score for parsing by the cloud HPO orchestrator"""
         exec_time = time.perf_counter() - self.start_time
         hpo_log.info(f"total_time = {exec_time:.5f} s ")
 

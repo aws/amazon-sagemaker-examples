@@ -15,12 +15,11 @@
 #
 
 import tensorflow as tf
-
-from rl_coach.architectures.tensorflow_components.layers import Dense
 from rl_coach.architectures.tensorflow_components.heads.head import Head
+from rl_coach.architectures.tensorflow_components.layers import Dense
 from rl_coach.base_parameters import AgentParameters
 from rl_coach.core_types import QActionStateValue
-from rl_coach.spaces import SpacesDefinition, BoxActionSpace
+from rl_coach.spaces import BoxActionSpace, SpacesDefinition
 
 
 class SACQHead(Head):

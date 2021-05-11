@@ -1,12 +1,13 @@
+from typing import Dict, List, Union
+
 import numpy as np
-from rl_coach.spaces import BoxActionSpace
-from typing import Union, List, Dict
+from markov.boto.s3.constants import ModelMetadataKeys
 from markov.log_handler.constants import (
     SIMAPP_EVENT_ERROR_CODE_500,
     SIMAPP_SIMULATION_WORKER_EXCEPTION,
 )
 from markov.log_handler.exception_handler import log_and_exit
-from markov.boto.s3.constants import ModelMetadataKeys
+from rl_coach.spaces import BoxActionSpace
 
 
 class ScalableBoxActionSpace(BoxActionSpace):

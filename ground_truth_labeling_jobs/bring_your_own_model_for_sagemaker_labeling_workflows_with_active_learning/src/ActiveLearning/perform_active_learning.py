@@ -1,12 +1,10 @@
 import json
-
-from s3_helper import S3Ref, download, download_with_query, upload, create_ref_at_parent_key
-from string_helper import generate_job_id_and_s3_path
+import logging
 from io import StringIO
 
 from ActiveLearning.helper import SimpleActiveLearning
-
-import logging
+from s3_helper import S3Ref, create_ref_at_parent_key, download, download_with_query, upload
+from string_helper import generate_job_id_and_s3_path
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)

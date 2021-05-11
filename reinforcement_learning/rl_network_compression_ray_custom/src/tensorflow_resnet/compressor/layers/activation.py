@@ -1,5 +1,6 @@
 import tensorflow as tf
-from ..core import Layer, Fake
+
+from ..core import Fake, Layer
 
 
 class ReLU(Layer):
@@ -25,7 +26,7 @@ class ReLU(Layer):
         self.description.append(self.get_memory_footprint())
 
     def get_params(self):
-        """ Activation layers do not have parameters to return. """
+        """Activation layers do not have parameters to return."""
         return []
 
     def get_memory_footprint(self):

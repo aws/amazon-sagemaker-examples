@@ -1,8 +1,9 @@
-import tensorflow as tf
-import numpy as np
 import logging
 
-from ..core import Layer, Fake
+import numpy as np
+import tensorflow as tf
+
+from ..core import Fake, Layer
 from .ops import get_param_from_name, load_pkl_obj
 
 
@@ -113,11 +114,11 @@ class Conv2DFixedPadding(Layer):
         self.description.append(self.get_memory_footprint())
 
     def _get_params_real(self):
-        """ Returns the kernel node """
+        """Returns the kernel node"""
         return {self.get_name(): get_param_from_name(self._tf_name + "/conv2d/kernel:0")}
 
     def _get_memory_footprint_real(self):
-        """ Number of parameters in the layer """
+        """Number of parameters in the layer"""
         params = self.get_params()[self.get_name()]
         return int(np.prod(params.shape))
 

@@ -15,12 +15,11 @@
 # specific language governing permissions and limitations
 # under the License.
 
-import tensorflow as tf
+import os
 
 # Import SMDataParallel TensorFlow2 Modules
 import smdistributed.dataparallel.tensorflow as dist
-
-import os
+import tensorflow as tf
 
 tf.random.set_seed(42)
 

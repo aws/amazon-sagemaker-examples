@@ -1,9 +1,10 @@
 import tensorflow as tf
+
 from . import tensorflow_train
 
 
 class TensorflowInterface:
-    """ This is a base class that contains all the hidden tensorflow methods """
+    """This is a base class that contains all the hidden tensorflow methods"""
 
     ### Static methods that interface with tensorflow.###
     @staticmethod

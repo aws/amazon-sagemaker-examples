@@ -2,9 +2,11 @@ import os
 
 
 def _download_and_extract(url, path, filename):
-    import shutil, zipfile
-    from tqdm import tqdm
+    import shutil
+    import zipfile
+
     import requests
+    from tqdm import tqdm
 
     fn = os.path.join(path, filename)
 

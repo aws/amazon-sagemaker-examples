@@ -2,25 +2,25 @@
    depend on ros, it should not be used in modules imported to the training worker
 """
 import logging
+
 import rospy
-from std_msgs.msg import String
-from std_srvs.srv import Empty, EmptyResponse
+from deepracer_msgs.srv import GetLightNames, GetLightNamesRequest
 from markov.agents.utils import RunPhaseSubject
 from markov.common import ObserverInterface
-from markov.log_handler.logger import Logger
-from markov.rospy_wrappers import ServiceProxyWrapper
-from markov.domain_randomizations.randomizer_manager import RandomizerManager
-from markov.domain_randomizations.visual.light_randomizer import LightRandomizer
-from markov.domain_randomizations.constants import GazeboServiceName
 from markov.constants import (
     ROBOMAKER_IS_PROFILER_ON,
     ROBOMAKER_PROFILER_S3_BUCKET,
     ROBOMAKER_PROFILER_S3_PREFIX,
 )
+from markov.domain_randomizations.constants import GazeboServiceName
+from markov.domain_randomizations.randomizer_manager import RandomizerManager
+from markov.domain_randomizations.visual.light_randomizer import LightRandomizer
+from markov.log_handler.logger import Logger
+from markov.rospy_wrappers import ServiceProxyWrapper
 from markov.utils import str2bool
-from deepracer_msgs.srv import GetLightNames, GetLightNamesRequest
-
 from rl_coach.core_types import RunPhase
+from std_msgs.msg import String
+from std_srvs.srv import Empty, EmptyResponse
 
 LOG = Logger(__name__, logging.INFO).get_logger()
 # Mapping of the phase to the text to display
@@ -72,7 +72,7 @@ class PhaseObserver(ObserverInterface):
     """
 
     def __init__(self, topic: str, sink: RunPhaseSubject) -> None:
-        """topic - Topic for which to publish the phase """
+        """topic - Topic for which to publish the phase"""
         self._phase_pub_ = rospy.Publisher(topic, String, queue_size=1)
         self._state_ = None
         sink.register(self)
@@ -104,7 +104,7 @@ def configure_environment_randomizer(light_name_filter=None):
 
 
 def get_robomaker_profiler_env():
-    """ Read robomaker profiler environment """
+    """Read robomaker profiler environment"""
     is_profiler_on = str2bool(rospy.get_param(ROBOMAKER_IS_PROFILER_ON, False))
     profiler_s3_bucker = rospy.get_param(ROBOMAKER_PROFILER_S3_BUCKET, None)
     profiler_s3_prefix = rospy.get_param(ROBOMAKER_PROFILER_S3_PREFIX, None)

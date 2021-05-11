@@ -1,24 +1,21 @@
 import logging
-import numpy as np
 
-from markov.rospy_wrappers import ServiceProxyWrapper
+import numpy as np
+import rospy
+from deepracer_msgs.srv import GetVisualNames, GetVisualNamesRequest
+from gazebo_msgs.srv import GetModelProperties, GetModelPropertiesRequest
 from markov.domain_randomizations.abs_randomizer import AbstractRandomizer
-from markov.log_handler.logger import Logger
 from markov.domain_randomizations.constants import (
-    ModelRandomizerType,
-    GazeboServiceName,
-    Color,
-    RANGE_MIN,
     RANGE_MAX,
+    RANGE_MIN,
+    Color,
+    GazeboServiceName,
+    ModelRandomizerType,
 )
 from markov.gazebo_tracker.trackers.set_visual_color_tracker import SetVisualColorTracker
-
-import rospy
-from gazebo_msgs.srv import GetModelProperties, GetModelPropertiesRequest
+from markov.log_handler.logger import Logger
+from markov.rospy_wrappers import ServiceProxyWrapper
 from std_msgs.msg import ColorRGBA
-
-from deepracer_msgs.srv import GetVisualNames, GetVisualNamesRequest
-
 
 logger = Logger(__name__, logging.INFO).get_logger()
 

@@ -1,8 +1,9 @@
 import io
-import PIL.Image
 import json
 import logging
+
 import numpy as np
+import PIL.Image
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -13,15 +14,14 @@ logger.setLevel(logging.DEBUG)
 
 """Train YOLOv3 with random shapes."""
 import argparse
-import os
 import logging
+import os
 import time
 import warnings
-import numpy as np
+
 import mxnet as mx
-from mxnet import nd
-from mxnet import gluon
-from mxnet import autograd
+import numpy as np
+from mxnet import autograd, gluon, nd
 
 # from mxnet.contrib import amp
 try:
@@ -213,14 +213,16 @@ def get_dataloader(net, train_dataset, val_dataset, data_shape, batch_size, num_
     gcv.utils.check_version("0.6.0")
     from gluoncv import data as gdata
     from gluoncv import utils as gutils
-    from gluoncv.model_zoo import get_model
-    from gluoncv.data.batchify import Tuple, Stack, Pad
-    from gluoncv.data.transforms.presets.yolo import YOLO3DefaultTrainTransform
-    from gluoncv.data.transforms.presets.yolo import YOLO3DefaultValTransform
+    from gluoncv.data.batchify import Pad, Stack, Tuple
     from gluoncv.data.dataloader import RandomTransformDataLoader
-    from gluoncv.utils.metrics.voc_detection import VOC07MApMetric
-    from gluoncv.utils.metrics.coco_detection import COCODetectionMetric
+    from gluoncv.data.transforms.presets.yolo import (
+        YOLO3DefaultTrainTransform,
+        YOLO3DefaultValTransform,
+    )
+    from gluoncv.model_zoo import get_model
     from gluoncv.utils import LRScheduler, LRSequential
+    from gluoncv.utils.metrics.coco_detection import COCODetectionMetric
+    from gluoncv.utils.metrics.voc_detection import VOC07MApMetric
 
     """Get dataloader."""
     width, height = data_shape, data_shape
@@ -318,14 +320,16 @@ def train(net, train_data, val_data, eval_metric, ctx, args):
     gcv.utils.check_version("0.6.0")
     from gluoncv import data as gdata
     from gluoncv import utils as gutils
-    from gluoncv.model_zoo import get_model
-    from gluoncv.data.batchify import Tuple, Stack, Pad
-    from gluoncv.data.transforms.presets.yolo import YOLO3DefaultTrainTransform
-    from gluoncv.data.transforms.presets.yolo import YOLO3DefaultValTransform
+    from gluoncv.data.batchify import Pad, Stack, Tuple
     from gluoncv.data.dataloader import RandomTransformDataLoader
-    from gluoncv.utils.metrics.voc_detection import VOC07MApMetric
-    from gluoncv.utils.metrics.coco_detection import COCODetectionMetric
+    from gluoncv.data.transforms.presets.yolo import (
+        YOLO3DefaultTrainTransform,
+        YOLO3DefaultValTransform,
+    )
+    from gluoncv.model_zoo import get_model
     from gluoncv.utils import LRScheduler, LRSequential
+    from gluoncv.utils.metrics.coco_detection import COCODetectionMetric
+    from gluoncv.utils.metrics.voc_detection import VOC07MApMetric
 
     """Training pipeline"""
     net.collect_params().reset_ctx(ctx)
@@ -521,14 +525,16 @@ if __name__ == "__main__":
     gcv.utils.check_version("0.6.0")
     from gluoncv import data as gdata
     from gluoncv import utils as gutils
-    from gluoncv.model_zoo import get_model
-    from gluoncv.data.batchify import Tuple, Stack, Pad
-    from gluoncv.data.transforms.presets.yolo import YOLO3DefaultTrainTransform
-    from gluoncv.data.transforms.presets.yolo import YOLO3DefaultValTransform
+    from gluoncv.data.batchify import Pad, Stack, Tuple
     from gluoncv.data.dataloader import RandomTransformDataLoader
-    from gluoncv.utils.metrics.voc_detection import VOC07MApMetric
-    from gluoncv.utils.metrics.coco_detection import COCODetectionMetric
+    from gluoncv.data.transforms.presets.yolo import (
+        YOLO3DefaultTrainTransform,
+        YOLO3DefaultValTransform,
+    )
+    from gluoncv.model_zoo import get_model
     from gluoncv.utils import LRScheduler, LRSequential
+    from gluoncv.utils.metrics.coco_detection import COCODetectionMetric
+    from gluoncv.utils.metrics.voc_detection import VOC07MApMetric
 
     args = parse_args()
 

@@ -1,6 +1,7 @@
+import argparse
 import os
 import pathlib
-import argparse
+
 import tensorflow as tf
 import tensorflow_datasets as tfds
 

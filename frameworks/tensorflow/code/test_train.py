@@ -1,9 +1,9 @@
-from train import train, parse_args
-
-import sys
-import os
-import boto3
 import json
+import os
+import sys
+
+import boto3
+from train import parse_args, train
 
 dirname = os.path.dirname(os.path.abspath(__file__))
 

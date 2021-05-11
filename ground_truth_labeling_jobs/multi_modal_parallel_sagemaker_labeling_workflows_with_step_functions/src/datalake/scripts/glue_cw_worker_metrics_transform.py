@@ -1,17 +1,15 @@
 """
 Glue Script to tranfor worker metrics from Cloudwatch into Glue Catalog
 """
-from pyspark.sql.functions import from_json, col
-from pyspark.sql.functions import year, month, dayofmonth, hour
-from pyspark.sql.types import StructType, StructField, StringType, TimestampType
 import sys
 
-from pyspark.context import SparkContext
 import pyspark.sql.functions as f
-
-from awsglue.utils import getResolvedOptions
 from awsglue.context import GlueContext
 from awsglue.job import Job
+from awsglue.utils import getResolvedOptions
+from pyspark.context import SparkContext
+from pyspark.sql.functions import col, dayofmonth, from_json, hour, month, year
+from pyspark.sql.types import StringType, StructField, StructType, TimestampType
 
 sc = SparkContext()
 glueContext = GlueContext(SparkContext.getOrCreate())

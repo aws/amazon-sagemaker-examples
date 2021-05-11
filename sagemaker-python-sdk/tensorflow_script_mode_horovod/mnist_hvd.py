@@ -14,19 +14,18 @@
 from __future__ import print_function
 
 import argparse
+import math
 import os
 
+import horovod.tensorflow.keras as hvd
 import numpy as np
+import tensorflow as tf
+from tensorflow.keras import backend as K
 
 # import tensorflow.keras as keras
 from tensorflow.keras.datasets import mnist
+from tensorflow.keras.layers import Conv2D, Dense, Dropout, Flatten, MaxPooling2D
 from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense, Dropout, Flatten
-from tensorflow.keras.layers import Conv2D, MaxPooling2D
-from tensorflow.keras import backend as K
-import math
-import tensorflow as tf
-import horovod.tensorflow.keras as hvd
 
 if __name__ == "__main__":
 

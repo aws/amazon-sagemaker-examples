@@ -4,6 +4,7 @@ Truth object detection.
 """
 
 import os
+
 import imageio
 import matplotlib.pyplot as plt
 import numpy as np
@@ -171,7 +172,7 @@ class BoxedImage:
         self.plot_bbs(ax, self.gt_boxes, img_kwargs=img_kwargs, box_kwargs=box_kwargs)
 
     def compute_img_confidence(self):
-        """ Compute the mean bb confidence. """
+        """Compute the mean bb confidence."""
         if len(self.consolidated_boxes) > 0:
             return np.mean([box.confidence for box in self.consolidated_boxes])
         else:

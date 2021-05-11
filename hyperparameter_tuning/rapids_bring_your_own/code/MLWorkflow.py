@@ -14,18 +14,16 @@
 # limitations under the License.
 #
 
-from abc import abstractmethod
-
 import functools
-import time
-
 import logging
+import time
+from abc import abstractmethod
 
 hpo_log = logging.getLogger("hpo_log")
 
 
 def create_workflow(hpo_config):
-    """ Workflow Factory [instantiate MLWorkflow based on config] """
+    """Workflow Factory [instantiate MLWorkflow based on config]"""
     if hpo_config.compute_type == "single-CPU":
         from workflows.MLWorkflowSingleCPU import MLWorkflowSingleCPU
 

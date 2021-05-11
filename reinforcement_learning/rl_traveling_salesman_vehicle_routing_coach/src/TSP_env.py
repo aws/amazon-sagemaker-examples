@@ -1,7 +1,6 @@
 import gym
 import numpy as np
 from gym import spaces
-
 from TSP_view_2D import TSPView2D
 
 

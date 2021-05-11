@@ -2,7 +2,7 @@
 ONNX Utils to support multiple output heads in agent networks, until future releases of MXNet support this.
 """
 import onnx
-from onnx import helper, checker, TensorProto
+from onnx import TensorProto, checker, helper
 
 
 def get_correct_outputs(model):

@@ -1,20 +1,20 @@
 """This module implements rl coach sync file specifically"""
 
-import os
 import io
-import botocore
 import logging
+import os
 
-from markov.log_handler.logger import Logger
-from markov.log_handler.exception_handler import log_and_exit
-from markov.log_handler.constants import (
-    SIMAPP_EVENT_ERROR_CODE_500,
-    SIMAPP_EVENT_ERROR_CODE_400,
-    SIMAPP_SIMULATION_WORKER_EXCEPTION,
-    SIMAPP_S3_DATA_STORE_EXCEPTION,
-)
+import botocore
+from markov.boto.s3.constants import SYNC_FILES_LOCAL_PATH_FORMAT_DICT, SYNC_FILES_POSTFIX_DICT
 from markov.boto.s3.s3_client import S3Client
-from markov.boto.s3.constants import SYNC_FILES_POSTFIX_DICT, SYNC_FILES_LOCAL_PATH_FORMAT_DICT
+from markov.log_handler.constants import (
+    SIMAPP_EVENT_ERROR_CODE_400,
+    SIMAPP_EVENT_ERROR_CODE_500,
+    SIMAPP_S3_DATA_STORE_EXCEPTION,
+    SIMAPP_SIMULATION_WORKER_EXCEPTION,
+)
+from markov.log_handler.exception_handler import log_and_exit
+from markov.log_handler.logger import Logger
 
 LOG = Logger(__name__, logging.INFO).get_logger()
 

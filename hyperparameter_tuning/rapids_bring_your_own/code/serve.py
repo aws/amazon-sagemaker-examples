@@ -14,25 +14,23 @@
 # limitations under the License.
 #
 
-import os
-import sys
-import traceback
-import joblib
 import glob
 import json
-import time
-
-import xgboost
-import numpy
-
-import flask
-from flask import Flask, Response
-
 import logging
+import os
+import sys
+import time
+import traceback
 from functools import lru_cache
 
+import flask
+import joblib
+import numpy
+import xgboost
+from flask import Flask, Response
+
 try:
-    """ check for GPU via library imports """
+    """check for GPU via library imports"""
     import cupy
     from cuml import ForestInference
 
@@ -47,7 +45,7 @@ DEBUG_FLAG = False
 
 
 def serve(xgboost_threshold=0.5):
-    """ Flask Inference Server for SageMaker hosting of RAPIDS Models """
+    """Flask Inference Server for SageMaker hosting of RAPIDS Models"""
     app = Flask(__name__)
     logging.basicConfig(level=logging.DEBUG)
 
@@ -60,7 +58,7 @@ def serve(xgboost_threshold=0.5):
 
     @app.route("/ping", methods=["GET"])
     def ping():
-        """ SageMaker required method, ping heartbeat """
+        """SageMaker required method, ping heartbeat"""
         return Response(response="\n", status=200)
 
     @lru_cache()

@@ -1,7 +1,8 @@
-from ipywidgets import widgets, HBox, VBox, Layout
-from IPython.display import display
 from functools import partial
+
 import numpy as np
+from IPython.display import display
+from ipywidgets import HBox, Layout, VBox, widgets
 
 
 class TicTacToeGame(object):

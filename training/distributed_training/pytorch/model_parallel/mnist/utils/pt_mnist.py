@@ -1,14 +1,19 @@
 # Future
 from __future__ import print_function
 
-# Standard Library
-import os, time
 import argparse
 import math
+
+# Standard Library
+import os
 import random
+import time
 
 # Third Party
 import numpy as np
+
+# First Party
+import smdistributed.modelparallel.torch as smp
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -17,9 +22,6 @@ from torch.cuda.amp import autocast
 from torch.optim.lr_scheduler import StepLR
 from torchnet.dataset import SplitDataset
 from torchvision import datasets, transforms
-
-# First Party
-import smdistributed.modelparallel.torch as smp
 
 # SM Distributed: import scaler from smdistributed.modelparallel.torch.amp, instead of torch.cuda.amp
 
@@ -34,7 +36,8 @@ torch.backends.cudnn.benchmark = False
 def aws_s3_sync(source, destination):
 
     """aws s3 sync in quiet mode and time profile"""
-    import time, subprocess
+    import subprocess
+    import time
 
     cmd = ["aws", "s3", "sync", "--quiet", source, destination]
     print(f"Syncing files from {source} to {destination}")
@@ -51,9 +54,10 @@ def sync_local_checkpoints_to_s3(
     s3_path=os.path.dirname(os.path.dirname(os.getenv("SM_MODULE_DIR", ""))) + "/checkpoints",
 ):
 
-    """ sample function to sync checkpoints from local path to s3 """
+    """sample function to sync checkpoints from local path to s3"""
 
-    import boto3, botocore
+    import boto3
+    import botocore
 
     # check if local path exists
     if not os.path.exists(local_path):
@@ -81,9 +85,10 @@ def sync_s3_checkpoints_to_local(
     s3_path=os.path.dirname(os.path.dirname(os.getenv("SM_MODULE_DIR", ""))) + "/checkpoints",
 ):
 
-    """ sample function to sync checkpoints from s3 to local path """
+    """sample function to sync checkpoints from s3 to local path"""
 
-    import boto3, botocore
+    import boto3
+    import botocore
 
     # creat if local path does not exists
     if not os.path.exists(local_path):

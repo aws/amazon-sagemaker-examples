@@ -1,10 +1,11 @@
 import sys
+
+from awsglue.context import GlueContext
+from awsglue.dynamicframe import DynamicFrame
+from awsglue.job import Job
 from awsglue.transforms import *
 from awsglue.utils import getResolvedOptions
 from pyspark.context import SparkContext
-from awsglue.context import GlueContext
-from awsglue.job import Job
-from awsglue.dynamicframe import DynamicFrame
 
 # Retrieve parameters for the Glue job.
 args = getResolvedOptions(sys.argv, ["JOB_NAME", "S3_SOURCE", "S3_DEST", "TRAIN_KEY", "VAL_KEY"])

@@ -14,8 +14,8 @@ import time
 # Third Party
 import numpy as np
 from tensorflow.keras.applications.resnet50 import ResNet50
-from tensorflow.keras.datasets import cifar10
 from tensorflow.keras.callbacks import Callback
+from tensorflow.keras.datasets import cifar10
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.utils import to_categorical
 

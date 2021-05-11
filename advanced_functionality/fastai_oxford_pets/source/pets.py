@@ -1,13 +1,12 @@
 import argparse
-import logging
-import sagemaker_containers
-import requests
-
-import os
-import io
 import glob
+import io
+import logging
+import os
 import time
 
+import requests
+import sagemaker_containers
 from fastai.vision import *
 
 logger = logging.getLogger(__name__)

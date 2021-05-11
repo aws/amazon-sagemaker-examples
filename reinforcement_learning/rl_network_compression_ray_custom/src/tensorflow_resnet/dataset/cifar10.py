@@ -1,4 +1,5 @@
 import os
+
 import tensorflow as tf
 
 _HEIGHT = 32

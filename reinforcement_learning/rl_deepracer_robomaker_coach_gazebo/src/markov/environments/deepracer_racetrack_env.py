@@ -1,17 +1,15 @@
 """This module defines the interface between rl coach and the agents enviroment"""
 from __future__ import print_function
-from typing import List, Union, Dict
 
-from rl_coach.base_parameters import AgentParameters, VisualizationParameters
-from rl_coach.environments.environment import LevelSelection
-from rl_coach.filters.filter import NoInputFilter, NoOutputFilter
+from typing import Dict, List, Union
 
 from markov.agents.agent import Agent
 from markov.agents.utils import RunPhaseSubject
 from markov.constants import SIMAPP_VERSION_4
-from markov.multi_agent_coach.multi_agent_environment import (
-    MultiAgentEnvironment,
-    MultiAgentEnvironmentParameters,
+from markov.domain_randomizations.randomizer_manager import RandomizerManager
+from markov.log_handler.constants import (
+    SIMAPP_EVENT_ERROR_CODE_500,
+    SIMAPP_SIMULATION_WORKER_EXCEPTION,
 )
 from markov.log_handler.deepracer_exceptions import (
     GenericRolloutException,
@@ -19,11 +17,13 @@ from markov.log_handler.deepracer_exceptions import (
     RewardFunctionError,
 )
 from markov.log_handler.exception_handler import log_and_exit
-from markov.log_handler.constants import (
-    SIMAPP_SIMULATION_WORKER_EXCEPTION,
-    SIMAPP_EVENT_ERROR_CODE_500,
+from markov.multi_agent_coach.multi_agent_environment import (
+    MultiAgentEnvironment,
+    MultiAgentEnvironmentParameters,
 )
-from markov.domain_randomizations.randomizer_manager import RandomizerManager
+from rl_coach.base_parameters import AgentParameters, VisualizationParameters
+from rl_coach.environments.environment import LevelSelection
+from rl_coach.filters.filter import NoInputFilter, NoOutputFilter
 
 # Max number of steps to allow per episode
 MAX_STEPS = 100000

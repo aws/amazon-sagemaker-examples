@@ -1,7 +1,7 @@
-import numpy as np
 import gym
-from gym.spaces import Discrete, Box
+import numpy as np
 from gym.envs.registration import EnvSpec
+from gym.spaces import Box, Discrete
 from gymhelper import box_space_from_description
 
 

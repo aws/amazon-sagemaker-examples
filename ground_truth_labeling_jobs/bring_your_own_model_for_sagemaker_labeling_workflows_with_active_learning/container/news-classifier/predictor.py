@@ -16,26 +16,22 @@
 
 from __future__ import print_function
 
-import os
 import json
-import pickle
-import sys
-import signal
-import traceback
-import json
-import flask
-
-from io import StringIO, BytesIO
-
-import tensorflow as tf
-import pandas as pd
-import numpy as np
-from tensorflow.python.keras.preprocessing.text import Tokenizer
-from tensorflow.python.keras.preprocessing.sequence import pad_sequences
-
 import logging
+import os
+import pickle
+import signal
+import sys
+import traceback
+from io import BytesIO, StringIO
 
 import boto3
+import flask
+import numpy as np
+import pandas as pd
+import tensorflow as tf
+from tensorflow.python.keras.preprocessing.sequence import pad_sequences
+from tensorflow.python.keras.preprocessing.text import Tokenizer
 
 MAX_LEN = 100
 prefix = "/opt/ml/"
@@ -121,7 +117,7 @@ def _dump_jsonlines_entry(prediction):
 
 @app.route("/invocations", methods=["POST"])
 def transformation():
-    """Do an inference on a single news headline. """
+    """Do an inference on a single news headline."""
     data = None
 
     if flask.request.content_type == "application/jsonlines":

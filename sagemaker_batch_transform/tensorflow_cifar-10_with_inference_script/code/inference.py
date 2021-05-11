@@ -13,8 +13,9 @@
 
 import io
 import json
-import numpy as np
 from collections import namedtuple
+
+import numpy as np
 from PIL import Image
 
 Context = namedtuple(

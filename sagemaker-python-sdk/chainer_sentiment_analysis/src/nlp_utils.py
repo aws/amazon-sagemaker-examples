@@ -13,9 +13,8 @@
 
 import collections
 
-import numpy
-
 import chainer
+import numpy
 from chainer.backends import cuda
 
 

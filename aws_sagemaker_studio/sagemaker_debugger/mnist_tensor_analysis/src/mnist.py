@@ -1,5 +1,7 @@
 # Standard Library
 import argparse
+import os
+import time
 
 # Third Party
 import mxnet as mx
@@ -7,8 +9,6 @@ import numpy as np
 from mxnet import autograd, gluon, init
 from mxnet.gluon import nn
 from mxnet.gluon.data.vision import datasets, transforms
-import os
-import time
 
 
 def parse_args():

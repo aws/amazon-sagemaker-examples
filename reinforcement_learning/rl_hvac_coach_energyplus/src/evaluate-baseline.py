@@ -1,6 +1,6 @@
-from eplus.envs import DataCenterEnv
 import platform
 
+from eplus.envs import DataCenterEnv
 
 os_type = platform.system()
 if os_type == "Linux":

@@ -1,5 +1,6 @@
 """Converts MNIST data to TFRecords file format with Example protos."""
 import os
+
 import tensorflow as tf
 
 

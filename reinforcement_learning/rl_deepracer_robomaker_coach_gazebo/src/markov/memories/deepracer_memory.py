@@ -1,21 +1,17 @@
 import ast
-
-import pickle
-from copy import deepcopy
-
 import math
-
-import pandas as pd
-from typing import List, Tuple, Union
-import numpy as np
+import pickle
 import random
+from copy import deepcopy
+from typing import List, Tuple, Union
 
-from rl_coach.core_types import Transition, Episode
+import numpy as np
+import pandas as pd
+from rl_coach.core_types import CsvDataset, Episode, Transition
 from rl_coach.filters.filter import InputFilter
 from rl_coach.logger import screen
 from rl_coach.memories.memory import Memory, MemoryGranularity, MemoryParameters
-from rl_coach.utils import ReaderWriterLock, ProgressBar
-from rl_coach.core_types import CsvDataset
+from rl_coach.utils import ProgressBar, ReaderWriterLock
 
 
 class DeepRacerMemoryParameters(MemoryParameters):
@@ -72,7 +68,7 @@ class DeepRacerMemory(Memory):
         return length
 
     def num_complete_episodes(self):
-        """ Get the number of complete episodes in ER """
+        """Get the number of complete episodes in ER"""
         length = self._length - 1
 
         return length

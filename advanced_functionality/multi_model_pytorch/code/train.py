@@ -1,6 +1,5 @@
 # Python Built-Ins:
 import argparse
-from distutils.dir_util import copy_tree
 import gzip
 import json
 import logging
@@ -8,22 +7,22 @@ import os
 import shutil
 import subprocess
 import sys
+from distutils.dir_util import copy_tree
 from tempfile import TemporaryDirectory
 
 # External Dependencies:
 import numpy as np
-from packaging import version as pkgversion
-from sagemaker_pytorch_serving_container import handler_service as default_handler_service
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-from torch.utils.data import Dataset, DataLoader
+from model import MNISTNet
+from packaging import version as pkgversion
+from sagemaker_pytorch_serving_container import handler_service as default_handler_service
+from torch.utils.data import DataLoader, Dataset
 
 # Local Dependencies:
 from inference import *
-from model import MNISTNet
-
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)

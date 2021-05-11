@@ -1,8 +1,9 @@
-import time
-import boto3
 import argparse
-import pandas as pd
 import pathlib
+import time
+
+import boto3
+import pandas as pd
 
 # Parse argument variables passed via the CreateDataset processing step
 parser = argparse.ArgumentParser()

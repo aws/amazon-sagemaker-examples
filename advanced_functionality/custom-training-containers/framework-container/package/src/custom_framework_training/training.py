@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 
 import logging
+
 from sagemaker_training import entry_point, environment
 
 logger = logging.getLogger(__name__)

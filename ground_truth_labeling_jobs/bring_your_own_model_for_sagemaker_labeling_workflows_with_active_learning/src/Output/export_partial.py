@@ -1,9 +1,9 @@
 import json
-from collections import OrderedDict
-from s3_helper import S3Ref, download, upload
-
 import logging
+from collections import OrderedDict
 from io import StringIO
+
+from s3_helper import S3Ref, download, upload
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)

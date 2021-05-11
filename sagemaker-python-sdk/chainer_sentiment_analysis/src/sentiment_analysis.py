@@ -12,19 +12,16 @@
 # language governing permissions and limitations under the License.
 
 import argparse
-import os
 import json
+import os
 
-import numpy as np
-from six import BytesIO
 import chainer
-from chainer import training
-from chainer import serializers
-from chainer.training import extensions
-
 import nets
-from nlp_utils import convert_seq, split_text, normalize_text, transform_to_array
-
+import numpy as np
+from chainer import serializers, training
+from chainer.training import extensions
+from nlp_utils import convert_seq, normalize_text, split_text, transform_to_array
+from six import BytesIO
 
 if __name__ == "__main__":
 

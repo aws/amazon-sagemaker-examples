@@ -1,7 +1,7 @@
+import logging
+
 from s3_helper import S3Ref, copy_with_query
 from string_helper import generate_job_id_and_s3_path
-
-import logging
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)

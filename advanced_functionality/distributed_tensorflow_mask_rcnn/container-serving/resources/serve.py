@@ -12,6 +12,7 @@
 # timeout                  MODEL_SERVER_TIMEOUT              70 seconds
 
 from __future__ import print_function
+
 import os
 import signal
 import subprocess

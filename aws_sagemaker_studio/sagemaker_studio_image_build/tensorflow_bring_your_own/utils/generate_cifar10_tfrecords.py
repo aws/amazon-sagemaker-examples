@@ -16,9 +16,7 @@ Generates tf.train.Example protos and writes them to TFRecord files from the
 python version of the CIFAR-10 dataset downloaded from
 https://www.cs.toronto.edu/~kriz/cifar.html.
 """
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
 
 import argparse
 import os
@@ -26,12 +24,12 @@ import shutil
 import sys
 import tarfile
 
-from six.moves import cPickle as pickle
-from six.moves import urllib
-from six.moves import xrange  # pylint: disable=redefined-builtin
-from ipywidgets import FloatProgress
-from IPython.display import display
 import tensorflow as tf
+from IPython.display import display
+from ipywidgets import FloatProgress
+from six.moves import cPickle as pickle
+from six.moves import xrange  # pylint: disable=redefined-builtin
+from six.moves import urllib
 
 CIFAR_FILENAME = "cifar-10-python.tar.gz"
 CIFAR_DOWNLOAD_URL = "https://www.cs.toronto.edu/~kriz/" + CIFAR_FILENAME

@@ -11,7 +11,6 @@ from mxnet import autograd as ag
 from mxnet import gluon
 from mxnet.gluon.model_zoo import vision as models
 
-
 # ------------------------------------------------------------ #
 # Training methods                                             #
 # ------------------------------------------------------------ #

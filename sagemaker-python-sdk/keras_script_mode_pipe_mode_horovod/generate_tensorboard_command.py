@@ -10,9 +10,10 @@
 # on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
 # express or implied. See the License for the specific language governing
 # permissions and limitations under the License.
-import boto3
-from datetime import datetime, timedelta
 import re
+from datetime import datetime, timedelta
+
+import boto3
 
 client = boto3.client("sagemaker")
 running_jobs = client.list_training_jobs(CreationTimeAfter=datetime.utcnow() - timedelta(hours=1))

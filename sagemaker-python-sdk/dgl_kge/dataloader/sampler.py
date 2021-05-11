@@ -1,11 +1,13 @@
 import math
-import numpy as np
-import scipy as sp
-import dgl.backend as F
-import dgl
 import os
 import pickle
 import time
+
+import dgl
+import dgl.backend as F
+import numpy as np
+import scipy as sp
+
 
 # This partitions a list of edges based on relations to make sure
 # each partition has roughly the same number of edges and relations.

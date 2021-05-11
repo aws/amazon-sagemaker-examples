@@ -1,18 +1,17 @@
 """This module houses all utility methods for the sensor module"""
 import numpy as np
-
+from markov.architecture.constants import ActivationFunctions, Input, NeuralNetwork, SchemeInfo
 from markov.environments.constants import (
+    SECTOR_LIDAR_CLIPPING_DIST,
     TRAINING_IMAGE_SIZE,
     TRAINING_LIDAR_SIZE,
-    SECTOR_LIDAR_CLIPPING_DIST,
 )
-from markov.architecture.constants import SchemeInfo, Input, ActivationFunctions, NeuralNetwork
 from markov.log_handler.deepracer_exceptions import GenericError
 from rl_coach.spaces import (
-    StateSpace,
     ImageObservationSpace,
-    VectorObservationSpace,
     PlanarMapsObservationSpace,
+    StateSpace,
+    VectorObservationSpace,
 )
 
 

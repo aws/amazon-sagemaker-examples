@@ -1,10 +1,11 @@
 import time
+from time import gmtime, strftime
+
 import boto3
-import requests
 import gym
 import numpy as np
-from time import gmtime, strftime
-from gym.spaces import Discrete, Box
+import requests
+from gym.spaces import Box, Discrete
 
 cloudwatch_cli = boto3.client("cloudwatch", region_name="us-west-2")
 

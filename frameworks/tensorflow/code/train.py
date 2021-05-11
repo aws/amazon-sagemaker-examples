@@ -1,17 +1,16 @@
 from __future__ import print_function
 
 import argparse
+import gzip
+import json
 import logging
 import os
-import json
-import gzip
-import numpy as np
 import traceback
 
+import numpy as np
 import tensorflow as tf
-from tensorflow.keras.layers import Dense, Flatten, Conv2D
 from tensorflow.keras import Model
-
+from tensorflow.keras.layers import Conv2D, Dense, Flatten
 
 logging.basicConfig(level=logging.DEBUG)
 

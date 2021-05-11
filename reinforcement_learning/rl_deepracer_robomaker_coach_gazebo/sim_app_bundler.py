@@ -15,11 +15,11 @@ python3 sim_app_bundler.py --tar
 # Clean the build
 python3 sim_app_bundler.py --clean
 """
+import argparse
 import os
+import shutil
 import subprocess
 import tarfile
-import argparse
-import shutil
 
 UNTARRED_SIM_APP_OUTPUT_PATH = "build/simapp/"
 BUILD_PATH = "build"

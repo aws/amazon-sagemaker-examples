@@ -1,13 +1,11 @@
 """
 Utility file to help with s3 operations.
 """
-from urllib.parse import urlparse
-import boto3
-
-from typing import NamedTuple
-from typing import Callable
-
 from io import BytesIO, StringIO, TextIOWrapper
+from typing import Callable, NamedTuple
+from urllib.parse import urlparse
+
+import boto3
 
 s3r = boto3.resource("s3")
 s3 = boto3.client("s3")

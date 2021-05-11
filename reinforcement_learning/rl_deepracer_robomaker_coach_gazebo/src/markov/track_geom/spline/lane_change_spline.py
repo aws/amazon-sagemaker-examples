@@ -1,16 +1,15 @@
 """This module implements concrete lane change spline"""
 
 import bisect
-import numpy as np
 import random
 
+import numpy as np
+from markov.track_geom.constants import DIST_THRESHOLD, SPLINE_DEGREE
+from markov.track_geom.spline.abstract_spline import AbstractSpline
+from markov.track_geom.track_data import TrackLine
 from scipy.interpolate import splprep
 from shapely.geometry import Point
 from shapely.geometry.polygon import LineString
-
-from markov.track_geom.constants import SPLINE_DEGREE, DIST_THRESHOLD
-from markov.track_geom.track_data import TrackLine
-from markov.track_geom.spline.abstract_spline import AbstractSpline
 
 
 class LaneChangeSpline(AbstractSpline):

@@ -14,9 +14,9 @@
 # limitations under the License.
 #
 
+import logging
 import sys
 import traceback
-import logging
 
 from HPOConfig import HPOConfig
 from MLWorkflow import create_workflow

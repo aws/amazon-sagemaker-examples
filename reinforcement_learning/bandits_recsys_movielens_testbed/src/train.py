@@ -5,14 +5,14 @@ import os
 from env import MovieLens100KEnv
 from io_utils import extract_model
 from vw_agent import VWAgent
-from vw_utils import MODEL_CHANNEL, MODEL_OUTPUT_DIR, DATA_OUTPUT_DIR
+from vw_utils import DATA_OUTPUT_DIR, MODEL_CHANNEL, MODEL_OUTPUT_DIR
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 
 def main():
-    """ Train a Vowpal Wabbit (VW) model through C++ process. """
+    """Train a Vowpal Wabbit (VW) model through C++ process."""
 
     channel_names = json.loads(os.environ["SM_CHANNELS"])
     hyperparameters = json.loads(os.environ["SM_HPS"])

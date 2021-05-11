@@ -1,3 +1,4 @@
+import contextlib
 import copy
 import glob
 import os
@@ -5,47 +6,45 @@ import time
 from collections import OrderedDict
 from distutils.dir_util import copy_tree, remove_tree
 from typing import Dict, List, Tuple
-import contextlib
-
-from rl_coach.base_parameters import (
-    iterable_to_items,
-    TaskParameters,
-    DistributedTaskParameters,
-    Frameworks,
-    VisualizationParameters,
-    PresetValidationParameters,
-    RunType,
-    AgentParameters,
-)
-from rl_coach.checkpoint import (
-    CheckpointStateUpdater,
-    get_checkpoint_state,
-    SingleCheckpoint,
-    CheckpointState,
-)
-from rl_coach.core_types import (
-    TotalStepsCounter,
-    RunPhase,
-    PlayingStepsType,
-    TrainingSteps,
-    EnvironmentEpisodes,
-    EnvironmentSteps,
-    StepMethod,
-    Transition,
-    TimeTypes,
-)
-from rl_coach.environments.environment import Environment, EnvironmentParameters
-from rl_coach.graph_managers.graph_manager import ScheduleParameters
-from rl_coach.logger import screen, Logger
-from rl_coach.saver import SaverCollection
-from rl_coach.utils import set_cpu, short_dynamic_import
-from rl_coach.data_stores.data_store_impl import get_data_store as data_store_creator
-from rl_coach.memories.backend.memory_impl import get_memory_backend
-from rl_coach.data_stores.data_store import SyncFiles
-from rl_coach.checkpoint import CheckpointStateReader
 
 import markov.deepracer_memory as deepracer_memory
 from markov.multi_agent_coach.multi_agent_level_manager import MultiAgentLevelManager
+from rl_coach.base_parameters import (
+    AgentParameters,
+    DistributedTaskParameters,
+    Frameworks,
+    PresetValidationParameters,
+    RunType,
+    TaskParameters,
+    VisualizationParameters,
+    iterable_to_items,
+)
+from rl_coach.checkpoint import (
+    CheckpointState,
+    CheckpointStateReader,
+    CheckpointStateUpdater,
+    SingleCheckpoint,
+    get_checkpoint_state,
+)
+from rl_coach.core_types import (
+    EnvironmentEpisodes,
+    EnvironmentSteps,
+    PlayingStepsType,
+    RunPhase,
+    StepMethod,
+    TimeTypes,
+    TotalStepsCounter,
+    TrainingSteps,
+    Transition,
+)
+from rl_coach.data_stores.data_store import SyncFiles
+from rl_coach.data_stores.data_store_impl import get_data_store as data_store_creator
+from rl_coach.environments.environment import Environment, EnvironmentParameters
+from rl_coach.graph_managers.graph_manager import ScheduleParameters
+from rl_coach.logger import Logger, screen
+from rl_coach.memories.backend.memory_impl import get_memory_backend
+from rl_coach.saver import SaverCollection
+from rl_coach.utils import set_cpu, short_dynamic_import
 
 
 class MultiAgentGraphManager(object):

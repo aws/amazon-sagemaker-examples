@@ -3,16 +3,15 @@
 
 from __future__ import print_function
 
-import os
-import json
-import pickle
 import io
-import sys
+import json
+import os
+import pickle
 import signal
+import sys
 import traceback
 
 import flask
-
 import pandas as pd
 
 prefix = "/opt/ml/"

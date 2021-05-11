@@ -1,9 +1,10 @@
 import io
-import os
-import PIL.Image
 import json
 import logging
+import os
+
 import numpy as np
+import PIL.Image
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -12,14 +13,13 @@ logger.setLevel(logging.DEBUG)
 # Training methods                                             #
 # ------------------------------------------------------------ #
 
+import argparse
 import glob
 import time
-import argparse
 import warnings
+
 import mxnet as mx
-from mxnet import nd
-from mxnet import gluon
-from mxnet import autograd
+from mxnet import autograd, gluon, nd
 
 
 def parse_args():
@@ -74,7 +74,7 @@ def get_dataloader(net, data_shape, batch_size, num_workers, ctx):
     """Get dataloader."""
 
     from gluoncv import data as gdata
-    from gluoncv.data.batchify import Tuple, Stack, Pad
+    from gluoncv.data.batchify import Pad, Stack, Tuple
     from gluoncv.data.transforms.presets.ssd import SSDDefaultTrainTransform
 
     width, height = data_shape, data_shape

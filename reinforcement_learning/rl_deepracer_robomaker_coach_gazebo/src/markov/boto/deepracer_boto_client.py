@@ -1,15 +1,15 @@
 """This module implement deepracer boto client"""
 
 import abc
-import time
-import random
 import logging
-import botocore
-import boto3
+import random
+import time
 
-from markov.log_handler.logger import Logger
-from markov.constants import NUM_RETRIES, CONNECT_TIMEOUT
+import boto3
+import botocore
 from markov.boto.constants import BOTO_ERROR_MSG_FORMAT
+from markov.constants import CONNECT_TIMEOUT, NUM_RETRIES
+from markov.log_handler.logger import Logger
 
 LOG = Logger(__name__, logging.INFO).get_logger()
 

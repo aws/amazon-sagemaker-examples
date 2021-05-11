@@ -5,13 +5,14 @@ subprocess.check_call([sys.executable, "-m", "pip", "install", "h5py"])
 subprocess.check_call([sys.executable, "-m", "pip", "install", "mxnet"])
 subprocess.check_call([sys.executable, "-m", "pip", "install", "opencv-python-headless"])
 
-import h5py
+import os
 import pathlib
+
+import cv2
+import h5py
 import mxnet as mx
 import numpy as np
 from sklearn.model_selection import train_test_split
-import cv2
-import os
 
 
 def write_to_recordio(X: np.ndarray, y: np.ndarray, prefix: str):

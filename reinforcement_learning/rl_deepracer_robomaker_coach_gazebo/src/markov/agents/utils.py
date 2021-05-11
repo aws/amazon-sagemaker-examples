@@ -1,8 +1,9 @@
 """Utility methods for the agent’s module"""
-from typing import List, Any
-from markov.architecture.constants import EmbedderType, ActivationFunctions, NeuralNetwork, Input
-from markov.common import ObserverInterface
+from typing import Any, List
+
+from markov.architecture.constants import ActivationFunctions, EmbedderType, Input, NeuralNetwork
 from markov.architecture.custom_architectures import DEFAULT_MIDDLEWARE, VGG_MIDDLEWARE
+from markov.common import ObserverInterface
 from markov.sensors.composite_sensor import CompositeSensor
 
 

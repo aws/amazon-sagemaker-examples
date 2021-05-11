@@ -1,5 +1,5 @@
-import os
 import json
+import os
 
 TRAIN_CHANNEL = "training"
 EVAL_CHANNEL = "evaluation"

@@ -1,5 +1,6 @@
-import numpy as np
 import os
+
+import numpy as np
 import tensorflow as tf
 
 INPUT_TENSOR_NAME = "inputs"

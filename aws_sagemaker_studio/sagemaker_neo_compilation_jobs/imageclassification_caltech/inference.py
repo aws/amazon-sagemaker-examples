@@ -1,12 +1,13 @@
-import numpy as np
+import io
 import json
+import logging
+import os
+
 import mxnet as mx
 
 # Please make sure to import neomx
 import neomx  # noqa: F401
-import io
-import os
-import logging
+import numpy as np
 
 # Change the context to mx.gpu() if deploying to a GPU endpoint
 ctx = mx.cpu()

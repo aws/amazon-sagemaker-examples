@@ -1,7 +1,7 @@
 import os
 import unittest
 from unittest import TestCase
-from unittest.mock import patch, Mock
+from unittest.mock import Mock, patch
 
 from step_functions_batch_error.main import lambda_handler
 from test_shared.mock_objects import TestContext

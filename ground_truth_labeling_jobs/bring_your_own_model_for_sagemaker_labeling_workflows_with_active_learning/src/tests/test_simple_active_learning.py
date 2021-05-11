@@ -1,5 +1,5 @@
-from ActiveLearning.helper import SimpleActiveLearning
 import pytest
+from ActiveLearning.helper import SimpleActiveLearning
 
 
 def test_compute_margin_high_confidence():

@@ -19,10 +19,9 @@ import shutil
 import tarfile
 import tempfile
 
-import numpy
 import chainer
-
-from src.nlp_utils import transform_to_array, split_text, normalize_text, make_vocab
+import numpy
+from src.nlp_utils import make_vocab, normalize_text, split_text, transform_to_array
 
 URL_STSA_BASE = "https://raw.githubusercontent.com/harvardnlp/sent-conv-torch/master/data/"
 

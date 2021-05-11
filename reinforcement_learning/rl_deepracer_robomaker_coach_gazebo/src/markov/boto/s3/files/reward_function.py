@@ -1,18 +1,18 @@
 """This module implements s3 client for reward function"""
 
-import os
 import logging
-import botocore
+import os
 
+import botocore
 from markov.boto.s3.s3_client import S3Client
-from markov.log_handler.logger import Logger
-from markov.log_handler.exception_handler import log_and_exit
 from markov.log_handler.constants import (
-    SIMAPP_EVENT_ERROR_CODE_500,
     SIMAPP_EVENT_ERROR_CODE_400,
+    SIMAPP_EVENT_ERROR_CODE_500,
     SIMAPP_S3_DATA_STORE_EXCEPTION,
     SIMAPP_SIMULATION_WORKER_EXCEPTION,
 )
+from markov.log_handler.exception_handler import log_and_exit
+from markov.log_handler.logger import Logger
 
 LOG = Logger(__name__, logging.INFO).get_logger()
 

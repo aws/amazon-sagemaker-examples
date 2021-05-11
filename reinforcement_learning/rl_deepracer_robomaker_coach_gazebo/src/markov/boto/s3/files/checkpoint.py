@@ -1,36 +1,36 @@
 """This module implements checkpoint file"""
 
-import os
 import io
-import logging
 import json
+import logging
+import os
 import time
+
 import boto3
 import botocore
-
-from rl_coach.checkpoint import CheckpointStateFile
-from rl_coach.data_stores.data_store import SyncFiles
-from markov.log_handler.logger import Logger
-from markov.log_handler.exception_handler import log_and_exit
-from markov.log_handler.constants import (
-    SIMAPP_EVENT_ERROR_CODE_500,
-    SIMAPP_SIMULATION_WORKER_EXCEPTION,
-    SIMAPP_S3_DATA_STORE_EXCEPTION,
-    SIMAPP_EVENT_ERROR_CODE_400,
-)
 from markov.boto.s3.constants import (
+    BEST_CHECKPOINT,
     CHECKPOINT_POSTFIX_DIR,
     COACH_CHECKPOINT_POSTFIX,
     DEEPRACER_CHECKPOINT_KEY_POSTFIX,
     FINISHED_FILE_KEY_POSTFIX,
-    LOCKFILE_KEY_POSTFIX,
-    BEST_CHECKPOINT,
     LAST_CHECKPOINT,
+    LOCKFILE_KEY_POSTFIX,
 )
 from markov.boto.s3.files.checkpoint_files.deepracer_checkpoint_json import DeepracerCheckpointJson
 from markov.boto.s3.files.checkpoint_files.rl_coach_checkpoint import RLCoachCheckpoint
 from markov.boto.s3.files.checkpoint_files.rl_coach_sync_file import RlCoachSyncFile
 from markov.boto.s3.files.checkpoint_files.tensorflow_model import TensorflowModel
+from markov.log_handler.constants import (
+    SIMAPP_EVENT_ERROR_CODE_400,
+    SIMAPP_EVENT_ERROR_CODE_500,
+    SIMAPP_S3_DATA_STORE_EXCEPTION,
+    SIMAPP_SIMULATION_WORKER_EXCEPTION,
+)
+from markov.log_handler.exception_handler import log_and_exit
+from markov.log_handler.logger import Logger
+from rl_coach.checkpoint import CheckpointStateFile
+from rl_coach.data_stores.data_store import SyncFiles
 
 LOG = Logger(__name__, logging.INFO).get_logger()
 

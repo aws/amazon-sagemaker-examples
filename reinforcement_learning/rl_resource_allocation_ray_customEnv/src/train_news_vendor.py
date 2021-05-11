@@ -1,5 +1,4 @@
 from ray.tune.registry import register_env
-
 from sagemaker_rl.ray_launcher import SageMakerRayLauncher
 
 

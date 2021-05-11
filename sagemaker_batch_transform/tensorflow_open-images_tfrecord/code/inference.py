@@ -14,10 +14,11 @@
 import base64
 import io
 import json
+from string import whitespace
+
 import requests
 import tensorflow as tf
 from google.protobuf.json_format import MessageToDict
-from string import whitespace
 
 
 def input_handler(data, context):

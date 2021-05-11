@@ -1,24 +1,25 @@
-from rl_coach.agents.clipped_ppo_agent import ClippedPPOAgentParameters
-from rl_coach.agents.policy_gradients_agent import PolicyGradientsAgentParameters
-from rl_coach.graph_managers.basic_rl_graph_manager import BasicRLGraphManager
-from rl_coach.graph_managers.graph_manager import ScheduleParameters
-from rl_coach.base_parameters import VisualizationParameters, TaskParameters, Frameworks
-from rl_coach.utils import short_dynamic_import
-from rl_coach.core_types import SelectedPhaseOnlyDumpFilter, MaxDumpFilter, RunPhase
-import rl_coach.core_types
-from rl_coach import logger
-from rl_coach.logger import screen
 import argparse
 import copy
+import glob
 import logging
 import os
-import sys
-import shutil
-import glob
 import re
+import shutil
+import sys
+
+import rl_coach.core_types
+from rl_coach import logger
+from rl_coach.agents.clipped_ppo_agent import ClippedPPOAgentParameters
+from rl_coach.agents.policy_gradients_agent import PolicyGradientsAgentParameters
+from rl_coach.base_parameters import Frameworks, TaskParameters, VisualizationParameters
+from rl_coach.coach import CoachLauncher
+from rl_coach.core_types import MaxDumpFilter, RunPhase, SelectedPhaseOnlyDumpFilter
+from rl_coach.graph_managers.basic_rl_graph_manager import BasicRLGraphManager
+from rl_coach.graph_managers.graph_manager import ScheduleParameters
+from rl_coach.logger import screen
+from rl_coach.utils import short_dynamic_import
 
 from .configuration_list import ConfigurationList
-from rl_coach.coach import CoachLauncher
 
 screen.set_use_colors(False)  # Simple text logging so it looks good in CloudWatch
 

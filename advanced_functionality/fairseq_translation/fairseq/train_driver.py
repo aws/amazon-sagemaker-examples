@@ -14,14 +14,14 @@ Train a new model on one or across multiple GPUs.
 
 import collections
 import itertools
-import os
 import math
-import torch
+import os
 
+import torch
 from fairseq import distributed_utils, options, progress_bar, tasks, utils
 from fairseq.data import iterators
-from fairseq.trainer import Trainer
 from fairseq.meters import AverageMeter, StopwatchMeter
+from fairseq.trainer import Trainer
 
 
 def main(args):

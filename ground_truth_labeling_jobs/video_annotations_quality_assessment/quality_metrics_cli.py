@@ -1,12 +1,13 @@
-import os
 import json
-import numpy as np
+import os
+
 import argh
 import boto3
+import numpy as np
 from argh import arg
-from tqdm import tqdm
-from scipy.spatial import distance
 from plotting_funcs import *
+from scipy.spatial import distance
+from tqdm import tqdm
 
 s3 = boto3.client("s3")
 
