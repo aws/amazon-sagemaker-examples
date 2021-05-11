@@ -87,7 +87,7 @@ PyTorch
 
    pytorch_iterative_model_pruning/iterative_model_pruning_resnet
    pytorch_iterative_model_pruning/iterative_model_pruning_alexnet
-   pytorch_custom_container/pytorch_byoc_smdebug
+   pytorch_model_debugging/pytorch_script_change_smdebug
 
 
 XGBoost
