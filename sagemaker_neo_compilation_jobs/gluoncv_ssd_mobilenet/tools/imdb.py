@@ -18,6 +18,7 @@
 import numpy as np
 import os.path as osp
 
+
 class Imdb(object):
     """
     Base class for dataset loading
@@ -27,6 +28,7 @@ class Imdb(object):
     name : str
         name of dataset
     """
+
     def __init__(self, name):
         self.name = name
         self.classes = []
@@ -76,14 +78,16 @@ class Imdb(object):
         fname : str
             saved filename
         """
-        def progress_bar(count, total, suffix=''):
+
+        def progress_bar(count, total, suffix=""):
             import sys
+
             bar_len = 24
             filled_len = int(round(bar_len * count / float(total)))
 
             percents = round(100.0 * count / float(total), 1)
-            bar = '=' * filled_len + '-' * (bar_len - filled_len)
-            sys.stdout.write('[%s] %s%s ...%s\r' % (bar, percents, '%', suffix))
+            bar = "=" * filled_len + "-" * (bar_len - filled_len)
+            sys.stdout.write("[%s] %s%s ...%s\r" % (bar, percents, "%", suffix))
             sys.stdout.flush()
 
         str_list = []
@@ -95,15 +99,24 @@ class Imdb(object):
             path = self.image_path_from_index(index)
             if root:
                 path = osp.relpath(path, root)
-            str_list.append('\t'.join([str(index), str(2), str(label.shape[1])] \
-              + ["{0:.4f}".format(x) for x in label.ravel()] + [path,]) + '\n')
+            str_list.append(
+                "\t".join(
+                    [str(index), str(2), str(label.shape[1])]
+                    + ["{0:.4f}".format(x) for x in label.ravel()]
+                    + [
+                        path,
+                    ]
+                )
+                + "\n"
+            )
         if str_list:
             if shuffle:
                 import random
+
                 random.shuffle(str_list)
             if not fname:
-                fname = self.name + '.lst'
-            with open(fname, 'w') as f:
+                fname = self.name + ".lst"
+            with open(fname, "w") as f:
                 for line in str_list:
                     f.write(line)
         else:
@@ -122,6 +135,6 @@ class Imdb(object):
         """
         full_path = osp.join(dirname, filename)
         classes = []
-        with open(full_path, 'r') as f:
+        with open(full_path, "r") as f:
             classes = [l.strip() for l in f.readlines()]
         return classes

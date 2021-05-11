@@ -14,26 +14,26 @@ def load_abalone(train_split=0.8, seed=42):
     url = "https://www.csie.ntu.edu.tw/~cjlin/libsvmtools/datasets/regression/abalone"
 
     response = urllib.request.urlopen(url).read().decode("utf-8")
-    lines = response.strip().split('\n')
+    lines = response.strip().split("\n")
     n = sum(1 for line in lines)
     indices = list(range(n))
     random.seed(seed)
     random.shuffle(indices)
-    train_indices = set(indices[:int(n * 0.8)])
+    train_indices = set(indices[: int(n * 0.8)])
 
-    with tempfile.NamedTemporaryFile(mode='w', delete=False) as train_file:
-        with tempfile.NamedTemporaryFile(mode='w', delete=False) as valid_file:
+    with tempfile.NamedTemporaryFile(mode="w", delete=False) as train_file:
+        with tempfile.NamedTemporaryFile(mode="w", delete=False) as valid_file:
             for idx, line in enumerate(lines):
                 if idx in train_indices:
-                    train_file.write(line + '\n')
+                    train_file.write(line + "\n")
                 else:
-                    valid_file.write(line + '\n')
+                    valid_file.write(line + "\n")
 
     return train_file.name, valid_file.name
 
 
 def write_to_s3(fobj, bucket, key):
-    return boto3.Session().resource('s3').Bucket(bucket).Object(key).upload_fileobj(fobj)
+    return boto3.Session().resource("s3").Bucket(bucket).Object(key).upload_fileobj(fobj)
 
 
 def upload_to_s3(filename, bucket, key):

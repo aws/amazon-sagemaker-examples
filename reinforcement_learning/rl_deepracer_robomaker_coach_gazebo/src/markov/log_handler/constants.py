@@ -1,4 +1,4 @@
-'''This module houses the constants for the log_handler package'''
+"""This module houses the constants for the log_handler package"""
 
 # Names of the exceptions, errors generated
 SIMAPP_SIMULATION_WORKER_EXCEPTION = "simulation_worker.exceptions"
@@ -124,7 +124,7 @@ FAULT_MAP = {
     96: "Unknown exploration_type found in hyper parameters",
     97: "Unsupported minimum and maximum action space bounds for scaling values",
     98: "Action space bounds are incorrect while defining",
-    99: "Error while getting action space in"
+    99: "Error while getting action space in",
 }
 
 # New error yet to be mapped

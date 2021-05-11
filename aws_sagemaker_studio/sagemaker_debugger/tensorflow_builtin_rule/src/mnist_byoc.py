@@ -19,6 +19,7 @@ import tensorflow as tf
 import smdebug.tensorflow as smd
 
 import logging
+
 logging.getLogger().setLevel(logging.INFO)
 
 parser = argparse.ArgumentParser()
@@ -46,6 +47,7 @@ if args.random_seed:
 
 # This allows you to create the hook from the configuration you pass to the SageMaker pySDK
 hook = smd.SessionHook.create_from_json_file()
+
 
 def cnn_model_fn(features, labels, mode):
     """Model function for CNN."""

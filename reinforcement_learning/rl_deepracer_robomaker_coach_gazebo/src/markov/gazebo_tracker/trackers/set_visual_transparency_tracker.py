@@ -8,14 +8,18 @@ from markov.domain_randomizations.constants import GazeboServiceName
 from markov.rospy_wrappers import ServiceProxyWrapper
 from markov.gazebo_tracker.abs_tracker import AbstractTracker
 import markov.gazebo_tracker.constants as consts
-from deepracer_msgs.srv import (SetVisualTransparencies, SetVisualTransparenciesRequest,
-                                SetVisualTransparencyResponse)
+from deepracer_msgs.srv import (
+    SetVisualTransparencies,
+    SetVisualTransparenciesRequest,
+    SetVisualTransparencyResponse,
+)
 
 
 class SetVisualTransparencyTracker(AbstractTracker):
     """
     SetVisualTransparency Tracker class
     """
+
     _instance_ = None
 
     @staticmethod
@@ -27,7 +31,9 @@ class SetVisualTransparencyTracker(AbstractTracker):
 
     def __init__(self):
         if SetVisualTransparencyTracker._instance_ is not None:
-            raise GenericRolloutException("Attempting to construct multiple SetVisualTransparency Tracker")
+            raise GenericRolloutException(
+                "Attempting to construct multiple SetVisualTransparency Tracker"
+            )
 
         self.lock = threading.RLock()
         self.visual_name_map = OrderedDict()
@@ -35,8 +41,9 @@ class SetVisualTransparencyTracker(AbstractTracker):
         self.transparency_map = OrderedDict()
 
         rospy.wait_for_service(GazeboServiceName.SET_VISUAL_TRANSPARENCIES.value)
-        self.set_visual_transparencies = ServiceProxyWrapper(GazeboServiceName.SET_VISUAL_TRANSPARENCIES.value,
-                                                             SetVisualTransparencies)
+        self.set_visual_transparencies = ServiceProxyWrapper(
+            GazeboServiceName.SET_VISUAL_TRANSPARENCIES.value, SetVisualTransparencies
+        )
 
         SetVisualTransparencyTracker._instance_ = self
         super(SetVisualTransparencyTracker, self).__init__(priority=consts.TrackerPriority.LOW)

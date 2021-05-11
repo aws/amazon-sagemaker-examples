@@ -1,4 +1,4 @@
-'''This module implements concrete reset rule for the immobilization'''
+"""This module implements concrete reset rule for the immobilization"""
 
 import markov.agent_ctrl.constants as const
 
@@ -15,11 +15,11 @@ class ImmobilizedResetRule(AbstractResetRule):
         self._immobilize_count = 0
 
     def _update(self, agent_status):
-        '''Update the immobilized reset rule done flag
+        """Update the immobilized reset rule done flag
 
         Args:
             agent_status (dict): agent status dictionary
-        '''
+        """
         agent_phase = agent_status[AgentCtrlStatus.AGENT_PHASE.value]
         current_progress = agent_status[AgentCtrlStatus.CURRENT_PROGRESS.value]
         prev_progress = agent_status[AgentCtrlStatus.PREV_PROGRESS.value]

@@ -7,6 +7,7 @@ class EffectManager(AbstractTracker):
     """
     Effect Manager class that manages multiple effects
     """
+
     _instance_ = None
 
     @staticmethod

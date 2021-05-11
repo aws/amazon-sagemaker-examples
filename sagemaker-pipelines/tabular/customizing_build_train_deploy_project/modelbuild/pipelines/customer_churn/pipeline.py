@@ -108,9 +108,7 @@ def get_pipeline(
         role = sagemaker.session.get_execution_role(sagemaker_session)
 
     # Parameters for pipeline execution
-    processing_instance_count = ParameterInteger(
-        name="ProcessingInstanceCount", default_value=1
-    )
+    processing_instance_count = ParameterInteger(name="ProcessingInstanceCount", default_value=1)
     processing_instance_type = ParameterString(
         name="ProcessingInstanceType", default_value="ml.m5.xlarge"
     )
@@ -140,9 +138,7 @@ def get_pipeline(
         processor=sklearn_processor,
         outputs=[
             ProcessingOutput(output_name="train", source="/opt/ml/processing/train"),
-            ProcessingOutput(
-                output_name="validation", source="/opt/ml/processing/validation"
-            ),
+            ProcessingOutput(output_name="validation", source="/opt/ml/processing/validation"),
             ProcessingOutput(output_name="test", source="/opt/ml/processing/test"),
         ],
         code=os.path.join(BASE_DIR, "preprocess.py"),
@@ -227,9 +223,7 @@ def get_pipeline(
             ),
         ],
         outputs=[
-            ProcessingOutput(
-                output_name="evaluation", source="/opt/ml/processing/evaluation"
-            ),
+            ProcessingOutput(output_name="evaluation", source="/opt/ml/processing/evaluation"),
         ],
         code=os.path.join(BASE_DIR, "evaluate.py"),
         property_files=[evaluation_report],
@@ -239,9 +233,7 @@ def get_pipeline(
     model_metrics = ModelMetrics(
         model_statistics=MetricsSource(
             s3_uri="{}/evaluation.json".format(
-                step_eval.arguments["ProcessingOutputConfig"]["Outputs"][0]["S3Output"][
-                    "S3Uri"
-                ]
+                step_eval.arguments["ProcessingOutputConfig"]["Outputs"][0]["S3Output"]["S3Uri"]
             ),
             content_type="application/json",
         )

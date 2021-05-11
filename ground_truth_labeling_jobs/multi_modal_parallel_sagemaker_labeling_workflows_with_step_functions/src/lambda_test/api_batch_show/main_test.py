@@ -7,10 +7,11 @@ from test_shared.mock_objects import TestContext, InputTestData, OutputTestData
 
 
 class TestCase(TestCase):
-
-    @patch('shared.db.get_batch_metadata')
-    @patch('shared.db.get_child_batch_metadata')
-    def test_lambda_handler_happy_case(self, get_child_batch_metadata_mock, get_batch_metadata_mock):
+    @patch("shared.db.get_batch_metadata")
+    @patch("shared.db.get_child_batch_metadata")
+    def test_lambda_handler_happy_case(
+        self, get_child_batch_metadata_mock, get_batch_metadata_mock
+    ):
         # Setup
         event = Mock()
         event.get.return_value = InputTestData.show_batch_request
@@ -23,5 +24,6 @@ class TestCase(TestCase):
         # Assert
         self.assertEqual(200, val["statusCode"], "Unexpected status code returned")
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

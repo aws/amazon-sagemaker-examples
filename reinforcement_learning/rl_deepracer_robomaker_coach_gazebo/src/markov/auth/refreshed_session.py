@@ -13,7 +13,7 @@ from botocore.session import get_session
 from boto3 import Session
 
 
-def refreshed_session(region='us-east-1'):
+def refreshed_session(region="us-east-1"):
     """Assume a boto3.Session With automatic credential renewal.
        NOTE: We have to poke at botocore internals a few times.
 
@@ -24,6 +24,7 @@ def refreshed_session(region='us-east-1'):
     Returns:
         session (Session): an boto3 session with RefreshableCredentials
     """
+
     def _refresh():
         credentials = Session().get_credentials()
         # set the expiry time to one hour from now.
@@ -33,14 +34,14 @@ def refreshed_session(region='us-east-1'):
             access_key=credentials.access_key,
             secret_key=credentials.secret_key,
             token=credentials.token,
-            expiry_time=(pytz.utc.localize(datetime.utcnow()) + timedelta(hours=1)).isoformat())
+            expiry_time=(pytz.utc.localize(datetime.utcnow()) + timedelta(hours=1)).isoformat(),
+        )
 
     session_credentials = RefreshableCredentials.create_from_metadata(
-        metadata=_refresh(),
-        refresh_using=_refresh,
-        method='session-cred')
+        metadata=_refresh(), refresh_using=_refresh, method="session-cred"
+    )
 
     re_session = get_session()
     re_session._credentials = session_credentials
-    re_session.set_config_variable('region', region)
+    re_session.set_config_variable("region", region)
     return Session(botocore_session=re_session)

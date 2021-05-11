@@ -15,6 +15,7 @@ import numpy as np
 import tensorflow as tf
 
 import logging
+
 logging.getLogger().setLevel(logging.INFO)
 
 parser = argparse.ArgumentParser()

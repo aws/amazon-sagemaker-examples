@@ -21,15 +21,19 @@ from collections import OrderedDict
 
 from rl_coach.agents.agent import Agent
 from rl_coach.agents.policy_optimization_agent import PolicyOptimizationAgent
-from markov.multi_agent_coach.architectures.head_parameters import (SACQHeadParameters,
-                                                                    SACPolicyHeadParameters)
+from markov.multi_agent_coach.architectures.head_parameters import (
+    SACQHeadParameters,
+    SACPolicyHeadParameters,
+)
 from rl_coach.architectures.head_parameters import VHeadParameters
 from rl_coach.architectures.middleware_parameters import FCMiddlewareParameters
-from rl_coach.base_parameters import (AlgorithmParameters,
-                                      NetworkParameters,
-                                      AgentParameters,
-                                      EmbedderScheme,
-                                      MiddlewareScheme)
+from rl_coach.base_parameters import (
+    AlgorithmParameters,
+    NetworkParameters,
+    AgentParameters,
+    EmbedderScheme,
+    MiddlewareScheme,
+)
 from rl_coach.core_types import ActionInfo, EnvironmentSteps, RunPhase
 from rl_coach.exploration_policies.additive_noise import AdditiveNoiseParameters
 from rl_coach.memories.non_episodic.experience_replay import ExperienceReplayParameters
@@ -63,14 +67,16 @@ from rl_coach.architectures.network_wrapper import NetworkWrapper
 class SACValueNetworkParameters(NetworkParameters):
     def __init__(self):
         super().__init__()
-        self.input_embedders_parameters = {'observation': InputEmbedderParameters(activation_function='relu')}
-        self.middleware_parameters = FCMiddlewareParameters(activation_function='relu')
-        self.heads_parameters = [VHeadParameters(initializer='xavier')]
+        self.input_embedders_parameters = {
+            "observation": InputEmbedderParameters(activation_function="relu")
+        }
+        self.middleware_parameters = FCMiddlewareParameters(activation_function="relu")
+        self.heads_parameters = [VHeadParameters(initializer="xavier")]
         self.rescale_gradient_from_head_by_factor = [1]
-        self.optimizer_type = 'Adam'
+        self.optimizer_type = "Adam"
         self.batch_size = 256
         self.async_training = False
-        self.learning_rate = 0.0003     # 3e-4 see appendix D in the paper
+        self.learning_rate = 0.0003  # 3e-4 see appendix D in the paper
         # tau is set in SoftActorCriticAlgorithmParameters.rate_for_copying_weights_to_target
         self.create_target_network = True
 
@@ -80,11 +86,15 @@ class SACValueNetworkParameters(NetworkParameters):
 class SACCriticNetworkParameters(NetworkParameters):
     def __init__(self):
         super().__init__()
-        self.input_embedders_parameters = {'observation': InputEmbedderParameters(scheme=EmbedderScheme.Empty)}
+        self.input_embedders_parameters = {
+            "observation": InputEmbedderParameters(scheme=EmbedderScheme.Empty)
+        }
         self.middleware_parameters = FCMiddlewareParameters(scheme=MiddlewareScheme.Empty)
-        self.heads_parameters = [SACQHeadParameters()]      # SACQHeadParameters includes the topology of the head
+        self.heads_parameters = [
+            SACQHeadParameters()
+        ]  # SACQHeadParameters includes the topology of the head
         self.rescale_gradient_from_head_by_factor = [1]
-        self.optimizer_type = 'Adam'
+        self.optimizer_type = "Adam"
         self.batch_size = 256
         self.async_training = False
         self.learning_rate = 0.0003
@@ -99,19 +109,22 @@ class SACCriticNetworkParameters(NetworkParameters):
 class SACPolicyNetworkParameters(NetworkParameters):
     def __init__(self):
         super().__init__()
-        self.input_embedders_parameters = {'observation': InputEmbedderParameters(activation_function='relu')}
-        self.middleware_parameters = FCMiddlewareParameters(activation_function='relu')
+        self.input_embedders_parameters = {
+            "observation": InputEmbedderParameters(activation_function="relu")
+        }
+        self.middleware_parameters = FCMiddlewareParameters(activation_function="relu")
         self.heads_parameters = [SACPolicyHeadParameters()]
         self.rescale_gradient_from_head_by_factor = [1]
-        self.optimizer_type = 'Adam'
+        self.optimizer_type = "Adam"
         self.batch_size = 256
         self.async_training = False
         self.learning_rate = 0.0003
         self.create_target_network = False
-        self.l2_regularization = 0      # weight decay regularization. not used in the original paper
+        self.l2_regularization = 0  # weight decay regularization. not used in the original paper
 
 
 # Algorithm Parameters
+
 
 class SoftActorCriticAlgorithmParameters(AlgorithmParameters):
     """
@@ -126,6 +139,7 @@ class SoftActorCriticAlgorithmParameters(AlgorithmParameters):
         If True, during the evaluation phase, action are chosen deterministically according to the policy mean
         and not sampled from the policy distribution.
     """
+
     def __init__(self):
         super().__init__()
         self.num_steps_between_copying_online_weights_to_target = EnvironmentSteps(1)
@@ -136,22 +150,28 @@ class SoftActorCriticAlgorithmParameters(AlgorithmParameters):
 
 class SoftActorCriticAgentParameters(AgentParameters):
     def __init__(self):
-        super().__init__(algorithm=SoftActorCriticAlgorithmParameters(),
-                         exploration=AdditiveNoiseParameters(),
-                         memory=ExperienceReplayParameters(),   # SAC doesnt use episodic related data
-                         # network wrappers:
-                         networks=OrderedDict([("policy", SACPolicyNetworkParameters()),
-                                               ("q", SACCriticNetworkParameters()),
-                                               ("v", SACValueNetworkParameters())]))
+        super().__init__(
+            algorithm=SoftActorCriticAlgorithmParameters(),
+            exploration=AdditiveNoiseParameters(),
+            memory=ExperienceReplayParameters(),  # SAC doesnt use episodic related data
+            # network wrappers:
+            networks=OrderedDict(
+                [
+                    ("policy", SACPolicyNetworkParameters()),
+                    ("q", SACCriticNetworkParameters()),
+                    ("v", SACValueNetworkParameters()),
+                ]
+            ),
+        )
 
     @property
     def path(self):
-        return 'markov.multi_agent_coach.agents.sac_agent:SoftActorCriticAgent'
+        return "markov.multi_agent_coach.agents.sac_agent:SoftActorCriticAgent"
 
 
 # Soft Actor Critic - https://arxiv.org/abs/1801.01290
 class SoftActorCriticAgent(PolicyOptimizationAgent):
-    def __init__(self, agent_parameters, parent: Union['LevelManager', 'CompositeAgent'] = None):
+    def __init__(self, agent_parameters, parent: Union["LevelManager", "CompositeAgent"] = None):
         super().__init__(agent_parameters, parent)
         self.last_gradient_update_step_idx = 0
 
@@ -173,21 +193,23 @@ class SoftActorCriticAgent(PolicyOptimizationAgent):
             _net_names = ["policy", "q", "v"]
         for network_name in _net_names:
             if network_name == "q":
-                self.ap.network_wrappers['q'].heads_parameters[0].P_action = \
+                self.ap.network_wrappers["q"].heads_parameters[0].P_action = (
                     networks["policy"].online_network.output_heads[0].actions
+                )
 
-            networks[network_name] = NetworkWrapper(name=network_name,
-                                                    agent_parameters=self.ap,
-                                                    has_target=self.ap.network_wrappers
-                                                    [network_name].create_target_network,
-                                                    has_global=self.has_global,
-                                                    spaces=self.spaces,
-                                                    replicated_device=self.replicated_device,
-                                                    worker_device=self.worker_device)
+            networks[network_name] = NetworkWrapper(
+                name=network_name,
+                agent_parameters=self.ap,
+                has_target=self.ap.network_wrappers[network_name].create_target_network,
+                has_global=self.has_global,
+                spaces=self.spaces,
+                replicated_device=self.replicated_device,
+                worker_device=self.worker_device,
+            )
 
             print(networks[network_name])
         if "policy" in _net_names:
-            Q_state_keys = list(self.ap.network_wrappers['v'].input_embedders_parameters.keys())
+            Q_state_keys = list(self.ap.network_wrappers["v"].input_embedders_parameters.keys())
             q_state_phs = dict()
             for q_state_key in Q_state_keys:
                 q_state_phs[q_state_key] = networks["q"].online_network.inputs[q_state_key]
@@ -196,13 +218,14 @@ class SoftActorCriticAgent(PolicyOptimizationAgent):
             networks["policy"].online_network.output_heads[0]._build_loss(
                 networks["q"].online_network.output_heads[0].q_output,
                 networks["q"].online_network.output_heads[0].actions_ph,
-                q_state_phs
+                q_state_phs,
             )
 
             # build d_loss/d_weights
             policy_net_ = networks["policy"].online_network
-            policy_net_.weighted_gradients.append(tf.gradients(policy_net_.output_heads[0].loss_tensor,
-                                                               policy_net_.weights))
+            policy_net_.weighted_gradients.append(
+                tf.gradients(policy_net_.output_heads[0].loss_tensor, policy_net_.weights)
+            )
             # NOTE: check if P_action is connected to Q net and Q_action is connected to policy net
 
         return networks
@@ -219,17 +242,17 @@ class SoftActorCriticAgent(PolicyOptimizationAgent):
         # define the networks to be used
 
         # State Value Network
-        value_network = self.networks['v']
-        value_network_keys = self.ap.network_wrappers['v'].input_embedders_parameters.keys()
+        value_network = self.networks["v"]
+        value_network_keys = self.ap.network_wrappers["v"].input_embedders_parameters.keys()
 
         # Critic Network
-        q_network = self.networks['q'].online_network
+        q_network = self.networks["q"].online_network
         q_head = q_network.output_heads[0]
-        q_network_keys = self.ap.network_wrappers['q'].input_embedders_parameters.keys()
+        q_network_keys = self.ap.network_wrappers["q"].input_embedders_parameters.keys()
 
         # Actor (policy) Network
-        policy_network = self.networks['policy'].online_network
-        policy_network_keys = self.ap.network_wrappers['policy'].input_embedders_parameters.keys()
+        policy_network = self.networks["policy"].online_network
+        policy_network_keys = self.ap.network_wrappers["policy"].input_embedders_parameters.keys()
 
         #######################################################
         # 1. updating the actor - according to (13) in the paper
@@ -243,20 +266,34 @@ class SoftActorCriticAgent(PolicyOptimizationAgent):
 
         initial_feed_dict = dict()
         for input_embedder_key in policy_network.output_heads[0].Q_state_ph.keys():
-            initial_feed_dict[policy_network.output_heads[0].Q_state_ph[input_embedder_key]] = \
-                policy_inputs[input_embedder_key]
+            initial_feed_dict[
+                policy_network.output_heads[0].Q_state_ph[input_embedder_key]
+            ] = policy_inputs[input_embedder_key]
         initial_feed_dict[policy_network.output_heads[0].Q_actions_ph] = _action_mask
 
         # DH: policy_network.weighted_gradients[6] is dPlicyLoss_dw.  see agents.py
         # DH: policy_network.output_heads[0].loss_tensor_unreduced is -value_target
-        outputs_ = [policy_network.weighted_gradients[-1], policy_network.output_heads[0].loss_tensor_unreduced]
+        outputs_ = [
+            policy_network.weighted_gradients[-1],
+            policy_network.output_heads[0].loss_tensor_unreduced,
+        ]
         # DH: temp change for debug
         outputs_ += policy_network.outputs
 
-        policy_results = policy_network.predict(policy_inputs, outputs=outputs_, initial_feed_dict=initial_feed_dict)
+        policy_results = policy_network.predict(
+            policy_inputs, outputs=outputs_, initial_feed_dict=initial_feed_dict
+        )
         # policy_grads, neg_value_targets = policy_results
-        policy_grads, neg_value_targets, policy_mean_, policy_log_std_, raw_actions_, actions_, \
-            sampled_actions_logprob_, sampled_actions_logprob_mean_ = policy_results
+        (
+            policy_grads,
+            neg_value_targets,
+            policy_mean_,
+            policy_log_std_,
+            raw_actions_,
+            actions_,
+            sampled_actions_logprob_,
+            sampled_actions_logprob_mean_,
+        ) = policy_results
 
         policy_network.apply_gradients(policy_grads)
 
@@ -271,7 +308,9 @@ class SoftActorCriticAgent(PolicyOptimizationAgent):
         value_targets = -neg_value_targets
 
         # call value_network apply gradients with this target
-        value_loss = value_network.online_network.train_on_batch(value_inputs, value_targets[:, None])[0]
+        value_loss = value_network.online_network.train_on_batch(
+            value_inputs, value_targets[:, None]
+        )[0]
 
         ###################################################
         # 3. updating the critic (q networks)
@@ -281,18 +320,24 @@ class SoftActorCriticAgent(PolicyOptimizationAgent):
         # the actions from the batch (and not those sampled by the policy)
         q_inputs = copy.copy(batch.states(q_network_keys))
         batch_actions = batch.actions(len(batch.actions().shape) == 1)
-        q_inputs['output_0_0'] = batch_actions
+        q_inputs["output_0_0"] = batch_actions
 
         # define the targets : scale_reward * reward + (1-terminal)*discount*v_target_next_state
         # define v_target_next_state
         value_inputs = copy.copy(batch.next_states(value_network_keys))
         v_target_next_state = value_network.target_network.predict(value_inputs)
 
-        TD_targets = batch.rewards(expand_dims=True) + \
-            (1.0 - batch.game_overs(expand_dims=True)) * self.ap.algorithm.discount * v_target_next_state
+        TD_targets = (
+            batch.rewards(expand_dims=True)
+            + (1.0 - batch.game_overs(expand_dims=True))
+            * self.ap.algorithm.discount
+            * v_target_next_state
+        )
 
         # call critic network update
-        result = q_network.train_on_batch(q_inputs, TD_targets, additional_fetches=[q_head.q1_loss, q_head.q2_loss])
+        result = q_network.train_on_batch(
+            q_inputs, TD_targets, additional_fetches=[q_head.q1_loss, q_head.q2_loss]
+        )
         total_loss, losses, unclipped_grads = result[:3]
         q1_loss, q2_loss = result[3]
 
@@ -308,8 +353,8 @@ class SoftActorCriticAgent(PolicyOptimizationAgent):
         :param states: the states for which we need to sample actions from the policy
         :return: mean and stdev
         """
-        tf_input_state = self.prepare_batch_for_inference(states, 'policy')
-        return self.networks['policy'].online_network.predict(tf_input_state)
+        tf_input_state = self.prepare_batch_for_inference(states, "policy")
+        return self.networks["policy"].online_network.predict(tf_input_state)
 
     def train(self):
         # since the algorithm works with experience replay buffer (non-episodic),
@@ -328,12 +373,13 @@ class SoftActorCriticAgent(PolicyOptimizationAgent):
         if not isinstance(self.spaces.action, BoxActionSpace):
             raise ValueError("SAC works only for continuous control problems")
         # convert to batch so we can run it through the network
-        tf_input_state = self.prepare_batch_for_inference(curr_state, 'policy')
+        tf_input_state = self.prepare_batch_for_inference(curr_state, "policy")
         # use the online network for prediction
-        policy_network = self.networks['policy'].online_network
+        policy_network = self.networks["policy"].online_network
         policy_head = policy_network.output_heads[0]
-        result = policy_network.predict(tf_input_state,
-                                        outputs=[policy_head.policy_mean, policy_head.actions])
+        result = policy_network.predict(
+            tf_input_state, outputs=[policy_head.policy_mean, policy_head.actions]
+        )
         action_mean, action_sample = result
 
         # if using deterministic policy, take the mean values. else, use exploration policy to sample from the pdf

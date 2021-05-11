@@ -67,6 +67,7 @@ def train_model(batch_size, net, train_data, lr):
             trainer.step(batch_size)
         print(np.mean(loss.asnumpy()))
 
+
 def prepare_data(batch_size):
     mnist_train = datasets.FashionMNIST(train=True)
     transformer = transforms.Compose([transforms.ToTensor(), transforms.Normalize(0.286, 0.352)])
@@ -87,4 +88,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

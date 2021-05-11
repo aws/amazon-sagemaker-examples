@@ -67,9 +67,7 @@ def lambda_handler(event, context):
             Message=json.dumps(message, indent=4, default=str),
         )
     except botocore.exceptions.ClientError as err:
-        raise Exception(
-            f"Service error publishing SNS response for batch id: {batch_id}"
-        ) from err
+        raise Exception(f"Service error publishing SNS response for batch id: {batch_id}") from err
 
     return {
         "published_sns": message,

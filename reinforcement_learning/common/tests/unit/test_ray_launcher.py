@@ -16,6 +16,7 @@ from mock import Mock, MagicMock, patch
 
 from sagemaker_rl.ray_launcher import SageMakerRayLauncher
 
+
 @patch("sagemaker_rl.ray_launcher.SageMakerRayLauncher.__init__", return_value=None)
 @patch("sagemaker_rl.ray_launcher.change_permissions_recursive")
 def test_pytorch_save_checkpoint_and_serving_model(change_permission, launcher_init):

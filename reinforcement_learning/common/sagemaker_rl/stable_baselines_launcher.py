@@ -20,7 +20,7 @@ class RewScale(gym.RewardWrapper):
         return _reward * self.scale
 
 
-class SagemakerStableBaselinesLauncher():
+class SagemakerStableBaselinesLauncher:
     """
     Sagemaker's Stable Baselines Launcher.
     """
@@ -32,23 +32,24 @@ class SagemakerStableBaselinesLauncher():
         self._num_timesteps = num_timesteps
 
     def _train(self):
-        """Train the RL model
-        """
+        """Train the RL model"""
         self._model.learn(total_timesteps=self._num_timesteps)
 
     def _predict(self, model, video_path):
-        """Run predictions on trained RL model.
-        """
+        """Run predictions on trained RL model."""
 
-        vr = VideoRecorder(env=self._env, path="{}/rl_out.mp4".format(video_path, str(MPI.COMM_WORLD.Get_rank())),
-                           enabled=True)
+        vr = VideoRecorder(
+            env=self._env,
+            path="{}/rl_out.mp4".format(video_path, str(MPI.COMM_WORLD.Get_rank())),
+            enabled=True,
+        )
         obs = self._env.reset()
         for i in range(1000):
             action, _states = model.predict(obs)
             obs, rewards, dones, info = self._env.step(action)
             if dones:
                 obs = self._env.reset()
-            self._env.render(mode='rgb_array')
+            self._env.render(mode="rgb_array")
             vr.capture_frame()
         vr.close()
         self._env.close()
@@ -66,33 +67,59 @@ class SagemakerStableBaselinesPPO1Launcher(SagemakerStableBaselinesLauncher):
     Sagemaker's Stable Baselines PPO1 Launcher.
     """
 
-    def __init__(self, env, output_path, timesteps_per_actorbatch,
-                 clip_param, entcoeff, optim_epochs,
-                 optim_stepsize, optim_batchsize,
-                 gamma, lam, schedule,
-                 verbose, num_timesteps):
+    def __init__(
+        self,
+        env,
+        output_path,
+        timesteps_per_actorbatch,
+        clip_param,
+        entcoeff,
+        optim_epochs,
+        optim_stepsize,
+        optim_batchsize,
+        gamma,
+        lam,
+        schedule,
+        verbose,
+        num_timesteps,
+    ):
         print(
             "Initializing PPO with output_path: {} and Hyper Params [timesteps_per_actorbatch: {},clip_param: {}, "
             "entcoeff: {}, optim_epochs: {}, optim_stepsize: {}, optim_batchsize: {}, gamma: {}, lam: {}, "
-            "schedule: {}, verbose: {}, num_timesteps: {}]".format(output_path, timesteps_per_actorbatch,
-                                                                   clip_param, entcoeff, optim_epochs,
-                                                                   optim_stepsize, optim_batchsize,
-                                                                   gamma, lam, schedule,
-                                                                   verbose, num_timesteps))
-        super().__init__(env, output_path,
-                         PPO1(policy=MlpPolicy,
-                              env=env,
-                              gamma=gamma,
-                              timesteps_per_actorbatch=timesteps_per_actorbatch,
-                              clip_param=clip_param,
-                              entcoeff=entcoeff,
-                              optim_epochs=optim_epochs,
-                              optim_stepsize=optim_stepsize,
-                              optim_batchsize=optim_batchsize,
-                              lam=lam,
-                              schedule=schedule,
-                              verbose=verbose),
-                         num_timesteps)
+            "schedule: {}, verbose: {}, num_timesteps: {}]".format(
+                output_path,
+                timesteps_per_actorbatch,
+                clip_param,
+                entcoeff,
+                optim_epochs,
+                optim_stepsize,
+                optim_batchsize,
+                gamma,
+                lam,
+                schedule,
+                verbose,
+                num_timesteps,
+            )
+        )
+        super().__init__(
+            env,
+            output_path,
+            PPO1(
+                policy=MlpPolicy,
+                env=env,
+                gamma=gamma,
+                timesteps_per_actorbatch=timesteps_per_actorbatch,
+                clip_param=clip_param,
+                entcoeff=entcoeff,
+                optim_epochs=optim_epochs,
+                optim_stepsize=optim_stepsize,
+                optim_batchsize=optim_batchsize,
+                lam=lam,
+                schedule=schedule,
+                verbose=verbose,
+            ),
+            num_timesteps,
+        )
 
 
 def create_env(env_id, output_path, seed=0):

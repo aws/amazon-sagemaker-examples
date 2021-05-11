@@ -13,8 +13,6 @@ from shared.log import logger, log_request_and_context
 from shared.api_helpers import input_batch_to_human_readable
 
 
-
-
 def get_all_batches():
     """
     Generate a dictionary of batch ids by status

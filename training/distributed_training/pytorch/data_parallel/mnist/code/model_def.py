@@ -19,6 +19,7 @@ import torch
 import torch.nn.functional as F
 import torch.nn as nn
 
+
 class Net(nn.Module):
     def __init__(self):
         super(Net, self).__init__()
@@ -43,4 +44,3 @@ class Net(nn.Module):
         x = self.fc2(x)
         output = F.log_softmax(x, dim=1)
         return output
-

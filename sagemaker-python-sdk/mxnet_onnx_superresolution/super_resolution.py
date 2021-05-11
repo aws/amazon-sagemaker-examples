@@ -26,10 +26,10 @@ def model_fn(model_dir):
     :param: model_dir The directory where model files are stored.
     :return: a model
     """
-    sym, arg_params, aux_params = onnx_mxnet.import_model('%s/super_resolution.onnx' % model_dir) 
+    sym, arg_params, aux_params = onnx_mxnet.import_model("%s/super_resolution.onnx" % model_dir)
     # create module
-    mod = mx.mod.Module(symbol=sym, data_names=['1'], label_names=None)
-    mod.bind(for_training=False, data_shapes=[('1', [1, 1, 224, 224])])
+    mod = mx.mod.Module(symbol=sym, data_names=["1"], label_names=None)
+    mod.bind(for_training=False, data_shapes=[("1", [1, 1, 224, 224])])
     mod.set_params(arg_params=arg_params, aux_params=aux_params)
     return mod
 
@@ -45,6 +45,9 @@ def transform_fn(mod, data, input_content_type, output_content_type):
     :return: response payload and content type.
     """
     input_data = json.loads(data)
-    batch = namedtuple('Batch', ['data'])
+    batch = namedtuple("Batch", ["data"])
     mod.forward(batch([mx.nd.array(input_data)]))
-    return json.dumps(mod.get_outputs()[0][0][0].asnumpy().clip(0, 255).tolist()), output_content_type
+    return (
+        json.dumps(mod.get_outputs()[0][0][0].asnumpy().clip(0, 255).tolist()),
+        output_content_type,
+    )

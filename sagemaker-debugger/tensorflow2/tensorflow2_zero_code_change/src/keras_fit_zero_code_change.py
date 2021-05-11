@@ -42,7 +42,7 @@ def train(batch_size, epoch, model):
         epochs=epoch,
         validation_data=(X_valid, Y_valid),
         shuffle=True,
-        verbose=0
+        verbose=0,
     )
 
 

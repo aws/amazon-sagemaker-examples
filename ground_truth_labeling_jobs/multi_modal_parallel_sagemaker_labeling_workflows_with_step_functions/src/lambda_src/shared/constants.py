@@ -27,6 +27,7 @@ class BatchMetadataType:
     PROCESS_LEVEL = "PROCESS_LEVEL"
     JOB_LEVEL = "JOB_LEVEL"
 
+
 class BatchCurrentStep:
     INPUT = "INPUT"
     VALIDATION = "VALIDATION"

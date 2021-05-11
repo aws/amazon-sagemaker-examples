@@ -1,5 +1,6 @@
 import itertools
 
+
 def tsp_action_go_from_a_to_b(a, b):
     # 0: Up, 1: Down, 2: Left, 3: Right
 
@@ -27,23 +28,22 @@ def tsp_action_go_from_a_to_b(a, b):
 
     return action
 
-import numpy as np
 
+import numpy as np
 
 
 def create_dist_matrix(all_xy, num_stops):
     # D[i,j] is the cost of going from i to j
-    D = {i:{} for i in range(num_stops)} # index 0 is the restaurant
+    D = {i: {} for i in range(num_stops)}  # index 0 is the restaurant
 
     # Create distance matrix
     for i in range(num_stops):
-        for j in range(i+1, num_stops):
+        for j in range(i + 1, num_stops):
             dist = manhattan_dist(all_xy[i][0], all_xy[i][1], all_xy[j][0], all_xy[j][1])
             D[i][j] = dist
             D[j][i] = dist
 
     return D
-
 
 
 def tsp_dp_approx_sol(res_xy, orders_xy):
@@ -97,18 +97,16 @@ def manhattan_dist(x1, y1, x2, y2):
     return np.abs(x1 - x2) + np.abs(y1 - y2)
 
 
-
-
 def tsp_dp_opt_sol(res_xy, orders_xy):
     all_xy = [res_xy] + orders_xy
     num_stops = len(all_xy)
     D = create_dist_matrix(all_xy, num_stops)
-    C = {} # Subtour cost dictionary, (set of nodes in the subtour, last node)
-    P = {} # Subtour path dictionary, (set of nodes in the subtour, last node)
+    C = {}  # Subtour cost dictionary, (set of nodes in the subtour, last node)
+    P = {}  # Subtour path dictionary, (set of nodes in the subtour, last node)
 
     # Initialize C
     for o in range(1, num_stops):
-        C[frozenset({o}),o] = D[0][o]
+        C[frozenset({o}), o] = D[0][o]
         P[frozenset({o}), o] = [0, o]
 
     for s in range(2, num_stops):
@@ -116,9 +114,9 @@ def tsp_dp_opt_sol(res_xy, orders_xy):
             for o in S:
                 search_keys = [(frozenset(S) - {o}, m) for m in S if m != o]
                 search_list = [C[S_o, m] + D[m][o] for S_o, m in search_keys]
-                min_val =  min(search_list)
+                min_val = min(search_list)
                 opt_key = search_keys[search_list.index(min_val)]
-                C[frozenset(S), o] =  min_val
+                C[frozenset(S), o] = min_val
                 P[frozenset(S), o] = P[opt_key] + [o]
 
     final_set = frozenset(range(1, num_stops))
