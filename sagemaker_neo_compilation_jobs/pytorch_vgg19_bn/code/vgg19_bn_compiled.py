@@ -4,9 +4,9 @@ import logging
 import os
 import pickle
 
+import neopytorch
 import numpy as np
 import torch
-import neopytorch
 import torchvision.transforms as transforms
 from PIL import Image  # Training container doesn't have this package
 

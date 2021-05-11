@@ -1,6 +1,5 @@
-import string
 import random
-
+import string
 from typing import Tuple
 
 

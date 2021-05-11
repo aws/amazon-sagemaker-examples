@@ -1,9 +1,10 @@
-from sagemaker_rl.coach_launcher import SageMakerCoachPresetLauncher, CoachConfigurationList
 import argparse
 import os
+
 import rl_coach
 from rl_coach.base_parameters import Frameworks, TaskParameters
 from rl_coach.core_types import EnvironmentSteps
+from sagemaker_rl.coach_launcher import CoachConfigurationList, SageMakerCoachPresetLauncher
 
 
 def inplace_replace_in_file(filepath, old, new):

@@ -1,16 +1,17 @@
 from __future__ import print_function
+
+import argparse
 import json
 import logging
 import os
 import sys
-import argparse
+
 import horovod.torch as hvd
 import torch.nn.functional as F
 import torch.optim as optim
 import torch.utils.data.distributed
-
-from torchvision import datasets, transforms
 from model_def import Net
+from torchvision import datasets, transforms
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)

@@ -1,4 +1,5 @@
 import os
+
 import tensorflow as tf
 from tensorflow.python.estimator.model_fn import ModeKeys as Modes
 
@@ -110,9 +111,10 @@ def _input_fn(training_dir, training_filename, batch_size=100):
 
 
 def neo_preprocess(payload, content_type):
-    import logging
-    import numpy as np
     import io
+    import logging
+
+    import numpy as np
 
     logging.info("Invoking user-defined pre-processing function")
 
@@ -132,9 +134,10 @@ def neo_preprocess(payload, content_type):
 
 ### NOTE: this function cannot use MXNet
 def neo_postprocess(result):
-    import logging
-    import numpy as np
     import json
+    import logging
+
+    import numpy as np
 
     logging.info("Invoking user-defined post-processing function")
 

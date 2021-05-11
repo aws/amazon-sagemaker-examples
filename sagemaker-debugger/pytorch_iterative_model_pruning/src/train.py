@@ -1,16 +1,17 @@
+import argparse
+import logging
+import os
+import sys
+
+import custom_hook
+import numpy as np
+import smdebug.pytorch as smd
 import torch
-from torchvision import models
+import torch.optim as optim
 import torch.utils.data as data
 import torchvision.datasets as datasets
 import torchvision.transforms as transforms
-import torch.optim as optim
-import custom_hook
-import smdebug.pytorch as smd
-import numpy as np
-import argparse
-import logging
-import sys
-import os
+from torchvision import models
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)

@@ -1,26 +1,26 @@
 """This module contains the available sensors for the sim app"""
 import logging
-import rospy
+
 import numpy as np
-from sensor_msgs.msg import Image as sensor_image
-from sensor_msgs.msg import LaserScan
-from PIL import Image
+import rospy
+from markov import utils
+from markov.architecture.constants import Input
+from markov.environments.constants import TRAINING_IMAGE_SIZE
+from markov.log_handler.constants import SIMAPP_SIMULATION_WORKER_EXCEPTION
+from markov.log_handler.deepracer_exceptions import GenericError, GenericRolloutException
+from markov.log_handler.logger import Logger
+from markov.sensors.sensor_interface import LidarInterface, SensorInterface
 from markov.sensors.utils import (
-    get_observation_space,
     get_front_camera_embedders,
     get_left_camera_embedders,
-    get_stereo_camera_embedders,
     get_lidar_embedders,
     get_observation_embedder,
+    get_observation_space,
+    get_stereo_camera_embedders,
 )
-from markov.sensors.sensor_interface import SensorInterface, LidarInterface
-from markov.environments.constants import TRAINING_IMAGE_SIZE
-from markov.architecture.constants import Input
-from markov.log_handler.deepracer_exceptions import GenericRolloutException, GenericError
-from markov import utils
-from markov.log_handler.logger import Logger
-from markov.log_handler.constants import SIMAPP_SIMULATION_WORKER_EXCEPTION
-
+from PIL import Image
+from sensor_msgs.msg import Image as sensor_image
+from sensor_msgs.msg import LaserScan
 
 LOGGER = Logger(__name__, logging.INFO).get_logger()
 

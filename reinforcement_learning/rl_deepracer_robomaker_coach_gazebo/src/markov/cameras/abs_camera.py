@@ -1,11 +1,11 @@
 import abc
 import threading
 
+from gazebo_msgs.srv import SpawnModel
+from markov.cameras.camera_manager import CameraManager
 from markov.log_handler.deepracer_exceptions import GenericRolloutException
 from markov.rospy_wrappers import ServiceProxyWrapper
 from markov.track_geom.constants import SPAWN_SDF_MODEL
-from markov.cameras.camera_manager import CameraManager
-from gazebo_msgs.srv import SpawnModel
 
 # Python 2 and 3 compatible Abstract class
 ABC = abc.ABCMeta("ABC", (object,), {})

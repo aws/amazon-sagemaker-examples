@@ -11,8 +11,8 @@ Knowledge Graph Embedding Models.
 9. RESCAL
 """
 import os
-import numpy as np
 
+import numpy as np
 import torch as th
 import torch.nn as nn
 import torch.nn.functional as functional

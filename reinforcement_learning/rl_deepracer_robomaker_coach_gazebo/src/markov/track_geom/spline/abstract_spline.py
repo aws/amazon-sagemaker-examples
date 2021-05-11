@@ -1,10 +1,9 @@
 """This class defines an abstract spline"""
 import abc
 
-from scipy.interpolate import spalde
-
 from markov.track_geom.constants import SPLINE_DEGREE
 from markov.track_geom.track_data import TrackData
+from scipy.interpolate import spalde
 
 # Python 2 and 3 compatible Abstract class
 ABC = abc.ABCMeta("ABC", (object,), {})

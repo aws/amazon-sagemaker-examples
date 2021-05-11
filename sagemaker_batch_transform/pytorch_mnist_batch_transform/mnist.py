@@ -1,10 +1,9 @@
 import argparse
+import io
 import json
 import logging
 import os
 import sys
-import io
-from PIL import Image
 
 import torch
 import torch.distributed as dist
@@ -13,6 +12,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 import torch.utils.data
 import torch.utils.data.distributed
+from PIL import Image
 from torchvision import datasets, transforms
 from torchvision.transforms import ToTensor
 

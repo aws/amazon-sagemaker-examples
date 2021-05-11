@@ -2,23 +2,23 @@
 import argparse
 import logging
 import os
+
 import rospy
 from markov import utils
-from markov.virtual_event.virtual_event_manager import VirtualEventManager
-from markov.virtual_event.constants import DEFAULT_RACE_DURATION
-from markov.log_handler.logger import Logger
-from markov.log_handler.exception_handler import log_and_exit
 from markov.log_handler.constants import (
     SIMAPP_EVENT_ERROR_CODE_500,
     SIMAPP_SIMULATION_WORKER_EXCEPTION,
 )
-
+from markov.log_handler.exception_handler import log_and_exit
+from markov.log_handler.logger import Logger
+from markov.virtual_event.constants import DEFAULT_RACE_DURATION
+from markov.virtual_event.virtual_event_manager import VirtualEventManager
 
 LOG = Logger(__name__, logging.INFO).get_logger()
 
 
 def main():
-    """ Main function for virutal event manager """
+    """Main function for virutal event manager"""
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--queue_url",

@@ -5,60 +5,59 @@ import logging
 import os
 import time
 from threading import Thread
-import rospy
 
-from rl_coach.base_parameters import TaskParameters
-from rl_coach.core_types import EnvironmentSteps
-from rl_coach.data_stores.data_store import SyncFiles
+import rospy
 from markov import utils
-from markov.log_handler.logger import Logger
-from markov.log_handler.exception_handler import log_and_exit
-from markov.log_handler.constants import (
-    SIMAPP_SIMULATION_WORKER_EXCEPTION,
-    SIMAPP_EVENT_ERROR_CODE_500,
-)
-from markov.constants import SIMAPP_VERSION_2, DEFAULT_PARK_POSITION, ROLLOUT_WORKER_PROFILER_PATH
 from markov.agent_ctrl.constants import ConfigParams
 from markov.agents.rollout_agent_factory import (
-    create_rollout_agent,
-    create_obstacles_agent,
     create_bot_cars_agent,
+    create_obstacles_agent,
+    create_rollout_agent,
 )
 from markov.agents.utils import RunPhaseSubject
-from markov.defaults import reward_function
-from markov.log_handler.deepracer_exceptions import GenericRolloutError, GenericRolloutException
-from markov.environments.constants import VELOCITY_TOPICS, STEERING_TOPICS, LINK_NAMES
-from markov.metrics.s3_metrics import EvalMetrics
-from markov.metrics.iteration_data import IterationData
-from markov.metrics.constants import MetricsS3Keys
-from markov.s3_boto_data_store import S3BotoDataStore, S3BotoDataStoreParameters
-from markov.sagemaker_graph_manager import get_graph_manager
-from markov.rollout_utils import (
-    PhaseObserver,
-    signal_robomaker_markov_package_ready,
-    configure_environment_randomizer,
-    get_robomaker_profiler_env,
-)
-from markov.rospy_wrappers import ServiceProxyWrapper
-from markov.camera_utils import configure_camera
-from markov.track_geom.track_data import TrackData
-from markov.track_geom.utils import get_start_positions
 from markov.boto.s3.constants import (
+    CAMERA_45DEGREE_LOCAL_PATH_FORMAT,
+    CAMERA_PIP_MP4_LOCAL_PATH_FORMAT,
+    CAMERA_TOPVIEW_LOCAL_PATH_FORMAT,
     MODEL_METADATA_LOCAL_PATH_FORMAT,
     MODEL_METADATA_S3_POSTFIX,
     SIMTRACE_EVAL_LOCAL_PATH_FORMAT,
-    CAMERA_PIP_MP4_LOCAL_PATH_FORMAT,
-    CAMERA_45DEGREE_LOCAL_PATH_FORMAT,
-    CAMERA_TOPVIEW_LOCAL_PATH_FORMAT,
-    SimtraceVideoNames,
     ModelMetadataKeys,
+    SimtraceVideoNames,
 )
+from markov.boto.s3.files.checkpoint import Checkpoint
 from markov.boto.s3.files.model_metadata import ModelMetadata
 from markov.boto.s3.files.simtrace_video import SimtraceVideo
-from markov.boto.s3.files.checkpoint import Checkpoint
 from markov.boto.s3.utils import get_s3_key
+from markov.camera_utils import configure_camera
+from markov.constants import DEFAULT_PARK_POSITION, ROLLOUT_WORKER_PROFILER_PATH, SIMAPP_VERSION_2
+from markov.defaults import reward_function
+from markov.environments.constants import LINK_NAMES, STEERING_TOPICS, VELOCITY_TOPICS
+from markov.log_handler.constants import (
+    SIMAPP_EVENT_ERROR_CODE_500,
+    SIMAPP_SIMULATION_WORKER_EXCEPTION,
+)
+from markov.log_handler.deepracer_exceptions import GenericRolloutError, GenericRolloutException
+from markov.log_handler.exception_handler import log_and_exit
+from markov.log_handler.logger import Logger
+from markov.metrics.constants import MetricsS3Keys
+from markov.metrics.iteration_data import IterationData
+from markov.metrics.s3_metrics import EvalMetrics
 from markov.reset.constants import RaceType
-
+from markov.rollout_utils import (
+    PhaseObserver,
+    configure_environment_randomizer,
+    get_robomaker_profiler_env,
+    signal_robomaker_markov_package_ready,
+)
+from markov.rospy_wrappers import ServiceProxyWrapper
+from markov.s3_boto_data_store import S3BotoDataStore, S3BotoDataStoreParameters
+from markov.sagemaker_graph_manager import get_graph_manager
+from markov.track_geom.track_data import TrackData
+from markov.track_geom.utils import get_start_positions
+from rl_coach.base_parameters import TaskParameters
+from rl_coach.core_types import EnvironmentSteps
+from rl_coach.data_stores.data_store import SyncFiles
 from std_srvs.srv import Empty, EmptyRequest
 
 logger = Logger(__name__, logging.INFO).get_logger()
@@ -187,7 +186,7 @@ def evaluation_worker(
 
 
 def main():
-    """ Main function for evaluation worker """
+    """Main function for evaluation worker"""
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "-p",

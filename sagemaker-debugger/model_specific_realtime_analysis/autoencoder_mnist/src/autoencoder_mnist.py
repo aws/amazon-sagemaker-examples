@@ -1,7 +1,8 @@
-import mxnet as mx
-from mxnet import autograd, gluon
 import argparse
+
+import mxnet as mx
 import smdebug.mxnet as smd
+from mxnet import autograd, gluon
 from smdebug.mxnet import modes
 
 

@@ -1,10 +1,9 @@
-from train import train, parse_args
-
-import sys
-import os
-import boto3
 import json
+import os
+import sys
 
+import boto3
+from train import parse_args, train
 
 DIRNAME = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.join(DIRNAME, "../../..")

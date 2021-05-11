@@ -1,20 +1,21 @@
 """This module prodives utils for virtual event."""
-import logging
 import json
+import logging
 from datetime import datetime
+
 from jsonschema import validate
 from jsonschema.exceptions import ValidationError
-from markov.log_handler.logger import Logger
+from markov.log_handler.constants import SIMAPP_EVENT_ERROR_CODE_500, SIMAPP_EVENT_SYSTEM_ERROR
 from markov.log_handler.deepracer_exceptions import GenericNonFatalException
-from markov.log_handler.constants import SIMAPP_EVENT_SYSTEM_ERROR, SIMAPP_EVENT_ERROR_CODE_500
+from markov.log_handler.logger import Logger
 from markov.virtual_event.constants import (
-    WebRTCCarControl,
+    CAR_CONTROL_INPUT_SCHEMA,
+    RACER_INFO_JSON_SCHEMA,
+    TIME_FORMAT,
     CarControlMode,
     CarControlStatus,
     CarControlTopic,
-    RACER_INFO_JSON_SCHEMA,
-    CAR_CONTROL_INPUT_SCHEMA,
-    TIME_FORMAT,
+    WebRTCCarControl,
 )
 
 LOG = Logger(__name__, logging.INFO).get_logger()

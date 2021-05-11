@@ -1,12 +1,13 @@
-import subprocess
-import os
-import logging
-import numpy as np
 import json
+import logging
+import os
+import subprocess
+
+import numpy as np
 
 
 class VWError(Exception):
-    """ Class for errors """
+    """Class for errors"""
 
     def __init__(self, message):
         super(VWError, self).__init__()
@@ -14,7 +15,7 @@ class VWError(Exception):
 
 
 class VWModelDown(Exception):
-    """ When the model is down """
+    """When the model is down"""
 
     def __init__(self):
         super(VWModelDown, self).__init__("The model is down")
@@ -309,7 +310,7 @@ class VWAgent:
         return VWAgent(**metadata)
 
     def save_model(self, close=False):
-        """Call to save metadata. close=True closes the VW process """
+        """Call to save metadata. close=True closes the VW process"""
         metadata_file = os.path.join(self.output_dir, "vw.metadata")
         with open(metadata_file, "w") as f:
             f.write(json.dumps(self.args))

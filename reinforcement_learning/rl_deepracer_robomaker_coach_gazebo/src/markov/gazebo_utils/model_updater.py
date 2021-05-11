@@ -1,17 +1,5 @@
-import rospy
 import markov.rollout_constants as const
-from markov.log_handler.deepracer_exceptions import GenericRolloutException
-from markov.domain_randomizations.constants import GazeboServiceName
-from markov.rospy_wrappers import ServiceProxyWrapper
-from markov.track_geom.constants import SET_MODEL_STATE
-from markov.track_geom.utils import euler_to_quaternion
-from markov.gazebo_tracker.trackers.get_model_state_tracker import GetModelStateTracker
-from markov.gazebo_tracker.trackers.set_model_state_tracker import SetModelStateTracker
-from std_msgs.msg import ColorRGBA
-from std_srvs.srv import Empty, EmptyRequest
-from geometry_msgs.msg import Pose
-from gazebo_msgs.msg import ModelState
-from gazebo_msgs.srv import SetModelState, GetModelProperties, GetModelPropertiesRequest
+import rospy
 from deepracer_msgs.srv import (
     GetVisualNames,
     GetVisualNamesRequest,
@@ -24,6 +12,18 @@ from deepracer_msgs.srv import (
     SetVisualVisibles,
     SetVisualVisiblesRequest,
 )
+from gazebo_msgs.msg import ModelState
+from gazebo_msgs.srv import GetModelProperties, GetModelPropertiesRequest, SetModelState
+from geometry_msgs.msg import Pose
+from markov.domain_randomizations.constants import GazeboServiceName
+from markov.gazebo_tracker.trackers.get_model_state_tracker import GetModelStateTracker
+from markov.gazebo_tracker.trackers.set_model_state_tracker import SetModelStateTracker
+from markov.log_handler.deepracer_exceptions import GenericRolloutException
+from markov.rospy_wrappers import ServiceProxyWrapper
+from markov.track_geom.constants import SET_MODEL_STATE
+from markov.track_geom.utils import euler_to_quaternion
+from std_msgs.msg import ColorRGBA
+from std_srvs.srv import Empty, EmptyRequest
 
 GAZEBO_SERVICES = [
     "PAUSE_PHYSICS",

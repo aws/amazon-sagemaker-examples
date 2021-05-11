@@ -1,15 +1,16 @@
-import torch
-import torch.nn as nn
-from dgl.nn.pytorch import GraphConv
-
+import argparse
+import json
 import os
 import time
-import json
-import argparse
+
 import numpy as np
+import torch
+import torch.nn as nn
 import torch.nn.functional as F
 from dgl import DGLGraph
-from dgl.data import register_data_args, load_data
+from dgl.data import load_data, register_data_args
+from dgl.nn.pytorch import GraphConv
+
 
 # define GCN layer
 class GCN(nn.Module):

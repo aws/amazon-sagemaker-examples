@@ -1,16 +1,15 @@
 from __future__ import print_function
 
 import argparse
+import json
 import logging
 import os
-
-import mxnet as mx
-from mxnet import gluon, autograd
-from mxnet.gluon import nn
-import numpy as np
-import json
 import time
 
+import mxnet as mx
+import numpy as np
+from mxnet import autograd, gluon
+from mxnet.gluon import nn
 
 logging.basicConfig(level=logging.DEBUG)
 

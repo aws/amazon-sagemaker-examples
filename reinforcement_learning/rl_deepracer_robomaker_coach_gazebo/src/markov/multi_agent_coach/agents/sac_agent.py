@@ -14,33 +14,33 @@
 # limitations under the License.
 #
 
-from typing import Union
 import copy
-import numpy as np
 from collections import OrderedDict
+from typing import Union
 
+import numpy as np
+import tensorflow as tf
+from markov.multi_agent_coach.architectures.head_parameters import (
+    SACPolicyHeadParameters,
+    SACQHeadParameters,
+)
 from rl_coach.agents.agent import Agent
 from rl_coach.agents.policy_optimization_agent import PolicyOptimizationAgent
-from markov.multi_agent_coach.architectures.head_parameters import (
-    SACQHeadParameters,
-    SACPolicyHeadParameters,
-)
+from rl_coach.architectures.embedder_parameters import InputEmbedderParameters
 from rl_coach.architectures.head_parameters import VHeadParameters
 from rl_coach.architectures.middleware_parameters import FCMiddlewareParameters
+from rl_coach.architectures.network_wrapper import NetworkWrapper
 from rl_coach.base_parameters import (
-    AlgorithmParameters,
-    NetworkParameters,
     AgentParameters,
+    AlgorithmParameters,
     EmbedderScheme,
     MiddlewareScheme,
+    NetworkParameters,
 )
 from rl_coach.core_types import ActionInfo, EnvironmentSteps, RunPhase
 from rl_coach.exploration_policies.additive_noise import AdditiveNoiseParameters
 from rl_coach.memories.non_episodic.experience_replay import ExperienceReplayParameters
-from rl_coach.architectures.embedder_parameters import InputEmbedderParameters
 from rl_coach.spaces import BoxActionSpace
-import tensorflow as tf
-from rl_coach.architectures.network_wrapper import NetworkWrapper
 
 # There are 3 networks in SAC implementation. All have the same topology but parameters are not shared.
 # The networks are:

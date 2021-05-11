@@ -15,16 +15,16 @@ from __future__ import absolute_import
 
 import base64
 import contextlib
+import json
 import os
-import time
 import shlex
 import shutil
 import subprocess
 import sys
 import tempfile
+import time
 
 import boto3
-import json
 
 
 def wait_for_s3_object(

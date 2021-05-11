@@ -1,16 +1,16 @@
-import threading
 import logging
-from rosgraph_msgs.msg import Clock
+import threading
+
+import markov.gazebo_tracker.constants as consts
 import rospy
+from markov.log_handler.constants import (
+    SIMAPP_EVENT_ERROR_CODE_500,
+    SIMAPP_SIMULATION_WORKER_EXCEPTION,
+)
 from markov.log_handler.deepracer_exceptions import GenericRolloutException
 from markov.log_handler.exception_handler import log_and_exit
-from markov.log_handler.constants import (
-    SIMAPP_SIMULATION_WORKER_EXCEPTION,
-    SIMAPP_EVENT_ERROR_CODE_500,
-)
-import markov.gazebo_tracker.constants as consts
 from markov.log_handler.logger import Logger
-
+from rosgraph_msgs.msg import Clock
 
 logger = Logger(__name__, logging.INFO).get_logger()
 

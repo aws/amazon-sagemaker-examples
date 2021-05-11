@@ -1,16 +1,16 @@
 from __future__ import absolute_import
 
+import os
 import sys
 import time
-import os
 
-from utils import ExitSignalHandler
 from utils import (
-    write_failure_file,
-    print_json_object,
+    ExitSignalHandler,
     load_json_object,
-    save_model_artifacts,
     print_files_in_path,
+    print_json_object,
+    save_model_artifacts,
+    write_failure_file,
 )
 
 hyperparameters_file_path = "/opt/ml/input/config/hyperparameters.json"

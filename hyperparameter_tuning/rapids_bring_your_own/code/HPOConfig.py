@@ -14,19 +14,19 @@
 # limitations under the License.
 #
 
-import os
 import argparse
 import glob
-import pprint
-import HPODatasets
-
 import logging
+import os
+import pprint
+
+import HPODatasets
 
 hpo_log = logging.getLogger("hpo_log")
 
 
 class HPOConfig(object):
-    """  Cloud integrated RAPIDS HPO functionality with AWS SageMaker focus """
+    """Cloud integrated RAPIDS HPO functionality with AWS SageMaker focus"""
 
     sagemaker_directory_structure = {
         "train_data": "/opt/ml/input/data/training",
@@ -120,7 +120,7 @@ class HPOConfig(object):
         return dataset_type, model_type, compute_type, cv_folds
 
     def parse_hyper_parameter_inputs(self, input_args):
-        """ Parse hyperparmeters provided by the HPO orchestrator """
+        """Parse hyperparmeters provided by the HPO orchestrator"""
         hpo_log.info("parsing model hyperparameters from command line arguments...log")  # noqa
         parser = argparse.ArgumentParser()
 

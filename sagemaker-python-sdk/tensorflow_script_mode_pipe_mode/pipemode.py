@@ -1,9 +1,9 @@
 import argparse
 import json
 import os
+
 import tensorflow as tf
 from sagemaker_tensorflow import PipeModeDataset
-
 from tensorflow.contrib.data import map_and_batch
 
 PREFETCH_SIZE = 10

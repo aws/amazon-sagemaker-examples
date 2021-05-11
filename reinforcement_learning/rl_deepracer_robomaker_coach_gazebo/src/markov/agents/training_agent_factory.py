@@ -3,8 +3,8 @@ from markov.agent_ctrl.constants import ConfigParams
 from markov.agent_ctrl.training_agent_ctrl import TrainingCtrl
 from markov.agents.agent import Agent
 from markov.agents.utils import construct_sensor, get_network_settings
-from markov.sensors.sensors_training import SensorFactory
 from markov.boto.s3.constants import ModelMetadataKeys
+from markov.sensors.sensors_training import SensorFactory
 
 
 def create_training_agent(agent_config):

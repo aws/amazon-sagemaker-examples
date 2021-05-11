@@ -1,24 +1,22 @@
+import json
+import logging
+import re
+import sys
 import time
 from enum import Enum
 from io import StringIO
-import re
-import sys
-
-import sagemaker
-import boto3
-import json
-import logging
 from threading import Thread
-from sagemaker.rl.estimator import RLEstimator
-from sagemaker.local.local_session import LocalSession
-from sagemaker.analytics import TrainingJobAnalytics
-from botocore.exceptions import ClientError
 
+import boto3
+import sagemaker
+from botocore.exceptions import ClientError
 from orchestrator.clients.ddb.model_db_client import ModelDbClient
-from orchestrator.workflow.datatypes.model_record import ModelRecord
 from orchestrator.exceptions.ddb_client_exceptions import RecordAlreadyExistsException
 from orchestrator.exceptions.workflow_exceptions import UnhandledWorkflowException
-
+from orchestrator.workflow.datatypes.model_record import ModelRecord
+from sagemaker.analytics import TrainingJobAnalytics
+from sagemaker.local.local_session import LocalSession
+from sagemaker.rl.estimator import RLEstimator
 from src.vw_utils import EVAL_CHANNEL
 
 logger = logging.getLogger("orchestrator")

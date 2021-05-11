@@ -6,11 +6,12 @@
     https://dev.to/li_chastina/auto-refresh-aws-tokens-using-iam-role-and-boto3-2cjf
     https://github.com/cloud-custodian/cloud-custodian/blob/master/c7n/credentials.py
 """
-import pytz
 from datetime import datetime, timedelta
+
+import pytz
+from boto3 import Session
 from botocore.credentials import RefreshableCredentials
 from botocore.session import get_session
-from boto3 import Session
 
 
 def refreshed_session(region="us-east-1"):

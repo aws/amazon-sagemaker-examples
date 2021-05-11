@@ -2,8 +2,9 @@ import argparse
 import json
 import logging
 import os
-import sagemaker_containers
 import sys
+
+import sagemaker_containers
 import torch
 import torch.distributed as dist
 import torch.nn as nn

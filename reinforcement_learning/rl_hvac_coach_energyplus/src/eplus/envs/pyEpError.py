@@ -1,12 +1,12 @@
 class pyEpError(Exception):
-    """ Base class for pyEp Errors """
+    """Base class for pyEp Errors"""
 
     def __init__(self, message):
         super(pyEpError, self).__init__(message)
 
 
 class VersionError(pyEpError):
-    """ Error Thrown when E+ Communications protocol is not 2. """
+    """Error Thrown when E+ Communications protocol is not 2."""
 
     def __init__(self, message=None):
         if message is None:
@@ -16,7 +16,7 @@ class VersionError(pyEpError):
 
 
 class EpWriteError(pyEpError):
-    """ Error thrown when appempting to write to a closed E+ instance """
+    """Error thrown when appempting to write to a closed E+ instance"""
 
     def __init__(self, message=None):
         if message is None:
@@ -26,7 +26,7 @@ class EpWriteError(pyEpError):
 
 
 class EpReadError(pyEpError):
-    """ Error thrown when appempting to read from a closed E+ instance """
+    """Error thrown when appempting to read from a closed E+ instance"""
 
     def __init__(self, message=None):
         if message is None:
@@ -36,7 +36,7 @@ class EpReadError(pyEpError):
 
 
 class MissingEpPathError(pyEpError):
-    """ Error thrown when the path to EnergyPlus is not specified. """
+    """Error thrown when the path to EnergyPlus is not specified."""
 
     def __init__(self, message=None):
         if message is None:

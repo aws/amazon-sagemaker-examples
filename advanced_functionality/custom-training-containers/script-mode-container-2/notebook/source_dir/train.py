@@ -1,11 +1,11 @@
 from __future__ import absolute_import
 
+import argparse
+import os
 import sys
 import time
-import os
-import argparse
 
-from utils import save_model_artifacts, print_files_in_path
+from utils import print_files_in_path, save_model_artifacts
 
 
 def train(hp1, hp2, hp3, train_channel, validation_channel):

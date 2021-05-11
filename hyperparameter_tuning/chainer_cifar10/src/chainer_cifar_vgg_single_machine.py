@@ -11,21 +11,18 @@
 # ANY KIND, either express or implied. See the License for the specific
 # language governing permissions and limitations under the License.
 
-from __future__ import print_function, absolute_import
+from __future__ import absolute_import, print_function
 
 import argparse
 import os
 
-import numpy as np
-
 import chainer
 import chainer.functions as F
 import chainer.links as L
-from chainer import training
-from chainer import serializers
-from chainer.training import extensions
-
 import net
+import numpy as np
+from chainer import serializers, training
+from chainer.training import extensions
 
 if __name__ == "__main__":
 

@@ -1,7 +1,8 @@
 import math
+
 import numpy as np
 from markov.log_handler.deepracer_exceptions import GenericRolloutException
-from markov.track_geom.utils import euler_to_quaternion, apply_orientation, inverse_quaternion
+from markov.track_geom.utils import apply_orientation, euler_to_quaternion, inverse_quaternion
 
 
 def get_angle_between_two_points_2d_rad(pt1, pt2):

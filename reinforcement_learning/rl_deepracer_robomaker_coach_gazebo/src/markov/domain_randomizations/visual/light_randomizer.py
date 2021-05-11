@@ -1,23 +1,21 @@
 import logging
-import numpy as np
 from enum import Enum
 
-from markov.rospy_wrappers import ServiceProxyWrapper
+import numpy as np
+import rospy
+from gazebo_msgs.srv import SetLightProperties, SetLightPropertiesRequest
 from markov.domain_randomizations.abs_randomizer import AbstractRandomizer
-from markov.log_handler.logger import Logger
 from markov.domain_randomizations.constants import (
+    RANGE_MAX,
+    RANGE_MIN,
+    Attenuation,
+    Color,
     GazeboServiceName,
     RangeType,
-    RANGE_MIN,
-    RANGE_MAX,
-    Color,
-    Attenuation,
 )
-
-import rospy
+from markov.log_handler.logger import Logger
+from markov.rospy_wrappers import ServiceProxyWrapper
 from std_msgs.msg import ColorRGBA
-from gazebo_msgs.srv import SetLightProperties, SetLightPropertiesRequest
-
 
 logger = Logger(__name__, logging.INFO).get_logger()
 

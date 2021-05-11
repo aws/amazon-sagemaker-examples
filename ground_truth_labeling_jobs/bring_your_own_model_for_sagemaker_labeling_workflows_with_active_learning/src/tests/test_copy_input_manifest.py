@@ -1,7 +1,7 @@
-import pytest
 import boto3
-from moto import mock_s3
+import pytest
 from Bootstrap.copy_input_manifest import lambda_handler
+from moto import mock_s3
 
 
 @mock_s3

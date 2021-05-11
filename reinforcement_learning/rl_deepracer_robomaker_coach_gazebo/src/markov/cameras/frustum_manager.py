@@ -1,6 +1,7 @@
 import threading
-from markov.log_handler.deepracer_exceptions import GenericRolloutException
+
 from markov.cameras.frustum import Frustum
+from markov.log_handler.deepracer_exceptions import GenericRolloutException
 
 
 class FrustumManager(object):

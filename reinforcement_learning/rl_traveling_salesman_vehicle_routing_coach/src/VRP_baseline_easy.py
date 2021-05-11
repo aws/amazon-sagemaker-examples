@@ -1,8 +1,7 @@
+import copy
 from time import sleep
 
-import copy
 import numpy as np
-
 from VRP_baseline_utils import decide_action
 from VRP_env import VRPEasyEnv, VRPMediumEnv
 

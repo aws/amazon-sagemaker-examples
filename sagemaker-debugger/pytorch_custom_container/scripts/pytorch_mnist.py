@@ -11,25 +11,25 @@ For more information, please refer to https://github.com/awslabs/sagemaker-debug
 
 
 from __future__ import absolute_import
+
 import argparse
 import logging
 import os
+import random
 import sys
 
 import cv2 as cv
+import numpy as np
 import sagemaker_containers
+
+# SageMaker Debugger: Import the package
+import smdebug.pytorch as smd
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 import torch.utils.data
 from torchvision import datasets, transforms
-
-# SageMaker Debugger: Import the package
-import smdebug.pytorch as smd
-
-import numpy as np
-import random
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)

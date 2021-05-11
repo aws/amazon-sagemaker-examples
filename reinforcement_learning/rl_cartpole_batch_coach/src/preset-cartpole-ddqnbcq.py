@@ -1,23 +1,22 @@
-from rl_coach.agents.ddqn_bcq_agent import DDQNBCQAgentParameters
-from rl_coach.base_parameters import VisualizationParameters, PresetValidationParameters
+from rl_coach.agents.ddqn_bcq_agent import DDQNBCQAgentParameters, KNNParameters
+from rl_coach.base_parameters import PresetValidationParameters, VisualizationParameters
 from rl_coach.core_types import (
-    TrainingSteps,
+    CsvDataset,
     EnvironmentEpisodes,
     EnvironmentSteps,
     RunPhase,
-    CsvDataset,
+    TrainingSteps,
 )
 from rl_coach.graph_managers.batch_rl_graph_manager import BatchRLGraphManager
 from rl_coach.graph_managers.graph_manager import ScheduleParameters
-from rl_coach.schedules import LinearSchedule
 from rl_coach.memories.episodic import EpisodicExperienceReplayParameters
-from rl_coach.agents.ddqn_bcq_agent import KNNParameters
+from rl_coach.schedules import LinearSchedule
 from rl_coach.spaces import (
-    SpacesDefinition,
     DiscreteActionSpace,
-    VectorObservationSpace,
-    StateSpace,
     RewardSpace,
+    SpacesDefinition,
+    StateSpace,
+    VectorObservationSpace,
 )
 
 # ####################

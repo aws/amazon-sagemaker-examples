@@ -6,17 +6,15 @@
 # the root directory of this source tree. An additional grant of patent rights
 # can be found in the PATENTS file in the same directory.
 
+import json
 import os
 import socket
 import subprocess
-import json
-
-from train_driver import main as single_process_main
-from fairseq import distributed_utils, options
-
-from multiprocessing_train import ErrorHandler
 
 import torch
+from fairseq import distributed_utils, options
+from multiprocessing_train import ErrorHandler
+from train_driver import main as single_process_main
 
 
 def run(args, error_queue):

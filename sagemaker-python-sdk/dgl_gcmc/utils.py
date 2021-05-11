@@ -1,15 +1,16 @@
 import ast
-import os
 import csv
 import inspect
 import logging
+import os
 import re
+from collections import OrderedDict
+
+import mxnet as mx
 import mxnet.ndarray as nd
+import numpy as np
 from mxnet import gluon
 from mxnet.gluon import nn
-import mxnet as mx
-import numpy as np
-from collections import OrderedDict
 
 
 class MetricLogger(object):

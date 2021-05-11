@@ -15,14 +15,13 @@
 
 from __future__ import print_function
 
-import logging
-
-from mxnet import gluon
-import mxnet as mx
-
-import numpy as np
 import json
+import logging
 import os
+
+import mxnet as mx
+import numpy as np
+from mxnet import gluon
 
 logging.basicConfig(level=logging.DEBUG)
 

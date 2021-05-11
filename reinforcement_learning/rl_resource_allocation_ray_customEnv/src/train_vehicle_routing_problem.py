@@ -1,6 +1,5 @@
-from ray.tune.registry import register_env
-
 from model import register_actor_mask_model
+from ray.tune.registry import register_env
 from sagemaker_rl.ray_launcher import SageMakerRayLauncher
 
 register_actor_mask_model()

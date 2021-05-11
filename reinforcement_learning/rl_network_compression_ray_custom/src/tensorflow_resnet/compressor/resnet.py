@@ -1,14 +1,14 @@
-import sys, os
-import tensorflow as tf
-import numpy as np
 import logging
+import os
+import sys
 
-from . import Module
-from . import layers
-from . import ModeKeys
+import numpy as np
+import tensorflow as tf
+
+from . import ModeKeys, Module, layers
+from .core import Fake
 from .core.model import Model
 from .layers.ops import get_tf_vars_list
-from .core import Fake
 
 
 class ResNetXXModel(Model):
@@ -359,7 +359,7 @@ class ResNetXXModel(Model):
 
     @staticmethod
     def create_distillation_loss(logit_1, logit_2, temperature):
-        """ Creates a distilaltion loss """
+        """Creates a distilaltion loss"""
         knowledge_1 = ResNetXXModel.temperature_softmax(logit_1, temperature)
         knowledge_2 = ResNetXXModel.temperature_softmax(logit_2, temperature)
         return ResNetXXModel.L2(knowledge_1, knowledge_2)
@@ -378,7 +378,7 @@ class ResNetXXModel(Model):
 
     @staticmethod
     def L2(node1, node2):
-        """ Returns a symbol thats the 2-norm error """
+        """Returns a symbol thats the 2-norm error"""
         return tf.reduce_mean(tf.squared_difference(node1, node2))
 
     @staticmethod
@@ -556,7 +556,7 @@ class ResNetBase(object):
         self.name = name
 
     def pretty_print(self):
-        """ Prints important characters of the class """
+        """Prints important characters of the class"""
         logging.info("Num Classes: " + str(self.num_classes))
         logging.info("Num Filters: " + str(self.num_filters))
         logging.info("Kernel Size: " + str(self.kernel_size))
@@ -569,7 +569,7 @@ class ResNetBase(object):
         logging.info("Resnet Size: " + str(self.resnet_size))
 
     def _model_variable_scope(self):
-        """ Returns the scope of the model """
+        """Returns the scope of the model"""
         return tf.variable_scope(self.name)
 
     def initialize(params):

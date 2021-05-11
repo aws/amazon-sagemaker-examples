@@ -1,6 +1,7 @@
-import h5py
 import datetime
-from config import START_DATE, DATE_FORMAT, START_DATETIME
+
+import h5py
+from config import DATE_FORMAT, START_DATE, START_DATETIME
 
 
 def read_stock_history(filepath):

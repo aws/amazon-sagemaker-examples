@@ -3,17 +3,16 @@
 
 from __future__ import print_function
 
-import os
 import json
+import os
 import pickle
-import StringIO
-import sys
 import signal
+import sys
 import traceback
 
 import flask
-
 import pandas as pd
+import StringIO
 
 prefix = "/opt/ml/"
 model_path = os.path.join(prefix, "model")

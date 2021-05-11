@@ -1,5 +1,5 @@
 import numpy as np
-from gym.spaces import Discrete, Box
+from gym.spaces import Box, Discrete
 
 
 def box_space_from_description(dimension_list):

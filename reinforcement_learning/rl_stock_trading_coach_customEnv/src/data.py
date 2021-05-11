@@ -1,8 +1,9 @@
-import os
+import collections
 import csv
 import glob
+import os
+
 import numpy as np
-import collections
 
 Prices = collections.namedtuple("Prices", field_names=["open", "high", "low", "close", "volume"])
 

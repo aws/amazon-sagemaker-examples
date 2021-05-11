@@ -12,11 +12,11 @@
 # timeout                  MODEL_SERVER_TIMEOUT              70 seconds
 
 from __future__ import print_function
+
 import os
 import signal
 import subprocess
 import sys
-
 
 model_server_timeout = os.environ.get("MODEL_SERVER_TIMEOUT", 70)
 model_server_workers = int(os.environ.get("MODEL_SERVER_WORKERS", 1))

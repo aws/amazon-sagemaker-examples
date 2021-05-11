@@ -1,11 +1,12 @@
-import os
 import errno
+import os
+
 import horovod.tensorflow as hvd
-import tensorflow as tf
-from tensorflow.keras.layers import Conv2D, Dense, Flatten
 
 # SMP: Import TF2.x API
 import smdistributed.modelparallel.tensorflow as smp
+import tensorflow as tf
+from tensorflow.keras.layers import Conv2D, Dense, Flatten
 
 tf.random.set_seed(1234)
 

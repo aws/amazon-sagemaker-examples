@@ -1,23 +1,17 @@
 from __future__ import print_function
 
-import time
-import sys
-from io import StringIO
-import os
-import shutil
-
 import argparse
 import csv
 import json
+import os
+import shutil
+import sys
+import time
+from io import StringIO
+
 import joblib
 import numpy as np
 import pandas as pd
-
-from sklearn.compose import ColumnTransformer, make_column_selector
-from sklearn.impute import SimpleImputer
-from sklearn.pipeline import make_pipeline
-from sklearn.preprocessing import Binarizer, StandardScaler, OneHotEncoder
-
 from sagemaker_containers.beta.framework import (
     content_types,
     encoders,
@@ -26,6 +20,10 @@ from sagemaker_containers.beta.framework import (
     transformer,
     worker,
 )
+from sklearn.compose import ColumnTransformer, make_column_selector
+from sklearn.impute import SimpleImputer
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import Binarizer, OneHotEncoder, StandardScaler
 
 # Since we get a headerless CSV file we specify the column names here.
 feature_columns_names = [

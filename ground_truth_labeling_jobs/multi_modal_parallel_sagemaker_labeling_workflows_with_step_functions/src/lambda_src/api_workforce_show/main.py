@@ -7,9 +7,8 @@ import json
 import os
 
 import boto3
-
 from shared.constants import SMGTJobCategory
-from shared.log import logger, log_request_and_context
+from shared.log import log_request_and_context, logger
 
 
 def get_member_definition_info(cognito, member_definition):

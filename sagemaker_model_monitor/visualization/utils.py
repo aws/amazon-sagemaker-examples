@@ -1,6 +1,7 @@
-from enum import Enum
-import warnings
 import re
+import warnings
+from enum import Enum
+
 import numpy as np
 import pandas as pd
 from IPython.display import HTML, display

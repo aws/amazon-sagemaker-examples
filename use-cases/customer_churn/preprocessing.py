@@ -1,10 +1,11 @@
-import os
-import warnings
-import time
-import pandas as pd
 import argparse
+import os
 import subprocess
 import sys
+import time
+import warnings
+
+import pandas as pd
 
 subprocess.check_call([sys.executable, "-m", "pip", "install", "awswrangler"])
 import awswrangler as wr

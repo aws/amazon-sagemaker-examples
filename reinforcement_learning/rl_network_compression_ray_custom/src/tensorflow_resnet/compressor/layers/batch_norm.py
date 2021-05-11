@@ -1,8 +1,8 @@
 # This file puts a wrapper on top of all tf batch norm layer.
-import tensorflow as tf
 import numpy as np
+import tensorflow as tf
 
-from ..core import Layer, Fake
+from ..core import Fake, Layer
 from .ops import get_param_from_name, load_pkl_obj
 
 _BATCH_NORM_DECAY = 0.997
@@ -85,7 +85,7 @@ class BatchNorm(Layer):
         self.description.append(self.get_memory_footprint())
 
     def _get_params_real(self):
-        """ Returns a list of [gamma, beta] """
+        """Returns a list of [gamma, beta]"""
         gamma = get_param_from_name(self._tf_name + "/batch_normalization/gamma:0")
         beta = get_param_from_name(self._tf_name + "/batch_normalization/beta:0")
         moving_mean = get_param_from_name(self._tf_name + "/batch_normalization/moving_mean:0")
@@ -95,7 +95,7 @@ class BatchNorm(Layer):
         return {self.get_name(): [gamma, beta, moving_mean, moving_variance]}
 
     def _get_memory_footprint_real(self):
-        """ Returns the number of parameters in the layer """
+        """Returns the number of parameters in the layer"""
         params = self.get_params()[self.get_name()]
         gamma = params[0]
         beta = params[1]

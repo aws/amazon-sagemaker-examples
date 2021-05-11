@@ -1,11 +1,11 @@
 import argparse
 import logging
-
 import os
 
 import torch
 import torch.distributed as dist
 import torch.nn as nn
+import torch.nn.functional as F
 import torch.nn.parallel
 import torch.optim
 import torch.utils.data
@@ -13,7 +13,6 @@ import torch.utils.data.distributed
 import torchvision
 import torchvision.models
 import torchvision.transforms as transforms
-import torch.nn.functional as F
 
 try:
     from sagemaker_inference import environment

@@ -1,11 +1,12 @@
+import os
+import socket
+
 import gym
+import numpy as np
+from eplus.envs import pyEp
+from eplus.envs.socket_builder import socket_builder
 from gym import error, spaces, utils
 from gym.utils import seeding
-from eplus.envs import pyEp
-import socket
-from eplus.envs.socket_builder import socket_builder
-import numpy as np
-import os
 
 
 class LargeOfficeEnv(gym.Env):

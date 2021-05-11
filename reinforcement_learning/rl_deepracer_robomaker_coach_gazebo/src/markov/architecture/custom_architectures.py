@@ -1,6 +1,6 @@
 """This module contains common schemes"""
 
-from markov.architecture.constants import SchemeInfo, Input, ActivationFunctions
+from markov.architecture.constants import ActivationFunctions, Input, SchemeInfo
 
 # Default network
 DEFAULT_INPUT_EMBEDDER = {

@@ -1,39 +1,40 @@
 import json
+
 from markov.architecture.constants import Input
 from markov.architecture.embedder_factory import create_input_embedder, create_middle_embedder
+from markov.boto.s3.constants import TrainingAlgorithm
 from markov.constants import ExplorationTypes, HyperParameterKeys, LossTypes
 from markov.environments.deepracer_racetrack_env import DeepRacerRacetrackEnvParameters
-from markov.log_handler.exception_handler import log_and_exit
+from markov.exploration_policies.deepracer_categorical import DeepRacerCategoricalParameters
+from markov.filters.observation.observation_binary_filter import ObservationBinarySectorFilter
 from markov.log_handler.constants import (
     SIMAPP_EVENT_ERROR_CODE_500,
     SIMAPP_SIMULATION_WORKER_EXCEPTION,
 )
-from markov.multi_agent_coach.multi_agent_graph_manager import MultiAgentGraphManager
-from markov.multi_agent_coach.agents.sac_agent import SoftActorCriticAgentParameters
-from markov.multi_agent_coach.spaces import ScalableBoxActionSpace
+from markov.log_handler.exception_handler import log_and_exit
 from markov.memories.deepracer_memory import DeepRacerMemoryParameters
-from markov.boto.s3.constants import TrainingAlgorithm
-from rl_coach.spaces import DiscreteActionSpace
-from rl_coach.memories.non_episodic.experience_replay import ExperienceReplayParameters
-from rl_coach.exploration_policies.additive_noise import AdditiveNoiseParameters
+from markov.multi_agent_coach.agents.sac_agent import SoftActorCriticAgentParameters
+from markov.multi_agent_coach.multi_agent_graph_manager import MultiAgentGraphManager
+from markov.multi_agent_coach.spaces import ScalableBoxActionSpace
 from rl_coach.agents.clipped_ppo_agent import ClippedPPOAgentParameters
 from rl_coach.base_parameters import (
-    VisualizationParameters,
-    PresetValidationParameters,
     DistributedCoachSynchronizationType,
+    PresetValidationParameters,
     RunType,
+    VisualizationParameters,
 )
-from rl_coach.core_types import TrainingSteps, EnvironmentEpisodes, EnvironmentSteps
-from markov.exploration_policies.deepracer_categorical import DeepRacerCategoricalParameters
+from rl_coach.core_types import EnvironmentEpisodes, EnvironmentSteps, TrainingSteps
+from rl_coach.exploration_policies.additive_noise import AdditiveNoiseParameters
 from rl_coach.exploration_policies.e_greedy import EGreedyParameters
 from rl_coach.filters.filter import InputFilter
+from rl_coach.filters.observation.observation_clipping_filter import ObservationClippingFilter
 from rl_coach.filters.observation.observation_rgb_to_y_filter import ObservationRGBToYFilter
 from rl_coach.filters.observation.observation_stacking_filter import ObservationStackingFilter
 from rl_coach.filters.observation.observation_to_uint8_filter import ObservationToUInt8Filter
-from rl_coach.filters.observation.observation_clipping_filter import ObservationClippingFilter
-from markov.filters.observation.observation_binary_filter import ObservationBinarySectorFilter
 from rl_coach.graph_managers.graph_manager import ScheduleParameters
+from rl_coach.memories.non_episodic.experience_replay import ExperienceReplayParameters
 from rl_coach.schedules import LinearSchedule
+from rl_coach.spaces import DiscreteActionSpace
 
 
 class DeepRacerClippedPPOAgentParams(ClippedPPOAgentParameters):

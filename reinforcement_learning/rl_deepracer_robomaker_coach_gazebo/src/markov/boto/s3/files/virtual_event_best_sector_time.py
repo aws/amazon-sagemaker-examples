@@ -1,28 +1,28 @@
 """This module implements s3 client for virtual event best sector time"""
 
-import os
-import sys
 import json
 import logging
-import botocore
+import os
+import sys
 
-from markov.log_handler.logger import Logger
-from markov.log_handler.exception_handler import log_and_exit
-from markov.log_handler.constants import (
-    SIMAPP_SIMULATION_WORKER_EXCEPTION,
-    SIMAPP_EVENT_ERROR_CODE_500,
-    SIMAPP_EVENT_SYSTEM_ERROR,
-)
-from markov.log_handler.deepracer_exceptions import GenericNonFatalException
+import botocore
 from markov.boto.s3.constants import (
-    SECTOR_TIME_S3_POSTFIX,
     PYTHON_2,
     PYTHON_3,
+    SECTOR_TIME_FORMAT_DICT,
+    SECTOR_TIME_S3_POSTFIX,
     SECTOR_X_FORMAT,
     TrackSectorTime,
-    SECTOR_TIME_FORMAT_DICT,
 )
 from markov.boto.s3.s3_client import S3Client
+from markov.log_handler.constants import (
+    SIMAPP_EVENT_ERROR_CODE_500,
+    SIMAPP_EVENT_SYSTEM_ERROR,
+    SIMAPP_SIMULATION_WORKER_EXCEPTION,
+)
+from markov.log_handler.deepracer_exceptions import GenericNonFatalException
+from markov.log_handler.exception_handler import log_and_exit
+from markov.log_handler.logger import Logger
 
 LOG = Logger(__name__, logging.INFO).get_logger()
 

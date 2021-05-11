@@ -31,9 +31,9 @@ reference to those annotations to S3.
 
 import argparse
 import base64
+import json
 from collections import defaultdict
 from io import BytesIO
-import json
 from pathlib import Path
 from urllib.parse import urlparse
 

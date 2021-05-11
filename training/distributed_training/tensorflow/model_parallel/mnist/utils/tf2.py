@@ -1,10 +1,11 @@
-import os, time
 import errno
-import tensorflow as tf
-from tensorflow.keras.layers import Conv2D, Dense, Flatten
+import os
+import time
 
 # SMP: Import TF2.x API
 import smdistributed.modelparallel.tensorflow as smp
+import tensorflow as tf
+from tensorflow.keras.layers import Conv2D, Dense, Flatten
 
 tf.random.set_seed(1234)
 
@@ -79,7 +80,8 @@ ckpt_manager = smp.CheckpointManager(checkpoint, checkpoint_directory)
 
 def aws_s3_sync(source, destination):
     """aws s3 sync in quiet mode and time profile"""
-    import time, subprocess
+    import subprocess
+    import time
 
     cmd = ["aws", "s3", "sync", "--quiet", source, destination]
     print(f"Syncing files from {source} to {destination}")
@@ -95,9 +97,10 @@ def sync_local_checkpoints_to_s3(
     local_path="/opt/ml/checkpoints",
     s3_path=os.path.dirname(os.path.dirname(os.getenv("SM_MODULE_DIR", ""))) + "/checkpoints",
 ):
-    """ sample function to sync checkpoints from local path to s3 """
+    """sample function to sync checkpoints from local path to s3"""
 
-    import boto3, botocore
+    import boto3
+    import botocore
 
     # check if local path exists
     if not os.path.exists(local_path):
@@ -124,9 +127,10 @@ def sync_s3_checkpoints_to_local(
     local_path="/opt/ml/checkpoints",
     s3_path=os.path.dirname(os.path.dirname(os.getenv("SM_MODULE_DIR", ""))) + "/checkpoints",
 ):
-    """ sample function to sync checkpoints from s3 to local path """
+    """sample function to sync checkpoints from s3 to local path"""
 
-    import boto3, botocore
+    import boto3
+    import botocore
 
     # creat if local path does not exists
     if not os.path.exists(local_path):

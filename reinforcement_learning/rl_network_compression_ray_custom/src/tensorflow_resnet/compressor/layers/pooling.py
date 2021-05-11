@@ -1,5 +1,6 @@
 import tensorflow as tf
-from ..core import Layer, Fake
+
+from ..core import Fake, Layer
 
 
 class Pool(Layer):
@@ -50,9 +51,9 @@ class Pool(Layer):
         self.description.append(self.get_memory_footprint())
 
     def get_params(self):
-        """ Pooling layers do not have parameters to return. """
+        """Pooling layers do not have parameters to return."""
         return []
 
     def get_memory_footprint(self):
-        """ Pooling layer has no memory """
+        """Pooling layer has no memory"""
         return 0

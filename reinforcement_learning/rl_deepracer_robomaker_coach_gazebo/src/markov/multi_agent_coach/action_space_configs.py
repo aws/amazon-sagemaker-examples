@@ -1,15 +1,16 @@
 """This module contains the available action space configurations for the training algorithms"""
 import abc
-import numpy as np
 import logging
+
+import numpy as np
+from markov.boto.s3.constants import ActionSpaceTypes, ModelMetadataKeys, TrainingAlgorithm
 from markov.log_handler.constants import (
     SIMAPP_EVENT_ERROR_CODE_500,
     SIMAPP_SIMULATION_WORKER_EXCEPTION,
 )
 from markov.log_handler.exception_handler import log_and_exit
-from rl_coach.spaces import DiscreteActionSpace, BoxActionSpace
-from markov.boto.s3.constants import ModelMetadataKeys, TrainingAlgorithm, ActionSpaceTypes
 from markov.multi_agent_coach.spaces import ScalableBoxActionSpace
+from rl_coach.spaces import BoxActionSpace, DiscreteActionSpace
 
 
 class ActionSpaceConfigInterface(object, metaclass=abc.ABCMeta):

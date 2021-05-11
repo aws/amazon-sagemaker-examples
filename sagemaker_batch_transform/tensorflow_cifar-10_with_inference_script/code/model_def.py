@@ -1,15 +1,15 @@
 import tensorflow as tf
 from tensorflow.keras.layers import (
     Activation,
+    BatchNormalization,
     Conv2D,
     Dense,
     Dropout,
     Flatten,
     MaxPooling2D,
-    BatchNormalization,
 )
 from tensorflow.keras.models import Sequential
-from tensorflow.keras.optimizers import Adam, SGD, RMSprop
+from tensorflow.keras.optimizers import SGD, Adam, RMSprop
 
 HEIGHT = 32
 WIDTH = 32

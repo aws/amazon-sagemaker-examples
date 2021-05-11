@@ -1,8 +1,9 @@
-import boto3
-import os
 import io
 import json
+import os
 import time
+
+import boto3
 
 
 class SageClusterCommunicator:

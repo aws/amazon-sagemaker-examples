@@ -1,23 +1,16 @@
 from __future__ import print_function
 
-import time
-import sys
-from io import StringIO
-import os
-import shutil
-
 import argparse
 import csv
 import json
+import os
+import shutil
+import sys
+import time
+from io import StringIO
+
 import numpy as np
 import pandas as pd
-
-from sklearn.externals import joblib
-from sklearn.impute import SimpleImputer
-from sklearn.pipeline import Pipeline
-from sklearn.svm import SVR
-from sklearn.feature_selection import f_regression, mutual_info_regression, SelectKBest, RFE
-
 from sagemaker_containers.beta.framework import (
     content_types,
     encoders,
@@ -26,6 +19,11 @@ from sagemaker_containers.beta.framework import (
     transformer,
     worker,
 )
+from sklearn.externals import joblib
+from sklearn.feature_selection import RFE, SelectKBest, f_regression, mutual_info_regression
+from sklearn.impute import SimpleImputer
+from sklearn.pipeline import Pipeline
+from sklearn.svm import SVR
 
 label_column = "y"
 INPUT_FEATURES_SIZE = 100

@@ -1,12 +1,12 @@
 import math
-import numpy as np
 
+import numpy as np
 from gazebo_msgs.msg import ModelState, ModelStates
 from geometry_msgs.msg import Pose
 from markov.cameras import utils
-from markov.track_geom.utils import euler_to_quaternion, quaternion_to_euler, apply_orientation
 from markov.cameras.abs_camera import AbstractCamera
 from markov.gazebo_tracker.trackers.set_model_state_tracker import SetModelStateTracker
+from markov.track_geom.utils import apply_orientation, euler_to_quaternion, quaternion_to_euler
 
 
 class FollowCarCamera(AbstractCamera):

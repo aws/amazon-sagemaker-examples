@@ -16,8 +16,8 @@
 # under the License.
 
 import torch
-import torch.nn.functional as F
 import torch.nn as nn
+import torch.nn.functional as F
 
 
 class Net(nn.Module):

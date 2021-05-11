@@ -1,10 +1,10 @@
 """This module implements concrete reset rule for off track"""
 
+from markov.metrics.constants import EpisodeStatus
 from markov.reset.abstract_reset_rule import AbstractResetRule
 from markov.reset.constants import AgentCtrlStatus
-from markov.track_geom.track_data import TrackData
 from markov.track_geom.constants import AgentPos
-from markov.metrics.constants import EpisodeStatus
+from markov.track_geom.track_data import TrackData
 
 
 class OffTrackResetRule(AbstractResetRule):

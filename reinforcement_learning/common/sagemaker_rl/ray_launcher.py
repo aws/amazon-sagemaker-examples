@@ -3,17 +3,17 @@ import os
 import subprocess
 import sys
 import time
-from shutil import copyfile
 from enum import Enum
+from shutil import copyfile
 
 import boto3
-
 import ray
 from ray.tune import run_experiments
-from .tf_serving_utils import export_tf_serving, natural_keys, change_permissions_recursive
+
 from .configuration_list import ConfigurationList
-from .sage_cluster_communicator import SageClusterCommunicator
 from .docker_utils import get_ip_from_host
+from .sage_cluster_communicator import SageClusterCommunicator
+from .tf_serving_utils import change_permissions_recursive, export_tf_serving, natural_keys
 
 TERMINATION_SIGNAL = "JOB_TERMINATED"
 INTERMEDIATE_DIR = "/opt/ml/output/intermediate"

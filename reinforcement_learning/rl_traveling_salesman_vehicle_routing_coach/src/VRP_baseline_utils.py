@@ -1,6 +1,7 @@
-import numpy as np
-import itertools
 import copy
+import itertools
+
+import numpy as np
 
 
 def decide_action(prev_o_status, env, visit_stops):

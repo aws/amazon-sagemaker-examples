@@ -2,6 +2,7 @@ from __future__ import print_function
 
 import json
 import logging
+
 import mxnet as mx
 import mxnet.contrib.onnx as onnx_mxnet
 import numpy as np

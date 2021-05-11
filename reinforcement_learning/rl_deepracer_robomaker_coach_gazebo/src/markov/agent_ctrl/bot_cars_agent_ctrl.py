@@ -1,35 +1,33 @@
 """This module implements concrete agent controllers for the rollout worker"""
 import math
-import numpy as np
 import os
 import random
-import rospkg
-import rospy
 import threading
 
+import numpy as np
+import rospkg
+import rospy
 from gazebo_msgs.msg import ModelState
 from gazebo_msgs.srv import SpawnModel
 from geometry_msgs.msg import Pose
-
+from markov import utils
+from markov.agent_ctrl.agent_ctrl_interface import AgentCtrlInterface
 from markov.agent_ctrl.constants import BOT_CAR_Z
 from markov.agent_ctrl.utils import get_normalized_progress
-from markov.track_geom.constants import SPAWN_SDF_MODEL, ObstacleDimensions, TrackLane
-from markov.track_geom.track_data import TrackData
-from markov.track_geom.spline.track_spline import TrackSpline
-from markov.track_geom.spline.lane_change_spline import LaneChangeSpline
-from markov.track_geom.utils import euler_to_quaternion
-from markov.agent_ctrl.agent_ctrl_interface import AgentCtrlInterface
-from markov.rospy_wrappers import ServiceProxyWrapper
-from markov import utils
-from markov.reset.constants import AgentPhase, AgentInfo
-from markov.log_handler.deepracer_exceptions import GenericRolloutException
+from markov.domain_randomizations.constants import ModelRandomizerType
 from markov.domain_randomizations.randomizer_manager import RandomizerManager
 from markov.domain_randomizations.visual.model_visual_randomizer import ModelVisualRandomizer
-from markov.domain_randomizations.constants import ModelRandomizerType
-from markov.gazebo_tracker.trackers.set_model_state_tracker import SetModelStateTracker
 from markov.gazebo_tracker.abs_tracker import AbstractTracker
 from markov.gazebo_tracker.constants import TrackerPriority
-
+from markov.gazebo_tracker.trackers.set_model_state_tracker import SetModelStateTracker
+from markov.log_handler.deepracer_exceptions import GenericRolloutException
+from markov.reset.constants import AgentInfo, AgentPhase
+from markov.rospy_wrappers import ServiceProxyWrapper
+from markov.track_geom.constants import SPAWN_SDF_MODEL, ObstacleDimensions, TrackLane
+from markov.track_geom.spline.lane_change_spline import LaneChangeSpline
+from markov.track_geom.spline.track_spline import TrackSpline
+from markov.track_geom.track_data import TrackData
+from markov.track_geom.utils import euler_to_quaternion
 from shapely.geometry import Point
 
 

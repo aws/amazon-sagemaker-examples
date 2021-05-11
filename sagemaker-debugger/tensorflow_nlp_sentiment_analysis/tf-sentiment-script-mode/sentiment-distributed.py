@@ -1,9 +1,9 @@
 import argparse
-import numpy as np
 import os
-import tensorflow.compat.v2 as tf
-import horovod.tensorflow.keras as hvd
 
+import horovod.tensorflow.keras as hvd
+import numpy as np
+import tensorflow.compat.v2 as tf
 
 max_features = 20000
 maxlen = 400

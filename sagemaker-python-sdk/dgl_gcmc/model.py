@@ -1,11 +1,11 @@
 """NN modules"""
 import math
 
-import numpy as np
+import dgl.function as fn
 import mxnet as mx
 import mxnet.ndarray as F
-from mxnet.gluon import nn, Block
-import dgl.function as fn
+import numpy as np
+from mxnet.gluon import Block, nn
 
 from utils import get_activation
 

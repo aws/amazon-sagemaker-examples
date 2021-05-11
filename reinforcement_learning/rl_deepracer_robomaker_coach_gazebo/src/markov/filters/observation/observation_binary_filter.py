@@ -1,13 +1,13 @@
-from rl_coach.core_types import ObservationType
-from rl_coach.filters.observation.observation_filter import ObservationFilter
-from rl_coach.spaces import ObservationSpace
+import numpy as np
 from markov.environments.constants import (
     NUMBER_OF_LIDAR_SECTORS,
     NUMBER_OF_LIDAR_VALUES_IN_EACH_SECTOR,
     SECTOR_LIDAR_CLIPPING_DIST,
 )
-import numpy as np
 from markov.log_handler.deepracer_exceptions import GenericRolloutException
+from rl_coach.core_types import ObservationType
+from rl_coach.filters.observation.observation_filter import ObservationFilter
+from rl_coach.spaces import ObservationSpace
 
 
 class ObservationBinarySectorFilter(ObservationFilter):

@@ -1,16 +1,13 @@
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
 
 import argparse
 import json
 import os
 
-import numpy as np
-
 import gym
-from gym import wrappers
+import numpy as np
 import ray
+from gym import wrappers
 from ray.rllib.models import ModelCatalog
 from ray.tune.registry import register_env
 

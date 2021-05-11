@@ -1,13 +1,13 @@
 """This module is used to create agents for the rollout worker"""
 from markov.agent_ctrl.bot_cars_agent_ctrl import BotCarsCtrl
 from markov.agent_ctrl.constants import ConfigParams
-from markov.agent_ctrl.rollout_agent_ctrl import RolloutCtrl
 from markov.agent_ctrl.obstacles_agent_ctrl import ObstaclesCtrl
+from markov.agent_ctrl.rollout_agent_ctrl import RolloutCtrl
 from markov.agents.agent import Agent
 from markov.agents.utils import construct_sensor, get_network_settings
-from markov.sensors.sensors_rollout import SensorFactory
-from markov.cameras.frustum_manager import FrustumManager
 from markov.boto.s3.constants import ModelMetadataKeys
+from markov.cameras.frustum_manager import FrustumManager
+from markov.sensors.sensors_rollout import SensorFactory
 
 
 def create_rollout_agent(agent_config, metrics, run_phase_subject):

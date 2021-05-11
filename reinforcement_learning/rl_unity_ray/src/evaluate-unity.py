@@ -1,25 +1,20 @@
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
 
 import argparse
 import json
 import os
 import subprocess
 
-import numpy as np
-import os
-
 import gym
-from gym import wrappers
+import numpy as np
 import ray
-from ray.rllib.models import ModelCatalog
-from ray.tune.registry import register_env
+from gym import wrappers
+from gym_unity.envs import UnityToGymWrapper
 from mlagents_envs.environment import UnityEnvironment
 from mlagents_envs.exception import UnityWorkerInUseException
 from mlagents_envs.registry import default_registry
-from gym_unity.envs import UnityToGymWrapper
-
+from ray.rllib.models import ModelCatalog
+from ray.tune.registry import register_env
 
 OUTPUT_DIR = "/opt/ml/output/intermediate"
 

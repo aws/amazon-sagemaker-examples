@@ -1,10 +1,9 @@
 """This module implements concrete reset rule for the immobilization"""
 
 import markov.agent_ctrl.constants as const
-
+from markov.metrics.constants import EpisodeStatus
 from markov.reset.abstract_reset_rule import AbstractResetRule
 from markov.reset.constants import AgentCtrlStatus, AgentPhase
-from markov.metrics.constants import EpisodeStatus
 
 
 class ImmobilizedResetRule(AbstractResetRule):

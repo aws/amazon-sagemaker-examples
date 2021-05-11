@@ -1,9 +1,10 @@
-import os
-import tensorflow as tf
 import argparse
-from tensorflow.python.estimator.model_fn import ModeKeys as Modes
-import numpy as np
 import json
+import os
+
+import numpy as np
+import tensorflow as tf
+from tensorflow.python.estimator.model_fn import ModeKeys as Modes
 
 INPUT_TENSOR_NAME = "inputs"
 SIGNATURE_NAME = "predictions"

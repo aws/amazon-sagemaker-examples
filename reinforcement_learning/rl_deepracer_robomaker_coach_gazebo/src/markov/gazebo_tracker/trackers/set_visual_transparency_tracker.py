@@ -1,18 +1,17 @@
 import threading
 from collections import OrderedDict
 
-from markov.log_handler.deepracer_exceptions import GenericRolloutException
-import rospy
-
-from markov.domain_randomizations.constants import GazeboServiceName
-from markov.rospy_wrappers import ServiceProxyWrapper
-from markov.gazebo_tracker.abs_tracker import AbstractTracker
 import markov.gazebo_tracker.constants as consts
+import rospy
 from deepracer_msgs.srv import (
     SetVisualTransparencies,
     SetVisualTransparenciesRequest,
     SetVisualTransparencyResponse,
 )
+from markov.domain_randomizations.constants import GazeboServiceName
+from markov.gazebo_tracker.abs_tracker import AbstractTracker
+from markov.log_handler.deepracer_exceptions import GenericRolloutException
+from markov.rospy_wrappers import ServiceProxyWrapper
 
 
 class SetVisualTransparencyTracker(AbstractTracker):

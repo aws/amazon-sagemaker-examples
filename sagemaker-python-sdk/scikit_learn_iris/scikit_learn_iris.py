@@ -14,12 +14,11 @@
 from __future__ import print_function
 
 import argparse
-import joblib
 import os
+
+import joblib
 import pandas as pd
-
 from sklearn import tree
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

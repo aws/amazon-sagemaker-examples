@@ -1,11 +1,12 @@
+import json
 import os
 import socket
-import json
-import psutil
 import subprocess
 import sys
 import time
 from shutil import copyfile
+
+import psutil
 
 HADOOP_CONFIG_PATH = "/opt/hadoop-config/"
 HADOOP_PATH = "/usr/hadoop-3.0.0"

@@ -7,7 +7,6 @@ import struct
 
 import mxnet as mx
 import numpy as np
-
 from sagemaker_mxnet_container.training_utils import scheduler_host
 
 

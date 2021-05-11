@@ -3,7 +3,7 @@ from unittest import TestCase
 from unittest.mock import patch
 
 from labeling_job_state_change.main import lambda_handler
-from test_shared.mock_objects import TestContext, OutputTestData
+from test_shared.mock_objects import OutputTestData, TestContext
 
 
 class TestCase(TestCase):

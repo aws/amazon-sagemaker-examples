@@ -1,5 +1,6 @@
 # Standard Library
 import argparse
+import os
 import random
 
 # Third Party
@@ -7,7 +8,6 @@ import mxnet as mx
 import numpy as np
 from mxnet import autograd, gluon
 from mxnet.gluon import nn
-import os
 
 
 def parse_args():
@@ -116,7 +116,8 @@ def create_gluon_model():
 
 
 def validate():
-    import os, json
+    import json
+    import os
 
     with open("/opt/ml/input/config/debughookconfig.json") as jsondata:
         configs = json.load(jsondata)

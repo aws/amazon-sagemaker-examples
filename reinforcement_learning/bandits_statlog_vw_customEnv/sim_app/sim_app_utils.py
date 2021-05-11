@@ -1,8 +1,8 @@
-from statlog_sim_app import remove_underrepresented_classes, classification_to_bandit_problem
+import boto3
 import numpy as np
 import pandas as pd
-import boto3
 from src.io_utils import parse_s3_uri
+from statlog_sim_app import classification_to_bandit_problem, remove_underrepresented_classes
 
 
 def prepare_statlog_warm_start_data(data_file, batch_size):

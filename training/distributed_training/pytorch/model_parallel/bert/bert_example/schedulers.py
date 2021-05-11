@@ -13,9 +13,10 @@
 # limitations under the License.
 
 import math
+
 import torch
-from torch.optim.optimizer import Optimizer
 from torch.optim.lr_scheduler import _LRScheduler
+from torch.optim.optimizer import Optimizer
 
 
 class LRScheduler(_LRScheduler):

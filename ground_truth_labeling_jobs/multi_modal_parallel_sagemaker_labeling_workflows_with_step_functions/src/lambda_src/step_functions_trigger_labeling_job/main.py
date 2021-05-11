@@ -5,19 +5,18 @@ the first or second level smgt jobs.
 
 import json
 import os
-from urllib.parse import urlparse
 from collections import namedtuple
+from urllib.parse import urlparse
 
 import boto3
 import botocore
-
-from shared import db, log, label_arn
+from shared import db, label_arn, log
 from shared.constants import (
-    BatchCurrentStep,
-    BatchStatus,
-    BatchMetadataType,
     SNS_DEDUPLICATION_KEY_NAME,
+    BatchCurrentStep,
     BatchMetadataTableAttributes,
+    BatchMetadataType,
+    BatchStatus,
     SmgtJobType,
 )
 from shared.s3_accessor import fetch_s3, put_s3

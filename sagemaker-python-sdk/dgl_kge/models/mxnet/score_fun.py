@@ -1,8 +1,8 @@
-import numpy as np
 import mxnet as mx
+import numpy as np
 from mxnet import gluon
-from mxnet.gluon import nn
 from mxnet import ndarray as nd
+from mxnet.gluon import nn
 
 
 class TransEScore(nn.Block):

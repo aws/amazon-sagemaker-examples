@@ -1,14 +1,13 @@
 #!/usr/bin/env python
 
-import boto3
-
 import base64
-from cryptography.fernet import Fernet
-import os
 import json
+import os
 import pickle
-
 import pprint
+
+import boto3
+from cryptography.fernet import Fernet
 
 # init a boto3 session
 sess = boto3.Session(

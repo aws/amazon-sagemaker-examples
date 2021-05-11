@@ -1,4 +1,5 @@
 import abc
+
 from markov.visual_effects.effect_manager import EffectManager
 
 # Python 2 and 3 compatible Abstract class

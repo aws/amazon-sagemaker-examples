@@ -15,8 +15,8 @@ Train Trax model and serialize as TF SavedModel
 """
 import argparse
 
-import trax
 import tensorflow as tf
+import trax
 from trax import layers as tl
 from trax.supervised import training
 

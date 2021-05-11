@@ -1,6 +1,6 @@
-from s3_helper import S3Ref, get_content_size, copy
-
 import logging
+
+from s3_helper import S3Ref, copy, get_content_size
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)

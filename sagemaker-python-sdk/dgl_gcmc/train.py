@@ -1,24 +1,27 @@
 """Training script"""
-import os, time
 import argparse
+import json
 import logging
+import os
 import random
 import string
-import json
-import numpy as np
+import time
+
 import mxnet as mx
-from mxnet import gluon
+import numpy as np
 from data import MovieLens
-from model import GCMCLayer, BiDecoder
+from model import BiDecoder, GCMCLayer
+from mxnet import gluon
+from mxnet.gluon import Block
+
 from utils import (
+    MetricLogger,
     get_activation,
-    parse_ctx,
     gluon_net_info,
     gluon_total_param_num,
     params_clip_global_norm,
-    MetricLogger,
+    parse_ctx,
 )
-from mxnet.gluon import Block
 
 
 class Net(Block):

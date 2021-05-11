@@ -3,21 +3,22 @@
 
 from __future__ import print_function
 
-import os
-import sys
-import stat
-import json
-import shutil
-import flask
-from flask import Flask, jsonify, request, Response
-import glob
-import pandas as pd
-import numpy as np
-import random
 import csv
+import glob
+import json
+import os
+import random
+import shutil
+import stat
+import sys
 from io import StringIO
-from joblib import dump, load
+
 import boto3
+import flask
+import numpy as np
+import pandas as pd
+from flask import Flask, Response, jsonify, request
+from joblib import dump, load
 from sagemaker_containers.beta.framework import (
     content_types,
     encoders,

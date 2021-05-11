@@ -12,18 +12,17 @@
 # language governing permissions and limitations under the License.
 """Convolutional Neural Network Estimator for MNIST, built with tf.layers."""
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
+
+import argparse
+import json
+import logging as _logging
+import os
+import sys as _sys
 
 import numpy as np
 import tensorflow as tf
-import os
-import json
-import argparse
 from tensorflow.python.platform import tf_logging
-import logging as _logging
-import sys as _sys
 
 
 def cnn_model_fn(features, labels, mode):

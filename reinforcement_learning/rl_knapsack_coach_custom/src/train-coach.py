@@ -1,6 +1,5 @@
-from sagemaker_rl.coach_launcher import SageMakerCoachPresetLauncher
-
 import knapsack_env
+from sagemaker_rl.coach_launcher import SageMakerCoachPresetLauncher
 
 
 class MyLauncher(SageMakerCoachPresetLauncher):

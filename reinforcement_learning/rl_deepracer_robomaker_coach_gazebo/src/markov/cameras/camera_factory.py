@@ -1,6 +1,7 @@
+from enum import Enum
+
 from markov.cameras.handlers import FollowCarCamera, TopCamera
 from markov.log_handler.deepracer_exceptions import GenericRolloutException
-from enum import Enum
 
 
 class CameraType(Enum):

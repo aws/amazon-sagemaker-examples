@@ -1,5 +1,6 @@
-import logging
 import json
+import logging
+
 import flask
 
 logger = logging.getLogger(__name__)

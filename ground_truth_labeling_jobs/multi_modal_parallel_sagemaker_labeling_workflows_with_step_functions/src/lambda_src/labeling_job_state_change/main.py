@@ -6,14 +6,12 @@ forces, like if a job suddenly fails due to invalid input we didn't
 validate fully, this will still write the job state back to the DB.
 """
 import json
+import os
+from re import search
 
 import boto3
-
 from shared import db, log
-from re import search
-import os
-
-from shared.constants import BatchStatus, BatchMetadataTableAttributes, BatchMetadataType
+from shared.constants import BatchMetadataTableAttributes, BatchMetadataType, BatchStatus
 from shared.db import get_batch_metadata_by_labeling_job_name
 
 sfn_client = boto3.client("stepfunctions")

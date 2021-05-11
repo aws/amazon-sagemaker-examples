@@ -1,8 +1,9 @@
-import gym
-from gym import spaces
-import numpy as np
 import os
 import time
+
+import gym
+import numpy as np
+from gym import spaces
 
 
 class TicTacToeEnv(gym.Env):

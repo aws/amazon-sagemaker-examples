@@ -1,6 +1,6 @@
 from rl_coach.agents.clipped_ppo_agent import ClippedPPOAgentParameters
-from rl_coach.base_parameters import VisualizationParameters, PresetValidationParameters
-from rl_coach.core_types import TrainingSteps, EnvironmentEpisodes, EnvironmentSteps
+from rl_coach.base_parameters import PresetValidationParameters, VisualizationParameters
+from rl_coach.core_types import EnvironmentEpisodes, EnvironmentSteps, TrainingSteps
 from rl_coach.environments.gym_environment import GymVectorEnvironment
 from rl_coach.graph_managers.basic_rl_graph_manager import BasicRLGraphManager
 from rl_coach.graph_managers.graph_manager import ScheduleParameters

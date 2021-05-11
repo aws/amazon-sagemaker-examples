@@ -1,6 +1,5 @@
-from moto import mock_s3
-
 from ActiveLearning.create_validation_set import lambda_handler
+from moto import mock_s3
 
 
 @mock_s3

@@ -7,8 +7,8 @@ and validating input.
 
 import json
 
-from shared import log, db
-from shared.constants import BatchMetadataType, BatchStatus, BatchMetadataTableAttributes
+from shared import db, log
+from shared.constants import BatchMetadataTableAttributes, BatchMetadataType, BatchStatus
 from shared.lambda_context import get_boto_client
 
 

@@ -1,15 +1,13 @@
 import os
+from decimal import Decimal
 
 import boto3
 from boto3.dynamodb.conditions import Key
-from .constants import (
-    BatchMetadataTableAttributes as Attributes,
-    BatchCurrentStep,
-    BatchMetadataType,
-    BatchStatus,
-)
-from decimal import Decimal
 from shared import log
+
+from .constants import BatchCurrentStep
+from .constants import BatchMetadataTableAttributes as Attributes
+from .constants import BatchMetadataType, BatchStatus
 
 BATCH_EXECUTION_METADATA_TABLE_NAME = os.getenv("BATCH_EXECUTION_METADATA_TABLE_NAME", "")
 

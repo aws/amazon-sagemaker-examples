@@ -5,7 +5,6 @@ import gym
 import ray
 from ray.tune import run_experiments
 from ray.tune.registry import register_env
-
 from sagemaker_rl.ray_launcher import SageMakerRayLauncher
 
 

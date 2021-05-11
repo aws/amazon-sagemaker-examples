@@ -1,12 +1,13 @@
 import argparse
-import numpy as np
-import os
-import tensorflow as tf
-from mlagents_envs.environment import UnityEnvironment
-import mlagents
-import subprocess
-import yaml
 import json
+import os
+import subprocess
+
+import mlagents
+import numpy as np
+import tensorflow as tf
+import yaml
+from mlagents_envs.environment import UnityEnvironment
 
 
 def parse_args():

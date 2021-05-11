@@ -1,18 +1,24 @@
-from pyspark.sql.functions import from_json, col, split, input_file_name
-from pyspark.sql.functions import year, month, dayofmonth, hour
-from pyspark.sql.types import StructType, StructField, StringType, TimestampType, ArrayType
-from pyspark.sql.functions import udf
 import sys
-from pyspark.sql.functions import unix_timestamp
-
-from pyspark.context import SparkContext
-import pyspark.sql.functions as f
-
-from awsglue.utils import getResolvedOptions
-from awsglue.context import GlueContext
-from awsglue.job import Job
 
 import boto3
+import pyspark.sql.functions as f
+from awsglue.context import GlueContext
+from awsglue.job import Job
+from awsglue.utils import getResolvedOptions
+from pyspark.context import SparkContext
+from pyspark.sql.functions import (
+    col,
+    dayofmonth,
+    from_json,
+    hour,
+    input_file_name,
+    month,
+    split,
+    udf,
+    unix_timestamp,
+    year,
+)
+from pyspark.sql.types import ArrayType, StringType, StructField, StructType, TimestampType
 
 sc = SparkContext()
 glueContext = GlueContext(SparkContext.getOrCreate())

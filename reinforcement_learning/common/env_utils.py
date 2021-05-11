@@ -1,8 +1,9 @@
+import json
+from pathlib import Path
+
 import gym
 import numpy as np
 import pandas as pd
-import json
-from pathlib import Path
 
 gym.logger.set_level(40)
 

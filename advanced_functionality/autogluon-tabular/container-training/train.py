@@ -1,23 +1,23 @@
-import ast
 import argparse
-import logging
-import warnings
-import os
-import json
+import ast
 import glob
+import json
+import logging
+import os
+import pickle
+import shutil
 import subprocess
 import sys
-import boto3
-import pickle
-import pandas as pd
+import warnings
 from collections import Counter
 from timeit import default_timer as timer
 
-import numpy as np
-import seaborn as sns
+import boto3
 import matplotlib.pyplot as plt
-import shutil
 import networkx as nx
+import numpy as np
+import pandas as pd
+import seaborn as sns
 
 logging.basicConfig(level=logging.DEBUG)
 logging.info(subprocess.call("ls -lR /opt/ml/input".split()))
@@ -29,12 +29,10 @@ from smdebug.core.writer import FileWriter
 
 with warnings.catch_warnings():
     warnings.filterwarnings("ignore", category=DeprecationWarning)
-    from prettytable import PrettyTable
     import autogluon as ag
-
-    from autogluon.tabular import TabularDataset, TabularPredictor
-
     from autogluon.core.constants import BINARY, MULTICLASS, REGRESSION, SOFTCLASS
+    from autogluon.tabular import TabularDataset, TabularPredictor
+    from prettytable import PrettyTable
 
     # print(f'DEBUG AutoGluon version : {ag.__version__}')
 
@@ -74,10 +72,10 @@ def format_for_print(df):
 
 
 def get_roc_auc(y_test_true, y_test_pred, labels, class_labels_internal, model_output_dir):
-    from sklearn.preprocessing import label_binarize
-    from sklearn.metrics import roc_curve, auc
-
     from itertools import cycle
+
+    from sklearn.metrics import auc, roc_curve
+    from sklearn.preprocessing import label_binarize
 
     y_test_true_binalized = label_binarize(y_test_true, classes=labels)
 

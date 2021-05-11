@@ -12,15 +12,14 @@
 # language governing permissions and limitations under the License.
 from __future__ import absolute_import
 
-import yaml
+import collections
 import logging
 import multiprocessing
-
 import os
 import shlex
 import subprocess
 
-import collections
+import yaml
 
 logging.basicConfig()
 logger = logging.getLogger(__name__)

@@ -1,16 +1,15 @@
-from threading import Thread, Event, Lock
+import logging
 import pickle
 import queue
-import logging
-import redis
 import uuid
+from threading import Event, Lock, Thread
 
+import redis
+from markov.architecture.constants import NeuralNetwork
+from markov.log_handler.logger import Logger
+from rl_coach.core_types import Episode
 from rl_coach.memories.backend.memory import MemoryBackend
 from rl_coach.memories.backend.redis import RedisPubSubMemoryBackendParameters
-from rl_coach.core_types import Episode
-
-from markov.log_handler.logger import Logger
-from markov.architecture.constants import NeuralNetwork
 
 LOG = Logger(__name__, logging.INFO).get_logger()
 
@@ -72,7 +71,7 @@ def get_endpoint_helper(redis_address, redis_port):
 
 
 class DeepRacerRolloutBackEnd(MemoryBackend):
-    """ Class used by the rollout worker to publish data to the training worker"""
+    """Class used by the rollout worker to publish data to the training worker"""
 
     def __init__(self, params, num_consecutive_playing_steps, agent_name):
         """params - Struct containing all the necessary redis parammeters,
@@ -183,12 +182,12 @@ class DeepRacerRolloutBackEnd(MemoryBackend):
             self.last_episode_num += self.num_workers
 
     def get_endpoint(self):
-        """Returns a dict with the redis address and port """
+        """Returns a dict with the redis address and port"""
         return get_endpoint_helper(self.params.redis_address, self.params.redis_port)
 
 
 class DeepRacerTrainerBackEnd(MemoryBackend):
-    """Class used by the training worker to retrieve the data from the rollout worker """
+    """Class used by the training worker to retrieve the data from the rollout worker"""
 
     def __init__(self, params, agents_params):
         """params - Struct containing all the necessary redis parammeters,
@@ -248,15 +247,15 @@ class DeepRacerTrainerBackEnd(MemoryBackend):
             LOG.info("Trainer data handler error: %s", ex)
 
     def get_rollout_steps(self):
-        """Returns the total number of steps in a rollout """
+        """Returns the total number of steps in a rollout"""
         return self.rollout_steps
 
     def get_total_episodes_in_rollout(self):
-        """Return the total number of episodes collected in the rollout """
+        """Return the total number of episodes collected in the rollout"""
         return self.total_episodes_in_rollout
 
     def publish_worker(self, agent_name):
-        """ Worker responsible for requesting data from the rollout worker"""
+        """Worker responsible for requesting data from the rollout worker"""
         while True:
             try:
                 if self.request_data:
@@ -343,5 +342,5 @@ class DeepRacerTrainerBackEnd(MemoryBackend):
                 continue
 
     def get_endpoint(self):
-        """Returns a dict with the redis address and port """
+        """Returns a dict with the redis address and port"""
         return get_endpoint_helper(self.params.redis_address, self.params.redis_port)

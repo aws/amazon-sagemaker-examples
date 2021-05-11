@@ -6,14 +6,13 @@ Do handle the failure we:
     2) Publish job failed SNS.
 """
 
-import os
 import json
+import os
 
 import boto3
 import botocore
-
-from shared.log import log_request_and_context, logger
 from shared import db
+from shared.log import log_request_and_context, logger
 
 
 def lambda_handler(event, context):

@@ -18,17 +18,19 @@
 # under the License.
 
 from __future__ import print_function
+
 import os
 import sys
 
 curr_path = os.path.abspath(os.path.dirname(__file__))
 sys.path.append(os.path.join(curr_path, "../python"))
-import mxnet as mx
-import random
 import argparse
-import cv2
+import random
 import time
 import traceback
+
+import cv2
+import mxnet as mx
 
 try:
     import multiprocessing

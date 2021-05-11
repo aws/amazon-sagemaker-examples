@@ -1,27 +1,26 @@
 from __future__ import print_function
 
-import time
-import sys
+import csv
 import os
 import shutil
-import csv
+import sys
+import time
+
 import boto3
-
-from awsglue.utils import getResolvedOptions
-
 import pyspark
-from pyspark.sql import SparkSession
-from pyspark.ml import Pipeline
-from pyspark.ml.feature import (
-    StringIndexer,
-    VectorIndexer,
-    OneHotEncoder,
-    VectorAssembler,
-    IndexToString,
-)
-from pyspark.ml.evaluation import MulticlassClassificationEvaluator
-from pyspark.sql.functions import *
+from awsglue.utils import getResolvedOptions
 from mleap.pyspark.spark_support import SimpleSparkSerializer
+from pyspark.ml import Pipeline
+from pyspark.ml.evaluation import MulticlassClassificationEvaluator
+from pyspark.ml.feature import (
+    IndexToString,
+    OneHotEncoder,
+    StringIndexer,
+    VectorAssembler,
+    VectorIndexer,
+)
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import *
 
 
 def toCSVLine(data):

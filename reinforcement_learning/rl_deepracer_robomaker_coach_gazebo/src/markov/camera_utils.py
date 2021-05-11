@@ -1,10 +1,11 @@
-import rospy
-import time
 import threading
+import time
+
+import rospy
 from markov.cameras.camera_factory import CameraFactory
-from markov.log_handler.deepracer_exceptions import GenericRolloutException
 from markov.defaults import DEFAULT_MAIN_CAMERA, DEFAULT_SUB_CAMERA
 from markov.gazebo_tracker.trackers.get_model_state_tracker import GetModelStateTracker
+from markov.log_handler.deepracer_exceptions import GenericRolloutException
 
 is_configure_camera_called = False
 configure_camera_function_lock = threading.Lock()

@@ -1,6 +1,7 @@
 import json
 import random
 
+
 # sample preprocess_handler (to be implemented by customer)
 # This is a trivial example, where we simply generate random values
 # But customers can read the data from inference_record and trasnform it into

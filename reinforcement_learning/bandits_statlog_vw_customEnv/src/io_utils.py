@@ -1,9 +1,10 @@
 import json
 import logging
-import boto3
-from pathlib import Path
-import shutil
 import os
+import shutil
+from pathlib import Path
+
+import boto3
 import pandas as pd
 
 logger = logging.getLogger(__name__)

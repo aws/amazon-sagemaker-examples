@@ -2,12 +2,11 @@ import json
 import os
 import unittest
 from unittest import TestCase
-from unittest.mock import patch, Mock
-
-from botocore.exceptions import ClientError
+from unittest.mock import Mock, patch
 
 from api_batch_create.main import lambda_handler
-from test_shared.mock_objects import TestContext, InputTestData
+from botocore.exceptions import ClientError
+from test_shared.mock_objects import InputTestData, TestContext
 
 
 class TestCase(TestCase):

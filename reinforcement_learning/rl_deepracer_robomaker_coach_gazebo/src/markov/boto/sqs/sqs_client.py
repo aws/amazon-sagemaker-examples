@@ -1,16 +1,17 @@
 """This module implement sqs client"""
 
 import logging
+
 import botocore
-from markov.log_handler.exception_handler import log_and_exit
+from markov.boto.constants import BotoClientNames
+from markov.boto.deepracer_boto_client import DeepRacerBotoClient
+from markov.boto.sqs.constants import StatusIndicator
 from markov.log_handler.constants import (
     SIMAPP_EVENT_ERROR_CODE_500,
     SIMAPP_SQS_DELETE_MESSAGE_EXCEPTION,
 )
+from markov.log_handler.exception_handler import log_and_exit
 from markov.log_handler.logger import Logger
-from markov.boto.sqs.constants import StatusIndicator
-from markov.boto.constants import BotoClientNames
-from markov.boto.deepracer_boto_client import DeepRacerBotoClient
 
 LOG = Logger(__name__, logging.INFO).get_logger()
 

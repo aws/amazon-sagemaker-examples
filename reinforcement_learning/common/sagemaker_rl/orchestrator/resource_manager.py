@@ -4,16 +4,13 @@ import time
 
 import boto3
 import sagemaker
-from botocore.exceptions import ClientError
-from sagemaker.local.local_session import LocalSession
-
-from orchestrator.exceptions.ddb_client_exceptions import RecordAlreadyExistsException
-
 from boto3.dynamodb.conditions import Key
-
+from botocore.exceptions import ClientError
 from orchestrator.clients.ddb.experiment_db_client import ExperimentDbClient
 from orchestrator.clients.ddb.join_db_client import JoinDbClient
 from orchestrator.clients.ddb.model_db_client import ModelDbClient
+from orchestrator.exceptions.ddb_client_exceptions import RecordAlreadyExistsException
+from sagemaker.local.local_session import LocalSession
 
 logger = logging.getLogger(__name__)
 

@@ -11,11 +11,12 @@
 # ANY KIND, either express or implied. See the License for the specific
 # language governing permissions and limitations under the License.import tensorflow as tf
 
-import tensorflow as tf
 import argparse
-import os
-import numpy as np
 import json
+import os
+
+import numpy as np
+import tensorflow as tf
 
 
 def model(x_train, y_train, x_test, y_test):

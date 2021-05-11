@@ -1,14 +1,4 @@
-from markov.cameras.utils import lerp
-from markov.rospy_wrappers import ServiceProxyWrapper
-from markov.domain_randomizations.constants import GazeboServiceName
-from markov.visual_effects.abs_effect import AbstractEffect
-from markov.track_geom.track_data import TrackData
-from markov.gazebo_tracker.trackers.set_visual_transparency_tracker import (
-    SetVisualTransparencyTracker,
-)
 import rospy
-from gazebo_msgs.srv import GetModelProperties, GetModelPropertiesRequest
-
 from deepracer_msgs.srv import (
     GetVisualNames,
     GetVisualNamesRequest,
@@ -16,6 +6,15 @@ from deepracer_msgs.srv import (
     GetVisualsRequest,
     GetVisualsResponse,
 )
+from gazebo_msgs.srv import GetModelProperties, GetModelPropertiesRequest
+from markov.cameras.utils import lerp
+from markov.domain_randomizations.constants import GazeboServiceName
+from markov.gazebo_tracker.trackers.set_visual_transparency_tracker import (
+    SetVisualTransparencyTracker,
+)
+from markov.rospy_wrappers import ServiceProxyWrapper
+from markov.track_geom.track_data import TrackData
+from markov.visual_effects.abs_effect import AbstractEffect
 
 
 class BlinkEffect(AbstractEffect):

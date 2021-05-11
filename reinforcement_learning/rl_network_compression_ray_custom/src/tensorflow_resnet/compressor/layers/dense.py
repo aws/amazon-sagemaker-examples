@@ -1,7 +1,7 @@
-import tensorflow as tf
 import numpy as np
+import tensorflow as tf
 
-from ..core import Layer, Fake
+from ..core import Fake, Layer
 from .ops import get_param_from_name, load_pkl_obj
 
 
@@ -56,13 +56,13 @@ class Dense(Layer):
         self.description.append(self.get_memory_footprint())
 
     def _get_params_real(self):
-        """ Returns the kernel node """
+        """Returns the kernel node"""
         kernel = get_param_from_name(self._tf_name + "/dense/kernel:0")
         bias = get_param_from_name(self._tf_name + "/dense/bias:0")
         return {self.get_name(): [kernel, bias]}
 
     def _get_memory_footprint_real(self):
-        """ Returns the number of paramters """
+        """Returns the number of paramters"""
         params = self.get_params()[self.get_name()]
         return int(np.prod(params[0].shape)) + int(np.prod(params[1].shape))
 

@@ -15,11 +15,10 @@ from __future__ import print_function
 
 import argparse
 import os
-import pandas as pd
 
+import pandas as pd
 from sklearn import tree
 from sklearn.externals import joblib
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

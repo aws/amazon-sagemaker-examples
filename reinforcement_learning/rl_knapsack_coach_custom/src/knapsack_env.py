@@ -1,14 +1,16 @@
-import gym
-from gym import spaces
-import numpy as np
-import queue
 import csv
+import queue
 
+import gym
+import numpy as np
 from capacity import Capacity
+from gym import spaces
 from item import Item
-from knapsack_baseline import get_knapsack_solution_simple
-from knapsack_baseline import get_knapsack_solution_medium
-from knapsack_baseline import get_knapsack_benchmark_sol_hard_greedy_heuristic
+from knapsack_baseline import (
+    get_knapsack_benchmark_sol_hard_greedy_heuristic,
+    get_knapsack_solution_medium,
+    get_knapsack_solution_simple,
+)
 from knapsack_view_2D import KnapsackView2D
 
 

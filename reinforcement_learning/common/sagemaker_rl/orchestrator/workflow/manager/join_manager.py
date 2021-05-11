@@ -1,20 +1,21 @@
-import boto3
+import io
+import json
 import logging
 import os
-import io
-import time
 import re
-import json
+import time
 from datetime import datetime, timedelta
 from threading import Thread
+
+import boto3
 from botocore.exceptions import ClientError
 from orchestrator.clients.ddb.join_db_client import JoinDbClient
-from orchestrator.workflow.datatypes.join_job_record import JoinJobRecord
 from orchestrator.exceptions.ddb_client_exceptions import RecordAlreadyExistsException
 from orchestrator.exceptions.workflow_exceptions import (
-    UnhandledWorkflowException,
     JoinQueryIdsNotAvailableException,
+    UnhandledWorkflowException,
 )
+from orchestrator.workflow.datatypes.join_job_record import JoinJobRecord
 
 logger = logging.getLogger("orchestrator")
 

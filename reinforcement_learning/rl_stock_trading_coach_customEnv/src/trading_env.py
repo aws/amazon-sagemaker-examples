@@ -1,14 +1,14 @@
 """
 Modified from https://github.com/PacktPublishing/Deep-Reinforcement-Learning-Hands-On/blob/master/Chapter08/lib/environ.py
 """
+import enum
+
 import gym
 import gym.spaces
-from gym.utils import seeding
-import enum
 import numpy as np
-
-from data import *
 from config import *
+from data import *
+from gym.utils import seeding
 
 
 class TradingEnv(gym.Env):

@@ -1,14 +1,14 @@
-import os
-import numpy as np
-import pandas as pd
 import io
-from scipy.sparse import csr_matrix, hstack
-from sklearn.preprocessing import OneHotEncoder
-from sklearn.model_selection import train_test_split
-from sklearn.feature_extraction.text import TfidfVectorizer
-
+import os
 import subprocess
 import sys
+
+import numpy as np
+import pandas as pd
+from scipy.sparse import csr_matrix, hstack
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import OneHotEncoder
 
 subprocess.check_call([sys.executable, "-m", "pip", "install", "sagemaker"])
 import sagemaker.amazon.common as smac

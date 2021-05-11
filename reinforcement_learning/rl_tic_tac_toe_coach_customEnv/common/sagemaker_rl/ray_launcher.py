@@ -6,13 +6,12 @@ import time
 from enum import Enum
 
 import boto3
-
 import ray
 from ray.tune import run_experiments
 
 from .configuration_list import ConfigurationList
-from .sage_cluster_communicator import SageClusterCommunicator
 from .docker_utils import get_ip_from_host
+from .sage_cluster_communicator import SageClusterCommunicator
 
 TERMINATION_SIGNAL = "JOB_TERMINATED"
 

@@ -1,8 +1,9 @@
-import numpy as np
 import os
 import zipfile
-from skimage import io
+
+import numpy as np
 from mxnet.test_utils import download
+from skimage import io
 
 
 def download_training_data():

@@ -7,7 +7,6 @@ import os
 from urllib.parse import urlparse
 
 import boto3
-
 from shared import db, log
 
 sns = boto3.resource("sns")

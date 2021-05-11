@@ -1,10 +1,11 @@
 """This module implements concrete reset rule for race time up"""
 import logging
+
 from markov.log_handler.logger import Logger
+from markov.metrics.constants import EpisodeStatus
 from markov.reset.abstract_reset_rule import AbstractResetRule
 from markov.reset.constants import RaceCtrlStatus
 from markov.track_geom.track_data import TrackData
-from markov.metrics.constants import EpisodeStatus
 
 LOG = Logger(__name__, logging.INFO).get_logger()
 

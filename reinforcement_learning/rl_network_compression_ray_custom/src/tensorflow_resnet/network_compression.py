@@ -1,20 +1,18 @@
-import numpy as np
-import logging
-import shutil
-import os
 import heapq
+import json
+import logging
+import os
+import shutil
 import sys
 
+import numpy as np
 from tensorflow_resnet.compressor import ModeKeys
+from tensorflow_resnet.compressor.core import Fake
 from tensorflow_resnet.compressor.layers import LayerState
 from tensorflow_resnet.compressor.layers.ops import get_tf_vars_dict
-from tensorflow_resnet.compressor.tf_interface import TensorflowInterface as tf
-from tensorflow_resnet.compressor.core import Fake
-
-from tensorflow_resnet.dataset import Cifar10
 from tensorflow_resnet.compressor.resnet import ResNet18Model
-
-import json
+from tensorflow_resnet.compressor.tf_interface import TensorflowInterface as tf
+from tensorflow_resnet.dataset import Cifar10
 
 _MASTER_MODEL_NAME = "master"
 _MODEL_DIR = "cifar10_model"
@@ -88,7 +86,7 @@ class NetworkCompressionBase(object):
         )
 
     def _perform_actions(self, epochs=5, epochs_between_evals=1):
-        """ This is a sub-method of the perform actions, that is focussed only on the action itself."""
+        """This is a sub-method of the perform actions, that is focussed only on the action itself."""
         logging.info("Performing action: " + self.params["name"])
         self._reset()
         estimator = tf.estimator_builder(
@@ -287,15 +285,15 @@ class NetworkCompression(NetworkCompressionBase):
         self.reward = 0.5
 
     def get_action_space(self):
-        """ Returns the number of layers in the network """
+        """Returns the number of layers in the network"""
         return self.model_class.LAYER_COUNTS[self.model_class.size]
 
     def get_observation_space(self):
-        """ Returns a tuple of layer number and length of each layer descirptions """
+        """Returns a tuple of layer number and length of each layer descirptions"""
         return (self.get_action_space(), LayerState.LAYER_STATE_LENGTH)
 
     def get_current_pos(self):
-        """ Returns the observation of the master network """
+        """Returns the observation of the master network"""
         obs = self._get_observation(None, "master")
         pos = np.zeros(self.get_observation_space())
         for k in obs.keys():
@@ -371,11 +369,11 @@ class NetworkCompression(NetworkCompressionBase):
         return True
 
     def get_reward(self):
-        """ Returns the value of the current reward. """
+        """Returns the value of the current reward."""
         return self.reward
 
     def reset_params(self, in_params):
-        """ Accept the params and reset them ."""
+        """Accept the params and reset them ."""
         for k in in_params.keys():
             self.params[k] = in_params[k]
 

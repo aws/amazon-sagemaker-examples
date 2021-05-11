@@ -5,9 +5,9 @@ import collections
 import copy
 import json
 import os
-from pathlib import Path
 import pickle
 import shelve
+from pathlib import Path
 
 import gym
 import gym.wrappers
@@ -24,10 +24,10 @@ except Exception:
 from ray.rllib.evaluation.worker_set import WorkerSet
 from ray.rllib.policy.sample_batch import DEFAULT_POLICY_ID
 from ray.rllib.utils.deprecation import deprecation_warning
-from ray.tune.utils import merge_dicts
 from ray.tune.registry import get_trainable_cls
+from ray.tune.utils import merge_dicts
 
-from utils.loader import load_envs, load_models, load_algorithms, load_preprocessors
+from utils.loader import load_algorithms, load_envs, load_models, load_preprocessors
 
 """
 Note : This script has been adapted from :

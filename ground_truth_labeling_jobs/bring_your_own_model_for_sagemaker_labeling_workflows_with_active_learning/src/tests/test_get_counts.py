@@ -1,7 +1,6 @@
 import boto3
-from moto import mock_s3
-
 from MetaData.get_counts import lambda_handler
+from moto import mock_s3
 
 
 @mock_s3

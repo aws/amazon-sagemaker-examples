@@ -1,8 +1,7 @@
-from sagemaker_translate import model_fn, input_fn, output_fn, predict_fn
-
-import flask
 import os
 
+import flask
+from sagemaker_translate import input_fn, model_fn, output_fn, predict_fn
 
 prefix = "/opt/ml/"
 model_path = os.path.join(prefix, "model")

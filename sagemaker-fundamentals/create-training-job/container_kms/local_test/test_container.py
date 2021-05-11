@@ -2,8 +2,9 @@
 # on SageMaker infrastructure. It mimics how SageMaker provides
 # training info to your container and how it executes it.
 
-import docker
 import os
+
+import docker
 
 dirname = os.path.dirname(os.path.realpath(__file__))
 

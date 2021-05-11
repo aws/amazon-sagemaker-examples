@@ -1,8 +1,9 @@
 """This module houses all the constants for the metrics package"""
-from enum import Enum, unique
-from collections import OrderedDict
-import os
 import logging
+import os
+from collections import OrderedDict
+from enum import Enum, unique
+
 from markov.log_handler.logger import Logger
 
 LOG = Logger(__name__, logging.INFO).get_logger()

@@ -1,7 +1,8 @@
-import socket
-import sys
-import subprocess
 import os
+import socket
+import subprocess
+import sys
+
 from eplus.envs import pyEpError
 
 

@@ -9,7 +9,7 @@ class FSM(object):
     """
 
     def __init__(self, initial_state):
-        """ Initialize the components. """
+        """Initialize the components."""
 
         # Start state machine with an initial state
         self._current_state = initial_state

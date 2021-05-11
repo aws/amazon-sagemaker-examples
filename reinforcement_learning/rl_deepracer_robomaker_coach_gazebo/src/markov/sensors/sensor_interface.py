@@ -11,7 +11,7 @@ class SensorInterface(object, metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def get_observation_space(self):
-        """ Return the observation space for this sensor """
+        """Return the observation space for this sensor"""
         raise NotImplementedError("Sensor object must configure observation space")
 
     @abc.abstractmethod
@@ -23,7 +23,7 @@ class SensorInterface(object, metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def reset(self):
-        """ Reset the sensor data """
+        """Reset the sensor data"""
         raise NotImplementedError("Sensor object must reset")
 
     @abc.abstractmethod

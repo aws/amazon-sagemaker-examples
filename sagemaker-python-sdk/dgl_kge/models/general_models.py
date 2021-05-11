@@ -1,26 +1,31 @@
 import os
-import numpy as np
+
 import dgl.backend as F
+import numpy as np
 
 backend = os.environ.get("DGLBACKEND")
 if backend and backend.lower() == "mxnet":
-    from .mxnet.tensor_models import logsigmoid
-    from .mxnet.tensor_models import get_device
-    from .mxnet.tensor_models import norm
-    from .mxnet.tensor_models import get_scalar
-    from .mxnet.tensor_models import reshape
-    from .mxnet.tensor_models import cuda
-    from .mxnet.tensor_models import ExternalEmbedding
     from .mxnet.score_fun import *
+    from .mxnet.tensor_models import (
+        ExternalEmbedding,
+        cuda,
+        get_device,
+        get_scalar,
+        logsigmoid,
+        norm,
+        reshape,
+    )
 else:
-    from .pytorch.tensor_models import logsigmoid
-    from .pytorch.tensor_models import get_device
-    from .pytorch.tensor_models import norm
-    from .pytorch.tensor_models import get_scalar
-    from .pytorch.tensor_models import reshape
-    from .pytorch.tensor_models import cuda
-    from .pytorch.tensor_models import ExternalEmbedding
     from .pytorch.score_fun import *
+    from .pytorch.tensor_models import (
+        ExternalEmbedding,
+        cuda,
+        get_device,
+        get_scalar,
+        logsigmoid,
+        norm,
+        reshape,
+    )
 
 
 class KEModel(object):

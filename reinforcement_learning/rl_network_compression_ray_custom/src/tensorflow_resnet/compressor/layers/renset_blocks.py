@@ -1,8 +1,9 @@
-from . import Conv, BatchNorm, ReLU
-from ..core import Module
-
 import logging
+
 import numpy as np
+
+from ..core import Module
+from . import BatchNorm, Conv, ReLU
 
 
 class BuildingBlock(Module):

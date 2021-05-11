@@ -1,27 +1,28 @@
-import sys
-import os
 import argparse
-import logging
-import warnings
-import time
-import json
-import subprocess
 import copy
+import json
+import logging
+import os
+import subprocess
+import sys
+import time
+import warnings
 
 warnings.filterwarnings("ignore", category=FutureWarning)
 
+import pickle
+from collections import Counter
+from io import StringIO
+from itertools import islice
+from timeit import default_timer as timer
+
 import numpy as np
 import pandas as pd
-import pickle
-from io import StringIO
-from timeit import default_timer as timer
-from itertools import islice
-from collections import Counter
 
 with warnings.catch_warnings():
     warnings.filterwarnings("ignore", category=DeprecationWarning)
+    from autogluon.tabular import TabularDataset, TabularPredictor
     from prettytable import PrettyTable
-    from autogluon.tabular import TabularPredictor, TabularDataset
 
 
 def make_str_table(df):

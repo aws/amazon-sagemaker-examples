@@ -11,16 +11,16 @@
 # ANY KIND, either express or implied. See the License for the specific
 # language governing permissions and limitations under the License.
 
-import os
 import argparse
 import logging
+import os
+
 import numpy as np
 import tensorflow as tf
-from data_util import load_train_dataset, load_test_dataset
-from sklearn.model_selection import train_test_split
-from model import get_model
-
 import tensorflow.keras.backend as K
+from data_util import load_test_dataset, load_train_dataset
+from model import get_model
+from sklearn.model_selection import train_test_split
 
 logging.getLogger().setLevel(logging.INFO)
 tf.logging.set_verbosity(tf.logging.ERROR)

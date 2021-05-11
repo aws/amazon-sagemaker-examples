@@ -1,7 +1,7 @@
-import time
-import boto3
 import argparse
+import time
 
+import boto3
 
 # Parse argument variables passed via the DeployModel processing step
 parser = argparse.ArgumentParser()

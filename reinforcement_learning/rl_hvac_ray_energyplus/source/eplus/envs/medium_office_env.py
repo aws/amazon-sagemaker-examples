@@ -1,18 +1,16 @@
+import itertools
+import os
+import queue
+import time
+import uuid
+from queue import Queue
+from threading import Event, Thread
+
 import gym
+import numpy as np
 from gym import error, spaces, utils
 from gym.utils import seeding
-
 from pyenergyplus.api import EnergyPlusAPI
-
-import numpy as np
-import os
-import itertools
-import uuid
-import time
-import queue
-from queue import Queue
-
-from threading import Thread, Event
 
 
 class MediumOfficeEnv(gym.Env):

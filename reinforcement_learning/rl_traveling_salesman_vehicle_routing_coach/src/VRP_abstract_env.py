@@ -1,9 +1,8 @@
 import gym
 import numpy as np
 from gym import spaces
-
-from VRP_view_2D import VRPView2D
 from VRP_baseline_utils import vrp_action_go_from_a_to_b
+from VRP_view_2D import VRPView2D
 
 """ 
 

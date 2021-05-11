@@ -1,13 +1,12 @@
-from models import KEModel
+import json
+import logging
+import os
+import time
 
 import mxnet as mx
+from models import KEModel
 from mxnet import gluon
 from mxnet import ndarray as nd
-
-import os
-import logging
-import time
-import json
 
 
 def load_model(logger, args, n_entities, n_relations, ckpt=None):

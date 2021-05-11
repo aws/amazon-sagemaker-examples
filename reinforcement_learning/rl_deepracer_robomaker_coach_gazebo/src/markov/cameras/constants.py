@@ -1,6 +1,8 @@
 """This module houses the constants for the camera package"""
 from enum import Enum, unique
+
 import numpy as np
+
 
 # Define Gazebo World default direction unit vectors
 class GazeboWorld(object):

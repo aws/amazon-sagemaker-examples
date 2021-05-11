@@ -1,10 +1,10 @@
-import torch
-from torchvision import models
-import torchvision
-import torch.nn as nn
 import numpy as np
 import smdebug
+import torch
+import torch.nn as nn
+import torchvision
 from smdebug import modes
+from torchvision import models
 
 # list of ordered tensor names
 activation_outputs = [

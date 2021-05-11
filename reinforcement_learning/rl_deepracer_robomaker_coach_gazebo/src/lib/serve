@@ -15,16 +15,16 @@
 # timeout                  MODEL_SERVER_TIMEOUT              workers_count * 10 seconds
 
 from __future__ import print_function
+
 from gevent import monkey, wait
+
 monkey.patch_all()
+import math
 import multiprocessing
 import os
 import signal
 import subprocess
 import sys
-import math
-
-
 
 cpu_count = multiprocessing.cpu_count()
 workers_count = math.ceil(cpu_count * 0.75)        # https://docs.gunicorn.org/en/stable/design.html

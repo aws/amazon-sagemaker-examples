@@ -17,9 +17,8 @@ import subprocess
 import tempfile
 
 import numpy as np
-import tensorflow as tf
-
 import sagemaker
+import tensorflow as tf
 from sagemaker.estimator import Estimator
 
 NUM_CLASSES = 10

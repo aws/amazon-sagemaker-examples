@@ -1,16 +1,16 @@
 """This module contains the available sensors for the sim app"""
 from markov.architecture.constants import Input
-from markov.sensors.sensor_interface import SensorInterface, LidarInterface
+from markov.log_handler.constants import SIMAPP_TRAINING_WORKER_EXCEPTION
+from markov.log_handler.deepracer_exceptions import GenericError, GenericTrainerException
+from markov.sensors.sensor_interface import LidarInterface, SensorInterface
 from markov.sensors.utils import (
-    get_observation_space,
     get_front_camera_embedders,
     get_left_camera_embedders,
-    get_stereo_camera_embedders,
     get_lidar_embedders,
     get_observation_embedder,
+    get_observation_space,
+    get_stereo_camera_embedders,
 )
-from markov.log_handler.deepracer_exceptions import GenericTrainerException, GenericError
-from markov.log_handler.constants import SIMAPP_TRAINING_WORKER_EXCEPTION
 
 
 class SensorFactory(object):

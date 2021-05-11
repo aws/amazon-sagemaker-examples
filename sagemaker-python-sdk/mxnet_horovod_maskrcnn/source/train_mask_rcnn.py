@@ -40,34 +40,35 @@ os.environ["MXNET_USE_FUSION"] = "0"
 
 import logging
 import time
-import numpy as np
+
+import gluoncv as gcv
 import mxnet as mx
+import numpy as np
 from mxnet import gluon
 from mxnet.contrib import amp
-import gluoncv as gcv
 
 gcv.utils.check_version("0.7.0")
+from multiprocessing import Process
+
 from gluoncv import data as gdata
 from gluoncv import utils as gutils
-from gluoncv.model_zoo import get_model
-from gluoncv.data import batchify
+from gluoncv.data import COCODetection, VOCDetection, batchify
 from gluoncv.data.transforms.presets.rcnn import (
     MaskRCNNDefaultTrainTransform,
     MaskRCNNDefaultValTransform,
 )
+from gluoncv.model_zoo import get_model
+from gluoncv.model_zoo.rcnn.mask_rcnn.data_parallel import ForwardBackwardTask
 from gluoncv.utils.metrics.coco_instance import COCOInstanceMetric
 from gluoncv.utils.metrics.rcnn import (
-    RPNAccMetric,
-    RPNL1LossMetric,
-    RCNNAccMetric,
-    RCNNL1LossMetric,
     MaskAccMetric,
     MaskFGAccMetric,
+    RCNNAccMetric,
+    RCNNL1LossMetric,
+    RPNAccMetric,
+    RPNL1LossMetric,
 )
 from gluoncv.utils.parallel import Parallel
-from gluoncv.data import COCODetection, VOCDetection
-from multiprocessing import Process
-from gluoncv.model_zoo.rcnn.mask_rcnn.data_parallel import ForwardBackwardTask
 
 try:
     import horovod.mxnet as hvd

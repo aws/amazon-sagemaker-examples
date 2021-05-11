@@ -1,12 +1,12 @@
 import argparse
-import dgl
 import json
-import numpy as np
 import os
 import random
-import torch
-
 from datetime import datetime
+
+import dgl
+import numpy as np
+import torch
 from dgl import model_zoo
 from dgl.data.chem import Tox21
 from dgl.data.utils import split_dataset

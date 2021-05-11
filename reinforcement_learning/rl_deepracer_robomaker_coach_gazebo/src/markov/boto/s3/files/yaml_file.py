@@ -1,33 +1,32 @@
 """This module implements s3 client for yaml file"""
 
-import os
 import logging
-import yaml
-import botocore
+import os
 
-from markov.utils import force_list
-from markov.rollout_constants import BodyShellType
-from markov.log_handler.logger import Logger
-from markov.log_handler.exception_handler import log_and_exit
+import botocore
+import yaml
+from markov.boto.s3.constants import (
+    EVAL_MANDATORY_YAML_KEY,
+    F1_RACE_TYPE,
+    F1_SHELL_USERS_LIST,
+    MODEL_METADATA_S3_POSTFIX,
+    TOUR_MANDATORY_YAML_KEY,
+    TRAINING_MANDATORY_YAML_KEY,
+    VIRUTAL_EVENT_MANDATORY_YAML_KEY,
+    AgentType,
+    YamlKey,
+)
+from markov.boto.s3.s3_client import S3Client
+from markov.boto.s3.utils import is_power_of_two
 from markov.log_handler.constants import (
     SIMAPP_EVENT_ERROR_CODE_500,
     SIMAPP_SIMULATION_WORKER_EXCEPTION,
 )
+from markov.log_handler.exception_handler import log_and_exit
+from markov.log_handler.logger import Logger
 from markov.reset.constants import RaceType
-from markov.boto.s3.s3_client import S3Client
-from markov.boto.s3.utils import is_power_of_two
-from markov.boto.s3.constants import (
-    MODEL_METADATA_S3_POSTFIX,
-    AgentType,
-    YamlKey,
-    TRAINING_MANDATORY_YAML_KEY,
-    EVAL_MANDATORY_YAML_KEY,
-    TOUR_MANDATORY_YAML_KEY,
-    VIRUTAL_EVENT_MANDATORY_YAML_KEY,
-    F1_SHELL_USERS_LIST,
-    F1_RACE_TYPE,
-)
-from markov.rollout_constants import CarColorType
+from markov.rollout_constants import BodyShellType, CarColorType
+from markov.utils import force_list
 
 LOG = Logger(__name__, logging.INFO).get_logger()
 

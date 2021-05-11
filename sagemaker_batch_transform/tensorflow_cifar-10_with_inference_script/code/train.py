@@ -2,17 +2,15 @@ import argparse
 import codecs
 import json
 import logging
-import numpy as np
 import os
 import re
 
+import numpy as np
 import tensorflow as tf
 import tensorflow.keras.backend as K
-from tensorflow.keras.callbacks import TensorBoard, ModelCheckpoint
-
-from model_def import get_model, HEIGHT, WIDTH, DEPTH, NUM_CLASSES
+from model_def import DEPTH, HEIGHT, NUM_CLASSES, WIDTH, get_model
+from tensorflow.keras.callbacks import ModelCheckpoint, TensorBoard
 from utilities import process_input
-
 
 logging.getLogger().setLevel(logging.INFO)
 tf.logging.set_verbosity(tf.logging.ERROR)

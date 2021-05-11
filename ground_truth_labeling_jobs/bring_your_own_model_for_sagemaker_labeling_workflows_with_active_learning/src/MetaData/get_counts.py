@@ -1,7 +1,7 @@
-from functools import partial
-from s3_helper import S3Ref, get_count_with_query
-
 import logging
+from functools import partial
+
+from s3_helper import S3Ref, get_count_with_query
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)

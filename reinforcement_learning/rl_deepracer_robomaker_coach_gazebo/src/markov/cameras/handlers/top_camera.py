@@ -1,17 +1,17 @@
-import math
 import logging
+import math
 import xml.etree.ElementTree as ET
-import rospy
 
-from deepracer_simulation_environment.srv import TopCamDataSrvResponse, TopCamDataSrv
+import rospy
+from deepracer_simulation_environment.srv import TopCamDataSrv, TopCamDataSrvResponse
 from gazebo_msgs.msg import ModelState
 from geometry_msgs.msg import Pose
-from markov.track_geom.track_data import TrackData
-from markov.track_geom.utils import euler_to_quaternion
 from markov.cameras.abs_camera import AbstractCamera
 from markov.cameras.constants import CameraSettings
-from markov.log_handler.logger import Logger
 from markov.gazebo_tracker.trackers.set_model_state_tracker import SetModelStateTracker
+from markov.log_handler.logger import Logger
+from markov.track_geom.track_data import TrackData
+from markov.track_geom.utils import euler_to_quaternion
 
 # Height value is determined from AWS track and is maintained to prevent z fighting in top down
 # view

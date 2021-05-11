@@ -5,15 +5,14 @@ Handles starting a new step function execution for the batch
 and validating input.
 """
 
-import os
-import uuid
 import json
+import os
 import re
+import uuid
 
 import boto3
 import botocore
-
-from shared import db, log, label_arn
+from shared import db, label_arn, log
 from shared.constants import SmgtJobType
 
 batch_step_function_arn = os.getenv("BATCH_CREATION_STEP_FUNCTION_ARN")

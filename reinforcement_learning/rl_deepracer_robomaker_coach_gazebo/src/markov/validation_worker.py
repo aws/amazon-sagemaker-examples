@@ -15,29 +15,28 @@ import argparse
 import logging
 import pickle
 
-from rl_coach.base_parameters import TaskParameters
-from rl_coach.logger import screen
-from rl_coach.data_stores.data_store import SyncFiles
-from rl_coach.core_types import EnvironmentSteps, RunPhase
-
 from markov import utils
-from markov.constants import BEST_CHECKPOINT, LAST_CHECKPOINT, SIMAPP_VERSION_2
-from markov.log_handler.logger import Logger
-from markov.log_handler.exception_handler import log_and_exit
-from markov.log_handler.constants import (
-    SIMAPP_VALIDATION_WORKER_EXCEPTION,
-    SIMAPP_EVENT_ERROR_CODE_400,
-    SIMAPP_EVENT_ERROR_CODE_500,
-)
 from markov.agent_ctrl.constants import ConfigParams
 from markov.agents.training_agent_factory import create_training_agent
+from markov.architecture.constants import Input
+from markov.boto.s3.constants import MODEL_METADATA_S3_POSTFIX, ModelMetadataKeys
+from markov.boto.s3.files.checkpoint import Checkpoint
+from markov.boto.s3.files.model_metadata import ModelMetadata
+from markov.boto.s3.utils import get_s3_key
+from markov.constants import BEST_CHECKPOINT, LAST_CHECKPOINT, SIMAPP_VERSION_2
+from markov.log_handler.constants import (
+    SIMAPP_EVENT_ERROR_CODE_400,
+    SIMAPP_EVENT_ERROR_CODE_500,
+    SIMAPP_VALIDATION_WORKER_EXCEPTION,
+)
+from markov.log_handler.exception_handler import log_and_exit
+from markov.log_handler.logger import Logger
 from markov.s3_boto_data_store import S3BotoDataStore, S3BotoDataStoreParameters
 from markov.sagemaker_graph_manager import get_graph_manager
-from markov.architecture.constants import Input
-from markov.boto.s3.files.model_metadata import ModelMetadata
-from markov.boto.s3.files.checkpoint import Checkpoint
-from markov.boto.s3.utils import get_s3_key
-from markov.boto.s3.constants import MODEL_METADATA_S3_POSTFIX, ModelMetadataKeys
+from rl_coach.base_parameters import TaskParameters
+from rl_coach.core_types import EnvironmentSteps, RunPhase
+from rl_coach.data_stores.data_store import SyncFiles
+from rl_coach.logger import screen
 
 logger = Logger(__name__, logging.INFO).get_logger()
 

@@ -12,33 +12,33 @@
 #     permissions and limitations under the License.
 
 import argparse
+import io
+import itertools
 import json
 import logging
 import os
 import re
 
+import matplotlib.pyplot as plt
+import numpy as np
+import sklearn.metrics
 import tensorflow as tf
+from tensorboard.plugins.hparams import api as hp
 from tensorflow import keras
 from tensorflow.keras import backend as K
+from tensorflow.keras.callbacks import TensorBoard
+from tensorflow.keras.constraints import max_norm
 from tensorflow.keras.layers import (
     Activation,
+    BatchNormalization,
     Conv2D,
     Dense,
     Dropout,
     Flatten,
     MaxPooling2D,
-    BatchNormalization,
 )
 from tensorflow.keras.models import Sequential
-from tensorflow.keras.optimizers import Adam, SGD, RMSprop
-from tensorflow.keras.constraints import max_norm
-from tensorflow.keras.callbacks import TensorBoard
-
-import matplotlib.pyplot as plt
-import numpy as np
-import itertools, io
-import sklearn.metrics
-from tensorboard.plugins.hparams import api as hp
+from tensorflow.keras.optimizers import SGD, Adam, RMSprop
 
 logging.getLogger().setLevel(logging.INFO)
 tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.INFO)

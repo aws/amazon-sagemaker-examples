@@ -1,13 +1,12 @@
 import argparse
 import json
+import logging
 import os
 from pathlib import Path
-import logging
+
 import numpy as np
-
+from io_utils import CSVReader, download_manifest_data, extract_model, validate_experience
 from vw_model import VWModel
-
-from io_utils import extract_model, CSVReader, validate_experience, download_manifest_data
 from vw_utils import EVAL_CHANNEL, MODEL_CHANNEL
 
 logging.basicConfig(level=logging.INFO)

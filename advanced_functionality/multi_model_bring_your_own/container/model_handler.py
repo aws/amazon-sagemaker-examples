@@ -1,12 +1,12 @@
 """
 ModelHandler defines an example model handler for load and inference requests for MXNet CPU models
 """
-from collections import namedtuple
 import glob
 import json
 import logging
 import os
 import re
+from collections import namedtuple
 
 import mxnet as mx
 import numpy as np

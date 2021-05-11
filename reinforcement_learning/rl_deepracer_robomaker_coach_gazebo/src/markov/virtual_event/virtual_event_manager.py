@@ -1,69 +1,48 @@
 """This module is responsible for launching virtual event jobs"""
+import io
 import json
 import logging
+import math
 import os
-import io
+import shutil
 import time
 from collections import namedtuple
-import math
-import shutil
+
 import boto3
 import botocore
+import markov.rollout_constants as const
+import rospkg
 import rospy
 import tensorflow as tf
-import rospkg
-from rl_coach.base_parameters import TaskParameters
-from rl_coach.core_types import EnvironmentSteps
+from deepracer_simulation_environment.srv import (
+    VirtualEventVideoEditSrv,
+    VirtualEventVideoEditSrvRequest,
+)
+from gazebo_msgs.msg import ModelState
 from markov import utils
 from markov.agent_ctrl.constants import ConfigParams
-from markov.agents.utils import RunPhaseSubject
 from markov.agents.rollout_agent_factory import (
-    create_rollout_agent,
-    create_obstacles_agent,
     create_bot_cars_agent,
+    create_obstacles_agent,
+    create_rollout_agent,
 )
+from markov.agents.utils import RunPhaseSubject
 from markov.architecture.constants import Input
 from markov.auth.refreshed_session import refreshed_session
-from markov.camera_utils import configure_camera
-from markov.constants import SIMAPP_VERSION_2
-from markov.defaults import reward_function
-from markov.environments.constants import LINK_NAMES, STEERING_TOPICS, VELOCITY_TOPICS
-from markov.utils import get_racecar_idx
-from markov.log_handler.logger import Logger
-from markov.log_handler.exception_handler import log_and_exit
-from markov.log_handler.deepracer_exceptions import GenericNonFatalException
-from markov.log_handler.constants import (
-    SIMAPP_EVENT_SYSTEM_ERROR,
-    SIMAPP_EVENT_USER_ERROR,
-    SIMAPP_EVENT_ERROR_CODE_400,
-    SIMAPP_EVENT_ERROR_CODE_500,
-    SIMAPP_SQS_RECEIVE_MESSAGE_EXCEPTION,
-    SIMAPP_VIRTUAL_EVENT_RACE_EXCEPTION,
-)
-from markov.metrics.s3_metrics import EvalMetrics
-from markov.metrics.constants import MetricsS3Keys
-from markov.rospy_wrappers import ServiceProxyWrapper
-from markov.rollout_utils import (
-    PhaseObserver,
-    configure_environment_randomizer,
-    get_robomaker_profiler_env,
-    signal_robomaker_markov_package_ready,
-)
-from markov.sagemaker_graph_manager import get_graph_manager
 from markov.boto.s3.constants import (
     CAMERA_45DEGREE_LOCAL_PATH_FORMAT,
     CAMERA_PIP_MP4_LOCAL_PATH_FORMAT,
     CAMERA_TOPVIEW_LOCAL_PATH_FORMAT,
     MODEL_METADATA_LOCAL_PATH_FORMAT,
     MODEL_METADATA_S3_POSTFIX,
-    SIMTRACE_EVAL_LOCAL_PATH_FORMAT,
     S3_RACE_STATUS_FILE_NAME,
-    RaceStatusKeys,
-    SimtraceVideoNames,
     SECTOR_TIME_LOCAL_PATH,
     SECTOR_TIME_S3_POSTFIX,
     SECTOR_X_FORMAT,
+    SIMTRACE_EVAL_LOCAL_PATH_FORMAT,
     ModelMetadataKeys,
+    RaceStatusKeys,
+    SimtraceVideoNames,
 )
 from markov.boto.s3.files.checkpoint import Checkpoint
 from markov.boto.s3.files.model_metadata import ModelMetadata
@@ -71,31 +50,52 @@ from markov.boto.s3.files.simtrace_video import SimtraceVideo
 from markov.boto.s3.files.virtual_event_best_sector_time import VirtualEventBestSectorTime
 from markov.boto.s3.s3_client import S3Client
 from markov.boto.s3.utils import get_s3_key
-from markov.s3_boto_data_store import S3BotoDataStore, S3BotoDataStoreParameters
 from markov.boto.sqs.sqs_client import SQSClient
-from markov.track_geom.track_data import FiniteDifference, TrackData
-from markov.track_geom.utils import get_start_positions, get_hide_positions, euler_to_quaternion
-from markov.utils import get_boto_config
-from markov.gazebo_utils.model_updater import ModelUpdater
+from markov.camera_utils import configure_camera
 from markov.cameras.camera_manager import CameraManager
+from markov.constants import SIMAPP_VERSION_2
+from markov.defaults import reward_function
+from markov.environments.constants import LINK_NAMES, STEERING_TOPICS, VELOCITY_TOPICS
+from markov.gazebo_utils.model_updater import ModelUpdater
+from markov.log_handler.constants import (
+    SIMAPP_EVENT_ERROR_CODE_400,
+    SIMAPP_EVENT_ERROR_CODE_500,
+    SIMAPP_EVENT_SYSTEM_ERROR,
+    SIMAPP_EVENT_USER_ERROR,
+    SIMAPP_SQS_RECEIVE_MESSAGE_EXCEPTION,
+    SIMAPP_VIRTUAL_EVENT_RACE_EXCEPTION,
+)
+from markov.log_handler.deepracer_exceptions import GenericNonFatalException
+from markov.log_handler.exception_handler import log_and_exit
+from markov.log_handler.logger import Logger
+from markov.metrics.constants import MetricsS3Keys
+from markov.metrics.s3_metrics import EvalMetrics
+from markov.rollout_utils import (
+    PhaseObserver,
+    configure_environment_randomizer,
+    get_robomaker_profiler_env,
+    signal_robomaker_markov_package_ready,
+)
+from markov.rospy_wrappers import ServiceProxyWrapper
+from markov.s3_boto_data_store import S3BotoDataStore, S3BotoDataStoreParameters
+from markov.sagemaker_graph_manager import get_graph_manager
+from markov.track_geom.track_data import FiniteDifference, TrackData
+from markov.track_geom.utils import euler_to_quaternion, get_hide_positions, get_start_positions
+from markov.utils import get_boto_config, get_racecar_idx
 from markov.virtual_event.constants import (
-    VIRTUAL_EVENT,
-    RACER_INFO_OBJECT,
-    RACER_INFO_JSON_SCHEMA,
-    SENSOR_MODEL_MAP,
-    MAX_NUM_OF_SQS_MESSAGE,
-    SQS_WAIT_TIME_SEC,
     MAX_NUM_OF_SQS_ERROR,
+    MAX_NUM_OF_SQS_MESSAGE,
     PAUSE_TIME_BEFORE_START,
+    RACER_INFO_JSON_SCHEMA,
+    RACER_INFO_OBJECT,
+    SENSOR_MODEL_MAP,
+    SQS_WAIT_TIME_SEC,
+    VIRTUAL_EVENT,
 )
 from markov.virtual_event.utils import validate_json_input
-from deepracer_simulation_environment.srv import (
-    VirtualEventVideoEditSrv,
-    VirtualEventVideoEditSrvRequest,
-)
+from rl_coach.base_parameters import TaskParameters
+from rl_coach.core_types import EnvironmentSteps
 from std_srvs.srv import Empty, EmptyRequest
-from gazebo_msgs.msg import ModelState
-import markov.rollout_constants as const
 
 LOG = Logger(__name__, logging.INFO).get_logger()
 

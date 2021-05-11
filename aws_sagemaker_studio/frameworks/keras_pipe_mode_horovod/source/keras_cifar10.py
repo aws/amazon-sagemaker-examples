@@ -15,24 +15,24 @@ from __future__ import absolute_import, division, print_function
 import argparse
 import json
 import logging
-import re
 import os
+import re
 
 import keras
 import tensorflow as tf
 from keras import backend as K
-from keras.callbacks import TensorBoard, ModelCheckpoint
+from keras.callbacks import ModelCheckpoint, TensorBoard
 from keras.layers import (
     Activation,
+    BatchNormalization,
     Conv2D,
     Dense,
     Dropout,
     Flatten,
     MaxPooling2D,
-    BatchNormalization,
 )
 from keras.models import Sequential
-from keras.optimizers import Adam, SGD, RMSprop
+from keras.optimizers import SGD, Adam, RMSprop
 
 logging.getLogger().setLevel(logging.INFO)
 tf.logging.set_verbosity(tf.logging.INFO)

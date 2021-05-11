@@ -13,22 +13,23 @@
 
 from __future__ import print_function
 
-import os
 import argparse
+import os
 import time
+
+import smdistributed.dataparallel.torch.distributed as dist
 import torch
+import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-import torch.nn as nn
-from torchvision import datasets, transforms
-from torch.optim.lr_scheduler import StepLR
 
 # Network definition
 from model_def import Net
 
 # Import SMDataParallel PyTorch Modules
 from smdistributed.dataparallel.torch.parallel.distributed import DistributedDataParallel as DDP
-import smdistributed.dataparallel.torch.distributed as dist
+from torch.optim.lr_scheduler import StepLR
+from torchvision import datasets, transforms
 
 
 class CUDANotFoundException(Exception):

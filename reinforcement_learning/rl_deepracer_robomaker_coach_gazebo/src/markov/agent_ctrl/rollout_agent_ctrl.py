@@ -1,64 +1,63 @@
 """This module implements concrete agent controllers for the rollout worker"""
 import copy
+import json
+import logging
+import math
 import time
 from collections import OrderedDict
-import math
-import numpy as np
-import rospy
-import logging
-import json
 from threading import RLock
-from gazebo_msgs.msg import ModelState
-from std_msgs.msg import Float64, String
-from shapely.geometry import Point
 
 import markov.agent_ctrl.constants as const
+import numpy as np
+import rospy
+from gazebo_msgs.msg import ModelState
 from markov.agent_ctrl.agent_ctrl_interface import AgentCtrlInterface
 from markov.agent_ctrl.utils import (
-    set_reward_and_metrics,
-    send_action,
-    load_action_space,
-    get_speed_factor,
-    get_normalized_progress,
     Logger,
+    get_normalized_progress,
+    get_speed_factor,
+    load_action_space,
+    send_action,
+    set_reward_and_metrics,
 )
-from markov.track_geom.constants import AgentPos, TrackNearDist, ObstacleDimensions, ParkLocation
-from markov.track_geom.track_data import FiniteDifference, TrackData
-from markov.track_geom.utils import euler_to_quaternion, pose_distance, apply_orientation
-from markov.metrics.constants import StepMetrics, EpisodeStatus
+from markov.boto.s3.constants import ModelMetadataKeys
 from markov.cameras.camera_manager import CameraManager
 from markov.common import ObserverInterface
-from markov.log_handler.deepracer_exceptions import RewardFunctionError, GenericRolloutException
-from markov.reset.constants import (
-    AgentPhase,
-    AgentCtrlStatus,
-    AgentInfo,
-    RaceCtrlStatus,
-    ZERO_SPEED_AGENT_PHASES,
-)
-from markov.reset.utils import construct_reset_rules_manager
-from markov.utils import get_racecar_idx
-from markov.virtual_event.constants import (
-    WebRTCCarControl,
-    CarControlMode,
-    CarControlStatus,
-    MAX_SPEED,
-    MIN_SPEED,
-    CarControlTopic,
-    WEBRTC_CAR_CTRL_FORMAT,
-)
-from markov.visual_effects.effects.blink_effect import BlinkEffect
-from markov.visualizations.reward_distributions import RewardDataPublisher
 from markov.constants import DEFAULT_PARK_POSITION
+from markov.gazebo_tracker.abs_tracker import AbstractTracker
+from markov.gazebo_tracker.constants import TrackerPriority
 from markov.gazebo_tracker.trackers.get_link_state_tracker import GetLinkStateTracker
 from markov.gazebo_tracker.trackers.get_model_state_tracker import GetModelStateTracker
 from markov.gazebo_tracker.trackers.set_model_state_tracker import SetModelStateTracker
-from markov.gazebo_tracker.abs_tracker import AbstractTracker
-from markov.gazebo_tracker.constants import TrackerPriority
-from markov.boto.s3.constants import ModelMetadataKeys
-from markov.virtual_event.constants import PAUSE_TIME_BEFORE_START
-
+from markov.log_handler.deepracer_exceptions import GenericRolloutException, RewardFunctionError
+from markov.metrics.constants import EpisodeStatus, StepMetrics
+from markov.reset.constants import (
+    ZERO_SPEED_AGENT_PHASES,
+    AgentCtrlStatus,
+    AgentInfo,
+    AgentPhase,
+    RaceCtrlStatus,
+)
+from markov.reset.utils import construct_reset_rules_manager
+from markov.track_geom.constants import AgentPos, ObstacleDimensions, ParkLocation, TrackNearDist
+from markov.track_geom.track_data import FiniteDifference, TrackData
+from markov.track_geom.utils import apply_orientation, euler_to_quaternion, pose_distance
+from markov.utils import get_racecar_idx
+from markov.virtual_event.constants import (
+    MAX_SPEED,
+    MIN_SPEED,
+    PAUSE_TIME_BEFORE_START,
+    WEBRTC_CAR_CTRL_FORMAT,
+    CarControlMode,
+    CarControlStatus,
+    CarControlTopic,
+    WebRTCCarControl,
+)
+from markov.visual_effects.effects.blink_effect import BlinkEffect
+from markov.visualizations.reward_distributions import RewardDataPublisher
 from rl_coach.core_types import RunPhase
+from shapely.geometry import Point
+from std_msgs.msg import Float64, String
 
 LOG = Logger(__name__, logging.INFO).get_logger()
 

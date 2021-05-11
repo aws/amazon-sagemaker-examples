@@ -1,15 +1,11 @@
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
+
+from tempfile import mkstemp
 
 import gym
 import numpy as np
-from gym.spaces import Box
-from gym.spaces import MultiBinary
-
+from gym.spaces import Box, MultiBinary
 from tensorflow_resnet import NetworkCompression
-
-from tempfile import mkstemp
 
 
 class Compression(gym.Env):

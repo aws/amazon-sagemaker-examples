@@ -1,28 +1,27 @@
 """This module is used to manage the track related data"""
-from collections import OrderedDict, deque
-from enum import Enum, unique
 import math
 import os
 import threading
+from collections import OrderedDict, deque
+from enum import Enum, unique
+
 import numpy as np
 import rospkg
 import rospy
-
 from geometry_msgs.msg import Pose
-from shapely.geometry import Point, Polygon
-from shapely.geometry.polygon import LinearRing, LineString
-
+from markov import utils
 from markov.agent_ctrl.constants import RewardParam
 from markov.cameras.frustum_manager import FrustumManager
-from markov.track_geom.constants import TrackNearPnts, TrackNearDist, ParkLocation
+from markov.log_handler.deepracer_exceptions import GenericRolloutException
+from markov.track_geom.constants import ParkLocation, TrackNearDist, TrackNearPnts
 from markov.track_geom.utils import (
-    euler_to_quaternion,
     apply_orientation,
+    euler_to_quaternion,
     find_prev_next,
     quaternion_to_euler,
 )
-from markov.log_handler.deepracer_exceptions import GenericRolloutException
-from markov import utils
+from shapely.geometry import Point, Polygon
+from shapely.geometry.polygon import LinearRing, LineString
 
 
 @unique

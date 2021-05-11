@@ -10,14 +10,15 @@
 # See the License for the specific language governing permissions and limitations under the License.
 
 from __future__ import print_function
-import multiprocessing as mp
-import numpy as np
+
+import datetime
 import gzip as gz
+import multiprocessing as mp
 import socket
 import struct
 from functools import partial
 
-import datetime
+import numpy as np
 
 # Script Parameters
 NUM_PROCESSES = 4

@@ -19,18 +19,16 @@ python version of the CIFAR-10 dataset downloaded from
 https://www.cs.toronto.edu/~kriz/cifar.html.
 """
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
 
 import argparse
 import os
 import sys
-
 import tarfile
+
+import tensorflow as tf
 from six.moves import cPickle as pickle
 from six.moves import xrange  # pylint: disable=redefined-builtin
-import tensorflow as tf
 
 tf.logging.set_verbosity(tf.logging.ERROR)
 if type(tf.contrib) != type(tf):

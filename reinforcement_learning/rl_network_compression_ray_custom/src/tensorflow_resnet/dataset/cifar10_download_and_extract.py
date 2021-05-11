@@ -15,18 +15,16 @@
 
 """Downloads and extracts the binary version of the CIFAR-10 dataset."""
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
 
 import argparse
 import os
 import sys
 import tarfile
 
-from six.moves import urllib
 import tensorflow as tf
 from cifar10 import _DATA_DIR
+from six.moves import urllib
 
 DATA_URL = "https://www.cs.toronto.edu/~kriz/cifar-10-binary.tar.gz"
 

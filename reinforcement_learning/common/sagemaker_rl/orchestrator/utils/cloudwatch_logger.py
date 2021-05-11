@@ -1,5 +1,5 @@
-import time
 import json
+import time
 
 
 class CloudWatchLogger:

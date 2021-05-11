@@ -1,8 +1,8 @@
-from s3_helper import S3Ref, download, upload
 import json
+import logging
 from io import StringIO
 
-import logging
+from s3_helper import S3Ref, download, upload
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)

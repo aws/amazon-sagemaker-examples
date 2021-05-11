@@ -1,8 +1,9 @@
 """This module should house utility methods for the track data classes"""
 import bisect
-import numpy as np
 import math
-from markov.track_geom.constants import START_POS_OFFSET, HIDE_POS_OFFSET, HIDE_POS_DELTA
+
+import numpy as np
+from markov.track_geom.constants import HIDE_POS_DELTA, HIDE_POS_OFFSET, START_POS_OFFSET
 
 
 # The order of rotation applied: roll -> pitch -> yaw

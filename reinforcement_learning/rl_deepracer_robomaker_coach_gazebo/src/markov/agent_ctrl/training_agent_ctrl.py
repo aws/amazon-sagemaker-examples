@@ -1,6 +1,6 @@
 """This module defines the concrete classes for training"""
-from markov.agent_ctrl.utils import load_action_space
 from markov.agent_ctrl.agent_ctrl_interface import AgentCtrlInterface
+from markov.agent_ctrl.utils import load_action_space
 
 
 class TrainingCtrl(AgentCtrlInterface):

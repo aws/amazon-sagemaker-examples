@@ -1,8 +1,8 @@
+import numpy as np
 import torch as th
 import torch.nn as nn
 import torch.nn.functional as functional
 import torch.nn.init as INIT
-import numpy as np
 
 
 class TransEScore(nn.Module):

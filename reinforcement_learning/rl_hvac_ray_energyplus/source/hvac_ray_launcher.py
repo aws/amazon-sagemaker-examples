@@ -11,17 +11,14 @@
 # express or implied. See the License for the specific language governing
 # permissions and limitations under the License.
 import ast
-import os
 import json
+import os
 import subprocess
 
 import ray
-
-from ray.tune.tune import run_experiments, run, _make_scheduler
-
+from ray.tune.tune import _make_scheduler, run, run_experiments
 from sagemaker_rl.ray_launcher import SageMakerRayLauncher
 from sagemaker_rl.tf_serving_utils import export_tf_serving, natural_keys
-
 
 TERMINATION_SIGNAL = "JOB_TERMINATED"
 MODEL_OUTPUT_DIR = "/opt/ml/model"

@@ -1,6 +1,6 @@
-from smdebug.rules.rule import Rule
-from smdebug import modes
 import numpy as np
+from smdebug import modes
+from smdebug.rules.rule import Rule
 
 
 class check_accuracy(Rule):

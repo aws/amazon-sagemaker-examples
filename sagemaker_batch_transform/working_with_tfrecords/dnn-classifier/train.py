@@ -20,7 +20,6 @@ from os.path import isfile, join
 
 import tensorflow as tf
 
-
 parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 # Data and model checkpoints directories
 parser.add_argument(
@@ -71,7 +70,7 @@ def input_fn_train():
 
 
 def serving_input_receiver_fn():
-    """A serving input receiver that expects features encoded as JSON """
+    """A serving input receiver that expects features encoded as JSON"""
     features = {
         "sepal_length": tf.placeholder(tf.float32, [None, 1]),
         "sepal_width": tf.placeholder(tf.float32, [None, 1]),

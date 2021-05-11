@@ -1,14 +1,13 @@
 import argparse
 import time
-import numpy as np
-import mxnet as mx
 
 import gluonnlp as nlp
-from gluonnlp.data import SQuAD
-from model import BertForQALoss, BertForQA
-from data import SQuADTransform, preprocess_dataset
-
+import mxnet as mx
+import numpy as np
 import smdebug.mxnet as smd
+from data import SQuADTransform, preprocess_dataset
+from gluonnlp.data import SQuAD
+from model import BertForQA, BertForQALoss
 from smdebug import modes
 
 

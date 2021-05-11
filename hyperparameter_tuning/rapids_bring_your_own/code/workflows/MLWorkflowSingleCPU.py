@@ -14,26 +14,23 @@
 # limitations under the License.
 #
 
-import time
+import logging
 import os
+import time
 
+import joblib
 import pandas
 import xgboost
-import joblib
-
-from sklearn.model_selection import train_test_split
+from MLWorkflow import MLWorkflow, timer_decorator
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
-
-from MLWorkflow import MLWorkflow, timer_decorator
-
-import logging
+from sklearn.model_selection import train_test_split
 
 hpo_log = logging.getLogger("hpo_log")
 
 
 class MLWorkflowSingleCPU(MLWorkflow):
-    """ Single-CPU Workflow """
+    """Single-CPU Workflow"""
 
     def __init__(self, hpo_config):
         hpo_log.info("Single-CPU Workflow")
@@ -47,7 +44,7 @@ class MLWorkflowSingleCPU(MLWorkflow):
 
     @timer_decorator
     def ingest_data(self):
-        """ Ingest dataset, CSV and Parquet supported """
+        """Ingest dataset, CSV and Parquet supported"""
 
         if self.dataset_cache is not None:
             hpo_log.info("> skipping ingestion, using cache")
@@ -84,7 +81,7 @@ class MLWorkflowSingleCPU(MLWorkflow):
 
     @timer_decorator
     def handle_missing_data(self, dataset):
-        """ Drop samples with missing data [ inplace ] """
+        """Drop samples with missing data [ inplace ]"""
         dataset = dataset.dropna()
         return dataset
 
@@ -114,7 +111,7 @@ class MLWorkflowSingleCPU(MLWorkflow):
 
     @timer_decorator
     def fit(self, X_train, y_train):
-        """ Fit decision tree model """
+        """Fit decision tree model"""
         if "XGBoost" in self.hpo_config.model_type:
             hpo_log.info("> fit xgboost model")
             dtrain = xgboost.DMatrix(data=X_train, label=y_train)
@@ -137,7 +134,7 @@ class MLWorkflowSingleCPU(MLWorkflow):
 
     @timer_decorator
     def predict(self, trained_model, X_test, threshold=0.5):
-        """ Inference with the trained model on the unseen test data """
+        """Inference with the trained model on the unseen test data"""
 
         hpo_log.info("> predict with trained model ")
         if "XGBoost" in self.hpo_config.model_type:
@@ -151,7 +148,7 @@ class MLWorkflowSingleCPU(MLWorkflow):
 
     @timer_decorator
     def score(self, y_test, predictions):
-        """ Score predictions vs ground truth labels on test data """
+        """Score predictions vs ground truth labels on test data"""
         dataset_dtype = self.hpo_config.dataset_dtype
         score = accuracy_score(y_test.astype(dataset_dtype), predictions.astype(dataset_dtype))
 
@@ -160,7 +157,7 @@ class MLWorkflowSingleCPU(MLWorkflow):
         return score
 
     def save_best_model(self, score, trained_model, filename="saved_model"):
-        """  Persist/save model that sets a new high score """
+        """Persist/save model that sets a new high score"""
 
         if score > self.best_score:
             self.best_score = score
@@ -175,7 +172,7 @@ class MLWorkflowSingleCPU(MLWorkflow):
         hpo_log.info("> end of fold \n")
 
     def emit_final_score(self):
-        """ Emit score for parsing by the cloud HPO orchestrator """
+        """Emit score for parsing by the cloud HPO orchestrator"""
         exec_time = time.perf_counter() - self.start_time
         hpo_log.info(f"total_time = {exec_time:.5f} s ")
 

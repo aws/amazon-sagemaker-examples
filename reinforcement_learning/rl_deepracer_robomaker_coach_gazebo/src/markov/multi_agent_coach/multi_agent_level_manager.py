@@ -1,14 +1,14 @@
 import copy
-from typing import Union, Dict
+from typing import Dict, Union
 
-from rl_coach.agents.composite_agent import CompositeAgent
 from rl_coach.agents.agent_interface import AgentInterface
+from rl_coach.agents.composite_agent import CompositeAgent
 from rl_coach.core_types import (
-    EnvResponse,
     ActionInfo,
-    RunPhase,
     ActionType,
     EnvironmentSteps,
+    EnvResponse,
+    RunPhase,
     Transition,
 )
 from rl_coach.environments.environment import Environment

@@ -3,14 +3,13 @@ import gzip
 import json
 import logging
 import os
-import tempfile
 import shutil
 import struct
+import tempfile
 
 import mxnet as mx
-from mxnet.contrib import onnx as onnx_mxnet
 import numpy as np
-
+from mxnet.contrib import onnx as onnx_mxnet
 from sagemaker_mxnet_container.training_utils import scheduler_host
 
 

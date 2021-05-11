@@ -1,13 +1,13 @@
 """MovieLens dataset"""
-import numpy as np
 import os
 import re
-import pandas as pd
-import scipy.sparse as sp
-import gluonnlp as nlp
-import mxnet as mx
 
 import dgl
+import gluonnlp as nlp
+import mxnet as mx
+import numpy as np
+import pandas as pd
+import scipy.sparse as sp
 from dgl.data.utils import download, extract_archive, get_download_dir
 
 _urls = {

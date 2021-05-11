@@ -13,9 +13,9 @@
 """
 Train JAX model and serialize as TF SavedModel
 """
-import time
 import argparse
 import functools
+import time
 
 import jax
 import jax.numpy as jnp

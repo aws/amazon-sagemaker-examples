@@ -1,12 +1,14 @@
-from inference import model_fn, input_fn, predict_fn, output_fn
-import os
 import json
+import os
 import shutil
+import tarfile
+
 import boto3
 import botocore
-import tarfile
 import numpy as np
 import sagemaker
+
+from inference import input_fn, model_fn, output_fn, predict_fn
 
 
 def fetch_model(model_data):

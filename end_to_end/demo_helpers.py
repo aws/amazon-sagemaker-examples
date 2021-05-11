@@ -1,5 +1,6 @@
-import boto3
 import time
+
+import boto3
 
 
 def delete_project_resources(
