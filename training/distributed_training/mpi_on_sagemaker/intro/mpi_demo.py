@@ -7,7 +7,7 @@ size = comm.Get_size()
 rank = comm.Get_rank()
 
 if rank == 0:
-    print("Number of MPI processes that will talk to each other: ", size)
+    print("Number of MPI processes that will talk to each other:", size)
 
 
 def point_to_point():
