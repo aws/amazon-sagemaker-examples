@@ -1,32 +1,40 @@
-'''This module defines the interface between rl coach and the agents enviroment'''
+"""This module defines the interface between rl coach and the agents enviroment"""
 from __future__ import print_function
-from typing import List, Union, Dict
 
-from rl_coach.base_parameters import AgentParameters, VisualizationParameters
-from rl_coach.environments.environment import LevelSelection
-from rl_coach.filters.filter import NoInputFilter, NoOutputFilter
+from typing import Dict, List, Union
 
 from markov.agents.agent import Agent
 from markov.agents.utils import RunPhaseSubject
 from markov.constants import SIMAPP_VERSION_4
-from markov.multi_agent_coach.multi_agent_environment \
-    import MultiAgentEnvironment, MultiAgentEnvironmentParameters
-from markov.log_handler.deepracer_exceptions import (GenericRolloutException,
-                                                     GenericTrainerException, RewardFunctionError)
-from markov.log_handler.exception_handler import log_and_exit
-from markov.log_handler.constants import (SIMAPP_SIMULATION_WORKER_EXCEPTION,
-                                          SIMAPP_EVENT_ERROR_CODE_500)
 from markov.domain_randomizations.randomizer_manager import RandomizerManager
+from markov.log_handler.constants import (
+    SIMAPP_EVENT_ERROR_CODE_500,
+    SIMAPP_SIMULATION_WORKER_EXCEPTION,
+)
+from markov.log_handler.deepracer_exceptions import (
+    GenericRolloutException,
+    GenericTrainerException,
+    RewardFunctionError,
+)
+from markov.log_handler.exception_handler import log_and_exit
+from markov.multi_agent_coach.multi_agent_environment import (
+    MultiAgentEnvironment,
+    MultiAgentEnvironmentParameters,
+)
+from rl_coach.base_parameters import AgentParameters, VisualizationParameters
+from rl_coach.environments.environment import LevelSelection
+from rl_coach.filters.filter import NoInputFilter, NoOutputFilter
 
 # Max number of steps to allow per episode
 MAX_STEPS = 100000
 
 
 class DeepRacerRacetrackEnvParameters(MultiAgentEnvironmentParameters):
-    '''This class defined the environment parameters for DeepRacer, parameters
-       added here can be passed to the DeepRacerRacetrackEnv class by adding
-       the parameter name to the constructor signature of DeepRacerRacetrackEnv
-    '''
+    """This class defined the environment parameters for DeepRacer, parameters
+    added here can be passed to the DeepRacerRacetrackEnv class by adding
+    the parameter name to the constructor signature of DeepRacerRacetrackEnv
+    """
+
     def __init__(self, level=None):
         super().__init__(level=level)
         self.frame_skip = 1
@@ -42,27 +50,40 @@ class DeepRacerRacetrackEnvParameters(MultiAgentEnvironmentParameters):
 
     @property
     def path(self):
-        return 'markov.environments.deepracer_racetrack_env:DeepRacerRacetrackEnv'
+        return "markov.environments.deepracer_racetrack_env:DeepRacerRacetrackEnv"
 
 
 class DeepRacerRacetrackEnv(MultiAgentEnvironment):
-    '''This class defines the mechanics of how a DeepRacer agent interacts
-       with the enviroment
-    '''
-    def __init__(self, level: LevelSelection, seed: int, frame_skip: int,
-                 custom_reward_threshold: Union[int, float],
-                 visualization_parameters: VisualizationParameters,
-                 agents_params: List[AgentParameters],
-                 non_trainable_agents: List[Agent],
-                 run_phase_subject: RunPhaseSubject,
-                 enable_domain_randomization: bool,
-                 done_condition=any,
-                 pause_physics=None,
-                 unpause_physics=None,
-                 target_success_rate: float = 1.0,  **kwargs):
-        super().__init__(level, seed, frame_skip,
-                         custom_reward_threshold, visualization_parameters,
-                         target_success_rate, num_agents=len(agents_params))
+    """This class defines the mechanics of how a DeepRacer agent interacts
+    with the enviroment
+    """
+
+    def __init__(
+        self,
+        level: LevelSelection,
+        seed: int,
+        frame_skip: int,
+        custom_reward_threshold: Union[int, float],
+        visualization_parameters: VisualizationParameters,
+        agents_params: List[AgentParameters],
+        non_trainable_agents: List[Agent],
+        run_phase_subject: RunPhaseSubject,
+        enable_domain_randomization: bool,
+        done_condition=any,
+        pause_physics=None,
+        unpause_physics=None,
+        target_success_rate: float = 1.0,
+        **kwargs
+    ):
+        super().__init__(
+            level,
+            seed,
+            frame_skip,
+            custom_reward_threshold,
+            visualization_parameters,
+            target_success_rate,
+            num_agents=len(agents_params),
+        )
         try:
             # Maintain a list of all agents
             self.agent_list = [agent_param.env_agent for agent_param in agents_params]
@@ -101,9 +122,11 @@ class DeepRacerRacetrackEnv(MultiAgentEnvironment):
         except GenericRolloutException as ex:
             ex.log_except_and_exit()
         except Exception as ex:
-            log_and_exit('Unclassified exception: {}'.format(ex),
-                         SIMAPP_SIMULATION_WORKER_EXCEPTION,
-                         SIMAPP_EVENT_ERROR_CODE_500)
+            log_and_exit(
+                "Unclassified exception: {}".format(ex),
+                SIMAPP_SIMULATION_WORKER_EXCEPTION,
+                SIMAPP_EVENT_ERROR_CODE_500,
+            )
 
     @property
     def agents_info_map(self) -> Dict[str, Dict[str, object]]:
@@ -126,9 +149,11 @@ class DeepRacerRacetrackEnv(MultiAgentEnvironment):
         except GenericRolloutException as ex:
             ex.log_except_and_exit()
         except Exception as ex:
-            log_and_exit('Unclassified exception: {}'.format(ex),
-                         SIMAPP_SIMULATION_WORKER_EXCEPTION,
-                         SIMAPP_EVENT_ERROR_CODE_500)
+            log_and_exit(
+                "Unclassified exception: {}".format(ex),
+                SIMAPP_SIMULATION_WORKER_EXCEPTION,
+                SIMAPP_EVENT_ERROR_CODE_500,
+            )
 
     def _update_state(self):
         try:
@@ -136,10 +161,15 @@ class DeepRacerRacetrackEnv(MultiAgentEnvironment):
             self.reward = list()
             self.done = list()
             # trainable agent physics: update agent status
-            [self._agents_info_map.update(agent.update_agent(action)) for agent, action in zip(self.agent_list,
-                                                                                               self.action_list)]
+            [
+                self._agents_info_map.update(agent.update_agent(action))
+                for agent, action in zip(self.agent_list, self.action_list)
+            ]
             # non-trainable agent physics: update agent status
-            [self._agents_info_map.update(agent.update_agent(None)) for agent in self.non_trainable_agents] 
+            [
+                self._agents_info_map.update(agent.update_agent(None))
+                for agent in self.non_trainable_agents
+            ]
             # trainable agent judge: comparison between action and physics for reset
 
             if self.unpause_physics and self.simapp_version >= SIMAPP_VERSION_4:
@@ -165,7 +195,10 @@ class DeepRacerRacetrackEnv(MultiAgentEnvironment):
                 self.pause_physics()
 
             # non-trainable agent judge: for bot car and obstacles
-            [agent.judge_action(action, self._agents_info_map) for agent in self.non_trainable_agents]
+            [
+                agent.judge_action(action, self._agents_info_map)
+                for agent in self.non_trainable_agents
+            ]
             # Preserve behavior of TimeLimit wrapper
             self.steps += 1
             if MAX_STEPS <= self.steps:
@@ -181,9 +214,11 @@ class DeepRacerRacetrackEnv(MultiAgentEnvironment):
         except RewardFunctionError as err:
             err.log_except_and_exit()
         except Exception as ex:
-            log_and_exit('Unclassified exception: {}'.format(ex),
-                         SIMAPP_SIMULATION_WORKER_EXCEPTION,
-                         SIMAPP_EVENT_ERROR_CODE_500)
+            log_and_exit(
+                "Unclassified exception: {}".format(ex),
+                SIMAPP_SIMULATION_WORKER_EXCEPTION,
+                SIMAPP_EVENT_ERROR_CODE_500,
+            )
 
     def _restart_environment_episode(self, force_environment_reset=False):
         try:
@@ -210,9 +245,11 @@ class DeepRacerRacetrackEnv(MultiAgentEnvironment):
         except GenericRolloutException as ex:
             ex.log_except_and_exit()
         except Exception as ex:
-            log_and_exit('Unclassified exception: {}'.format(ex),
-                         SIMAPP_SIMULATION_WORKER_EXCEPTION,
-                         SIMAPP_EVENT_ERROR_CODE_500)
+            log_and_exit(
+                "Unclassified exception: {}".format(ex),
+                SIMAPP_SIMULATION_WORKER_EXCEPTION,
+                SIMAPP_EVENT_ERROR_CODE_500,
+            )
 
     def _notify_phase(self, phase):
         if self.run_phase_subject:

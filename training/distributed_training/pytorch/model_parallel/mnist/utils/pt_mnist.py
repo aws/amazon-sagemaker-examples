@@ -1,14 +1,19 @@
 # Future
 from __future__ import print_function
 
-# Standard Library
-import os, time
 import argparse
 import math
+
+# Standard Library
+import os
 import random
+import time
 
 # Third Party
 import numpy as np
+
+# First Party
+import smdistributed.modelparallel.torch as smp
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -17,9 +22,6 @@ from torch.cuda.amp import autocast
 from torch.optim.lr_scheduler import StepLR
 from torchnet.dataset import SplitDataset
 from torchvision import datasets, transforms
-
-# First Party
-import smdistributed.modelparallel.torch as smp
 
 # SM Distributed: import scaler from smdistributed.modelparallel.torch.amp, instead of torch.cuda.amp
 
@@ -32,49 +34,63 @@ torch.backends.cudnn.benchmark = False
 
 
 def aws_s3_sync(source, destination):
-    
+
     """aws s3 sync in quiet mode and time profile"""
-    import time, subprocess
+    import subprocess
+    import time
+
     cmd = ["aws", "s3", "sync", "--quiet", source, destination]
     print(f"Syncing files from {source} to {destination}")
     start_time = time.time()
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     p.wait()
     end_time = time.time()
-    print("Time Taken to Sync: ", (end_time-start_time))
+    print("Time Taken to Sync: ", (end_time - start_time))
     return
 
-def sync_local_checkpoints_to_s3(local_path="/opt/ml/checkpoints", s3_path=os.path.dirname(os.path.dirname(os.getenv('SM_MODULE_DIR', '')))+'/checkpoints'):
-    
-    """ sample function to sync checkpoints from local path to s3 """
 
-    import boto3, botocore
-    #check if local path exists
+def sync_local_checkpoints_to_s3(
+    local_path="/opt/ml/checkpoints",
+    s3_path=os.path.dirname(os.path.dirname(os.getenv("SM_MODULE_DIR", ""))) + "/checkpoints",
+):
+
+    """sample function to sync checkpoints from local path to s3"""
+
+    import boto3
+    import botocore
+
+    # check if local path exists
     if not os.path.exists(local_path):
         raise RuntimeError("Provided local path {local_path} does not exist. Please check")
 
-    #check if s3 bucket exists
-    s3 = boto3.resource('s3')
-    if 's3://' not in s3_path:
+    # check if s3 bucket exists
+    s3 = boto3.resource("s3")
+    if "s3://" not in s3_path:
         raise ValueError("Provided s3 path {s3_path} is not valid. Please check")
 
-    s3_bucket = s3_path.replace('s3://','').split('/')[0]
+    s3_bucket = s3_path.replace("s3://", "").split("/")[0]
     print(f"S3 Bucket: {s3_bucket}")
     try:
         s3.meta.client.head_bucket(Bucket=s3_bucket)
     except botocore.exceptions.ClientError as e:
-        error_code = e.response['Error']['Code']
-        if error_code == '404':
-            raise RuntimeError('S3 bucket does not exist. Please check')
+        error_code = e.response["Error"]["Code"]
+        if error_code == "404":
+            raise RuntimeError("S3 bucket does not exist. Please check")
     aws_s3_sync(local_path, s3_path)
     return
 
-def sync_s3_checkpoints_to_local(local_path="/opt/ml/checkpoints", s3_path=os.path.dirname(os.path.dirname(os.getenv('SM_MODULE_DIR', '')))+'/checkpoints'):
-    
-    """ sample function to sync checkpoints from s3 to local path """
 
-    import boto3, botocore
-    #creat if local path does not exists
+def sync_s3_checkpoints_to_local(
+    local_path="/opt/ml/checkpoints",
+    s3_path=os.path.dirname(os.path.dirname(os.getenv("SM_MODULE_DIR", ""))) + "/checkpoints",
+):
+
+    """sample function to sync checkpoints from s3 to local path"""
+
+    import boto3
+    import botocore
+
+    # creat if local path does not exists
     if not os.path.exists(local_path):
         print(f"Provided local path {local_path} does not exist. Creating...")
         try:
@@ -82,21 +98,22 @@ def sync_s3_checkpoints_to_local(local_path="/opt/ml/checkpoints", s3_path=os.pa
         except Exception as e:
             raise RuntimeError(f"failed to create {local_path}")
 
-    #check if s3 bucket exists
-    s3 = boto3.resource('s3')
-    if 's3://' not in s3_path:
+    # check if s3 bucket exists
+    s3 = boto3.resource("s3")
+    if "s3://" not in s3_path:
         raise ValueError("Provided s3 path {s3_path} is not valid. Please check")
 
-    s3_bucket = s3_path.replace('s3://','').split('/')[0]
+    s3_bucket = s3_path.replace("s3://", "").split("/")[0]
     print(f"S3 Bucket: {s3_bucket}")
     try:
         s3.meta.client.head_bucket(Bucket=s3_bucket)
     except botocore.exceptions.ClientError as e:
-        error_code = e.response['Error']['Code']
-        if error_code == '404':
-            raise RuntimeError('S3 bucket does not exist. Please check')
+        error_code = e.response["Error"]["Code"]
+        if error_code == "404":
+            raise RuntimeError("S3 bucket does not exist. Please check")
     aws_s3_sync(s3_path, local_path)
     return
+
 
 class Net1(nn.Module):
     def __init__(self):
@@ -218,6 +235,7 @@ def test(model, device, test_loader):
         )
     return test_loss
 
+
 def main():
     if not torch.cuda.is_available():
         raise ValueError("The script requires CUDA support, but CUDA not available")
@@ -282,35 +300,34 @@ def main():
         train(model, scaler, device, train_loader, optimizer, epoch)
         test_loss = test(model, device, test_loader)
         scheduler.step()
-        
+
     if smp.rank() == 0:
-        if os.path.exists('/opt/ml/local_checkpoints'):
+        if os.path.exists("/opt/ml/local_checkpoints"):
             print("-INFO- PATH DO EXIST")
         else:
-            os.makedirs('/opt/ml/local_checkpoints')
+            os.makedirs("/opt/ml/local_checkpoints")
             print("-INFO- PATH DO NOT EXIST")
 
     # Waiting the save checkpoint to be finished before run another allgather_object
     smp.barrier()
-    
+
     if smp.dp_rank() == 0:
         model_dict = model.local_state_dict()
         opt_dict = optimizer.local_state_dict()
         smp.save(
-                {"model_state_dict": model_dict, "optimizer_state_dict": opt_dict},
-                f"/opt/ml/local_checkpoints/pt_mnist_checkpoint.pt",
-                partial=True,
-            )
+            {"model_state_dict": model_dict, "optimizer_state_dict": opt_dict},
+            f"/opt/ml/local_checkpoints/pt_mnist_checkpoint.pt",
+            partial=True,
+        )
     smp.barrier()
-    
+
     if smp.local_rank() == 0:
         print("Start syncing")
-        base_s3_path = os.path.dirname(os.path.dirname(os.getenv('SM_MODULE_DIR', '')))
-        curr_host = os.getenv('SM_CURRENT_HOST')
-        full_s3_path = f'{base_s3_path}/checkpoints/{curr_host}/'
-        sync_local_checkpoints_to_s3(local_path='/opt/ml/local_checkpoints', s3_path=full_s3_path)
+        base_s3_path = os.path.dirname(os.path.dirname(os.getenv("SM_MODULE_DIR", "")))
+        curr_host = os.getenv("SM_CURRENT_HOST")
+        full_s3_path = f"{base_s3_path}/checkpoints/{curr_host}/"
+        sync_local_checkpoints_to_s3(local_path="/opt/ml/local_checkpoints", s3_path=full_s3_path)
         print("Finished syncing")
-        
 
 
 if __name__ == "__main__":

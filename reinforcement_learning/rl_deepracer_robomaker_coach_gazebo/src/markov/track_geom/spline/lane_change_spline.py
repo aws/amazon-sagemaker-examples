@@ -1,38 +1,39 @@
-'''This module implements concrete lane change spline'''
+"""This module implements concrete lane change spline"""
 
 import bisect
-import numpy as np
 import random
 
+import numpy as np
+from markov.track_geom.constants import DIST_THRESHOLD, SPLINE_DEGREE
+from markov.track_geom.spline.abstract_spline import AbstractSpline
+from markov.track_geom.track_data import TrackLine
 from scipy.interpolate import splprep
 from shapely.geometry import Point
 from shapely.geometry.polygon import LineString
 
-from markov.track_geom.constants import SPLINE_DEGREE, DIST_THRESHOLD
-from markov.track_geom.track_data import TrackLine
-from markov.track_geom.spline.abstract_spline import AbstractSpline
 
 class LaneChangeSpline(AbstractSpline):
-    def __init__(self, start_lane, end_lane,
-                 current_dist, lane_change_start_dist, lane_change_end_dist):
+    def __init__(
+        self, start_lane, end_lane, current_dist, lane_change_start_dist, lane_change_end_dist
+    ):
         self._start_lane = start_lane
         self._end_lane = end_lane
         self._current_dist = current_dist
         self._lane_change_start_dist = lane_change_start_dist
         self._lane_change_end_dist = lane_change_end_dist
-        super(LaneChangeSpline, self).__init__() 
+        super(LaneChangeSpline, self).__init__()
 
     def _build_spline(self):
-        '''Build spline for lane change
+        """Build spline for lane change
 
         Returns:
             tuple: lane change lane, lane point distance,
                   prepared lane change spline.
-        '''
+        """
         # cetner line
         center_line = self._track_data.center_line
 
-        # start lane 
+        # start lane
         start_lane_line = self._start_lane.lane["track_line"]
         start_lane_dists = self._start_lane.lane["dists"]
 
@@ -40,9 +41,17 @@ class LaneChangeSpline(AbstractSpline):
         end_lane_line = self._end_lane.lane["track_line"]
         end_lane_dists = self._end_lane.lane["dists"]
 
-        start_lane_point = Point(np.array(self._start_lane.eval_spline(self._lane_change_start_dist))[:,0])
-        end_lane_point = Point(np.array(self._end_lane.eval_spline(self._lane_change_end_dist))[:,0])
-        end_offset = 0.0 if (self._lane_change_start_dist < self._lane_change_end_dist) else center_line.length
+        start_lane_point = Point(
+            np.array(self._start_lane.eval_spline(self._lane_change_start_dist))[:, 0]
+        )
+        end_lane_point = Point(
+            np.array(self._end_lane.eval_spline(self._lane_change_end_dist))[:, 0]
+        )
+        end_offset = (
+            0.0
+            if (self._lane_change_start_dist < self._lane_change_end_dist)
+            else center_line.length
+        )
 
         # Find prev/next points on each lane
         current_prev_index = bisect.bisect_left(start_lane_dists, self._current_dist) - 1
@@ -68,8 +77,9 @@ class LaneChangeSpline(AbstractSpline):
             start_indices_0 = list(range(start_index_0, num_start_coords))
             start_indices_1 = list(range(start_index_1 + 1))
             start_indices = start_indices_0 + start_indices_1
-            start_offsets = [-center_line.length] * len(start_indices_0) \
-                            + [0.0] * len(start_indices_1)
+            start_offsets = [-center_line.length] * len(start_indices_0) + [0.0] * len(
+                start_indices_1
+            )
         if end_index_0 < end_index_1:
             end_indices = list(range(end_index_0, end_index_1 + 1))
             end_offsets = [end_offset] * len(end_indices)
@@ -77,12 +87,13 @@ class LaneChangeSpline(AbstractSpline):
             end_indices_0 = list(range(end_index_0, num_end_coords))
             end_indices_1 = list(range(end_index_1 + 1))
             end_indices = end_indices_0 + end_indices_1
-            end_offsets = [end_offset] * len(end_indices_0) \
-                          + [end_offset + center_line.length] * len(end_indices_1)
+            end_offsets = [end_offset] * len(end_indices_0) + [
+                end_offset + center_line.length
+            ] * len(end_indices_1)
 
         # Logic to avoid start and end point are too close to track waypoints
-        before_start_lane_point = Point(np.array(start_lane_line.coords.xy)[:,start_indices[-1]])
-        after_end_lane_point = Point(np.array(end_lane_line.coords.xy)[:,end_indices[0]])
+        before_start_lane_point = Point(np.array(start_lane_line.coords.xy)[:, start_indices[-1]])
+        after_end_lane_point = Point(np.array(end_lane_line.coords.xy)[:, end_indices[0]])
         if before_start_lane_point.distance(start_lane_point) < DIST_THRESHOLD:
             # pop last index of start_indices
             start_indices.pop()
@@ -93,18 +104,24 @@ class LaneChangeSpline(AbstractSpline):
             end_offsets.pop(0)
 
         # Build the spline
-        u = np.hstack((
-            np.array(start_lane_dists)[start_indices] + np.array(start_offsets),
-            self._lane_change_start_dist,
-            self._lane_change_end_dist + end_offset,
-            np.array(end_lane_dists)[end_indices] + np.array(end_offsets)))
-        x = np.hstack((
-            np.array(start_lane_line.coords.xy)[:,start_indices],
-            start_lane_point.xy,
-            end_lane_point.xy,
-            np.array(end_lane_line.coords.xy)[:,end_indices]))
-        u,ui = np.unique(u, return_index=True)
-        x = x[:,ui]
+        u = np.hstack(
+            (
+                np.array(start_lane_dists)[start_indices] + np.array(start_offsets),
+                self._lane_change_start_dist,
+                self._lane_change_end_dist + end_offset,
+                np.array(end_lane_dists)[end_indices] + np.array(end_offsets),
+            )
+        )
+        x = np.hstack(
+            (
+                np.array(start_lane_line.coords.xy)[:, start_indices],
+                start_lane_point.xy,
+                end_lane_point.xy,
+                np.array(end_lane_line.coords.xy)[:, end_indices],
+            )
+        )
+        u, ui = np.unique(u, return_index=True)
+        x = x[:, ui]
         bot_car_spline, _ = splprep(x, u=u, k=SPLINE_DEGREE, s=0)
 
         return TrackLine(LineString(np.array(np.transpose(x)))), u, bot_car_spline

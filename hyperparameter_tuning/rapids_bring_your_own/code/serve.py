@@ -14,53 +14,51 @@
 # limitations under the License.
 #
 
-import os
-import sys
-import traceback
-import joblib
 import glob
 import json
-import time
-
-import xgboost
-import numpy
-
-import flask
-from flask import Flask, Response
-
 import logging
+import os
+import sys
+import time
+import traceback
 from functools import lru_cache
 
+import flask
+import joblib
+import numpy
+import xgboost
+from flask import Flask, Response
+
 try:
-    """ check for GPU via library imports """
+    """check for GPU via library imports"""
     import cupy
     from cuml import ForestInference
+
     GPU_INFERENCE_FLAG = True
 
 except ImportError as gpu_import_error:
     GPU_INFERENCE_FLAG = False
-    print(f'\n!GPU import error: {gpu_import_error}\n')
+    print(f"\n!GPU import error: {gpu_import_error}\n")
 
 # set to true to print incoming request headers and data
 DEBUG_FLAG = False
 
 
 def serve(xgboost_threshold=0.5):
-    """ Flask Inference Server for SageMaker hosting of RAPIDS Models """
+    """Flask Inference Server for SageMaker hosting of RAPIDS Models"""
     app = Flask(__name__)
     logging.basicConfig(level=logging.DEBUG)
 
     if GPU_INFERENCE_FLAG:
-        app.logger.info('GPU Model Serving Workflow')
-        app.logger.info(f'> {cupy.cuda.runtime.getDeviceCount()}'
-                        f' GPUs detected \n')
+        app.logger.info("GPU Model Serving Workflow")
+        app.logger.info(f"> {cupy.cuda.runtime.getDeviceCount()}" f" GPUs detected \n")
     else:
-        app.logger.info('CPU Model Serving Workflow')
-        app.logger.info(f'> {os.cpu_count()} CPUs detected \n')
+        app.logger.info("CPU Model Serving Workflow")
+        app.logger.info(f"> {os.cpu_count()} CPUs detected \n")
 
     @app.route("/ping", methods=["GET"])
     def ping():
-        """ SageMaker required method, ping heartbeat """
+        """SageMaker required method, ping heartbeat"""
         return Response(response="\n", status=200)
 
     @lru_cache()
@@ -69,16 +67,16 @@ def serve(xgboost_threshold=0.5):
         Cached loading of trained [ XGBoost or RandomForest ] model into memory
         Note: Models selected via filename parsing, edit if necessary
         """
-        xgb_models = glob.glob('/opt/ml/model/*_xgb')
-        rf_models = glob.glob('/opt/ml/model/*_rf')
-        app.logger.info(f'detected xgboost models : {xgb_models}')
-        app.logger.info(f'detected randomforest models : {rf_models}\n\n')
+        xgb_models = glob.glob("/opt/ml/model/*_xgb")
+        rf_models = glob.glob("/opt/ml/model/*_rf")
+        app.logger.info(f"detected xgboost models : {xgb_models}")
+        app.logger.info(f"detected randomforest models : {rf_models}\n\n")
         model_type = None
 
         start_time = time.perf_counter()
 
         if len(xgb_models):
-            model_type = 'XGBoost'
+            model_type = "XGBoost"
             model_filename = xgb_models[0]
             if GPU_INFERENCE_FLAG:
                 # FIL
@@ -89,15 +87,14 @@ def serve(xgboost_threshold=0.5):
                 reloaded_model.load_model(fname=model_filename)
 
         elif len(rf_models):
-            model_type = 'RandomForest'
+            model_type = "RandomForest"
             model_filename = rf_models[0]
             reloaded_model = joblib.load(model_filename)
         else:
-            raise Exception('! No trained models detected')
+            raise Exception("! No trained models detected")
 
         exec_time = time.perf_counter() - start_time
-        app.logger.info(f'> model {model_filename} '
-                        f'loaded in {exec_time:.5f} s \n')
+        app.logger.info(f"> model {model_filename} " f"loaded in {exec_time:.5f} s \n")
 
         return reloaded_model, model_type, model_filename
 
@@ -120,9 +117,9 @@ def serve(xgboost_threshold=0.5):
         except Exception:
             return Response(
                 response="Unable to parse input data"
-                         "[ should be json/string encoded list of arrays ]",
+                "[ should be json/string encoded list of arrays ]",
                 status=415,
-                mimetype='text/csv'
+                mimetype="text/csv",
             )
 
         # cached [reloading] of trained model to process incoming requests
@@ -130,9 +127,8 @@ def serve(xgboost_threshold=0.5):
 
         try:
             start_time = time.perf_counter()
-            if model_type == 'XGBoost':
-                app.logger.info('running inference using XGBoost model :'
-                                f'{model_filename}')
+            if model_type == "XGBoost":
+                app.logger.info("running inference using XGBoost model :" f"{model_filename}")
 
                 if GPU_INFERENCE_FLAG:
                     predictions = reloaded_model.predict(query_data)
@@ -142,30 +138,31 @@ def serve(xgboost_threshold=0.5):
 
                 predictions = (predictions > xgboost_threshold) * 1.0
 
-            elif model_type == 'RandomForest':
-                app.logger.info('running inference using RandomForest model :'
-                                f'{model_filename}')
+            elif model_type == "RandomForest":
+                app.logger.info("running inference using RandomForest model :" f"{model_filename}")
 
-                if 'gpu' in model_filename and not GPU_INFERENCE_FLAG:
-                    raise Exception('attempting to run CPU inference '
-                                    'on a GPU trained RandomForest model')
+                if "gpu" in model_filename and not GPU_INFERENCE_FLAG:
+                    raise Exception(
+                        "attempting to run CPU inference " "on a GPU trained RandomForest model"
+                    )
 
-                predictions = reloaded_model.predict(
-                                query_data.astype('float32'))
+                predictions = reloaded_model.predict(query_data.astype("float32"))
 
-            app.logger.info(f'\n predictions: {predictions} \n')
+            app.logger.info(f"\n predictions: {predictions} \n")
             exec_time = time.perf_counter() - start_time
-            app.logger.info(f' > inference finished in {exec_time:.5f} s \n')
+            app.logger.info(f" > inference finished in {exec_time:.5f} s \n")
 
             # return predictions
-            return Response(response=json.dumps(predictions.tolist()),
-                            status=200, mimetype='text/csv')
+            return Response(
+                response=json.dumps(predictions.tolist()), status=200, mimetype="text/csv"
+            )
 
         # error during inference
         except Exception as inference_error:
             app.logger.error(inference_error)
-            return Response(response=f"Inference failure: {inference_error}\n",
-                            status=400, mimetype='text/csv')
+            return Response(
+                response=f"Inference failure: {inference_error}\n", status=400, mimetype="text/csv"
+            )
 
     # initial [non-cached] reload of trained model
     reloaded_model, model_type, model_filename = load_trained_model()

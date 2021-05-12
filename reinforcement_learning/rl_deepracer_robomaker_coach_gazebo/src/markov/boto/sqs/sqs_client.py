@@ -1,14 +1,17 @@
-'''This module implement sqs client'''
+"""This module implement sqs client"""
 
 import logging
+
 import botocore
-from markov.log_handler.exception_handler import log_and_exit
-from markov.log_handler.constants import (SIMAPP_EVENT_ERROR_CODE_500,
-                                          SIMAPP_SQS_DELETE_MESSAGE_EXCEPTION)
-from markov.log_handler.logger import Logger
-from markov.boto.sqs.constants import StatusIndicator
 from markov.boto.constants import BotoClientNames
 from markov.boto.deepracer_boto_client import DeepRacerBotoClient
+from markov.boto.sqs.constants import StatusIndicator
+from markov.log_handler.constants import (
+    SIMAPP_EVENT_ERROR_CODE_500,
+    SIMAPP_SQS_DELETE_MESSAGE_EXCEPTION,
+)
+from markov.log_handler.exception_handler import log_and_exit
+from markov.log_handler.logger import Logger
 
 LOG = Logger(__name__, logging.INFO).get_logger()
 
@@ -17,12 +20,19 @@ class SQSClient(DeepRacerBotoClient):
     """
     Connects to a FIFO SQS, retrieves messages in a batch and then deletes them
     """
+
     name = BotoClientNames.SQS.value
 
-    def __init__(self, queue_url, region_name="us-east-1",
-                 max_num_of_msg=1, wait_time_sec=5,
-                 max_retry_attempts=5, backoff_time_sec=1.0,
-                 session=None):
+    def __init__(
+        self,
+        queue_url,
+        region_name="us-east-1",
+        max_num_of_msg=1,
+        wait_time_sec=5,
+        max_retry_attempts=5,
+        backoff_time_sec=1.0,
+        session=None,
+    ):
         """Initialize a sqs client with default exponital backoff retries.
 
         Args:
@@ -41,11 +51,13 @@ class SQSClient(DeepRacerBotoClient):
                                      Defaults to None.
 
         """
-        super(SQSClient, self).__init__(region_name=region_name,
-                                        max_retry_attempts=max_retry_attempts,
-                                        backoff_time_sec=backoff_time_sec,
-                                        boto_client_name=self.name,
-                                        session=session)
+        super(SQSClient, self).__init__(
+            region_name=region_name,
+            max_retry_attempts=max_retry_attempts,
+            backoff_time_sec=backoff_time_sec,
+            boto_client_name=self.name,
+            session=session,
+        )
         self._queue_url = queue_url
         self._max_num_of_msg = max_num_of_msg
         self._wait_time_sec = wait_time_sec
@@ -62,29 +74,36 @@ class SQSClient(DeepRacerBotoClient):
         try:
             messages = self.get_client().receive_message(
                 QueueUrl=self._queue_url,
-                AttributeNames=['SentTimestamp'],
-                MessageAttributeNames=['All'],
+                AttributeNames=["SentTimestamp"],
+                MessageAttributeNames=["All"],
                 MaxNumberOfMessages=self._max_num_of_msg,
-                WaitTimeSeconds=self._wait_time_sec
+                WaitTimeSeconds=self._wait_time_sec,
             )
-            if messages.get('Messages'):
+            if messages.get("Messages"):
                 payload = []
                 entries = []
-                for message in messages.get('Messages'):
-                    payload.append(message['Body'])
-                    entries.append({
-                        'Id': message['MessageId'],
-                        'ReceiptHandle': message['ReceiptHandle']
-                    })
+                for message in messages.get("Messages"):
+                    payload.append(message["Body"])
+                    entries.append(
+                        {"Id": message["MessageId"], "ReceiptHandle": message["ReceiptHandle"]}
+                    )
                 if self.delete_messages(entries):
                     return StatusIndicator.CLIENT_ERROR.value
                 LOG.info("[sqs] Received payload %s", payload)
                 return payload
         except botocore.exceptions.ClientError as ex:
-            LOG.error("[sqs] ClientError: Unable to receive message from sqs queue %s: %s.", self._queue_url, ex)
+            LOG.error(
+                "[sqs] ClientError: Unable to receive message from sqs queue %s: %s.",
+                self._queue_url,
+                ex,
+            )
             return StatusIndicator.CLIENT_ERROR.value
         except Exception as ex:
-            LOG.error("[sqs] SystemError: Unable to receive message from sqs queue %s: %s.", self._queue_url, ex)
+            LOG.error(
+                "[sqs] SystemError: Unable to receive message from sqs queue %s: %s.",
+                self._queue_url,
+                ex,
+            )
             return StatusIndicator.SYSTEM_ERROR.value
         return StatusIndicator.SUCCESS.value
 
@@ -103,30 +122,44 @@ class SQSClient(DeepRacerBotoClient):
             resp = self.exp_backoff(
                 action_method=self.get_client().delete_message_batch,
                 QueueUrl=self._queue_url,
-                Entries=entries)
-            if len(resp['Successful']) != len(entries):
-                LOG.error("[sqs] ClientError: Unable to delete all read message from sqs queue %s: %s.",
-                          self._queue_url, resp['Failed'])
-                return resp['Failed']
+                Entries=entries,
+            )
+            if len(resp["Successful"]) != len(entries):
+                LOG.error(
+                    "[sqs] ClientError: Unable to delete all read message from sqs queue %s: %s.",
+                    self._queue_url,
+                    resp["Failed"],
+                )
+                return resp["Failed"]
         except botocore.exceptions.ClientError as ex:
-            LOG.error("[sqs] ClientError: Unable to delete all read message from sqs queue %s: %s.",
-                      self._queue_url,
-                      ex)
+            LOG.error(
+                "[sqs] ClientError: Unable to delete all read message from sqs queue %s: %s.",
+                self._queue_url,
+                ex,
+            )
             # something went really wrong with the sqs queue, even though it's a client error
             # we still throw 500 because the sqs queue is likely to be supplied and managed by
             # deepracer team
-            log_and_exit("Exceptions in deleting message \
-                         from sqs queue: {}, {}".format(self._queue_url,
-                                                        ex),
-                         SIMAPP_SQS_DELETE_MESSAGE_EXCEPTION,
-                         SIMAPP_EVENT_ERROR_CODE_500)
+            log_and_exit(
+                "Exceptions in deleting message \
+                         from sqs queue: {}, {}".format(
+                    self._queue_url, ex
+                ),
+                SIMAPP_SQS_DELETE_MESSAGE_EXCEPTION,
+                SIMAPP_EVENT_ERROR_CODE_500,
+            )
         except Exception as ex:
-            LOG.error("[sqs] SystemError: Unable to delete all read message from sqs queue %s: %s.",
-                      self._queue_url,
-                      ex)
+            LOG.error(
+                "[sqs] SystemError: Unable to delete all read message from sqs queue %s: %s.",
+                self._queue_url,
+                ex,
+            )
             # something went really wrong with the sqs queue...
-            log_and_exit("Exceptions in deleting message \
-                         from sqs queue: {}".format(self._queue_url,
-                                                    ex),
-                         SIMAPP_SQS_DELETE_MESSAGE_EXCEPTION,
-                         SIMAPP_EVENT_ERROR_CODE_500)
+            log_and_exit(
+                "Exceptions in deleting message \
+                         from sqs queue: {}".format(
+                    self._queue_url, ex
+                ),
+                SIMAPP_SQS_DELETE_MESSAGE_EXCEPTION,
+                SIMAPP_EVENT_ERROR_CODE_500,
+            )

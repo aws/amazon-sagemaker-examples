@@ -6,15 +6,15 @@
 
 from __future__ import print_function
 
-import os
 import json
+import os
 import pickle
 import sys
 import traceback
 
 import pandas as pd
-import xgboost as xgb
 import smdebug.xgboost as smd
+import xgboost as xgb
 
 print("Libraries imported")
 

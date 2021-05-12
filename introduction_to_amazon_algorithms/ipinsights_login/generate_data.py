@@ -10,14 +10,15 @@
 # See the License for the specific language governing permissions and limitations under the License.
 
 from __future__ import print_function
-import multiprocessing as mp
-import numpy as np
+
+import datetime
 import gzip as gz
+import multiprocessing as mp
 import socket
 import struct
 from functools import partial
 
-import datetime
+import numpy as np
 
 # Script Parameters
 NUM_PROCESSES = 4
@@ -47,7 +48,7 @@ HOME_WORK_DISTANCE_UNIFORM_WINDOW = 50000
 HOME_WORK_LOCALITY_WINDOW_SIGMA = 10
 
 # Log Formats
-LOG_DATE_FORMAT = '%d/%b/%Y:%H:%M:%S +0000'
+LOG_DATE_FORMAT = "%d/%b/%Y:%H:%M:%S +0000"
 LOG_FORMAT = '{} - {} [{}] "GET /login_success HTTP/1.1" 200 476 "-" \
 "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/555.33 \
 (KHTML, like Gecko) Chrome/1.1.1111.100 Safari/555.355"\n'
@@ -63,15 +64,10 @@ def ip2int(ip):
 def load_asn_list(file_name=ASN_FILE):
     """Load and return Autonomous Systems and corresponding IP Ranges."""
     asn_list = []
-    with gz.open(file_name, 'r') as f:
+    with gz.open(file_name, "r") as f:
         for ln in f:
             tks = ln.strip().split()
-            cur_asn = {
-                "begin": int(tks[0]),
-                "end": int(tks[1]),
-                "asn": tks[2],
-                "country": tks[3]
-            }
+            cur_asn = {"begin": int(tks[0]), "end": int(tks[1]), "asn": tks[2], "country": tks[3]}
             asn_list.append(cur_asn)
 
     return asn_list
@@ -91,7 +87,7 @@ def int2ip(n):
 
 def draw_ip_from_asn(asn):
     """Draw an IP address from given ASN uniform at random."""
-    ip_address_int = np.random.randint(low=asn["begin"], high=asn["end"]+1)
+    ip_address_int = np.random.randint(low=asn["begin"], high=asn["end"] + 1)
     return int2ip(ip_address_int)
 
 
@@ -130,16 +126,16 @@ def draw_user_ip(home_asn, work_asn, p_travel, p_home):
         home_or_work = home_asn if np.random.rand() < p_home else work_asn
 
         # Assume user travels locally around work or home
-        cur_asn = np.random.normal(
-            loc=home_or_work,
-            scale=HOME_WORK_LOCALITY_WINDOW_SIGMA)
+        cur_asn = np.random.normal(loc=home_or_work, scale=HOME_WORK_LOCALITY_WINDOW_SIGMA)
         cur_asn = int(cur_asn) % len(asn_list)
 
     cur_ip = draw_ip_from_asn(asn_list[cur_asn])
     return cur_ip
 
 
-def generate_user_asns(num_asn, home_work_distance_uniform_window=HOME_WORK_DISTANCE_UNIFORM_WINDOW):
+def generate_user_asns(
+    num_asn, home_work_distance_uniform_window=HOME_WORK_DISTANCE_UNIFORM_WINDOW
+):
     """Generate home and work ASN ids for a user.
 
     We assume each user to be associated with two different ASNs:
@@ -184,8 +180,7 @@ def generate_user_login_events(queue, user_id, max_num_of_events):
 
     # Sample how active the user is based on a Pareto distribution
     num_events = int(
-        NUM_EVENTS_PARETO_SCALE *
-        (np.random.pareto(NUM_EVENTS_PARETO_A) + NUM_EVENTS_PARETO_LOC)
+        NUM_EVENTS_PARETO_SCALE * (np.random.pareto(NUM_EVENTS_PARETO_A) + NUM_EVENTS_PARETO_LOC)
     )
     num_events = min(max_num_of_events, num_events)
 
@@ -218,22 +213,24 @@ def format_event_as_log(event):
     timestamp_str = timestamp.strftime(LOG_DATE_FORMAT)
 
     user_id, ip_address = event
-    user_name = 'user_{}'.format(user_id)
+    user_name = "user_{}".format(user_id)
     log_line = LOG_FORMAT.format(ip_address, user_name, timestamp_str)
     return log_line
 
 
 def queue_to_file(queue, file_name, num_users):
-    if file_name.startswith('s3://'):
+    if file_name.startswith("s3://"):
         import s3fs
+
         s3filesystem = s3fs.S3FileSystem()
-        fp = s3filesystem.open(file_name, 'w')
+        fp = s3filesystem.open(file_name, "w")
     else:
-        fp = open(file_name, 'w')
+        fp = open(file_name, "w")
 
     try:
         from tqdm import tqdm
-        pbar = tqdm(total=num_users, unit='users')
+
+        pbar = tqdm(total=num_users, unit="users")
     except ImportError:
         pbar = None
 
@@ -252,8 +249,13 @@ def queue_to_file(queue, file_name, num_users):
     fp.close()
 
 
-def generate_dataset(num_users, file_name, max_num_of_events=MAX_NUM_OF_EVENTS,
-                     chunk_size=1000, num_processes=NUM_PROCESSES):
+def generate_dataset(
+    num_users,
+    file_name,
+    max_num_of_events=MAX_NUM_OF_EVENTS,
+    chunk_size=1000,
+    num_processes=NUM_PROCESSES,
+):
     """Generate user traffic for specified number of users.
 
     We generate simulated traffic for users under the following scenario:
@@ -283,18 +285,24 @@ def generate_dataset(num_users, file_name, max_num_of_events=MAX_NUM_OF_EVENTS,
 
     # Kick off process that will save queued events to a file
     print("Starting User Activity Simulation")
-    p = mp.Process(target=queue_to_file, args=(queue, file_name, num_users,))
+    p = mp.Process(
+        target=queue_to_file,
+        args=(
+            queue,
+            file_name,
+            num_users,
+        ),
+    )
     p.start()
 
     # Break up tasks by having a pool process a chunk of users at a time
     chunk_size = min(chunk_size, num_users)
     for i in range(num_users // chunk_size):
         chunk_start = i * chunk_size
-        user_ids_chunk = range(chunk_start, chunk_start+chunk_size)
+        user_ids_chunk = range(chunk_start, chunk_start + chunk_size)
         generate_func = partial(
-            generate_user_login_events,
-            queue,
-            max_num_of_events=max_num_of_events)
+            generate_user_login_events, queue, max_num_of_events=max_num_of_events
+        )
         pool.map(generate_func, user_ids_chunk)
 
     p.join()

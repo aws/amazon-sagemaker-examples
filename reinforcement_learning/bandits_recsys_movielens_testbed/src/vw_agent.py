@@ -1,12 +1,13 @@
-import subprocess
-import os
-import logging
-import numpy as np
 import json
+import logging
+import os
+import subprocess
+
+import numpy as np
 
 
 class VWError(Exception):
-    """ Class for errors """
+    """Class for errors"""
 
     def __init__(self, message):
         super(VWError, self).__init__()
@@ -14,22 +15,24 @@ class VWError(Exception):
 
 
 class VWModelDown(Exception):
-    """ When the model is down """
+    """When the model is down"""
 
     def __init__(self):
         super(VWModelDown, self).__init__("The model is down")
 
 
 class VWAgent:
-    def __init__(self,
-                 cli_args="",
-                 model_path=None,
-                 test_only=False,
-                 quiet_mode=False,
-                 adf_mode=True,
-                 num_actions=None,
-                 top_k=1,
-                 output_dir=None):
+    def __init__(
+        self,
+        cli_args="",
+        model_path=None,
+        test_only=False,
+        quiet_mode=False,
+        adf_mode=True,
+        num_actions=None,
+        top_k=1,
+        output_dir=None,
+    ):
         """
         Args:
             model_path: location of the model weights
@@ -98,18 +101,30 @@ class VWAgent:
         # note bufsize=1 will make sure we immediately flush each output
         # line so that we can keep scoring the model.
         # bufsize=1 means line buffered.
-        self.current_proc = subprocess.Popen(self.cmd, bufsize=1,
-                                             stdin=subprocess.PIPE,
-                                             stdout=subprocess.PIPE,
-                                             stderr=subprocess.PIPE,
-                                             universal_newlines=False)
+        self.current_proc = subprocess.Popen(
+            self.cmd,
+            bufsize=1,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            universal_newlines=False,
+        )
 
         self.logger.info("Started VW process!")
 
         # TODO: Check for errors in CLI args by polling the process
 
-    def learn(self, shared_features, candidate_arms_features, action_index, action_prob,
-              reward, user_id=None, candidate_ids=None, cost_fn=None):
+    def learn(
+        self,
+        shared_features,
+        candidate_arms_features,
+        action_index,
+        action_prob,
+        reward,
+        user_id=None,
+        candidate_ids=None,
+        cost_fn=None,
+    ):
 
         if not cost_fn:
             cost_fn = lambda x: 1 - x
@@ -133,16 +148,16 @@ class VWAgent:
         start_index = shared_feature_dim + 1
         num_actions = self.num_actions
         if candidate_arms_features is not None:
-            item_vw_features = [self.transform_context(i, start_index) for i in candidate_arms_features]
+            item_vw_features = [
+                self.transform_context(i, start_index) for i in candidate_arms_features
+            ]
             num_actions = len(item_vw_features)
         else:
             item_vw_features = [f"a{i}" for i in range(num_actions)]
 
-        parsed_example = self.generate_experience_string_multiline(shared_vw_features,
-                                                                   item_vw_features,
-                                                                   action_index,
-                                                                   cost,
-                                                                   action_prob)
+        parsed_example = self.generate_experience_string_multiline(
+            shared_vw_features, item_vw_features, action_index, cost, action_prob
+        )
         # TODO: Error handling in parsing the given example
         if self.current_proc is None:
             raise VWError("trying to learn model when current_proc is None")
@@ -189,13 +204,14 @@ class VWAgent:
         if prob == 0:
             scores_dict = eval("{" + vw_scores_string + "}")
             item_scores = np.array([scores_dict[i] for i in range(len(scores_dict))])
-            item_probs = (item_scores / item_scores.sum())
+            item_probs = item_scores / item_scores.sum()
             action = np.argmax(item_probs)
             prob = item_probs[action]
         return action, prob
 
-    def choose_actions(self, shared_features, candidate_arms_features,
-                       user_id=None, candidate_ids=None, top_k=None):
+    def choose_actions(
+        self, shared_features, candidate_arms_features, user_id=None, candidate_ids=None, top_k=None
+    ):
         shared_vw_features = None
         item_vw_features = None
         action_ids = None
@@ -216,7 +232,9 @@ class VWAgent:
         num_actions = self.num_actions
 
         if candidate_arms_features is not None:
-            item_vw_features = [self.transform_context(i, start_index) for i in candidate_arms_features]
+            item_vw_features = [
+                self.transform_context(i, start_index) for i in candidate_arms_features
+            ]
             num_actions = len(item_vw_features)
         else:
             item_vw_features = [f"a{i}" for i in range(num_actions)]
@@ -229,8 +247,9 @@ class VWAgent:
             if k > 0:
                 item_vw_features.pop(best_action_index)
                 action_ids.pop(best_action_index)
-            parsed_example = self.generate_prediction_string_multiline(shared_features=shared_vw_features,
-                                                                       item_features=item_vw_features)
+            parsed_example = self.generate_prediction_string_multiline(
+                shared_features=shared_vw_features, item_features=item_vw_features
+            )
             best_action_index, action_prob = self._choose_action(parsed_example)
             actions.append(action_ids[best_action_index])
             probs.append(action_prob)
@@ -248,8 +267,9 @@ class VWAgent:
         return string + "\n"
 
     @staticmethod
-    def generate_experience_string_multiline(shared_features, item_features,
-                                             action, cost, probability):
+    def generate_experience_string_multiline(
+        shared_features, item_features, action, cost, probability
+    ):
         string = ""
         if shared_features is not None:
             string = f"shared |s {shared_features}\n"
@@ -267,7 +287,9 @@ class VWAgent:
 
     @staticmethod
     def transform_context(feature_vector, start_index=1):
-        out_string = " ".join(["%s:%s" % (i + start_index, j) for i, j in enumerate(feature_vector)])
+        out_string = " ".join(
+            ["%s:%s" % (i + start_index, j) for i, j in enumerate(feature_vector)]
+        )
         return out_string
 
     @staticmethod
@@ -288,7 +310,7 @@ class VWAgent:
         return VWAgent(**metadata)
 
     def save_model(self, close=False):
-        """Call to save metadata. close=True closes the VW process """
+        """Call to save metadata. close=True closes the VW process"""
         metadata_file = os.path.join(self.output_dir, "vw.metadata")
         with open(metadata_file, "w") as f:
             f.write(json.dumps(self.args))

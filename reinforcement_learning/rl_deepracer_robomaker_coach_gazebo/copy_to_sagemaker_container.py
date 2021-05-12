@@ -1,8 +1,10 @@
 import subprocess
+
 import boto3
 
 SAGEMAKER_DOCKER_MARKOV_PATH = "/opt/amazon/markov"
 MARKOV_FOLDER = "./src/markov"
+
 
 def run_cmd(cmd_args, change_working_directory="./", shell=False, executable=None):
     """
@@ -25,7 +27,7 @@ def run_cmd(cmd_args, change_working_directory="./", shell=False, executable=Non
         cwd=change_working_directory,
         shell=shell,
         executable=executable,
-        stdout=subprocess.PIPE
+        stdout=subprocess.PIPE,
     )
     result = list()
     for line in iter(process.stdout.readline, b""):
@@ -43,12 +45,15 @@ def get_sagemaker_docker(repository_short_name):
     return (docker_id)
     :docker_id: string - This is the sagemaker docker id.
     """
-    _, docker_ids = run_cmd([r'docker images {} | sed -n 2,2p'.format(repository_short_name)], shell=True)
+    _, docker_ids = run_cmd(
+        [r"docker images {} | sed -n 2,2p".format(repository_short_name)], shell=True
+    )
     if docker_ids and docker_ids[0]:
         docker_id = [docker for docker in docker_ids[0].split(" ") if docker != ""]
         print("Sagemaker docker id : {}".format(docker_id[2]))
         return docker_id[2]
     raise Exception("SageMaker docker not found. Please check.")
+
 
 def copy_to_sagemaker_container(sagemaker_docker_id, repository_short_name):
     """
@@ -65,25 +70,41 @@ def copy_to_sagemaker_container(sagemaker_docker_id, repository_short_name):
 
     # Copy Markov package
     # Deleting markov folder in the sagemaker container
-    run_cmd(["docker exec -d {0} rm -rf {1}".format(docker_containers[0], SAGEMAKER_DOCKER_MARKOV_PATH)],
-            shell=True)
+    run_cmd(
+        [
+            "docker exec -d {0} rm -rf {1}".format(
+                docker_containers[0], SAGEMAKER_DOCKER_MARKOV_PATH
+            )
+        ],
+        shell=True,
+    )
     # Copying markov folder to the sagemaker container
-    run_cmd(["docker cp {0} {1}:{2}".format(MARKOV_FOLDER,
-                                            docker_containers[0],
-                                            SAGEMAKER_DOCKER_MARKOV_PATH)], shell=True)
+    run_cmd(
+        [
+            "docker cp {0} {1}:{2}".format(
+                MARKOV_FOLDER, docker_containers[0], SAGEMAKER_DOCKER_MARKOV_PATH
+            )
+        ],
+        shell=True,
+    )
     print("============ Copied Markov scripts to sagemaker docker ============ \n ")
-    
+
     docker_processes = run_cmd(["docker ps -l|sed -n 2,2p"], shell=True)
-    docker_ps = [docker_process for docker_process in docker_processes[1][0].split(" ") if docker_process != ""][0]
+    docker_ps = [
+        docker_process
+        for docker_process in docker_processes[1][0].split(" ")
+        if docker_process != ""
+    ][0]
 
     # Committing all the changes to the docker
-    run_cmd([r'docker commit {0} {1}'.format(docker_ps, repository_short_name)], shell=True)
+    run_cmd([r"docker commit {0} {1}".format(docker_ps, repository_short_name)], shell=True)
     print("============ Commited all the changes to docker ============ \n ")
-    
+
+
 def get_custom_image_name(custom_image_name):
     session = boto3.Session()
-    aws_account = session.client("sts").get_caller_identity()['Account']
+    aws_account = session.client("sts").get_caller_identity()["Account"]
     aws_region = session.region_name
-    ecr_repo = '%s.dkr.ecr.%s.amazonaws.com' % (aws_account, aws_region)
-    ecr_tag = '%s/%s' % (ecr_repo, custom_image_name)
+    ecr_repo = "%s.dkr.ecr.%s.amazonaws.com" % (aws_account, aws_region)
+    ecr_tag = "%s/%s" % (ecr_repo, custom_image_name)
     return ecr_tag

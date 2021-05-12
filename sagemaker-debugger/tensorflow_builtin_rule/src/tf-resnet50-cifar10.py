@@ -1,14 +1,15 @@
 # Standard Library
 import argparse
-import time
 import os
+import time
 
 # Third Party
 import numpy as np
 import tensorflow.compat.v2 as tf
 from tensorflow.keras.applications.resnet50 import ResNet50
 from tensorflow.keras.datasets import cifar10
-#from tensorflow.keras.optimizers import Adam
+
+# from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.utils import to_categorical
 
 
@@ -34,7 +35,7 @@ def train(batch_size, epoch, model):
         epochs=epoch,
         validation_data=(X_valid, Y_valid),
         shuffle=True,
-        verbose=0
+        verbose=0,
     )
 
 

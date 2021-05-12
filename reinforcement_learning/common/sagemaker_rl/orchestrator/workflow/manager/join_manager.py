@@ -1,18 +1,21 @@
-import boto3
+import io
+import json
 import logging
 import os
-import io
-import time
 import re
-import json
+import time
 from datetime import datetime, timedelta
 from threading import Thread
+
+import boto3
 from botocore.exceptions import ClientError
 from orchestrator.clients.ddb.join_db_client import JoinDbClient
-from orchestrator.workflow.datatypes.join_job_record import JoinJobRecord
 from orchestrator.exceptions.ddb_client_exceptions import RecordAlreadyExistsException
-from orchestrator.exceptions.workflow_exceptions import UnhandledWorkflowException, \
-    JoinQueryIdsNotAvailableException
+from orchestrator.exceptions.workflow_exceptions import (
+    JoinQueryIdsNotAvailableException,
+    UnhandledWorkflowException,
+)
+from orchestrator.workflow.datatypes.join_job_record import JoinJobRecord
 
 logger = logging.getLogger("orchestrator")
 
@@ -22,20 +25,22 @@ class JoinManager:
     will handle the joining job creation and joining job metadata
     management.
     """
+
     def __init__(
-            self,
-            join_db_client: JoinDbClient,
-            experiment_id,
-            join_job_id,
-            current_state=None,
-            input_obs_data_s3_path=None,
-            obs_start_time=None,
-            obs_end_time=None,
-            input_reward_data_s3_path=None,
-            output_joined_train_data_s3_path=None,
-            output_joined_eval_data_s3_path=None,
-            join_query_ids=[],
-            boto_session=None):
+        self,
+        join_db_client: JoinDbClient,
+        experiment_id,
+        join_job_id,
+        current_state=None,
+        input_obs_data_s3_path=None,
+        obs_start_time=None,
+        obs_end_time=None,
+        input_reward_data_s3_path=None,
+        output_joined_train_data_s3_path=None,
+        output_joined_eval_data_s3_path=None,
+        join_query_ids=[],
+        boto_session=None,
+    ):
         """Initialize a joining job entity in the current experiment
 
         Args:
@@ -80,7 +85,7 @@ class JoinManager:
         self.query_s3_output_bucket = self._create_athena_s3_bucket_if_not_exist()
         self.athena_client = self.boto_session.client("athena")
 
-        # create a local JoinJobRecord object. 
+        # create a local JoinJobRecord object.
         self.join_job_record = JoinJobRecord(
             experiment_id,
             join_job_id,
@@ -91,8 +96,8 @@ class JoinManager:
             input_reward_data_s3_path,
             output_joined_train_data_s3_path,
             output_joined_eval_data_s3_path,
-            join_query_ids
-            )
+            join_query_ids,
+        )
 
         # create obs partitioned/non-partitioned table if not exists
         if input_obs_data_s3_path and input_obs_data_s3_path != "local-join-does-not-apply":
@@ -104,28 +109,22 @@ class JoinManager:
         if obs_start_time and obs_end_time:
             self._add_time_partitions(obs_start_time, obs_end_time)
 
-        # try to save this record file. if it throws RecordAlreadyExistsException 
+        # try to save this record file. if it throws RecordAlreadyExistsException
         # reload the record from JoinJobDb, and recreate
         try:
-            self.join_db_client.create_new_join_job_record(
-                self.join_job_record.to_ddb_record()
-            )
+            self.join_db_client.create_new_join_job_record(self.join_job_record.to_ddb_record())
         except RecordAlreadyExistsException:
             logger.debug("Join job already exists. Reloading from join job record.")
-            join_job_record = self.join_db_client.get_join_job_record(
-                experiment_id,
-                join_job_id
-            )
+            join_job_record = self.join_db_client.get_join_job_record(experiment_id, join_job_id)
             self.join_job_record = JoinJobRecord.load_from_ddb_record(join_job_record)
         except Exception as e:
             logger.error("Unhandled Exception! " + str(e))
             raise UnhandledWorkflowException("Something went wrong while creating a new join job")
 
     def _jsonify(self):
-        """Return a jsonify dict with metadata of the 'JoinJob' object
-        """
+        """Return a jsonify dict with metadata of the 'JoinJob' object"""
         return self.join_job_record.to_ddb_record()
-        
+
     @classmethod
     def name_next_join_job(cls, experiment_id):
         """Generate unique join job id of a new joining job in the experiment
@@ -149,11 +148,11 @@ class JoinManager:
         """
         # athena does not allow special characters other than '_'
         # replace all special characters with '_'
-        return re.sub('[^A-Za-z0-9]+', '_', table_name_string)
+        return re.sub("[^A-Za-z0-9]+", "_", table_name_string)
 
     def _create_athena_s3_bucket_if_not_exist(self):
         """Create s3 bucket for athena data if not exists
-           Use sagemaker-{region}-{account_id} bucket to store data 
+           Use sagemaker-{region}-{account_id} bucket to store data
 
         Returns:
             str: s3 bucket name for athena
@@ -174,7 +173,9 @@ class JoinManager:
                 s3.create_bucket(
                     Bucket=s3_bucket_name, CreateBucketConfiguration={"LocationConstraint": region}
                 )
-            logger.info("Successfully create S3 bucket '{}' for athena queries".format(s3_bucket_name))
+            logger.info(
+                "Successfully create S3 bucket '{}' for athena queries".format(s3_bucket_name)
+            )
         except ClientError as e:
             error_code = e.response["Error"]["Code"]
             message = e.response["Error"]["Message"]
@@ -191,18 +192,17 @@ class JoinManager:
                 s3.meta.client.head_bucket(Bucket=s3_bucket_name)
             else:
                 raise
-        
-        s3_waiter = s3_client.get_waiter('bucket_exists')
+
+        s3_waiter = s3_client.get_waiter("bucket_exists")
         s3_waiter.wait(Bucket=s3_bucket_name)
         return s3_bucket_name
 
     def _create_obs_table_if_not_exist(self):
-        """Create athena table for observation data if not exists
-        """
+        """Create athena table for observation data if not exists"""
         # create both partitioned and non-partitioned table for obs data
         # ensure input path ending with '/'
         input_obs_data_s3_path = self.join_job_record.get_input_obs_data_s3_path()
-        input_obs_data_s3_path = input_obs_data_s3_path.strip('/')+'/'
+        input_obs_data_s3_path = input_obs_data_s3_path.strip("/") + "/"
 
         query_string = f"""
             CREATE EXTERNAL TABLE IF NOT EXISTS {self.obs_table_partitioned} (
@@ -217,7 +217,9 @@ class JoinManager:
             ROW FORMAT SERDE 'org.openx.data.jsonserde.JsonSerDe'
             LOCATION '{input_obs_data_s3_path}'
         """
-        s3_output_path = f"s3://{self.query_s3_output_bucket}/{self.experiment_id}/joined_data/obs_tables"
+        s3_output_path = (
+            f"s3://{self.query_s3_output_bucket}/{self.experiment_id}/joined_data/obs_tables"
+        )
         query_id = self._start_query(query_string, s3_output_path)
         self.wait_query_to_finish(query_id)
 
@@ -234,35 +236,42 @@ class JoinManager:
             ROW FORMAT SERDE 'org.openx.data.jsonserde.JsonSerDe'
             LOCATION '{input_obs_data_s3_path}'
         """
-        s3_output_path = f"s3://{self.query_s3_output_bucket}/{self.experiment_id}/joined_data/obs_tables"
+        s3_output_path = (
+            f"s3://{self.query_s3_output_bucket}/{self.experiment_id}/joined_data/obs_tables"
+        )
         query_id = self._start_query(query_string, s3_output_path)
         self.wait_query_to_finish(query_id)
 
-        logger.debug(f"Successfully create observation table "
-            f"'{self.obs_table_non_partitioned}' and '{self.obs_table_partitioned}' for query")
+        logger.debug(
+            f"Successfully create observation table "
+            f"'{self.obs_table_non_partitioned}' and '{self.obs_table_partitioned}' for query"
+        )
 
     def _delete_obs_table_if_exist(self):
         query_string = f"""
             DROP TABLE IF EXISTS {self.obs_table_partitioned}
         """
-        s3_output_path = f"s3://{self.query_s3_output_bucket}/{self.experiment_id}/joined_data/obs_tables"
+        s3_output_path = (
+            f"s3://{self.query_s3_output_bucket}/{self.experiment_id}/joined_data/obs_tables"
+        )
         query_id = self._start_query(query_string, s3_output_path)
         self.wait_query_to_finish(query_id)
 
         query_string = f"""
             DROP TABLE IF EXISTS {self.obs_table_non_partitioned}
         """
-        s3_output_path = f"s3://{self.query_s3_output_bucket}/{self.experiment_id}/joined_data/obs_tables"
+        s3_output_path = (
+            f"s3://{self.query_s3_output_bucket}/{self.experiment_id}/joined_data/obs_tables"
+        )
         query_id = self._start_query(query_string, s3_output_path)
         self.wait_query_to_finish(query_id)
 
     def _create_rewards_table_if_not_exist(self):
-        """Create athena table for rewards data if not exists
-        """
+        """Create athena table for rewards data if not exists"""
         # create table if not exists
         # ensure input path ending with '/'
         input_reward_data_s3_path = self.join_job_record.get_input_reward_data_s3_path()
-        input_reward_data_s3_path = input_reward_data_s3_path.strip('/')+'/'
+        input_reward_data_s3_path = input_reward_data_s3_path.strip("/") + "/"
 
         query_string = f"""
             CREATE EXTERNAL TABLE IF NOT EXISTS {self.rewards_table} (
@@ -273,7 +282,9 @@ class JoinManager:
             LOCATION '{input_reward_data_s3_path}'
         """
 
-        s3_output_path = f"s3://{self.query_s3_output_bucket}/{self.experiment_id}/joined_data/rewards_tables"
+        s3_output_path = (
+            f"s3://{self.query_s3_output_bucket}/{self.experiment_id}/joined_data/rewards_tables"
+        )
         query_id = self._start_query(query_string, s3_output_path)
         self.wait_query_to_finish(query_id)
 
@@ -288,12 +299,14 @@ class JoinManager:
         self.wait_query_to_finish(query_id)
 
         logger.debug(f"Successfully update s3 location of rewards table '{self.rewards_table}'")
-    
+
     def _delete_rewards_table_if_exist(self):
         query_string = f"""
             DROP TABLE IF EXISTS {self.rewards_table}
         """
-        s3_output_path = f"s3://{self.query_s3_output_bucket}/{self.experiment_id}/joined_data/rewards_tables"
+        s3_output_path = (
+            f"s3://{self.query_s3_output_bucket}/{self.experiment_id}/joined_data/rewards_tables"
+        )
         query_id = self._start_query(query_string, s3_output_path)
         self.wait_query_to_finish(query_id)
 
@@ -309,25 +322,29 @@ class JoinManager:
         input_obs_data_s3_path = self.join_job_record.get_input_obs_data_s3_path()
 
         # Adding partitions for each hour
-        partition_string_list  = []
+        partition_string_list = []
         time_delta = end_time - start_time
         days = time_delta.days
         seconds = time_delta.seconds
-        hours = int(days*24 + seconds/3600)
+        hours = int(days * 24 + seconds / 3600)
         for i in range(hours + 1):
-            dt =  start_time + timedelta(hours=i)
+            dt = start_time + timedelta(hours=i)
             dt_str = dt.strftime("%Y-%m-%d-%H")
             bucket_dt_str = dt.strftime("%Y/%m/%d/%H")
-            partition_string = f"PARTITION (dt = '{dt_str}') LOCATION '{input_obs_data_s3_path}/{bucket_dt_str}/'"
+            partition_string = (
+                f"PARTITION (dt = '{dt_str}') LOCATION '{input_obs_data_s3_path}/{bucket_dt_str}/'"
+            )
             partition_string_list.append(partition_string)
 
         query_string = f"ALTER TABLE {self.obs_table_partitioned} ADD IF NOT EXISTS"
-        
+
         for partition_string in partition_string_list:
             query_string = f"""
             {query_string}\n{partition_string}"""
 
-        s3_output_path = f"s3://{self.query_s3_output_bucket}/{self.experiment_id}/joined_data/partitions"
+        s3_output_path = (
+            f"s3://{self.query_s3_output_bucket}/{self.experiment_id}/joined_data/partitions"
+        )
         query_id = self._start_query(query_string, s3_output_path)
         self.wait_query_to_finish(query_id)
         logger.debug(f"Successfully add partitions to table {self.obs_table_partitioned}")
@@ -386,16 +403,20 @@ class JoinManager:
                     )"""
 
         if train_data:
-            query_sample_string = f"SELECT * FROM joined_table WHERE joined_table.sample_prob <= {ratio}"
+            query_sample_string = (
+                f"SELECT * FROM joined_table WHERE joined_table.sample_prob <= {ratio}"
+            )
         else:
-            query_sample_string = f"SELECT * FROM joined_table WHERE joined_table.sample_prob > {ratio}"
-        
+            query_sample_string = (
+                f"SELECT * FROM joined_table WHERE joined_table.sample_prob > {ratio}"
+            )
+
         query_string = f"""
             {query_string_prefix}
             {query_sample_string}"""
-        
+
         return query_string
-        
+
     def _start_query(self, query_string, s3_output_path):
         """Start query with given query string and output path
 
@@ -411,16 +432,16 @@ class JoinManager:
             response = self.athena_client.start_query_execution(
                 QueryString=query_string,
                 ResultConfiguration={
-                    'OutputLocation': s3_output_path,
-                    }
-                )
-            query_id = response['QueryExecutionId']
+                    "OutputLocation": s3_output_path,
+                },
+            )
+            query_id = response["QueryExecutionId"]
         except ClientError as e:
-            error_code = e.response['Error']['Code']
-            message = e.response['Error']['Message']
-            raise RuntimeError("Failed to submit athena query with error {}: {}".format(
-                error_code, message
-            ))
+            error_code = e.response["Error"]["Code"]
+            message = e.response["Error"]["Message"]
+            raise RuntimeError(
+                "Failed to submit athena query with error {}: {}".format(error_code, message)
+            )
         return query_id
 
     def wait_query_to_finish(self, query_id):
@@ -429,28 +450,30 @@ class JoinManager:
         Args:
             query_id (str): query id of Athena query
         """
-        status = 'QUEUED'
-        while status == 'RUNNING' or status == 'QUEUED':
+        status = "QUEUED"
+        while status == "RUNNING" or status == "QUEUED":
             try:
-                response = self.athena_client.get_query_execution(
-                    QueryExecutionId=query_id
-                )
-                status = response['QueryExecution']['Status']['State']
+                response = self.athena_client.get_query_execution(QueryExecutionId=query_id)
+                status = response["QueryExecution"]["Status"]["State"]
                 logger.debug(f"Waiting query to finish...")
                 time.sleep(5)
             except ClientError as e:
-                error_code = e.response['Error']['Code']
-                message = e.response['Error']['Message']
-                raise RuntimeError("Failed to retrieve athena query status with error {}: {}".format(
-                    error_code, message
-                ))
-    
-        if status == 'FAILED':
-            raise RuntimeError(f"Query failed with reason: {response['QueryExecution']['Status']['StateChangeReason']}")
-        elif status == 'CANCELLED':
+                error_code = e.response["Error"]["Code"]
+                message = e.response["Error"]["Message"]
+                raise RuntimeError(
+                    "Failed to retrieve athena query status with error {}: {}".format(
+                        error_code, message
+                    )
+                )
+
+        if status == "FAILED":
+            raise RuntimeError(
+                f"Query failed with reason: {response['QueryExecution']['Status']['StateChangeReason']}"
+            )
+        elif status == "CANCELLED":
             logger.warning("Query was cancelled...")
-        elif status == 'SUCCEEDED':
-            logger.debug("Query finished successfully")    
+        elif status == "SUCCEEDED":
+            logger.debug("Query finished successfully")
 
     def get_query_status(self, query_id):
         """Return query status given query ID
@@ -462,18 +485,18 @@ class JoinManager:
             str: Status of the query
         """
         try:
-            response = self.athena_client.get_query_execution(
-                    QueryExecutionId=query_id
-                )
-            status = response['QueryExecution']['Status']['State']
+            response = self.athena_client.get_query_execution(QueryExecutionId=query_id)
+            status = response["QueryExecution"]["Status"]["State"]
         except ClientError as e:
-            error_code = e.response['Error']['Code']
-            message = e.response['Error']['Message']
-            raise RuntimeError("Failed to retrieve athena query status with error {}: {}".format(
-                error_code, message
-            ))
+            error_code = e.response["Error"]["Code"]
+            message = e.response["Error"]["Message"]
+            raise RuntimeError(
+                "Failed to retrieve athena query status with error {}: {}".format(
+                    error_code, message
+                )
+            )
         return status
-        
+
     def start_join(self, ratio=0.8, wait=True):
         """Start Athena queries for the joining
 
@@ -486,22 +509,29 @@ class JoinManager:
 
         obs_start_time, obs_end_time = self.join_job_record.get_obs_start_end_time()
 
-        join_query_for_train_data = self._get_join_query_string(ratio=ratio, 
-            train_data=True, start_time=obs_start_time, end_time=obs_end_time)
-        join_query_for_eval_data = self._get_join_query_string(ratio=ratio, 
-            train_data=False, start_time=obs_start_time, end_time=obs_end_time)
+        join_query_for_train_data = self._get_join_query_string(
+            ratio=ratio, train_data=True, start_time=obs_start_time, end_time=obs_end_time
+        )
+        join_query_for_eval_data = self._get_join_query_string(
+            ratio=ratio, train_data=False, start_time=obs_start_time, end_time=obs_end_time
+        )
 
-        s3_output_path = f"s3://{self.query_s3_output_bucket}/" \
-                f"{self.experiment_id}/joined_data/{self.join_job_id}"
+        s3_output_path = (
+            f"s3://{self.query_s3_output_bucket}/"
+            f"{self.experiment_id}/joined_data/{self.join_job_id}"
+        )
         logger.info(f"Joined data will be stored under {s3_output_path}")
 
-
-        join_query_id_for_train = self._start_query(join_query_for_train_data, f"{s3_output_path}/train")
-        join_query_id_for_eval = self._start_query(join_query_for_eval_data, f"{s3_output_path}/eval")
+        join_query_id_for_train = self._start_query(
+            join_query_for_train_data, f"{s3_output_path}/train"
+        )
+        join_query_id_for_eval = self._start_query(
+            join_query_for_eval_data, f"{s3_output_path}/eval"
+        )
 
         # updates join table states vid ddb client
         self.join_db_client.update_join_job_current_state(
-            self.experiment_id, self.join_job_id, 'PENDING'
+            self.experiment_id, self.join_job_id, "PENDING"
         )
         self.join_db_client.update_join_job_output_joined_train_data_s3_path(
             self.experiment_id, self.join_job_id, f"{s3_output_path}/train"
@@ -526,8 +556,8 @@ class JoinManager:
         Return:
             str: A string in csv format, concatenated by ','
         """
-        val_str_list = list(map(lambda x: f"\"{x}\"", val_list))
-        return str(','.join(val_str_list) + '\n').encode('utf_8')
+        val_str_list = list(map(lambda x: f'"{x}"', val_list))
+        return str(",".join(val_str_list) + "\n").encode("utf_8")
 
     def _upload_data_buffer_as_joined_data_format(self, data_buffer, s3_bucket, s3_prefix):
         """Upload joined data buffer to s3 bucket
@@ -553,27 +583,29 @@ class JoinManager:
         s3_client = self.boto_session.client("s3")
 
         try:
-            logger.info("_upload_data_buffer_as_joined_data_format put s3://{}/{}".format(
-                s3_bucket, joined_data_s3_file_key
-            ))
-            s3_client.put_object(Body=body,
-                                 Bucket=s3_bucket,
-                                 Key=joined_data_s3_file_key)
+            logger.info(
+                "_upload_data_buffer_as_joined_data_format put s3://{}/{}".format(
+                    s3_bucket, joined_data_s3_file_key
+                )
+            )
+            s3_client.put_object(Body=body, Bucket=s3_bucket, Key=joined_data_s3_file_key)
         except ClientError as e:
-            error_code = e.response['Error']['Code']
-            message = e.response['Error']['Message']
-            logger.error("Failed to upload local joined data with error {}: {}".format(
-                error_code, message
-            ))
+            error_code = e.response["Error"]["Code"]
+            message = e.response["Error"]["Message"]
+            logger.error(
+                "Failed to upload local joined data with error {}: {}".format(error_code, message)
+            )
             return None
 
         joined_data_file_path = f"s3://{s3_bucket}/{joined_data_s3_file_key}"
 
         logger.debug("Waiting for local joined data to be uploaded.")
-        waiter = s3_client.get_waiter('object_exists')
+        waiter = s3_client.get_waiter("object_exists")
         waiter.wait(Bucket=s3_bucket, Key=joined_data_s3_file_key)
 
-        logger.debug(f"Successfully upload local joined data files to s3 bucket path {joined_data_file_path}")
+        logger.debug(
+            f"Successfully upload local joined data files to s3 bucket path {joined_data_file_path}"
+        )
 
         return joined_data_file_path
 
@@ -596,13 +628,15 @@ class JoinManager:
             else:
                 joined_eval_data_buffer.append(record)
 
-        s3_output_path = f"s3://{self.query_s3_output_bucket}/" \
-                f"{self.experiment_id}/joined_data/{self.join_job_id}"
+        s3_output_path = (
+            f"s3://{self.query_s3_output_bucket}/"
+            f"{self.experiment_id}/joined_data/{self.join_job_id}"
+        )
         logger.info(f"Joined data will be stored under {s3_output_path}")
 
         # updates join table states vid ddb client
         self.join_db_client.update_join_job_current_state(
-            self.experiment_id, self.join_job_id, 'PENDING'
+            self.experiment_id, self.join_job_id, "PENDING"
         )
         self.join_db_client.update_join_job_output_joined_train_data_s3_path(
             self.experiment_id, self.join_job_id, f"{s3_output_path}/train"
@@ -615,12 +649,14 @@ class JoinManager:
         joined_train_data_path = self._upload_data_buffer_as_joined_data_format(
             joined_train_data_buffer,
             self.query_s3_output_bucket,
-            f"{self.experiment_id}/joined_data/{self.join_job_id}/train")
+            f"{self.experiment_id}/joined_data/{self.join_job_id}/train",
+        )
 
         joined_eval_data_path = self._upload_data_buffer_as_joined_data_format(
             joined_eval_data_buffer,
             self.query_s3_output_bucket,
-            f"{self.experiment_id}/joined_data/{self.join_job_id}/eval")      
+            f"{self.experiment_id}/joined_data/{self.join_job_id}/eval",
+        )
 
         # dummy join finished, update joining job state
         if joined_train_data_path and joined_eval_data_path:
@@ -631,7 +667,7 @@ class JoinManager:
         self.join_db_client.update_join_job_current_state(
             self.experiment_id, self.join_job_id, current_state
         )
-    
+
     def update_join_job_state(self):
         for num_retries in range(3):
             try:
@@ -641,15 +677,17 @@ class JoinManager:
                 self._update_join_table_states(join_job_record)
             except Exception as e:
                 if num_retries >= 2:
-                    current_state = 'FAILED'
+                    current_state = "FAILED"
                     self.join_db_client.update_join_job_current_state(
                         self.experiment_id, self.join_job_id, current_state
                     )
                     logger.error(f"Failing join job '{self.join_job_id}'...")
                     return
                 else:
-                    logger.warn(f"Received exception '{e}' while updating join "
-                    "job status. This exception will be ignored, and retried.")
+                    logger.warn(
+                        f"Received exception '{e}' while updating join "
+                        "job status. This exception will be ignored, and retried."
+                    )
                     time.sleep(5)
                     continue
 
@@ -664,7 +702,7 @@ class JoinManager:
         """
         if join_job_record is None:
             return
-        
+
         current_state = join_job_record.get("current_state", None)
         join_query_ids = join_job_record.get("join_query_ids", [])
 
@@ -673,8 +711,9 @@ class JoinManager:
             return
 
         if not join_query_ids:
-            raise JoinQueryIdsNotAvailableException(f"Query ids for Joining job "
-            f"'{self.join_job_id}' cannot be found.")
+            raise JoinQueryIdsNotAvailableException(
+                f"Query ids for Joining job " f"'{self.join_job_id}' cannot be found."
+            )
 
         query_states = []
 
@@ -682,22 +721,16 @@ class JoinManager:
             query_states.append(self.get_query_status(query_id))
 
         # only 'SUCCEEDED' if both queries are 'SUCCEEDED'
-        if query_states[0] == 'SUCCEEDED' and query_states[1] == 'SUCCEEDED':
-            current_state = 'SUCCEEDED'
-        elif 'FAILED' in query_states:
-            current_state = 'FAILED'
-        elif 'CANCELLED' in query_states:
-            current_state = 'CANCELLED'
+        if query_states[0] == "SUCCEEDED" and query_states[1] == "SUCCEEDED":
+            current_state = "SUCCEEDED"
+        elif "FAILED" in query_states:
+            current_state = "FAILED"
+        elif "CANCELLED" in query_states:
+            current_state = "CANCELLED"
         else:
-            current_state = 'RUNNING'
+            current_state = "RUNNING"
 
         # update table states via ddb client
         self.join_db_client.update_join_job_current_state(
             self.experiment_id, self.join_job_id, current_state
         )
-
-
-            
-            
-
- 

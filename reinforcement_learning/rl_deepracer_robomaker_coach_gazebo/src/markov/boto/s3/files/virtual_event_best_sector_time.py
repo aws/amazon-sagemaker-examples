@@ -1,34 +1,44 @@
-'''This module implements s3 client for virtual event best sector time'''
+"""This module implements s3 client for virtual event best sector time"""
 
-import os
-import sys
 import json
 import logging
-import botocore
+import os
+import sys
 
-from markov.log_handler.logger import Logger
-from markov.log_handler.exception_handler import log_and_exit
-from markov.log_handler.constants import (SIMAPP_SIMULATION_WORKER_EXCEPTION,
-                                          SIMAPP_EVENT_ERROR_CODE_500,
-                                          SIMAPP_EVENT_SYSTEM_ERROR)
-from markov.log_handler.deepracer_exceptions import GenericNonFatalException
-from markov.boto.s3.constants import (SECTOR_TIME_S3_POSTFIX,
-                                      PYTHON_2,
-                                      PYTHON_3,
-                                      SECTOR_X_FORMAT,
-                                      TrackSectorTime,
-                                      SECTOR_TIME_FORMAT_DICT)
+import botocore
+from markov.boto.s3.constants import (
+    PYTHON_2,
+    PYTHON_3,
+    SECTOR_TIME_FORMAT_DICT,
+    SECTOR_TIME_S3_POSTFIX,
+    SECTOR_X_FORMAT,
+    TrackSectorTime,
+)
 from markov.boto.s3.s3_client import S3Client
+from markov.log_handler.constants import (
+    SIMAPP_EVENT_ERROR_CODE_500,
+    SIMAPP_EVENT_SYSTEM_ERROR,
+    SIMAPP_SIMULATION_WORKER_EXCEPTION,
+)
+from markov.log_handler.deepracer_exceptions import GenericNonFatalException
+from markov.log_handler.exception_handler import log_and_exit
+from markov.log_handler.logger import Logger
 
 LOG = Logger(__name__, logging.INFO).get_logger()
 
 
-class VirtualEventBestSectorTime():
-    """virtual event best sector time upload and download
-    """
-    def __init__(self, bucket, s3_key, region_name='us-east-1',
-                 local_path="./custom_files/best_sector_time.json",
-                 max_retry_attempts=5, backoff_time_sec=1.0):
+class VirtualEventBestSectorTime:
+    """virtual event best sector time upload and download"""
+
+    def __init__(
+        self,
+        bucket,
+        s3_key,
+        region_name="us-east-1",
+        local_path="./custom_files/best_sector_time.json",
+        max_retry_attempts=5,
+        backoff_time_sec=1.0,
+    ):
         """virtual event best sector time upload and download
 
         Args:
@@ -41,24 +51,24 @@ class VirtualEventBestSectorTime():
             backoff_time_sec (float): retry backoff time in seconds
         """
         if not s3_key or not bucket:
-            log_and_exit("virtual event best sector time S3 key or bucket not available for S3. \
-                         bucket: {}, key: {}".format(bucket, s3_key),
-                         SIMAPP_SIMULATION_WORKER_EXCEPTION,
-                         SIMAPP_EVENT_ERROR_CODE_500)
+            log_and_exit(
+                "virtual event best sector time S3 key or bucket not available for S3. \
+                         bucket: {}, key: {}".format(
+                    bucket, s3_key
+                ),
+                SIMAPP_SIMULATION_WORKER_EXCEPTION,
+                SIMAPP_EVENT_ERROR_CODE_500,
+            )
         self._python_version = sys.version_info[0]
         self._bucket = bucket
         self._s3_key = s3_key
         self._local_path = local_path
-        self._s3_client = S3Client(region_name,
-                                   max_retry_attempts,
-                                   backoff_time_sec)
+        self._s3_client = S3Client(region_name, max_retry_attempts, backoff_time_sec)
         self._best_sector_time = dict()
 
     def list(self):
-        """List best sector time json file
-        """
-        return self._s3_client.list_objects_v2(bucket=self._bucket,
-                                               prefix=self._s3_key)
+        """List best sector time json file"""
+        return self._s3_client.list_objects_v2(bucket=self._bucket, prefix=self._s3_key)
 
     def persist(self, body, s3_kms_extra_args):
         """upload virtual event best sector time into s3 bucket
@@ -75,12 +85,18 @@ class VirtualEventBestSectorTime():
             else:
                 body = bytes(body, "utf-8")
             # if retry failed, s3_client put_object will log and exit 500
-            self._s3_client.put_object(bucket=self._bucket,
-                                       s3_key=self._s3_key,
-                                       body=body,
-                                       s3_kms_extra_args=s3_kms_extra_args)
-            LOG.info("[s3] Successfully uploaded virtual event best sector time to \
-                     s3 bucket {} with s3 key {}.".format(self._bucket, self._s3_key))
+            self._s3_client.put_object(
+                bucket=self._bucket,
+                s3_key=self._s3_key,
+                body=body,
+                s3_kms_extra_args=s3_kms_extra_args,
+            )
+            LOG.info(
+                "[s3] Successfully uploaded virtual event best sector time to \
+                     s3 bucket {} with s3 key {}.".format(
+                    self._bucket, self._s3_key
+                )
+            )
         except Exception as ex:
             LOG.error("Failed to upload virtual event best sector time {}.".format(ex))
 
@@ -123,22 +139,31 @@ class VirtualEventBestSectorTime():
 
         # Download the best sector time with retry
         try:
-            self._s3_client.download_file(bucket=self._bucket,
-                                          s3_key=self._s3_key,
-                                          local_path=self._local_path)
-            LOG.info("[s3] Successfully downloaded best sector time from \
-                 s3 key {} to local {}.".format(self._s3_key, self._local_path))
+            self._s3_client.download_file(
+                bucket=self._bucket, s3_key=self._s3_key, local_path=self._local_path
+            )
+            LOG.info(
+                "[s3] Successfully downloaded best sector time from \
+                 s3 key {} to local {}.".format(
+                    self._s3_key, self._local_path
+                )
+            )
             with open(self._local_path) as file:
                 times = json.load(file)
                 for idx in range(num_sectors):
                     sector = SECTOR_X_FORMAT.format(idx + 1)
-                    self._best_sector_time[SECTOR_TIME_FORMAT_DICT[TrackSectorTime.BEST_SESSION].format(sector)] = \
-                        times[sector]
+                    self._best_sector_time[
+                        SECTOR_TIME_FORMAT_DICT[TrackSectorTime.BEST_SESSION].format(sector)
+                    ] = times[sector]
                 return self._best_sector_time
         except Exception as ex:
-            LOG.error("[s3] Exception occurred while getting best sector time from s3 %s use default", ex)
+            LOG.error(
+                "[s3] Exception occurred while getting best sector time from s3 %s use default", ex
+            )
             # default sector times to None and not plot sectors if download failed
             for idx in range(num_sectors):
                 sector = SECTOR_X_FORMAT.format(idx + 1)
-                self._best_sector_time[SECTOR_TIME_FORMAT_DICT[TrackSectorTime.BEST_SESSION].format(sector)] = None
+                self._best_sector_time[
+                    SECTOR_TIME_FORMAT_DICT[TrackSectorTime.BEST_SESSION].format(sector)
+                ] = None
             return self._best_sector_time

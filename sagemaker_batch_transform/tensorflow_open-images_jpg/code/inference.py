@@ -14,10 +14,12 @@
 import base64
 import io
 import json
+
 import requests
 
+
 def input_handler(data, context):
-    """ Pre-process request input before it is sent to TensorFlow Serving REST API
+    """Pre-process request input before it is sent to TensorFlow Serving REST API
 
     Args:
         data (obj): the request data stream
@@ -27,13 +29,15 @@ def input_handler(data, context):
         (dict): a JSON-serializable dict that contains request body and headers
     """
 
-    if context.request_content_type == 'application/x-image':
+    if context.request_content_type == "application/x-image":
         payload = data.read()
-        encoded_image = base64.b64encode(payload).decode('utf-8')
+        encoded_image = base64.b64encode(payload).decode("utf-8")
         instance = [{"b64": encoded_image}]
         return json.dumps({"instances": instance})
     else:
-        _return_error(415, 'Unsupported content type "{}"'.format(context.request_content_type or 'Unknown'))
+        _return_error(
+            415, 'Unsupported content type "{}"'.format(context.request_content_type or "Unknown")
+        )
 
 
 def output_handler(response, context):
@@ -47,11 +51,11 @@ def output_handler(response, context):
         (bytes, string): data to return to client, response content type
     """
     if response.status_code != 200:
-        _return_error(response.status_code, response.content.decode('utf-8'))
+        _return_error(response.status_code, response.content.decode("utf-8"))
     response_content_type = context.accept_header
     prediction = response.content
     return prediction, response_content_type
 
 
 def _return_error(code, message):
-    raise ValueError('Error: {}, {}'.format(str(code), message))
+    raise ValueError("Error: {}, {}".format(str(code), message))

@@ -1,9 +1,10 @@
 import abc
-from markov.gazebo_tracker.tracker_manager import TrackerManager
+
 import markov.gazebo_tracker.constants as consts
+from markov.gazebo_tracker.tracker_manager import TrackerManager
 
 # Python 2 and 3 compatible Abstract class
-ABC = abc.ABCMeta('ABC', (object,), {})
+ABC = abc.ABCMeta("ABC", (object,), {})
 
 
 class AbstractTracker(ABC):
@@ -20,4 +21,4 @@ class AbstractTracker(ABC):
             delta_time (float): delta time
             sim_time (Clock): simulation time
         """
-        raise NotImplementedError('Tracker must be able to update')
+        raise NotImplementedError("Tracker must be able to update")

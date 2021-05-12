@@ -4,16 +4,15 @@ Handles cleaning up after a batch has succesfully been processed.
 Sends message to status SNS on completion.
 """
 
-import os
 import json
+import os
 
 import boto3
 import botocore
-
-from shared.constants import BatchStatus
-from shared.log import log_request_and_context, logger
 from shared import db
 from shared.api_helpers import input_batch_to_human_readable
+from shared.constants import BatchStatus
+from shared.log import log_request_and_context, logger
 
 sns = boto3.resource("sns")
 
@@ -67,9 +66,7 @@ def lambda_handler(event, context):
             Message=json.dumps(message, indent=4, default=str),
         )
     except botocore.exceptions.ClientError as err:
-        raise Exception(
-            f"Service error publishing SNS response for batch id: {batch_id}"
-        ) from err
+        raise Exception(f"Service error publishing SNS response for batch id: {batch_id}") from err
 
     return {
         "published_sns": message,

@@ -1,9 +1,8 @@
-import pygame
 import numpy as np
+import pygame
 
 
 class TSPView2D:
-
     def __init__(self, n_orders, map_quad, grid_size):
 
         self.grid_size = grid_size
@@ -11,10 +10,10 @@ class TSPView2D:
 
         self.n_orders = n_orders
 
-        self.map_min_x = - map_quad[0]
-        self.map_max_x = + map_quad[0]
-        self.map_min_y = - map_quad[1]
-        self.map_max_y = + map_quad[1]
+        self.map_min_x = -map_quad[0]
+        self.map_max_x = +map_quad[0]
+        self.map_min_y = -map_quad[1]
+        self.map_max_y = +map_quad[1]
 
         pygame.init()
         pygame.display.set_caption("TSP")
@@ -27,12 +26,36 @@ class TSPView2D:
 
         # Create a layer for the game
         self.game_surface = pygame.Surface(self.screen.get_size()).convert_alpha()
-        self.game_surface.fill((0, 0, 0, 0,))
+        self.game_surface.fill(
+            (
+                0,
+                0,
+                0,
+                0,
+            )
+        )
 
-    def update(self, agt_at_restaurant, restaurant_x, restaurant_y, o_delivery,
-               o_x, o_y, agt_x, agt_y, mode="human"):
+    def update(
+        self,
+        agt_at_restaurant,
+        restaurant_x,
+        restaurant_y,
+        o_delivery,
+        o_x,
+        o_y,
+        agt_x,
+        agt_y,
+        mode="human",
+    ):
         try:
-            self.game_surface.fill((0, 0, 0, 0,))
+            self.game_surface.fill(
+                (
+                    0,
+                    0,
+                    0,
+                    0,
+                )
+            )
 
             self.__draw_restaurant(agt_at_restaurant, restaurant_x, restaurant_y)
             self.__draw_orders(o_delivery, o_x, o_y)
@@ -97,6 +120,5 @@ class TSPView2D:
 
 if __name__ == "__main__":
     tsp = TSPView2D(n_orders=5, map_quad=(5, 5), grid_size=20)
-    tsp.update(0, 0, 0, [1, 1, 1, 0, 0],
-               [-3, -2, -1, 1, 2], [-3, -2, -1, 1, 2], 3, 4)
+    tsp.update(0, 0, 0, [1, 1, 1, 0, 0], [-3, -2, -1, 1, 2], [-3, -2, -1, 1, 2], 3, 4)
     input("Press any key to quit.")

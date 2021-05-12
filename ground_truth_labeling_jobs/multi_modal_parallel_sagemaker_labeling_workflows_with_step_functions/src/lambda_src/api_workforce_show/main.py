@@ -7,9 +7,8 @@ import json
 import os
 
 import boto3
-
 from shared.constants import SMGTJobCategory
-from shared.log import logger, log_request_and_context
+from shared.log import log_request_and_context, logger
 
 
 def get_member_definition_info(cognito, member_definition):
@@ -93,10 +92,7 @@ def handle_request():
         response = sagemaker.describe_workteam(WorkteamName=workteam_name)
         logger.info("Sagemaker describe workteam %s response: %s", workteam_name, response)
 
-        if (
-            not "Workteam" in response
-            or not "MemberDefinitions" in response["Workteam"]
-        ):
+        if not "Workteam" in response or not "MemberDefinitions" in response["Workteam"]:
             # We'll catch, log and handle at a higher level, let this bubble up.
             raise Exception("Couldn't get member definitions from work team")
 

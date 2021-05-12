@@ -1,6 +1,5 @@
 # Python Built-Ins:
 import argparse
-from distutils.dir_util import copy_tree
 import gzip
 import json
 import logging
@@ -8,22 +7,22 @@ import os
 import shutil
 import subprocess
 import sys
+from distutils.dir_util import copy_tree
 from tempfile import TemporaryDirectory
 
 # External Dependencies:
 import numpy as np
-from packaging import version as pkgversion
-from sagemaker_pytorch_serving_container import handler_service as default_handler_service
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-from torch.utils.data import Dataset, DataLoader
+from model import MNISTNet
+from packaging import version as pkgversion
+from sagemaker_pytorch_serving_container import handler_service as default_handler_service
+from torch.utils.data import DataLoader, Dataset
 
 # Local Dependencies:
 from inference import *
-from model import MNISTNet
-
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -51,7 +50,7 @@ def enable_sm_oneclick_deploy(model_dir):
             # Skip any pycache or dot folders:
             if ((os.path.sep + ".") in filepath) or ("__pycache__" in filepath):
                 continue
-            relpath = filepath[len("."):]
+            relpath = filepath[len(".") :]
             if relpath.startswith(os.path.sep):
                 relpath = relpath[1:]
             outpath = os.path.join(code_path, relpath)
@@ -87,15 +86,23 @@ def enable_torchserve_multi_model(model_dir, handler_service_file=default_handle
         # contents to end up in `model_dir`'s root - so will use a temp dir and copy back:
         with TemporaryDirectory() as temp_dir:
             ts_model_name = "model"  # Just a placeholder, doesn't really matter for our purposes
-            subprocess.check_call([
-                "torch-model-archiver",
-                "--model-name", ts_model_name,
-                "--version", "1",
-                "--handler", handler_service_file,
-                "--extra-files", model_dir,
-                "--archive-format", "no-archive",
-                "--export-path", temp_dir,
-            ])
+            subprocess.check_call(
+                [
+                    "torch-model-archiver",
+                    "--model-name",
+                    ts_model_name,
+                    "--version",
+                    "1",
+                    "--handler",
+                    handler_service_file,
+                    "--extra-files",
+                    model_dir,
+                    "--archive-format",
+                    "no-archive",
+                    "--export-path",
+                    temp_dir,
+                ]
+            )
             copy_tree(os.path.join(temp_dir, ts_model_name), model_dir)
     else:
         logger.info(f"Skipping TorchServe repackage: PyTorch version {torch.__version__} < 1.6")
@@ -110,20 +117,23 @@ def normalize(x, axis):
 
 
 def convert_to_tensor(data_dir, images_file, labels_file):
-    """Byte string to torch tensor 
-    """
+    """Byte string to torch tensor"""
     with gzip.open(os.path.join(data_dir, images_file), "rb") as f:
-        images = np.frombuffer(
-            f.read(),
-            np.uint8,
-            offset=16,
-        ).reshape(-1, 28, 28).astype(np.float32)
+        images = (
+            np.frombuffer(
+                f.read(),
+                np.uint8,
+                offset=16,
+            )
+            .reshape(-1, 28, 28)
+            .astype(np.float32)
+        )
 
     with gzip.open(os.path.join(data_dir, labels_file), "rb") as f:
         labels = np.frombuffer(f.read(), np.uint8, offset=8).astype(np.int64)
 
     # normalize the images
-    images = normalize(images, axis=(1,2))
+    images = normalize(images, axis=(1, 2))
 
     # add channel dimension (depth-major)
     images = np.expand_dims(images, axis=1)
@@ -131,7 +141,7 @@ def convert_to_tensor(data_dir, images_file, labels_file):
     # to torch tensor
     images = torch.tensor(images, dtype=torch.float32)
     labels = torch.tensor(labels, dtype=torch.int64)
-    return images, labels 
+    return images, labels
 
 
 class MNIST(Dataset):
@@ -141,11 +151,11 @@ class MNIST(Dataset):
         Loads and decodes the expected gzip file names from data_dir
         """
         if train:
-            images_file="train-images-idx3-ubyte.gz"
-            labels_file="train-labels-idx1-ubyte.gz"
+            images_file = "train-images-idx3-ubyte.gz"
+            labels_file = "train-labels-idx1-ubyte.gz"
         else:
-            images_file="t10k-images-idx3-ubyte.gz"
-            labels_file="t10k-labels-idx1-ubyte.gz"
+            images_file = "t10k-images-idx3-ubyte.gz"
+            labels_file = "t10k-labels-idx1-ubyte.gz"
 
         self.images, self.labels = convert_to_tensor(data_dir, images_file, labels_file)
 
@@ -164,18 +174,22 @@ def train(args):
     if use_cuda:
         torch.cuda.manual_seed(args.seed)
 
-    train_loader = DataLoader(MNIST(args.train, train=True), batch_size=args.batch_size, shuffle=True)
-    test_loader = DataLoader(MNIST(args.test, train=False), batch_size=args.test_batch_size, shuffle=False)
+    train_loader = DataLoader(
+        MNIST(args.train, train=True), batch_size=args.batch_size, shuffle=True
+    )
+    test_loader = DataLoader(
+        MNIST(args.test, train=False), batch_size=args.test_batch_size, shuffle=False
+    )
 
     net = MNISTNet().to(device)
     loss_fn = nn.CrossEntropyLoss()
     optimizer = optim.Adam(
-        net.parameters(), 
+        net.parameters(),
         betas=(args.beta_1, args.beta_2),
         weight_decay=args.weight_decay,
     )
 
-    logger.info("Start training ...")    
+    logger.info("Start training ...")
     for epoch in range(1, args.epochs + 1):
         net.train()
         for batch_idx, (imgs, labels) in enumerate(train_loader, 1):
@@ -188,13 +202,15 @@ def train(args):
             optimizer.step()
 
             if batch_idx % args.log_interval == 0:
-                print("Train Epoch: {} [{}/{} ({:.0f}%)] Loss: {:.6f}".format(
-                    epoch,
-                    batch_idx * len(imgs),
-                    len(train_loader.sampler),
-                    100. * batch_idx / len(train_loader),
-                    loss.item()
-                ))
+                print(
+                    "Train Epoch: {} [{}/{} ({:.0f}%)] Loss: {:.6f}".format(
+                        epoch,
+                        batch_idx * len(imgs),
+                        len(train_loader.sampler),
+                        100.0 * batch_idx / len(train_loader),
+                        loss.item(),
+                    )
+                )
 
         # test the model
         test(net, test_loader, device)
@@ -205,8 +221,7 @@ def train(args):
 
 
 def test(model, test_loader, device):
-    """Evaluate `model` on the test set and log metrics to console
-    """
+    """Evaluate `model` on the test set and log metrics to console"""
     model.eval()
     test_loss = 0
     correct = 0
@@ -214,18 +229,20 @@ def test(model, test_loader, device):
         for imgs, labels in test_loader:
             imgs, labels = imgs.to(device), labels.to(device)
             output = model(imgs)
-            test_loss+=F.cross_entropy(output, labels, reduction="sum").item()
-            
+            test_loss += F.cross_entropy(output, labels, reduction="sum").item()
+
             pred = output.max(1, keepdim=True)[1]
             correct += pred.eq(labels.view_as(pred)).sum().item()
-        
+
     test_loss /= len(test_loader.dataset)
-    logger.info("Test set: Average loss: {:.4f}, Accuracy: {}/{}, {})\n".format(
-        test_loss,
-        correct,
-        len(test_loader.dataset),
-        100.0 * correct / len(test_loader.dataset),
-    ))
+    logger.info(
+        "Test set: Average loss: {:.4f}, Accuracy: {}/{}, {})\n".format(
+            test_loss,
+            correct,
+            len(test_loader.dataset),
+            100.0 * correct / len(test_loader.dataset),
+        )
+    )
     return
 
 
@@ -239,50 +256,76 @@ def save_model(model, model_dir):
 
 
 def parse_args():
-    """Load SageMaker training job (hyper)-parameters from CLI and environment variables
-    """
+    """Load SageMaker training job (hyper)-parameters from CLI and environment variables"""
     parser = argparse.ArgumentParser()
 
     # Training procedure parameters:
     parser.add_argument(
-        "--batch-size", type=int, default=64, metavar="N",
+        "--batch-size",
+        type=int,
+        default=64,
+        metavar="N",
         help="input batch size for training (default: 64)",
     )
     parser.add_argument(
-        "--test-batch-size", type=int, default=1000, metavar="N",
+        "--test-batch-size",
+        type=int,
+        default=1000,
+        metavar="N",
         help="input batch size for testing (default: 1000)",
     )
     parser.add_argument(
-        "--epochs", type=int, default=1, metavar="N",
+        "--epochs",
+        type=int,
+        default=1,
+        metavar="N",
         help="number of epochs to train (default: 1)",
     )
     parser.add_argument(
-        "--learning-rate", type=float, default=0.001, metavar="LR",
+        "--learning-rate",
+        type=float,
+        default=0.001,
+        metavar="LR",
         help="learning rate (default: 0.01)",
     )
     parser.add_argument(
-        "--beta_1", type=float, default=0.9, metavar="BETA1",
+        "--beta_1",
+        type=float,
+        default=0.9,
+        metavar="BETA1",
         help="beta1 (default: 0.9)",
     )
     parser.add_argument(
-        "--beta_2", type=float, default=0.999, metavar="BETA2",
+        "--beta_2",
+        type=float,
+        default=0.999,
+        metavar="BETA2",
         help="beta2 (default: 0.999)",
     )
     parser.add_argument(
-        "--weight-decay", type=float, default=1e-4, metavar="WD",
+        "--weight-decay",
+        type=float,
+        default=1e-4,
+        metavar="WD",
         help="L2 weight decay (default: 1e-4)",
     )
     parser.add_argument(
-        "--seed", type=int, default=1, metavar="S",
+        "--seed",
+        type=int,
+        default=1,
+        metavar="S",
         help="random seed (default: 1)",
     )
     parser.add_argument(
-        "--log-interval", type=int, default=100, metavar="N",
+        "--log-interval",
+        type=int,
+        default=100,
+        metavar="N",
         help="how many batches to wait before logging training status",
     )
-#     parser.add_argument("--backend", type=str, default=None,
-#         help="backend for distributed training (tcp, gloo on cpu and gloo, nccl on gpu)",
-#     )
+    #     parser.add_argument("--backend", type=str, default=None,
+    #         help="backend for distributed training (tcp, gloo on cpu and gloo, nccl on gpu)",
+    #     )
 
     # I/O folders:
     parser.add_argument("--train", type=str, default=os.environ["SM_CHANNEL_TRAINING"])
@@ -290,10 +333,10 @@ def parse_args():
     parser.add_argument("--model-dir", type=str, default=os.environ["SM_MODEL_DIR"])
 
     # Container environment:
-#     parser.add_argument("--hosts", type=list, default=json.loads(os.environ["SM_HOSTS"]))
-#     parser.add_argument("--current-host", type=str, default=os.environ["SM_CURRENT_HOST"])
+    #     parser.add_argument("--hosts", type=list, default=json.loads(os.environ["SM_HOSTS"]))
+    #     parser.add_argument("--current-host", type=str, default=os.environ["SM_CURRENT_HOST"])
     parser.add_argument("--num-gpus", type=int, default=os.environ["SM_NUM_GPUS"])
-    
+
     return parser.parse_args()
 
 

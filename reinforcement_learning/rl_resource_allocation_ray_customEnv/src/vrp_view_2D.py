@@ -11,10 +11,10 @@ class VRPView2D:
         self.restaurant_rgb_map = self.map_restaurants_rgb(n_restaurants)
 
         # map boundaries
-        self.map_min_x = - map_quad[0]
-        self.map_max_x = + map_quad[0]
-        self.map_min_y = - map_quad[1]
-        self.map_max_y = + map_quad[1]
+        self.map_min_x = -map_quad[0]
+        self.map_max_x = +map_quad[0]
+        self.map_min_y = -map_quad[1]
+        self.map_max_y = +map_quad[1]
 
         pygame.init()
         pygame.display.set_caption("VRP")
@@ -27,11 +27,25 @@ class VRPView2D:
 
         # Create a layer for the game
         self.game_surface = pygame.Surface(self.screen.get_size()).convert_alpha()
-        self.game_surface.fill((0, 0, 0, 0,))
+        self.game_surface.fill(
+            (
+                0,
+                0,
+                0,
+                0,
+            )
+        )
 
     def update(self, res_x, res_y, o_status, o_x, o_y, dr_x, dr_y, o_res_map, mode="human"):
         try:
-            self.game_surface.fill((0, 0, 0, 0,))
+            self.game_surface.fill(
+                (
+                    0,
+                    0,
+                    0,
+                    0,
+                )
+            )
 
             self.__draw_restaurant(res_x, res_y)
             self.__draw_orders(o_status, o_res_map, o_x, o_y)
@@ -94,8 +108,11 @@ class VRPView2D:
                 elif o_status[o] == 2:
                     pygame.draw.circle(self.game_surface, rgb, (oxw, oyw), 6, 6)
                 elif o_status[o] == 3:
-                    pygame.draw.polygon(self.game_surface, rgb,
-                                        [(oxw - 4, oyw - 4), (oxw + 4, oyw - 4), (oxw, oyw + 4)])
+                    pygame.draw.polygon(
+                        self.game_surface,
+                        rgb,
+                        [(oxw - 4, oyw - 4), (oxw + 4, oyw - 4), (oxw, oyw + 4)],
+                    )
 
     def __draw_driver(self, dr_x, dr_y):
         dxw, dyw = self.__locate_on_window(dr_x, dr_y)
@@ -122,8 +139,11 @@ class VRPView2D:
         self.screen.blit(self._create_text_surface("Order Accepted"), (ox + 12, oy - 10))
 
         ox, oy = self.__locate_on_window(self.map_max_x + 2, self.map_max_y - 5)
-        pygame.draw.polygon(self.game_surface, self.restaurant_rgb_map[0],
-                            [(ox - 4, oy - 4), (ox + 4, oy - 4), (ox, oy + 4)])
+        pygame.draw.polygon(
+            self.game_surface,
+            self.restaurant_rgb_map[0],
+            [(ox - 4, oy - 4), (ox + 4, oy - 4), (ox, oy + 4)],
+        )
         self.screen.blit(self._create_text_surface("Order Picked Up"), (ox + 12, oy - 10))
         self.screen.blit(self.game_surface, (0, 0))
 
@@ -136,13 +156,24 @@ class VRPView2D:
     def map_restaurants_rgb(n_restaurants):
         map_restaurants_rgb = {}
         for r in range(n_restaurants):
-            map_restaurants_rgb[r] = (255 - (r * 255 // n_restaurants), r * 255 // n_restaurants,
-                                      (255 // n_restaurants) + (r * 255 // n_restaurants))
+            map_restaurants_rgb[r] = (
+                255 - (r * 255 // n_restaurants),
+                r * 255 // n_restaurants,
+                (255 // n_restaurants) + (r * 255 // n_restaurants),
+            )
         return map_restaurants_rgb
 
 
 if __name__ == "__main__":
     vrp = VRPView2D(n_restaurants=2, n_orders=5, map_quad=(10, 10), grid_size=25)
-    vrp.update([0, 2], [0, 1], [1, 1, 0, 2, 2], [-2, -2, -1, 1, 2], [-2, -2, -1, 1, 2], 2, 0,
-               {0: 1, 1: 1, 2: 1, 3: 1, 4: 0})
+    vrp.update(
+        [0, 2],
+        [0, 1],
+        [1, 1, 0, 2, 2],
+        [-2, -2, -1, 1, 2],
+        [-2, -2, -1, 1, 2],
+        2,
+        0,
+        {0: 1, 1: 1, 2: 1, 3: 1, 4: 0},
+    )
     input("Press any key to quit.")

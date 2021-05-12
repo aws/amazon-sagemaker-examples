@@ -1,6 +1,10 @@
 from rl_coach.agents.dqn_agent import DQNAgentParameters
-from rl_coach.base_parameters import VisualizationParameters, PresetValidationParameters, DistributedCoachSynchronizationType
-from rl_coach.core_types import TrainingSteps, EnvironmentEpisodes, EnvironmentSteps
+from rl_coach.base_parameters import (
+    DistributedCoachSynchronizationType,
+    PresetValidationParameters,
+    VisualizationParameters,
+)
+from rl_coach.core_types import EnvironmentEpisodes, EnvironmentSteps, TrainingSteps
 from rl_coach.environments.gym_environment import GymVectorEnvironment
 from rl_coach.graph_managers.basic_rl_graph_manager import BasicRLGraphManager
 from rl_coach.graph_managers.graph_manager import ScheduleParameters
@@ -28,8 +32,8 @@ agent_params.algorithm.discount = 0.99
 agent_params.algorithm.num_consecutive_playing_steps = EnvironmentSteps(1)
 
 # NN configuration
-agent_params.network_wrappers['main'].learning_rate = 0.00025
-agent_params.network_wrappers['main'].replace_mse_with_huber_loss = False
+agent_params.network_wrappers["main"].learning_rate = 0.00025
+agent_params.network_wrappers["main"].replace_mse_with_huber_loss = False
 
 # ER size
 agent_params.memory.max_size = (MemoryGranularity.Transitions, 40000)
@@ -40,7 +44,7 @@ agent_params.exploration.epsilon_schedule = LinearSchedule(1.0, 0.01, 10000)
 ################
 #  Environment #
 ################
-env_params = GymVectorEnvironment(level='CartPole-v0')
+env_params = GymVectorEnvironment(level="CartPole-v0")
 
 #################
 # Visualization #
@@ -57,6 +61,10 @@ preset_validation_params.test = True
 preset_validation_params.min_reward_threshold = 150
 preset_validation_params.max_episodes_to_achieve_reward = 250
 
-graph_manager = BasicRLGraphManager(agent_params=agent_params, env_params=env_params,
-                                    schedule_params=schedule_params, vis_params=vis_params,
-                                    preset_validation_params=preset_validation_params)
+graph_manager = BasicRLGraphManager(
+    agent_params=agent_params,
+    env_params=env_params,
+    schedule_params=schedule_params,
+    vis_params=vis_params,
+    preset_validation_params=preset_validation_params,
+)

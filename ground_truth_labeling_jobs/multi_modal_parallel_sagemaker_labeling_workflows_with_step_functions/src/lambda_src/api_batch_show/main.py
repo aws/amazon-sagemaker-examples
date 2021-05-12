@@ -6,13 +6,10 @@ show a particular batch.
 import json
 
 import botocore
-
 from shared import db
-from shared.constants import BatchMetadataType, BatchStatus
-from shared.log import logger, log_request_and_context
 from shared.api_helpers import input_batch_to_human_readable
-
-
+from shared.constants import BatchMetadataType, BatchStatus
+from shared.log import log_request_and_context, logger
 
 
 def get_all_batches():

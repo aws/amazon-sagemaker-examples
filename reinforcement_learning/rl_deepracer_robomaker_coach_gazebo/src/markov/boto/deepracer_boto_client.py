@@ -1,25 +1,30 @@
-'''This module implement deepracer boto client'''
+"""This module implement deepracer boto client"""
 
 import abc
-import time
-import random
 import logging
-import botocore
-import boto3
+import random
+import time
 
-from markov.log_handler.logger import Logger
-from markov.constants import (NUM_RETRIES, CONNECT_TIMEOUT)
+import boto3
+import botocore
 from markov.boto.constants import BOTO_ERROR_MSG_FORMAT
+from markov.constants import CONNECT_TIMEOUT, NUM_RETRIES
+from markov.log_handler.logger import Logger
 
 LOG = Logger(__name__, logging.INFO).get_logger()
 
 
 class DeepRacerBotoClient(object):
-    """Deepracer boto client class
-    """
-    def __init__(self, region_name='us-east-1', max_retry_attempts=5,
-                 backoff_time_sec=1.0, boto_client_name=None,
-                 session=None):
+    """Deepracer boto client class"""
+
+    def __init__(
+        self,
+        region_name="us-east-1",
+        max_retry_attempts=5,
+        backoff_time_sec=1.0,
+        boto_client_name=None,
+        session=None,
+    ):
         """Deepracer boto client class
 
         Args:
@@ -39,21 +44,26 @@ class DeepRacerBotoClient(object):
     def _get_boto_config(self):
         """Returns a botocore config object which specifies the number of times to retry"""
 
-        return botocore.config.Config(retries=dict(max_attempts=NUM_RETRIES),
-                                      connect_timeout=CONNECT_TIMEOUT)
+        return botocore.config.Config(
+            retries=dict(max_attempts=NUM_RETRIES), connect_timeout=CONNECT_TIMEOUT
+        )
 
     def get_client(self):
         """Return boto client"""
         if self._session:
             # auto refresh session
-            s3_client = self._session.client(self._boto_client_name,
-                                             region_name=self._region_name,
-                                             config=self._get_boto_config())
+            s3_client = self._session.client(
+                self._boto_client_name,
+                region_name=self._region_name,
+                config=self._get_boto_config(),
+            )
         else:
             # new session per get client call
-            s3_client = boto3.Session().client(self._boto_client_name,
-                                               region_name=self._region_name,
-                                               config=self._get_boto_config())
+            s3_client = boto3.Session().client(
+                self._boto_client_name,
+                region_name=self._region_name,
+                config=self._get_boto_config(),
+            )
         return s3_client
 
     def exp_backoff(self, action_method, **kwargs):
@@ -75,10 +85,12 @@ class DeepRacerBotoClient(object):
                     raise e
                 # use exponential backoff
                 backoff_time = (pow(try_count, 2) + random.random()) * self._backoff_time_sec
-                error_message = BOTO_ERROR_MSG_FORMAT.format(self._boto_client_name,
-                                                             backoff_time,
-                                                             str(try_count),
-                                                             str(self._max_retry_attempts),
-                                                             e)
+                error_message = BOTO_ERROR_MSG_FORMAT.format(
+                    self._boto_client_name,
+                    backoff_time,
+                    str(try_count),
+                    str(self._max_retry_attempts),
+                    e,
+                )
                 LOG.info(error_message)
                 time.sleep(backoff_time)

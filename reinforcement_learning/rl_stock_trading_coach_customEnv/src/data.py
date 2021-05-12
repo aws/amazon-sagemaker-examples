@@ -1,20 +1,21 @@
-import os
+import collections
 import csv
 import glob
+import os
+
 import numpy as np
-import collections
 
-Prices = collections.namedtuple('Prices', field_names=['open', 'high', 'low', 'close', 'volume'])
+Prices = collections.namedtuple("Prices", field_names=["open", "high", "low", "close", "volume"])
 
 
-def read_csv(file_name, sep=',', filter_data=True, fix_open_price=False):
+def read_csv(file_name, sep=",", filter_data=True, fix_open_price=False):
     print("Reading", file_name)
-    with open(file_name, 'rt', encoding='utf-8') as fd:
+    with open(file_name, "rt", encoding="utf-8") as fd:
         reader = csv.reader(fd, delimiter=sep)
         h = next(reader)
-        if '<OPEN>' not in h and sep == ',':
-            return read_csv(file_name, ';')
-        indices = [h.index(s) for s in ('<OPEN>', '<HIGH>', '<LOW>', '<CLOSE>', '<VOL>')]
+        if "<OPEN>" not in h and sep == ",":
+            return read_csv(file_name, ";")
+        indices = [h.index(s) for s in ("<OPEN>", "<HIGH>", "<LOW>", "<CLOSE>", "<VOL>")]
         o, h, l, c, v = [], [], [], [], []
         count_out = 0
         count_filter = 0
@@ -22,7 +23,7 @@ def read_csv(file_name, sep=',', filter_data=True, fix_open_price=False):
         prev_vals = None
         for row in reader:
             vals = list(map(float, [row[idx] for idx in indices]))
-            if filter_data and all(map(lambda v: abs(v-vals[0]) < 1e-8, vals[:-1])):
+            if filter_data and all(map(lambda v: abs(v - vals[0]) < 1e-8, vals[:-1])):
                 count_filter += 1
                 continue
 
@@ -43,13 +44,17 @@ def read_csv(file_name, sep=',', filter_data=True, fix_open_price=False):
             l.append(pl)
             v.append(pv)
             prev_vals = vals
-    print("Read done, got %d rows, %d filtered, %d open prices adjusted" % (
-        count_filter + count_out, count_filter, count_fixed))
-    return Prices(open=np.array(o, dtype=np.float32),
-                  high=np.array(h, dtype=np.float32),
-                  low=np.array(l, dtype=np.float32),
-                  close=np.array(c, dtype=np.float32),
-                  volume=np.array(v, dtype=np.float32))
+    print(
+        "Read done, got %d rows, %d filtered, %d open prices adjusted"
+        % (count_filter + count_out, count_filter, count_fixed)
+    )
+    return Prices(
+        open=np.array(o, dtype=np.float32),
+        high=np.array(h, dtype=np.float32),
+        low=np.array(l, dtype=np.float32),
+        close=np.array(c, dtype=np.float32),
+        volume=np.array(v, dtype=np.float32),
+    )
 
 
 def prices_to_relative(prices):
@@ -76,7 +81,7 @@ def price_files(dir_name):
     return result
 
 
-def load_year_data(year, basedir='data'):
+def load_year_data(year, basedir="data"):
     y = str(year)[-2:]
     result = {}
     for path in glob.glob(os.path.join(basedir, "*_%s*.csv" % y)):
