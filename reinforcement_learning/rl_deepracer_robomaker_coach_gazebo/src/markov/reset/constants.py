@@ -1,10 +1,10 @@
-'''This module houses the constants for the reset package'''
+"""This module houses the constants for the reset package"""
 from enum import Enum
 
 
 class RaceType(Enum):
-    '''Enum containing the keys for race type
-    '''
+    """Enum containing the keys for race type"""
+
     TIME_TRIAL = "TIME_TRIAL"
     OBJECT_AVOIDANCE = "OBJECT_AVOIDANCE"
     HEAD_TO_BOT = "HEAD_TO_BOT"
@@ -13,8 +13,8 @@ class RaceType(Enum):
 
 
 class AgentPhase(Enum):
-    '''Enum containing the keys for agent phase
-    '''
+    """Enum containing the keys for agent phase"""
+
     PAUSE = "pause"
     MANUAL_PAUSE = "manual_pause"
     RUN = "run"
@@ -23,8 +23,8 @@ class AgentPhase(Enum):
 
 
 class AgentCtrlStatus(Enum):
-    '''Enum containing the keys for agent control status
-    '''
+    """Enum containing the keys for agent control status"""
+
     POS_DICT = "pos_dict"
     STEPS = "steps"
     CURRENT_PROGRESS = "current_progress"
@@ -35,27 +35,27 @@ class AgentCtrlStatus(Enum):
 
     @classmethod
     def validate_dict(cls, input_dict):
-        '''Will raise an exception if input dict does not contain all the keys in the enum'''
+        """Will raise an exception if input dict does not contain all the keys in the enum"""
         for key in cls:
             _ = input_dict[key.value]
 
 
 class RaceCtrlStatus(Enum):
-    '''Enum containing the keys for race control status
-    '''
+    """Enum containing the keys for race control status"""
+
     RACE_CURR_TIME = "race_curr_time"
     RACE_START_TIME = "race_start_time"
-    
+
     @classmethod
     def validate_dict(cls, input_dict):
-        '''Will raise an exception if input dict does not contain all the keys in the enum'''
+        """Will raise an exception if input dict does not contain all the keys in the enum"""
         for key in cls:
             _ = input_dict[key.value]
 
 
 class AgentInfo(Enum):
-    '''Enum containing the keys for the agent info status
-    '''
+    """Enum containing the keys for the agent info status"""
+
     LAP_COUNT = "lap_count"
     CURRENT_PROGRESS = "current_progress"
     CRASHED_OBJECT_NAME = "crashed_object_name"
@@ -63,10 +63,14 @@ class AgentInfo(Enum):
 
     @classmethod
     def validate_dict(cls, input_dict):
-        '''Will raise an exception if input dict does not contain all the keys in the enum'''
+        """Will raise an exception if input dict does not contain all the keys in the enum"""
         for key in cls:
             _ = input_dict[key.value]
 
 
-ZERO_SPEED_AGENT_PHASES = [AgentPhase.PAUSE.value, AgentPhase.MANUAL_PAUSE.value,
-                           AgentPhase.PARK.value, AgentPhase.PREPARE.value]
+ZERO_SPEED_AGENT_PHASES = [
+    AgentPhase.PAUSE.value,
+    AgentPhase.MANUAL_PAUSE.value,
+    AgentPhase.PARK.value,
+    AgentPhase.PREPARE.value,
+]

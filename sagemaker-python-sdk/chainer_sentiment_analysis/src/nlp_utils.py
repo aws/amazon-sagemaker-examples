@@ -13,25 +13,27 @@
 
 import collections
 
-import numpy
-
 import chainer
+import numpy
 from chainer.backends import cuda
+
 
 def transform_to_array(dataset, vocab, with_label=True):
     if with_label:
-        return [(make_array(tokens, vocab), numpy.array([cls], numpy.int32)) for tokens, cls in dataset]
+        return [
+            (make_array(tokens, vocab), numpy.array([cls], numpy.int32)) for tokens, cls in dataset
+        ]
     else:
         return [make_array(tokens, vocab) for tokens in dataset]
-    
-    
+
+
 def split_text(text, char_based=False):
     if char_based:
         return list(text)
     else:
         return text.split()
-    
-    
+
+
 def normalize_text(text):
     return text.strip().lower()
 
@@ -42,7 +44,7 @@ def make_vocab(dataset, max_vocab_size=20000, min_freq=2):
         for token in tokens:
             counts[token] += 1
 
-    vocab = {'<eos>': 0, '<unk>': 1}
+    vocab = {"<eos>": 0, "<unk>": 1}
     for w, c in sorted(counts.items(), key=lambda x: (-x[1], x[0])):
         if len(vocab) >= max_vocab_size or c < min_freq:
             break
@@ -51,8 +53,8 @@ def make_vocab(dataset, max_vocab_size=20000, min_freq=2):
 
 
 def make_array(tokens, vocab, add_eos=True):
-    unk_id = vocab['<unk>']
-    eos_id = vocab['<eos>']
+    unk_id = vocab["<unk>"]
+    eos_id = vocab["<eos>"]
     ids = [vocab.get(token, unk_id) for token in tokens]
     if add_eos:
         ids.append(eos_id)
@@ -74,7 +76,9 @@ def convert_seq(batch, device=None, with_label=True):
             return batch_dev
 
     if with_label:
-        return {'xs': to_device_batch([x for x, _ in batch]),
-                'ys': to_device_batch([y for _, y in batch])}
+        return {
+            "xs": to_device_batch([x for x, _ in batch]),
+            "ys": to_device_batch([y for _, y in batch]),
+        }
     else:
         return to_device_batch([x for x in batch])

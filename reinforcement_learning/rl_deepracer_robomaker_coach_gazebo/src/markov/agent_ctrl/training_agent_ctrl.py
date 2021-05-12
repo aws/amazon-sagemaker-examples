@@ -1,9 +1,11 @@
-'''This module defines the concrete classes for training'''
-from markov.agent_ctrl.utils import load_action_space
+"""This module defines the concrete classes for training"""
 from markov.agent_ctrl.agent_ctrl_interface import AgentCtrlInterface
+from markov.agent_ctrl.utils import load_action_space
+
 
 class TrainingCtrl(AgentCtrlInterface):
-    '''Concrete class for an agent that drives forward'''
+    """Concrete class for an agent that drives forward"""
+
     def __init__(self, agent_name, model_metadata):
         """constructor for the training agent ctrl
 
@@ -13,7 +15,7 @@ class TrainingCtrl(AgentCtrlInterface):
         """
         # Store the name of the agent used to set agents position on the track
         self._agent_name_ = agent_name
-        #Create default reward parameters
+        # Create default reward parameters
         self._action_space_ = load_action_space(model_metadata)
         self._model_metadata_ = model_metadata
 

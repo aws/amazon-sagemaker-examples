@@ -1,9 +1,16 @@
 import copy
-from typing import Union, Dict
+from typing import Dict, Union
 
-from rl_coach.agents.composite_agent import CompositeAgent
 from rl_coach.agents.agent_interface import AgentInterface
-from rl_coach.core_types import EnvResponse, ActionInfo, RunPhase, ActionType, EnvironmentSteps, Transition
+from rl_coach.agents.composite_agent import CompositeAgent
+from rl_coach.core_types import (
+    ActionInfo,
+    ActionType,
+    EnvironmentSteps,
+    EnvResponse,
+    RunPhase,
+    Transition,
+)
 from rl_coach.environments.environment import Environment
 from rl_coach.environments.environment_interface import EnvironmentInterface
 from rl_coach.saver import SaverCollection
@@ -22,15 +29,18 @@ class MultiAgentLevelManager(EnvironmentInterface):
            or resetting it. These methods are implemented directly in LevelManager as it inherits from
            EnvironmentInterface.
     """
-    def __init__(self,
-                 name: str,
-                 agents: Union[AgentInterface, Dict[str, AgentInterface]],
-                 environment: Union['LevelManager', Environment],
-                 real_environment: Environment = None,
-                 steps_limit: EnvironmentSteps = EnvironmentSteps(1),
-                 should_reset_agent_state_after_time_limit_passes: bool = False,
-                 spaces_definition: SpacesDefinition = None,
-                 done_condition=any):
+
+    def __init__(
+        self,
+        name: str,
+        agents: Union[AgentInterface, Dict[str, AgentInterface]],
+        environment: Union["LevelManager", Environment],
+        real_environment: Environment = None,
+        steps_limit: EnvironmentSteps = EnvironmentSteps(1),
+        should_reset_agent_state_after_time_limit_passes: bool = False,
+        spaces_definition: SpacesDefinition = None,
+        done_condition=any,
+    ):
         """
         A level manager controls a single or multiple composite agents and a single environment.
         The environment can be either a real environment or another level manager behaving as an environment.
@@ -57,7 +67,9 @@ class MultiAgentLevelManager(EnvironmentInterface):
         self.environment = environment
         self.real_environment = real_environment
         self.steps_limit = steps_limit
-        self.should_reset_agent_state_after_time_limit_passes = should_reset_agent_state_after_time_limit_passes
+        self.should_reset_agent_state_after_time_limit_passes = (
+            should_reset_agent_state_after_time_limit_passes
+        )
         self.full_name_id = self.name = name
         self._phase = RunPhase.HEATUP
         self.reset_required = False
@@ -73,11 +85,15 @@ class MultiAgentLevelManager(EnvironmentInterface):
                 agent.create_agents()
 
         if not isinstance(self.steps_limit, EnvironmentSteps):
-            raise ValueError("The num consecutive steps for acting must be defined in terms of environment steps")
+            raise ValueError(
+                "The num consecutive steps for acting must be defined in terms of environment steps"
+            )
         self.build(spaces_definition)
 
         # there are cases where we don't have an environment. e.g. in batch-rl or in imitation learning.
-        self.last_env_response = self.real_environment.last_env_response if self.real_environment else None
+        self.last_env_response = (
+            self.real_environment.last_env_response if self.real_environment else None
+        )
 
         self.parent_graph_manager = None
 
@@ -117,7 +133,9 @@ class MultiAgentLevelManager(EnvironmentInterface):
         Get a random action from the environment action space
         :return: An action that follows the definition of the action space.
         """
-        action_spaces = self.action_space  # The action spaces of the abstracted composite agents in this level
+        action_spaces = (
+            self.action_space
+        )  # The action spaces of the abstracted composite agents in this level
         return {name: action_space.sample() for name, action_space in action_spaces.items()}
 
     def get_random_action_with_info(self) -> Dict[str, ActionInfo]:
@@ -135,10 +153,12 @@ class MultiAgentLevelManager(EnvironmentInterface):
         """
         for agent_index, agent in enumerate(self.agents.values()):
             if spaces_definition is None:
-                spaces = SpacesDefinition(state=self.real_environment.state_space[agent_index],
-                                          goal=self.real_environment.goal_space,
-                                          action=self.real_environment.action_space[agent_index],
-                                          reward=self.real_environment.reward_space)
+                spaces = SpacesDefinition(
+                    state=self.real_environment.state_space[agent_index],
+                    goal=self.real_environment.goal_space,
+                    action=self.real_environment.action_space[agent_index],
+                    reward=self.real_environment.reward_space,
+                )
             else:
                 spaces = spaces_definition
 
@@ -217,7 +237,12 @@ class MultiAgentLevelManager(EnvironmentInterface):
 
         for i in range(self.steps_limit.num_steps):
             # let the agent observe the result and decide if it wants to terminate the episode
-            done = self.done_condition([agent.observe(env_response) for agent, env_response in zip(self.agents.values(), env_responses)])
+            done = self.done_condition(
+                [
+                    agent.observe(env_response)
+                    for agent, env_response in zip(self.agents.values(), env_responses)
+                ]
+            )
             if done:
                 break
             else:
@@ -227,18 +252,30 @@ class MultiAgentLevelManager(EnvironmentInterface):
                 # imitation agents will return no action since they don't play during training
                 if any(action_infos):
                     # step environment
-                    env_responses = self.environment.step([action_info.action if action_info else None
-                                                           for action_info in action_infos])
+                    env_responses = self.environment.step(
+                        [
+                            action_info.action if action_info else None
+                            for action_info in action_infos
+                        ]
+                    )
                     if isinstance(env_responses, EnvResponse):
                         env_responses = [env_responses]
 
                     # accumulate rewards such that the master policy will see the total reward during the step phase
-                    accumulated_rewards = [accumulated_reward + env_response.reward if env_response else accumulated_reward
-                                           for accumulated_reward, env_response in zip(accumulated_rewards, env_responses)]
+                    accumulated_rewards = [
+                        accumulated_reward + env_response.reward
+                        if env_response
+                        else accumulated_reward
+                        for accumulated_reward, env_response in zip(
+                            accumulated_rewards, env_responses
+                        )
+                    ]
 
         # update the env response that will be exposed to the parent agent
         env_responses_for_upper_level = copy.copy(env_responses)
-        for env_response_for_upper_level, accumulated_reward in zip(env_responses_for_upper_level, accumulated_rewards):
+        for env_response_for_upper_level, accumulated_reward in zip(
+            env_responses_for_upper_level, accumulated_rewards
+        ):
             env_response_for_upper_level.reward = accumulated_reward
         self.last_env_response = env_responses_for_upper_level
 
@@ -248,7 +285,10 @@ class MultiAgentLevelManager(EnvironmentInterface):
         done = self.done_condition(env_response.game_over for env_response in env_responses)
         if done or self.should_reset_agent_state_after_time_limit_passes:
             # this is the agent's only opportunity to observe this transition - he will not get another one
-            [agent.observe(env_response) for agent, env_response in zip(self.agents.values(), env_responses)]
+            [
+                agent.observe(env_response)
+                for agent, env_response in zip(self.agents.values(), env_responses)
+            ]
             self.handle_episode_ended()
             self.reset_required = True
 
@@ -303,8 +343,16 @@ class MultiAgentLevelManager(EnvironmentInterface):
 
         # for i in range(self.steps_limit.num_steps):
         # let the agent observe the result and decide if it wants to terminate the episode
-        done = [self.agents[agent_name].observe_transition(transition) for agent_name, transition in transitions.items() if transition]
-        [self.agents[agent_name].act(transition.action) for agent_name, transition in transitions.items() if transition]
+        done = [
+            self.agents[agent_name].observe_transition(transition)
+            for agent_name, transition in transitions.items()
+            if transition
+        ]
+        [
+            self.agents[agent_name].act(transition.action)
+            for agent_name, transition in transitions.items()
+            if transition
+        ]
 
         if all(done):
             self.handle_episode_ended()
@@ -314,7 +362,12 @@ class MultiAgentLevelManager(EnvironmentInterface):
         return False
 
     def should_stop(self) -> bool:
-        return all([agent.get_success_rate() >= self.environment.get_target_success_rate() for agent in self.agents.values()])
+        return all(
+            [
+                agent.get_success_rate() >= self.environment.get_target_success_rate()
+                for agent in self.agents.values()
+            ]
+        )
 
     def collect_savers(self, agent_name: str) -> SaverCollection:
         """

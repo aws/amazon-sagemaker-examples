@@ -11,14 +11,14 @@ For more information, please refer to https://github.com/awslabs/sagemaker-debug
 
 # Standard Library
 import argparse
+import logging
 import random
 
 # Third Party
 import numpy as np
-import tensorflow as tf
 import smdebug.tensorflow as smd
+import tensorflow as tf
 
-import logging
 logging.getLogger().setLevel(logging.INFO)
 
 parser = argparse.ArgumentParser()
@@ -46,6 +46,7 @@ if args.random_seed:
 
 # This allows you to create the hook from the configuration you pass to the SageMaker pySDK
 hook = smd.SessionHook.create_from_json_file()
+
 
 def cnn_model_fn(features, labels, mode):
     """Model function for CNN."""

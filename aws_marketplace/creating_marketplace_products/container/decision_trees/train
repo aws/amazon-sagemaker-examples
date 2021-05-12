@@ -6,17 +6,16 @@
 
 from __future__ import print_function
 
-import os
 import json
+import os
 import pickle
 import sys
 import traceback
 
 import pandas as pd
-
+from numpy import mean
 from sklearn import tree
 from sklearn.model_selection import cross_val_score
-from numpy import mean
 
 # These are the paths to where SageMaker mounts interesting things in your container.
 

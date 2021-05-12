@@ -20,31 +20,31 @@
 from maskrcnn_benchmark.utils.env import setup_environment  # noqa F401 isort:skip
 
 import argparse
-import os
-import logging
 import functools
+import logging
+import os
 import random
-import numpy as np
 
+import numpy as np
+import smdistributed.dataparallel.torch.distributed as dist
 import torch
 from maskrcnn_benchmark.config import cfg
 from maskrcnn_benchmark.data import make_data_loader
-from maskrcnn_benchmark.solver import make_lr_scheduler
-from maskrcnn_benchmark.solver import make_optimizer
 from maskrcnn_benchmark.engine.inference import inference
+from maskrcnn_benchmark.engine.tester import test
 from maskrcnn_benchmark.engine.trainer import do_train
 from maskrcnn_benchmark.modeling.detector import build_detection_model
+from maskrcnn_benchmark.solver import make_lr_scheduler, make_optimizer
 from maskrcnn_benchmark.utils.checkpoint import DetectronCheckpointer
 from maskrcnn_benchmark.utils.collect_env import collect_env_info
-from maskrcnn_benchmark.utils.comm import synchronize, get_rank, is_main_process
+from maskrcnn_benchmark.utils.comm import get_rank, is_main_process, synchronize
 from maskrcnn_benchmark.utils.imports import import_file
 from maskrcnn_benchmark.utils.logger import setup_logger
 from maskrcnn_benchmark.utils.miscellaneous import mkdir
-from maskrcnn_benchmark.engine.tester import test
 
 # Import SMDataParallel modules for PyTorch.
 from smdistributed.dataparallel.torch.parallel.distributed import DistributedDataParallel as DDP
-import smdistributed.dataparallel.torch.distributed as dist
+
 dist.init_process_group()
 
 # SMDataParallel: Initialize
@@ -56,9 +56,10 @@ if not dist.is_initialized():
 # and enable mixed-precision via apex.amp
 try:
     from apex import amp
+
     use_amp = True
 except ImportError:
-    print('Use APEX for multi-precision via apex.amp')
+    print("Use APEX for multi-precision via apex.amp")
     use_amp = False
 # try:
 #     from apex.parallel import DistributedDataParallel as DDP
@@ -67,41 +68,47 @@ except ImportError:
 #     print('Use APEX for better performance')
 use_apex_ddp = False
 
+
 def test_and_exchange_map(tester, model, distributed):
     results = tester(model=model, distributed=distributed)
 
     # main process only
-    #if is_main_process():
-    if dist.get_rank() ==0:
+    # if is_main_process():
+    if dist.get_rank() == 0:
         # Note: one indirection due to possibility of multiple test datasets, we only care about the first
         #       tester returns (parsed results, raw results). In our case, don't care about the latter
         map_results, raw_results = results[0]
-        bbox_map = map_results.results["bbox"]['AP']
-        segm_map = map_results.results["segm"]['AP']
+        bbox_map = map_results.results["bbox"]["AP"]
+        segm_map = map_results.results["segm"]["AP"]
     else:
-        bbox_map = 0.
-        segm_map = 0.
+        bbox_map = 0.0
+        segm_map = 0.0
 
     if distributed:
-        map_tensor = torch.tensor([bbox_map, segm_map], dtype=torch.float32, device=torch.device("cuda"))
+        map_tensor = torch.tensor(
+            [bbox_map, segm_map], dtype=torch.float32, device=torch.device("cuda")
+        )
         torch.distributed.broadcast(map_tensor, 0)
         bbox_map = map_tensor[0].item()
         segm_map = map_tensor[1].item()
 
     return bbox_map, segm_map
 
-def mlperf_test_early_exit(iteration, iters_per_epoch, tester, model, distributed, min_bbox_map, min_segm_map):
+
+def mlperf_test_early_exit(
+    iteration, iters_per_epoch, tester, model, distributed, min_bbox_map, min_segm_map
+):
     if iteration > 0 and iteration % iters_per_epoch == 0:
         epoch = iteration // iters_per_epoch
 
-        logger = logging.getLogger('maskrcnn_benchmark.trainer')
+        logger = logging.getLogger("maskrcnn_benchmark.trainer")
         logger.info("Starting evaluation...")
 
         bbox_map, segm_map = test_and_exchange_map(tester, model, distributed)
 
         # necessary for correctness
         model.train()
-        logger.info('bbox mAP: {}, segm mAP: {}'.format(bbox_map, segm_map))
+        logger.info("bbox mAP: {}, segm mAP: {}".format(bbox_map, segm_map))
 
         # terminating condition
         if bbox_map >= min_bbox_map and segm_map >= min_segm_map:
@@ -123,7 +130,7 @@ def train(cfg, args):
         # Initialize mixed-precision training
         use_mixed_precision = cfg.DTYPE == "float16"
 
-        amp_opt_level = 'O1' if use_mixed_precision else 'O0'
+        amp_opt_level = "O1" if use_mixed_precision else "O0"
         model, optimizer = amp.initialize(model, optimizer, opt_level=amp_opt_level)
 
     if args.distributed:
@@ -132,7 +139,7 @@ def train(cfg, args):
         # else:
         # SMDataParallel: Wrap the PyTorch model with SMDataParallel’s DDP
         model = DDP(model, device_ids=[dist.get_local_rank()], broadcast_buffers=False)
-        #model = DDP(model)
+        # model = DDP(model)
     print("model parameter size: ", sum(p.numel() for p in model.parameters() if p.requires_grad))
     arguments = {}
     arguments["iteration"] = 0
@@ -141,9 +148,7 @@ def train(cfg, args):
 
     # SMDataParallel: Save model on master node.
     save_to_disk = dist.get_rank() == 0
-    checkpointer = DetectronCheckpointer(
-        cfg, model, optimizer, scheduler, output_dir, save_to_disk
-    )
+    checkpointer = DetectronCheckpointer(cfg, model, optimizer, scheduler, output_dir, save_to_disk)
     extra_checkpoint_data = checkpointer.load(cfg.MODEL.WEIGHT)
     arguments.update(extra_checkpoint_data)
 
@@ -152,7 +157,7 @@ def train(cfg, args):
         is_train=True,
         is_distributed=args.distributed,
         start_iter=arguments["iteration"],
-        data_dir = args.data_dir
+        data_dir=args.data_dir,
     )
     checkpoint_period = cfg.SOLVER.CHECKPOINT_PERIOD
 
@@ -166,7 +171,8 @@ def train(cfg, args):
             model=model,
             distributed=args.distributed,
             min_bbox_map=cfg.MIN_BBOX_MAP,
-            min_segm_map=cfg.MIN_MASK_MAP)
+            min_segm_map=cfg.MIN_MASK_MAP,
+        )
     else:
         per_iter_callback_fn = None
     do_train(
@@ -200,9 +206,12 @@ def test_model(cfg, model, args):
             output_folder = os.path.join(cfg.OUTPUT_DIR, "inference", dataset_name)
             mkdir(output_folder)
             output_folders[idx] = output_folder
-    data_loaders_val = make_data_loader(cfg, is_train=False, is_distributed=args.distributed,
-                                        data_dir = args.data_dir)
-    for output_folder, dataset_name, data_loader_val in zip(output_folders, dataset_names, data_loaders_val):
+    data_loaders_val = make_data_loader(
+        cfg, is_train=False, is_distributed=args.distributed, data_dir=args.data_dir
+    )
+    for output_folder, dataset_name, data_loader_val in zip(
+        output_folders, dataset_names, data_loaders_val
+    ):
         inference(
             model,
             data_loader_val,
@@ -214,7 +223,7 @@ def test_model(cfg, model, args):
             expected_results_sigma_tol=cfg.TEST.EXPECTED_RESULTS_SIGMA_TOL,
             output_folder=output_folder,
         )
-        #synchronize()
+        # synchronize()
 
 
 def main():
@@ -227,12 +236,7 @@ def main():
         type=str,
     )
     parser.add_argument("--local_rank", type=int, default=dist.get_local_rank())
-    parser.add_argument(
-        "--seed",
-        help="manually set random seed for torch",
-        type=int,
-        default=99
-    )
+    parser.add_argument("--seed", help="manually set random seed for torch", type=int, default=99)
     parser.add_argument(
         "--skip-test",
         dest="skip_test",
@@ -253,23 +257,14 @@ def main():
         type=int,
     )
     parser.add_argument(
-        "--data-dir",
-        dest="data_dir",
-        help="Absolute path of dataset ",
-        type=str,
-        default=None
+        "--data-dir", dest="data_dir", help="Absolute path of dataset ", type=str, default=None
     )
-    parser.add_argument(
-        "--dtype",
-        dest="dtype"
-    )
-
+    parser.add_argument("--dtype", dest="dtype")
 
     args = parser.parse_args()
     keys = list(os.environ.keys())
-    args.data_dir = os.environ['SM_CHANNEL_TRAIN'] if 'SM_CHANNEL_TRAIN' in keys else args.data_dir
+    args.data_dir = os.environ["SM_CHANNEL_TRAIN"] if "SM_CHANNEL_TRAIN" in keys else args.data_dir
     print("dataset dir: ", args.data_dir)
-
 
     # Set seed to reduce randomness
     random.seed(args.seed + dist.get_local_rank())
@@ -282,19 +277,19 @@ def main():
     args.distributed = num_gpus > 1
 
     if args.distributed:
-        # SMDataParallel: Pin each GPU to a single SMDataParallel process. 
+        # SMDataParallel: Pin each GPU to a single SMDataParallel process.
         torch.cuda.set_device(args.local_rank)
         # torch.distributed.init_process_group(
         #     backend="nccl", init_method="env://"
         # )
-        #synchronize()
+        # synchronize()
 
     cfg.merge_from_file(args.config_file)
     cfg.merge_from_list(args.opts)
-    cfg.DTYPE=args.dtype
+    cfg.DTYPE = args.dtype
     cfg.freeze()
-    print ("CONFIG")
-    print (cfg)
+    print("CONFIG")
+    print(cfg)
 
     output_dir = cfg.OUTPUT_DIR
     if output_dir:

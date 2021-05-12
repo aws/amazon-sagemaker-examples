@@ -1,6 +1,7 @@
 import socket
 import time
 
+
 def get_ip_from_host(timeout=100, host_name=None):
     counter = 0
     ip_address = None
@@ -17,8 +18,11 @@ def get_ip_from_host(timeout=100, host_name=None):
             time.sleep(1)
 
     if counter == timeout and not ip_address:
-        error_string = "Platform Error: Could not retrieve IP address \
-        for %s in past %s seconds" % (host_name, timeout)
+        error_string = (
+            "Platform Error: Could not retrieve IP address \
+        for %s in past %s seconds"
+            % (host_name, timeout)
+        )
         raise RuntimeError(error_string)
 
     return ip_address

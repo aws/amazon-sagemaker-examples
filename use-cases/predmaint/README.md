@@ -14,7 +14,7 @@
 ---
 
 ## Background
-The purpose of this notebook is to demonstrate a Predictive Maintenance (PrM) solution for automible fleet maintenance via Amazon SageMaker Studio. This will give business users a quick path towards a PrM POC. In this notebook, we focus on preprocessing engine sensor data before feature engineering and building an inital model leveraging SageMaker's algorithms. The overall topics covered in this notebook are the following:  
+The purpose of this notebook is to demonstrate a Predictive Maintenance (PrM) solution for automible fleet maintenance via Amazon SageMaker Studio. This will give business users a quick path towards a PrM POC. In this notebook, we focus on preprocessing engine sensor data before feature engineering and building an initial model leveraging SageMaker's algorithms. The overall topics covered in this notebook are the following:  
 
 
 * Setup for using SageMaker
@@ -42,7 +42,7 @@ PrM can be formulated in the following ways:
 1. Identifying the main cause(s) of failure
 
 
-We will approach this predictive maintenance use case as a binary classification problem for Fault Classification. We have made this selection becuase if the lead time for fixing a vehicle is 12 hours, we may want a solution to flag whether an engine is likely to break within the next 24-48 hours. Thus, predicting for the Remaining Useful Life (RUL) may be unnecessary for the business's needs. It is also important to note here that incorporating proper business framing of a Predictive Maitenance classification problem may also result in higher evaluation metric scores as feature generation is specific to each system ([Reference 2](https://community.datarobot.com/t5/resources/predictive-maintenance-of-nasa-turbofans-using-datarobot/ta-p/2101), [Reference 3](https://arxiv.org/pdf/1809.10979.pdf)).
+We will approach this predictive maintenance use case as a binary classification problem for Fault Classification. We have made this selection because if the lead time for fixing a vehicle is 12 hours, we may want a solution to flag whether an engine is likely to break within the next 24-48 hours. Thus, predicting for the Remaining Useful Life (RUL) may be unnecessary for the business's needs. It is also important to note here that incorporating proper business framing of a Predictive Maitenance classification problem may also result in higher evaluation metric scores as feature generation is specific to each system ([Reference 2](https://community.datarobot.com/t5/resources/predictive-maintenance-of-nasa-turbofans-using-datarobot/ta-p/2101), [Reference 3](https://arxiv.org/pdf/1809.10979.pdf)).
 
 The method we'll use is a linear binary classifier, specifically we will be using Amazon SageMaker's Linear Learner Estimator. As input, the model is given labeled examples ( **`x`**, `y`). **`x`** is a high dimensional vector and `y` is a numeric label. Since we are doing binary classification, the algorithm expects the label to be either 0 or 1. Learn more information about [Linear-Learner](https://docs.aws.amazon.com/sagemaker/latest/dg/linear-learner.html) by reading SageMaker documentation.
 
@@ -120,7 +120,7 @@ Specifications:
 As part of the solution, the following services are used:
 
 * [Amazon S3](https://aws.amazon.com/s3/): Used to store datasets.
-* [Amazon SageMaker Data Wrangler](): Inital data cleaning and analysis. 
+* [Amazon SageMaker Data Wrangler](): Initial data cleaning and analysis. 
 * [Amazon SageMaker Studio Notebooks](https://aws.amazon.com/sagemaker/): Used to preprocess and visualize the data, and to train model.
 * [Amazon SageMaker Hyperparameter Model Tuning](https://docs.aws.amazon.com/sagemaker/latest/dg/automatic-model-tuning.html): Used to choose the hyperparameter values to improve the model.
 * [Amazon SageMaker Endpoint](https://aws.amazon.com/sagemaker/): Used to deploy the trained model.

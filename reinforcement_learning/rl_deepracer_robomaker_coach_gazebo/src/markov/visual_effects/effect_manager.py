@@ -1,12 +1,14 @@
-from markov.log_handler.deepracer_exceptions import GenericRolloutException
 import threading
+
 from markov.gazebo_tracker.abs_tracker import AbstractTracker
+from markov.log_handler.deepracer_exceptions import GenericRolloutException
 
 
 class EffectManager(AbstractTracker):
     """
     Effect Manager class that manages multiple effects
     """
+
     _instance_ = None
 
     @staticmethod

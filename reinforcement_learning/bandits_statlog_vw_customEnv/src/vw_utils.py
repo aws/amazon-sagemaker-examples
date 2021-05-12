@@ -1,10 +1,10 @@
-import os
 import json
+import os
 
 TRAIN_CHANNEL = "training"
 EVAL_CHANNEL = "evaluation"
 MODEL_CHANNEL = "pretrained_model"
-MODEL_OUTPUT_DIR = os.environ.get('SM_MODEL_DIR', "/opt/ml/model")
+MODEL_OUTPUT_DIR = os.environ.get("SM_MODEL_DIR", "/opt/ml/model")
 MODEL_OUTPUT_PATH = os.path.join(MODEL_OUTPUT_DIR, "vw.model")
 
 

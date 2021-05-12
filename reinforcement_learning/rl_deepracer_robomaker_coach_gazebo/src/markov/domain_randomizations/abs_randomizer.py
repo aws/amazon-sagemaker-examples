@@ -1,13 +1,14 @@
 import abc
 
 # Python 2 and 3 compatible Abstract class
-ABC = abc.ABCMeta('ABC', (object,), {})
+ABC = abc.ABCMeta("ABC", (object,), {})
 
 
 class AbstractRandomizer(ABC):
     """
     Abstract Randomizer class
     """
+
     def __init__(self):
         pass
 
@@ -19,4 +20,4 @@ class AbstractRandomizer(ABC):
         """
         Randomize
         """
-        raise NotImplementedError('Randomizer must implement this function')
+        raise NotImplementedError("Randomizer must implement this function")

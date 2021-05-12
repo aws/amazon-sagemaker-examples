@@ -13,10 +13,10 @@
 """Evaluation script for measuring model accuracy."""
 
 import json
-import os
-import tarfile
 import logging
+import os
 import pickle
+import tarfile
 
 import pandas as pd
 import xgboost
@@ -27,8 +27,7 @@ logger.addHandler(logging.StreamHandler())
 
 # May need to import additional metrics depending on what you are measuring.
 # See https://docs.aws.amazon.com/sagemaker/latest/dg/model-monitor-model-quality-metrics.html
-from sklearn.metrics import classification_report, roc_auc_score, accuracy_score
-
+from sklearn.metrics import accuracy_score, classification_report, roc_auc_score
 
 if __name__ == "__main__":
     model_path = "/opt/ml/processing/model/model.tar.gz"
@@ -67,9 +66,7 @@ if __name__ == "__main__":
 
     print("Classification report:\n{}".format(report_dict))
 
-    evaluation_output_path = os.path.join(
-        "/opt/ml/processing/evaluation", "evaluation.json"
-    )
+    evaluation_output_path = os.path.join("/opt/ml/processing/evaluation", "evaluation.json")
     print("Saving classification report to {}".format(evaluation_output_path))
 
     with open(evaluation_output_path, "w") as f:

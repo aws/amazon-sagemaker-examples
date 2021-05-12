@@ -11,22 +11,34 @@ from mxnet import autograd as ag
 from mxnet import gluon
 from mxnet.gluon.model_zoo import vision as models
 
-
 # ------------------------------------------------------------ #
 # Training methods                                             #
 # ------------------------------------------------------------ #
 
-def train(batch_size, epochs, learning_rate, momentum, log_interval, wd,
-          current_host, hosts, num_cpus, num_gpus, data_dir, model_dir):
+
+def train(
+    batch_size,
+    epochs,
+    learning_rate,
+    momentum,
+    log_interval,
+    wd,
+    current_host,
+    hosts,
+    num_cpus,
+    num_gpus,
+    data_dir,
+    model_dir,
+):
     logging.basicConfig(level=logging.INFO)
 
     if len(hosts) == 1:
-        kvstore = 'device' if num_gpus > 0 else 'local'
+        kvstore = "device" if num_gpus > 0 else "local"
     else:
-        kvstore = 'dist_device_sync'
+        kvstore = "dist_device_sync"
 
     ctx = [mx.gpu(i) for i in range(num_gpus)] if num_gpus > 0 else [mx.cpu()]
-    net = models.get_model('resnet34_v2', ctx=ctx, pretrained=False, classes=10)
+    net = models.get_model("resnet34_v2", ctx=ctx, pretrained=False, classes=10)
     batch_size *= max(1, len(ctx))
 
     # load training and validation data
@@ -39,16 +51,20 @@ def train(batch_size, epochs, learning_rate, momentum, log_interval, wd,
             part_index = i
             break
 
-    train_data = get_train_data(num_cpus, data_dir, batch_size, (3, 32, 32),
-                                num_parts=len(hosts), part_index=part_index)
+    train_data = get_train_data(
+        num_cpus, data_dir, batch_size, (3, 32, 32), num_parts=len(hosts), part_index=part_index
+    )
     test_data = get_test_data(num_cpus, data_dir, batch_size, (3, 32, 32))
 
     # Collect all parameters from net and its children, then initialize them.
     net.initialize(mx.init.Xavier(magnitude=2), ctx=ctx)
     # Trainer is for updating parameters with gradient.
-    trainer = gluon.Trainer(net.collect_params(), 'sgd',
-                            optimizer_params={'learning_rate': learning_rate, 'momentum': momentum, 'wd': wd},
-                            kvstore=kvstore)
+    trainer = gluon.Trainer(
+        net.collect_params(),
+        "sgd",
+        optimizer_params={"learning_rate": learning_rate, "momentum": momentum, "wd": wd},
+        kvstore=kvstore,
+    )
     metric = mx.metric.Accuracy()
     loss = gluon.loss.SoftmaxCrossEntropyLoss()
 
@@ -79,21 +95,23 @@ def train(batch_size, epochs, learning_rate, momentum, log_interval, wd,
             metric.update(label, outputs)
             if i % log_interval == 0 and i > 0:
                 name, acc = metric.get()
-                logging.info('Epoch [%d] Batch [%d]\tSpeed: %f samples/sec\t%s=%f' %
-                             (epoch, i, batch_size / (time.time() - btic), name, acc))
+                logging.info(
+                    "Epoch [%d] Batch [%d]\tSpeed: %f samples/sec\t%s=%f"
+                    % (epoch, i, batch_size / (time.time() - btic), name, acc)
+                )
             btic = time.time()
 
         name, acc = metric.get()
-        logging.info('[Epoch %d] training: %s=%f' % (epoch, name, acc))
-        logging.info('[Epoch %d] time cost: %f' % (epoch, time.time() - tic))
+        logging.info("[Epoch %d] training: %s=%f" % (epoch, name, acc))
+        logging.info("[Epoch %d] time cost: %f" % (epoch, time.time() - tic))
 
         name, val_acc = test(ctx, net, test_data)
-        logging.info('[Epoch %d] validation: %s=%f' % (epoch, name, val_acc))
+        logging.info("[Epoch %d] validation: %s=%f" % (epoch, name, val_acc))
 
         # only save params on primary host
         if current_host == hosts[0]:
             if val_acc > best_accuracy:
-                net.save_params('{}/model-{:0>4}.params'.format(model_dir, epoch))
+                net.save_params("{}/model-{:0>4}.params".format(model_dir, epoch))
                 best_accuracy = val_acc
 
     return net
@@ -104,7 +122,7 @@ def save(net, model_dir):
     files = os.listdir(model_dir)
     if files:
         best = sorted(os.listdir(model_dir))[-1]
-        os.rename(os.path.join(model_dir, best), os.path.join(model_dir, 'model.params'))
+        os.rename(os.path.join(model_dir, best), os.path.join(model_dir, "model.params"))
 
 
 def get_data(path, augment, num_cpus, batch_size, data_shape, resize=-1, num_parts=1, part_index=0):
@@ -117,16 +135,29 @@ def get_data(path, augment, num_cpus, batch_size, data_shape, resize=-1, num_par
         rand_mirror=augment,
         preprocess_threads=num_cpus,
         num_parts=num_parts,
-        part_index=part_index)
+        part_index=part_index,
+    )
 
 
 def get_test_data(num_cpus, data_dir, batch_size, data_shape, resize=-1):
-    return get_data(os.path.join(data_dir, "test.rec"), False, num_cpus, batch_size, data_shape, resize, 1, 0)
+    return get_data(
+        os.path.join(data_dir, "test.rec"), False, num_cpus, batch_size, data_shape, resize, 1, 0
+    )
 
 
-def get_train_data(num_cpus, data_dir, batch_size, data_shape, resize=-1, num_parts=1, part_index=0):
-    return get_data(os.path.join(data_dir, "train.rec"), True, num_cpus, batch_size, data_shape, resize, num_parts,
-                    part_index)
+def get_train_data(
+    num_cpus, data_dir, batch_size, data_shape, resize=-1, num_parts=1, part_index=0
+):
+    return get_data(
+        os.path.join(data_dir, "train.rec"),
+        True,
+        num_cpus,
+        batch_size,
+        data_shape,
+        resize,
+        num_parts,
+        part_index,
+    )
 
 
 def test(ctx, net, test_data):
@@ -146,35 +177,48 @@ def test(ctx, net, test_data):
 def parse_args():
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--batch_size', type=int, default=128)
-    parser.add_argument('--epochs', type=int, default=100)
-    parser.add_argument('--learning_rate', type=float, default=0.1)
-    parser.add_argument('--momentum', type=float, default=0.9)
-    parser.add_argument('--log_interval', type=int, default=1)
-    parser.add_argument('--wd', type=float, default=0.0001)
+    parser.add_argument("--batch_size", type=int, default=128)
+    parser.add_argument("--epochs", type=int, default=100)
+    parser.add_argument("--learning_rate", type=float, default=0.1)
+    parser.add_argument("--momentum", type=float, default=0.9)
+    parser.add_argument("--log_interval", type=int, default=1)
+    parser.add_argument("--wd", type=float, default=0.0001)
 
-    parser.add_argument('--model_dir', type=str, default=os.environ['SM_MODEL_DIR'])
-    parser.add_argument('--training_dir', type=str, default=os.environ['SM_CHANNEL_TRAINING'])
+    parser.add_argument("--model_dir", type=str, default=os.environ["SM_MODEL_DIR"])
+    parser.add_argument("--training_dir", type=str, default=os.environ["SM_CHANNEL_TRAINING"])
 
-    parser.add_argument('--current_host', type=str, default=os.environ['SM_CURRENT_HOST'])
-    parser.add_argument('--hosts', type=list, default=json.loads(os.environ['SM_HOSTS']))
+    parser.add_argument("--current_host", type=str, default=os.environ["SM_CURRENT_HOST"])
+    parser.add_argument("--hosts", type=list, default=json.loads(os.environ["SM_HOSTS"]))
 
     return parser.parse_args()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     args = parse_args()
 
-    num_cpus = int(os.environ['SM_NUM_CPUS'])
-    num_gpus = int(os.environ['SM_NUM_GPUS'])
+    num_cpus = int(os.environ["SM_NUM_CPUS"])
+    num_gpus = int(os.environ["SM_NUM_GPUS"])
 
-    train(args.batch_size, args.epochs, args.learning_rate, args.momentum, args.log_interval, args.wd,
-          args.current_host, args.hosts, num_cpus, num_gpus, args.training_dir, args.model_dir)
+    train(
+        args.batch_size,
+        args.epochs,
+        args.learning_rate,
+        args.momentum,
+        args.log_interval,
+        args.wd,
+        args.current_host,
+        args.hosts,
+        num_cpus,
+        num_gpus,
+        args.training_dir,
+        args.model_dir,
+    )
 
 
 # ------------------------------------------------------------ #
 # Hosting methods                                              #
 # ------------------------------------------------------------ #
+
 
 def model_fn(model_dir):
     """
@@ -184,8 +228,8 @@ def model_fn(model_dir):
     :return: a model (in this case a Gluon network)
     """
 
-    net = models.get_model('resnet34_v2', ctx=mx.cpu(), pretrained=False, classes=10)
-    net.load_params('%s/model.params' % model_dir, ctx=mx.cpu())
+    net = models.get_model("resnet34_v2", ctx=mx.cpu(), pretrained=False, classes=10)
+    net.load_params("%s/model.params" % model_dir, ctx=mx.cpu())
     return net
 
 
