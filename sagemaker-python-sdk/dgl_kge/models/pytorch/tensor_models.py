@@ -11,8 +11,8 @@ Knowledge Graph Embedding Models.
 9. RESCAL
 """
 import os
-import numpy as np
 
+import numpy as np
 import torch as th
 import torch.nn as nn
 import torch.nn.functional as functional
@@ -22,16 +22,19 @@ from .. import *
 
 logsigmoid = functional.logsigmoid
 
-def get_device(args):
-    return th.device('cpu') if args.gpu < 0 else th.device('cuda:' + str(args.gpu))
 
-norm = lambda x, p: x.norm(p=p)**p
+def get_device(args):
+    return th.device("cpu") if args.gpu < 0 else th.device("cuda:" + str(args.gpu))
+
+
+norm = lambda x, p: x.norm(p=p) ** p
 
 get_scalar = lambda x: x.detach().item()
 
 reshape = lambda arr, x, y: arr.view(x, y)
 
 cuda = lambda arr, gpu: arr.cuda(gpu)
+
 
 class ExternalEmbedding:
     def __init__(self, args, num, dim, device):
@@ -67,7 +70,7 @@ class ExternalEmbedding:
                 grad = data.grad.data
 
                 clr = self.args.lr
-                #clr = self.args.lr / (1 + (self.state_step - 1) * group['lr_decay'])
+                # clr = self.args.lr / (1 + (self.state_step - 1) * group['lr_decay'])
 
                 # the update is non-linear so indices must be unique
                 grad_indices = idx
@@ -84,7 +87,7 @@ class ExternalEmbedding:
                 std_values = std.sqrt_().add_(1e-10).unsqueeze(1)
                 if self.gpu >= 0:
                     std_values = std_values.cuda(self.args.gpu)
-                tmp = (-clr * grad_values / std_values)
+                tmp = -clr * grad_values / std_values
                 if tmp.device != device:
                     tmp = tmp.to(device)
                 # TODO(zhengda) the overhead is here.
@@ -96,9 +99,9 @@ class ExternalEmbedding:
         return th.cat(data, 0)
 
     def save(self, path, name):
-        file_name = os.path.join(path, name+'.npy')
+        file_name = os.path.join(path, name + ".npy")
         np.save(file_name, self.emb.cpu().detach().numpy())
 
     def load(self, path, name):
-        file_name = os.path.join(path, name+'.npy')
+        file_name = os.path.join(path, name + ".npy")
         self.emb = th.Tensor(np.load(file_name))

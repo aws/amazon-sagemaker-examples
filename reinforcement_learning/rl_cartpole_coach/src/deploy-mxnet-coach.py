@@ -1,10 +1,11 @@
-import os
 import json
+import os
+
 import mxnet as mx
-from mxnet.contrib import onnx as onnx_mxnet
-from mxnet import gluon, nd
 import numpy as np
-    
+from mxnet import gluon, nd
+from mxnet.contrib import onnx as onnx_mxnet
+
 
 def model_fn(model_dir):
     """
@@ -14,12 +15,12 @@ def model_fn(model_dir):
     :return: a model
     """
     onnx_path = os.path.join(model_dir, "model.onnx")
-    ctx = mx.cpu() # todo: pass into function
+    ctx = mx.cpu()  # todo: pass into function
     # load onnx model symbol and parameters
     sym, arg_params, aux_params = onnx_mxnet.import_model(onnx_path)
     model_metadata = onnx_mxnet.get_model_metadata(onnx_path)
     # first index is name, second index is shape
-    input_names = [inputs[0] for inputs in model_metadata.get('input_tensor_data')]
+    input_names = [inputs[0] for inputs in model_metadata.get("input_tensor_data")]
     input_symbols = [mx.sym.var(i) for i in input_names]
     net = gluon.nn.SymbolBlock(outputs=sym, inputs=input_symbols)
     net_params = net.collect_params()
@@ -33,7 +34,7 @@ def model_fn(model_dir):
     # hybridize for increase performance
     net.hybridize()
     return net
-    
+
 
 def transform_fn(net, data, input_content_type, output_content_type):
     """

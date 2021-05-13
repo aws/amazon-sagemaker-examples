@@ -12,25 +12,30 @@ def extract_custom_attributes(custom_attributes_string):
     Extract session information from the header
     """
     session_info = dict()
-    session_info['requestId'] = DEFAULT_REQUEST_ID
-    session_info['awsAccountId'] = DEFAULT_AWS_CUSTOMER_ID
-    session_info['traceId'] = str(uuid.uuid4())
-    session_info['processId'] = os.getpid()
+    session_info["requestId"] = DEFAULT_REQUEST_ID
+    session_info["awsAccountId"] = DEFAULT_AWS_CUSTOMER_ID
+    session_info["traceId"] = str(uuid.uuid4())
+    session_info["processId"] = os.getpid()
 
     if custom_attributes_string:
         custom_attributes = json.loads(custom_attributes_string)
-        if 'requestId' in custom_attributes:
-            session_info['requestId'] = custom_attributes['requestId']
+        if "requestId" in custom_attributes:
+            session_info["requestId"] = custom_attributes["requestId"]
 
-        if 'awsAccountId' in custom_attributes:
-            session_info['awsAccountId'] = custom_attributes['awsAccountId']
+        if "awsAccountId" in custom_attributes:
+            session_info["awsAccountId"] = custom_attributes["awsAccountId"]
 
     return session_info
 
 
-def run_cmd(cmd_args, change_working_directory="./", shell=False,
-            stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-            env=None):
+def run_cmd(
+    cmd_args,
+    change_working_directory="./",
+    shell=False,
+    stdout=subprocess.PIPE,
+    stderr=subprocess.PIPE,
+    env=None,
+):
     """
     Function used to execute the shell commands
 
@@ -53,7 +58,7 @@ def run_cmd(cmd_args, change_working_directory="./", shell=False,
         shell=shell,
         stdout=stdout,
         stderr=stderr,
-        env=env
+        env=env,
     )
     stdout, stderr = process.communicate()
     return process.returncode, stdout, stderr

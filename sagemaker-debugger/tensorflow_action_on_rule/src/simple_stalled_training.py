@@ -101,9 +101,10 @@ for i in range(args.steps):
 for i in range(args.steps):
     x_ = np.random.random((10, 2)) * args.scale
     sess.run([loss, increment_global_step_op], {x: x_})
-    
+
 # Force the training job to sleep for 10 minutes
 import time
+
 print("Sleeping for 10 minutes")
-time.sleep(10*60)
+time.sleep(10 * 60)
 print("Waking up and exiting")

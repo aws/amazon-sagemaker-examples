@@ -12,14 +12,15 @@
 # timeout                  MODEL_SERVER_TIMEOUT              70 seconds
 
 from __future__ import print_function
+
 import os
 import signal
 import subprocess
 import sys
 
+model_server_timeout = os.environ.get("MODEL_SERVER_TIMEOUT", 70)
+model_server_workers = int(os.environ.get("MODEL_SERVER_WORKERS", 1))
 
-model_server_timeout = os.environ.get('MODEL_SERVER_TIMEOUT', 70)
-model_server_workers = int(os.environ.get('MODEL_SERVER_WORKERS', 1))
 
 def sigterm_handler(nginx_pid, gunicorn_pid):
     try:
@@ -33,21 +34,29 @@ def sigterm_handler(nginx_pid, gunicorn_pid):
 
     sys.exit(0)
 
-def start_server():
-    print('Starting the inference server with {} workers.'.format(model_server_workers))
 
+def start_server():
+    print("Starting the inference server with {} workers.".format(model_server_workers))
 
     # link the log streams to stdout/err so they will be logged to the container logs
-    subprocess.check_call(['ln', '-sf', '/dev/stdout', '/var/log/nginx/access.log'])
-    subprocess.check_call(['ln', '-sf', '/dev/stderr', '/var/log/nginx/error.log'])
+    subprocess.check_call(["ln", "-sf", "/dev/stdout", "/var/log/nginx/access.log"])
+    subprocess.check_call(["ln", "-sf", "/dev/stderr", "/var/log/nginx/error.log"])
 
-    nginx = subprocess.Popen(['nginx', '-c', '/nginx.conf'])
-    gunicorn = subprocess.Popen(['gunicorn',
-                                 '--timeout', str(model_server_timeout),
-                                 '-k', 'gevent',
-                                 '-b', 'unix:/tmp/gunicorn.sock',
-                                 '-w', str(model_server_workers),
-                                 'wsgi:app'])
+    nginx = subprocess.Popen(["nginx", "-c", "/nginx.conf"])
+    gunicorn = subprocess.Popen(
+        [
+            "gunicorn",
+            "--timeout",
+            str(model_server_timeout),
+            "-k",
+            "gevent",
+            "-b",
+            "unix:/tmp/gunicorn.sock",
+            "-w",
+            str(model_server_workers),
+            "wsgi:app",
+        ]
+    )
 
     signal.signal(signal.SIGTERM, lambda a, b: sigterm_handler(nginx.pid, gunicorn.pid))
 
@@ -59,9 +68,10 @@ def start_server():
             break
 
     sigterm_handler(nginx.pid, gunicorn.pid)
-    print('Inference server exiting')
+    print("Inference server exiting")
+
 
 # The main routine just invokes the start function.
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     start_server()

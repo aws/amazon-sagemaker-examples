@@ -1,14 +1,14 @@
 """
 Modified from https://github.com/PacktPublishing/Deep-Reinforcement-Learning-Hands-On/blob/master/Chapter08/lib/environ.py
 """
+import enum
+
 import gym
 import gym.spaces
-from gym.utils import seeding
-import enum
 import numpy as np
-
-from data import *
 from config import *
+from data import *
+from gym.utils import seeding
 
 
 class TradingEnv(gym.Env):
@@ -17,13 +17,15 @@ class TradingEnv(gym.Env):
     [Lapan 2018](https://www.packtpub.com/big-data-and-business-intelligence/deep-reinforcement-learning-hands).
     """
 
-    def __init__(self,
-                 bars_count=10,
-                 commission=0.1,
-                 reset_on_close=True,
-                 random_ofs_on_reset=True,
-                 reward_on_close=False,
-                 volumes=False):
+    def __init__(
+        self,
+        bars_count=10,
+        commission=0.1,
+        reset_on_close=True,
+        random_ofs_on_reset=True,
+        reward_on_close=False,
+        volumes=False,
+    ):
         """
         bars_count - count of bars that we pass in observation
         commission - percentage of stock price we have to pay to the broker on buying and selling the stock
@@ -38,9 +40,13 @@ class TradingEnv(gym.Env):
 
         assert isinstance(prices, dict)
         self._prices = prices
-        self._state = State(bars_count, commission, reset_on_close, reward_on_close=reward_on_close, volumes=volumes)
+        self._state = State(
+            bars_count, commission, reset_on_close, reward_on_close=reward_on_close, volumes=volumes
+        )
         self.action_space = gym.spaces.Discrete(n=len(Actions))
-        self.observation_space = gym.spaces.Box(low=-np.inf, high=np.inf, shape=self._state.shape, dtype=np.float32)
+        self.observation_space = gym.spaces.Box(
+            low=-np.inf, high=np.inf, shape=self._state.shape, dtype=np.float32
+        )
         self.random_ofs_on_reset = random_ofs_on_reset
         self.seed()
 
@@ -50,7 +56,7 @@ class TradingEnv(gym.Env):
         prices = self._prices[self._instrument]
         bars = self._state.bars_count
         if self.random_ofs_on_reset:
-            offset = self.np_random.choice(prices.high.shape[0]-bars*10) + bars
+            offset = self.np_random.choice(prices.high.shape[0] - bars * 10) + bars
         else:
             offset = bars
         self._state.reset(prices, offset)
@@ -63,7 +69,7 @@ class TradingEnv(gym.Env):
         info = {"instrument": self._instrument, "offset": self._state._offset}
         return obs, reward, done, info
 
-    def render(self, mode='human', close=False):
+    def render(self, mode="human", close=False):
         pass
 
     def close(self):
@@ -87,7 +93,9 @@ class Actions(enum.Enum):
 
 
 class State:
-    def __init__(self, bars_count, commission_perc, reset_on_close, reward_on_close=True, volumes=True):
+    def __init__(
+        self, bars_count, commission_perc, reset_on_close, reward_on_close=True, volumes=True
+    ):
         assert isinstance(bars_count, int)
         assert bars_count > 0
         assert isinstance(commission_perc, float)
@@ -102,7 +110,7 @@ class State:
 
     def reset(self, prices, offset):
         assert isinstance(prices, Prices)
-        assert offset >= self.bars_count-1
+        assert offset >= self.bars_count - 1
         self.have_position = False
         self.open_price = 0.0
         self._prices = prices
@@ -112,9 +120,9 @@ class State:
     def shape(self):
         # [h, l, c] * bars + position_flag + rel_profit (since open)
         if self.volumes:
-            return (4 * self.bars_count + 1 + 1, )
+            return (4 * self.bars_count + 1 + 1,)
         else:
-            return (3*self.bars_count + 1 + 1, )
+            return (3 * self.bars_count + 1 + 1,)
 
     def encode(self):
         """
@@ -122,7 +130,7 @@ class State:
         """
         res = np.ndarray(shape=self.shape, dtype=np.float32)
         shift = 0
-        for bar_idx in range(-self.bars_count+1, 1):
+        for bar_idx in range(-self.bars_count + 1, 1):
             res[shift] = self._prices.high[self._offset + bar_idx]
             shift += 1
             res[shift] = self._prices.low[self._offset + bar_idx]
@@ -174,7 +182,7 @@ class State:
         self._offset += 1
         prev_close = close
         close = self._cur_close()
-        done |= self._offset >= self._prices.close.shape[0]-1
+        done |= self._offset >= self._prices.close.shape[0] - 1
 
         if self.have_position and not self.reward_on_close:
             reward += 100.0 * (close - prev_close) / prev_close

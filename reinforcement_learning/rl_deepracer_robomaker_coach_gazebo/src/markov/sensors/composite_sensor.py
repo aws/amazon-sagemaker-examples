@@ -1,19 +1,20 @@
-'''This module contains a composite sensor class for supporting agents with multiple sensors'''
+"""This module contains a composite sensor class for supporting agents with multiple sensors"""
+from markov.sensors.sensor_interface import LidarInterface, SensorInterface
 from rl_coach.spaces import StateSpace
 
-from markov.sensors.sensor_interface import SensorInterface
 
 class CompositeSensor(SensorInterface):
-    '''This class represents a composite sensor so that from the point of view of each agent there
-       is only one sensor interface
-    '''
+    """This class represents a composite sensor so that from the point of view of each agent there
+    is only one sensor interface
+    """
+
     def __init__(self):
         self.sensors = list()
 
     def add_sensor(self, sensor):
-        '''Adds a sensor to the sensor list
-           sensor - Sensor object to add to the sensor list
-        '''
+        """Adds a sensor to the sensor list
+        sensor - Sensor object to add to the sensor list
+        """
         self.sensors.append(sensor)
 
     def get_observation_space(self):
@@ -28,6 +29,16 @@ class CompositeSensor(SensorInterface):
         # For blocking requests, run a blocking call on each sensor
         if block:
             for sensor in self.sensors:
+                # Lidar sensor update rate is 10 hz while camera sensor update rate is 15 hz.
+                # Due to slower Lidar sensor update rate, if the Lidar sensor is used,
+                # Lidar sensor data retrieval becomes bottleneck and makes the inference period to 10 hz.
+                # The latest Lidar sensor type is sector-lidar, due to limited number of sectors and binary type
+                # for sector-lidar state data, it is unlikely, that sector Lidar data change every steps.
+                # Thus, it is bit unnecessary to wait for Lidar data and slow everything down.
+                # We ignore blocking request to Lidar sensor update and follow-up non-blocking call below
+                # will use the latest Lidar data whether it was used previously or not.
+                if isinstance(sensor, LidarInterface):
+                    continue
                 state.update(sensor.get_state(block=block))
 
         # For all requests, follow-up with a non-blocking call
@@ -41,7 +52,7 @@ class CompositeSensor(SensorInterface):
     def get_raw_state(self):
         raw_data = dict()
         for sensor in self.sensors:
-            if hasattr(sensor, 'raw_data'):
+            if hasattr(sensor, "raw_data"):
                 raw_data[sensor.sensor_type] = sensor.raw_data
         return raw_data
 

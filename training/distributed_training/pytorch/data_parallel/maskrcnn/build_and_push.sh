@@ -34,7 +34,7 @@ if [ $? -ne 0 ]; then
     aws ecr create-repository --region ${region} --repository-name "${image}" > /dev/null
 fi
 
-$(aws ecr get-login --no-include-email --region us-west-2  --registry-ids 763104351884)
+$(aws ecr get-login --no-include-email --region ${region}  --registry-ids 763104351884)
 docker build ${DIR}/ -t ${image} -f ${DIR}/Dockerfile  --build-arg region=${region}
 docker tag ${image} ${fullname}
 

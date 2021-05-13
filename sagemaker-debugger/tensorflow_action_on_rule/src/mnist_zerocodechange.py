@@ -8,13 +8,13 @@ For more information, please refer to https://github.com/awslabs/sagemaker-debug
 
 # Standard Library
 import argparse
+import logging
 import random
 
 # Third Party
 import numpy as np
 import tensorflow as tf
 
-import logging
 logging.getLogger().setLevel(logging.INFO)
 
 parser = argparse.ArgumentParser()

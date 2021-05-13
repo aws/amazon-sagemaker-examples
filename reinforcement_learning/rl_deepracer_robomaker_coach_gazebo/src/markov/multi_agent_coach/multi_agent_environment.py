@@ -1,13 +1,11 @@
 import time
-from typing import Union, List
+from typing import List, Union
 
 import numpy as np
-
-from rl_coach.base_parameters import Parameters
-from rl_coach.base_parameters import VisualizationParameters
-from rl_coach.core_types import GoalType, ActionType, EnvResponse, RunPhase
-from rl_coach.environments.environment_interface import EnvironmentInterface
+from rl_coach.base_parameters import Parameters, VisualizationParameters
+from rl_coach.core_types import ActionType, EnvResponse, GoalType, RunPhase
 from rl_coach.environments.environment import LevelSelection
+from rl_coach.environments.environment_interface import EnvironmentInterface
 from rl_coach.spaces import ActionSpace, ObservationSpace, RewardSpace, StateSpace
 from rl_coach.utils import force_list
 
@@ -28,13 +26,21 @@ class MultiAgentEnvironmentParameters(Parameters):
 
     @property
     def path(self):
-        return 'markov.multi_agent_coach.multi_agent_environment:MultiAgentEnvironment'
+        return "markov.multi_agent_coach.multi_agent_environment:MultiAgentEnvironment"
 
 
 class MultiAgentEnvironment(EnvironmentInterface):
-    def __init__(self, level: LevelSelection, seed: int, frame_skip: int,
-                 custom_reward_threshold: Union[int, float], visualization_parameters: VisualizationParameters,
-                 target_success_rate: float=1.0, num_agents: int=1, **kwargs):
+    def __init__(
+        self,
+        level: LevelSelection,
+        seed: int,
+        frame_skip: int,
+        custom_reward_threshold: Union[int, float],
+        visualization_parameters: VisualizationParameters,
+        target_success_rate: float = 1.0,
+        num_agents: int = 1,
+        **kwargs
+    ):
         """
         :param level: The environment level. Each environment can have multiple levels
         :param seed: a seed for the random number generator of the environment
@@ -68,7 +74,9 @@ class MultiAgentEnvironment(EnvironmentInterface):
         self.state_space = self._state_space = [None] * num_agents
         self.goal_space = self._goal_space = None
         self.action_space = self._action_space = [None] * num_agents
-        self.reward_space = RewardSpace(1, reward_success_threshold=self.reward_success_threshold)  # TODO: add a getter and setter
+        self.reward_space = RewardSpace(
+            1, reward_success_threshold=self.reward_success_threshold
+        )  # TODO: add a getter and setter
 
         self.env_id = str(level)
         self.seed = seed
@@ -159,12 +167,18 @@ class MultiAgentEnvironment(EnvironmentInterface):
         :param action: an action to use for stepping the environment. Should follow the definition of the action space.
         :return: the environment response as returned in get_last_env_response
         """
+        clipped_and_scaled_action = list()
         for agent_action, action_space in zip(force_list(action), force_list(self.action_space)):
             agent_action = action_space.clip_action_to_space(agent_action)
             if action_space and not action_space.contains(agent_action):
-                raise ValueError("The given action does not match the action space definition. "
-                                 "Action = {}, action space definition = {}".format(agent_action, action_space))
-
+                raise ValueError(
+                    "The given action does not match the action space definition. "
+                    "Action = {}, action space definition = {}".format(agent_action, action_space)
+                )
+            if hasattr(action_space, "scale_action_space") and action_space.scale_action_space:
+                agent_action = action_space.scale_action_values(agent_action)
+            clipped_and_scaled_action.append(agent_action)
+        action = clipped_and_scaled_action
         # store the last agent action done and allow passing None actions to repeat the previously done action
         if action is None:
             action = self.last_action
@@ -180,18 +194,19 @@ class MultiAgentEnvironment(EnvironmentInterface):
         # observe
         self._update_state()
 
-        self.total_reward_in_current_episode = [total_reward_in_current_episode + reward
-                                                for total_reward_in_current_episode, reward in
-                                                zip(self.total_reward_in_current_episode, self.reward)]
+        self.total_reward_in_current_episode = [
+            total_reward_in_current_episode + reward
+            for total_reward_in_current_episode, reward in zip(
+                self.total_reward_in_current_episode, self.reward
+            )
+        ]
 
-        self.last_env_response = \
-            [EnvResponse(
-                next_state=state,
-                reward=reward,
-                game_over=done,
-                goal=self.goal,
-                info=self.info
-            ) for state, reward, done in zip(self.state, self.reward, self.done)]
+        self.last_env_response = [
+            EnvResponse(
+                next_state=state, reward=reward, game_over=done, goal=self.goal, info=self.info
+            )
+            for state, reward, done in zip(self.state, self.reward, self.done)
+        ]
 
         return self.last_env_response
 
@@ -222,14 +237,12 @@ class MultiAgentEnvironment(EnvironmentInterface):
         self.last_action = [0] * self.num_agents
         self.current_episode_steps_counter = 0
 
-        self.last_env_response = \
-            [EnvResponse(
-                next_state=state,
-                reward=reward,
-                game_over=done,
-                goal=self.goal,
-                info=self.info
-            ) for state, reward, done in zip(self.state, self.reward, self.done)]
+        self.last_env_response = [
+            EnvResponse(
+                next_state=state, reward=reward, game_over=done, goal=self.goal, info=self.info
+            )
+            for state, reward, done in zip(self.state, self.reward, self.done)
+        ]
 
         return self.last_env_response
 
@@ -239,8 +252,11 @@ class MultiAgentEnvironment(EnvironmentInterface):
 
         :return: a numpy array with a random action
         """
-        return self.action_space.sample() if isinstance(self.action_space, ActionType) else \
-            [action_space.sample() for action_space in self.action_space]
+        return (
+            self.action_space.sample()
+            if isinstance(self.action_space, ActionType)
+            else [action_space.sample() for action_space in self.action_space]
+        )
 
     def get_goal(self) -> GoalType:
         """
@@ -291,10 +307,10 @@ class MultiAgentEnvironment(EnvironmentInterface):
         raise NotImplementedError("")
 
     def _notify_phase(self, phase: RunPhase):
-        '''
+        """
         This is a hook that notifies the enviroment that the phase has changed
         phase - The value of the pahse after it has changed
-        '''
+        """
         raise NotImplementedError("")
 
     def get_target_success_rate(self) -> float:

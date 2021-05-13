@@ -1,13 +1,15 @@
 from ray.tune.registry import register_env
-
 from sagemaker_rl.ray_launcher import SageMakerRayLauncher
 
 
 class MyLauncher(SageMakerRayLauncher):
-
     def register_env_creator(self):
         from news_vendor_env import NewsVendorGymEnvironmentNormalized
-        register_env("NewsVendorGymEnvironment-v1", lambda env_config: NewsVendorGymEnvironmentNormalized(env_config))
+
+        register_env(
+            "NewsVendorGymEnvironment-v1",
+            lambda env_config: NewsVendorGymEnvironmentNormalized(env_config),
+        )
 
     def get_experiment_config(self):
         return {
@@ -29,11 +31,10 @@ class MyLauncher(SageMakerRayLauncher):
                     "num_workers": (self.num_cpus - 1),
                     "num_gpus": self.num_gpus,
                     "batch_mode": "complete_episodes",
-                    "env_config": {
-                    },
-                    'observation_filter': 'MeanStdFilter',
+                    "env_config": {},
+                    "observation_filter": "MeanStdFilter",
                 },
-                "checkpoint_freq": 2 
+                "checkpoint_freq": 2,
             }
         }
 

@@ -1,20 +1,20 @@
 import threading
-from markov.log_handler.deepracer_exceptions import GenericRolloutException
-import rospy
 from collections import OrderedDict
 
-from markov.domain_randomizations.constants import GazeboServiceName
-from markov.rospy_wrappers import ServiceProxyWrapper
-from markov.gazebo_tracker.abs_tracker import AbstractTracker
 import markov.gazebo_tracker.constants as consts
-from deepracer_msgs.srv import (SetVisualColors, SetVisualColorsRequest,
-                                SetVisualColorResponse)
+import rospy
+from deepracer_msgs.srv import SetVisualColorResponse, SetVisualColors, SetVisualColorsRequest
+from markov.domain_randomizations.constants import GazeboServiceName
+from markov.gazebo_tracker.abs_tracker import AbstractTracker
+from markov.log_handler.deepracer_exceptions import GenericRolloutException
+from markov.rospy_wrappers import ServiceProxyWrapper
 
 
 class SetVisualColorTracker(AbstractTracker):
     """
     SetVisualColorTracker Tracker class
     """
+
     _instance_ = None
 
     @staticmethod
@@ -37,13 +37,16 @@ class SetVisualColorTracker(AbstractTracker):
         self.emissive_map = OrderedDict()
 
         rospy.wait_for_service(GazeboServiceName.SET_VISUAL_COLORS.value)
-        self.set_visual_colors = ServiceProxyWrapper(GazeboServiceName.SET_VISUAL_COLORS.value,
-                                                     SetVisualColors)
+        self.set_visual_colors = ServiceProxyWrapper(
+            GazeboServiceName.SET_VISUAL_COLORS.value, SetVisualColors
+        )
 
         SetVisualColorTracker._instance_ = self
         super(SetVisualColorTracker, self).__init__(priority=consts.TrackerPriority.LOW)
 
-    def set_visual_color(self, visual_name, link_name, ambient, diffuse, specular, emissive, blocking=False):
+    def set_visual_color(
+        self, visual_name, link_name, ambient, diffuse, specular, emissive, blocking=False
+    ):
         """
         Set Material that will be updated in next update call
         Args:

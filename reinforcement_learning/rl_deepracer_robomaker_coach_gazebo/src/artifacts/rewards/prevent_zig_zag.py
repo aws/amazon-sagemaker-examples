@@ -1,12 +1,12 @@
 def reward_function(params):
-    '''
+    """
     Example of penalize steering, which helps mitigate zig-zag behaviors
-    '''
-    
+    """
+
     # Read input parameters
-    distance_from_center = params['distance_from_center']
-    track_width = params['track_width']
-    steering = abs(params['steering_angle']) # Only need the absolute steering angle
+    distance_from_center = params["distance_from_center"]
+    track_width = params["track_width"]
+    steering = abs(params["steering_angle"])  # Only need the absolute steering angle
 
     # Calculate 3 markers that are at varying distances away from the center line
     marker_1 = 0.1 * track_width

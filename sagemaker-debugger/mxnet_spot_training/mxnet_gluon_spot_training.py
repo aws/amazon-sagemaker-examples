@@ -1,5 +1,6 @@
 # Standard Library
 import argparse
+import os
 import random
 
 # Third Party
@@ -7,7 +8,6 @@ import mxnet as mx
 import numpy as np
 from mxnet import autograd, gluon
 from mxnet.gluon import nn
-import os
 
 
 def parse_args():
@@ -79,7 +79,7 @@ def train_model(net, epochs, ctx, learning_rate, momentum, train_data, val_data,
         name, val_acc = test(ctx, net, val_data)
         print("[Epoch %d] Validation: %s=%f" % (epoch, name, val_acc))
         param_file = "{0}/params_{1}.params".format(checkpoint_path, epoch)
-        print ("Saving params to:  " + param_file) 
+        print("Saving params to:  " + param_file)
         net.save_parameters(param_file)
 
 
@@ -116,8 +116,10 @@ def create_gluon_model():
 
 
 def validate():
-    import os, json
-    with open('/opt/ml/input/config/debughookconfig.json') as jsondata:
+    import json
+    import os
+
+    with open("/opt/ml/input/config/debughookconfig.json") as jsondata:
         configs = json.load(jsondata)
         print("DEBUG HOOK CONFIGURATION: ")
         print(json.dumps(configs, indent=4))
@@ -145,7 +147,7 @@ def main():
         momentum=0.9,
         train_data=train_data,
         val_data=val_data,
-        checkpoint_path = opt.checkpoint_path
+        checkpoint_path=opt.checkpoint_path,
     )
     validate()
 

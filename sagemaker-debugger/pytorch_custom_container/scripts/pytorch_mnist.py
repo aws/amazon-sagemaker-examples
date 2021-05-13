@@ -11,25 +11,25 @@ For more information, please refer to https://github.com/awslabs/sagemaker-debug
 
 
 from __future__ import absolute_import
+
 import argparse
 import logging
 import os
+import random
 import sys
 
 import cv2 as cv
+import numpy as np
 import sagemaker_containers
+
+# SageMaker Debugger: Import the package
+import smdebug.pytorch as smd
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 import torch.utils.data
 from torchvision import datasets, transforms
-
-# SageMaker Debugger: Import the package
-import smdebug.pytorch as smd
-
-import numpy as np
-import random
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -62,7 +62,7 @@ def parse_args():
     env = sagemaker_containers.training_env()
     parser = argparse.ArgumentParser(description="PyTorch MNIST Example")
 
-    parser.add_argument('--data_dir', type=str)
+    parser.add_argument("--data_dir", type=str)
     parser.add_argument("--batch-size", type=int, default=4, help="Batch size")
     parser.add_argument("--epochs", type=int, default=1, help="Number of Epochs")
 
@@ -82,12 +82,17 @@ def parse_args():
         type=int,
         default=50,
         help="Reduce the number of training "
-             "and evaluation steps to the give number if desired."
-             "If this is not passed, trains for one epoch "
-             "of training and validation data",
+        "and evaluation steps to the give number if desired."
+        "If this is not passed, trains for one epoch "
+        "of training and validation data",
     )
-    parser.add_argument('--log_interval', type=int, default=100, metavar='N',
-                        help='how many batches to wait before logging training status')
+    parser.add_argument(
+        "--log_interval",
+        type=int,
+        default=100,
+        metavar="N",
+        help="how many batches to wait before logging training status",
+    )
 
     opt = parser.parse_args()
     return opt
@@ -95,22 +100,32 @@ def parse_args():
 
 def _get_train_data_loader(batch_size, training_dir):
     logger.info("Get train data loader")
-    dataset = datasets.MNIST(training_dir, train=True, download=True, transform=transforms.Compose([
-        transforms.ToTensor(),
-        transforms.Normalize((0.1307,), (0.3081,))
-    ]))
-    return torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True,
-                                       num_workers=4)
+    dataset = datasets.MNIST(
+        training_dir,
+        train=True,
+        download=True,
+        transform=transforms.Compose(
+            [transforms.ToTensor(), transforms.Normalize((0.1307,), (0.3081,))]
+        ),
+    )
+    return torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=4)
 
 
 def _get_test_data_loader(test_batch_size, training_dir):
     logger.info("Get test data loader")
     return torch.utils.data.DataLoader(
-        datasets.MNIST(training_dir, train=False, download=True, transform=transforms.Compose([
-            transforms.ToTensor(),
-            transforms.Normalize((0.1307,), (0.3081,))
-        ])),
-        batch_size=test_batch_size, shuffle=False, num_workers=4)
+        datasets.MNIST(
+            training_dir,
+            train=False,
+            download=True,
+            transform=transforms.Compose(
+                [transforms.ToTensor(), transforms.Normalize((0.1307,), (0.3081,))]
+            ),
+        ),
+        batch_size=test_batch_size,
+        shuffle=False,
+        num_workers=4,
+    )
 
 
 # SageMaker Debugger: This function created the debug hook required to log tensors.
@@ -143,9 +158,15 @@ def train(model, device, optimizer, hook, epochs, log_interval, training_dir):
             optimizer.step()
 
             if i % log_interval == 0:
-                logger.debug('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
-                    epoch, i * len(data), len(trainloader.sampler),
-                           100. * i / len(trainloader), loss.item()))
+                logger.debug(
+                    "Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}".format(
+                        epoch,
+                        i * len(data),
+                        len(trainloader.sampler),
+                        100.0 * i / len(trainloader),
+                        loss.item(),
+                    )
+                )
 
         test(model, hook, validloader, device, criterion)
 
@@ -164,9 +185,11 @@ def test(model, hook, test_loader, device, loss_fn):
             correct += pred.eq(target.view_as(pred)).sum().item()
 
     test_loss /= len(test_loader.dataset)
-    logger.debug('Test set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
-        test_loss, correct, len(test_loader.dataset),
-        100. * correct / len(test_loader.dataset)))
+    logger.debug(
+        "Test set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n".format(
+            test_loss, correct, len(test_loader.dataset), 100.0 * correct / len(test_loader.dataset)
+        )
+    )
 
 
 def main():
@@ -190,6 +213,7 @@ def main():
     optimizer = optim.SGD(model.parameters(), lr=opt.learning_rate, momentum=opt.momentum)
     train(model, device, optimizer, hook, opt.epochs, opt.log_interval, training_dir)
     print("Training is complete")
+
 
 if __name__ == "__main__":
     main()

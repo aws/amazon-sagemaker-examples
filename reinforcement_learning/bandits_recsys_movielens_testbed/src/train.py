@@ -5,17 +5,17 @@ import os
 from env import MovieLens100KEnv
 from io_utils import extract_model
 from vw_agent import VWAgent
-from vw_utils import MODEL_CHANNEL, MODEL_OUTPUT_DIR, DATA_OUTPUT_DIR
+from vw_utils import DATA_OUTPUT_DIR, MODEL_CHANNEL, MODEL_OUTPUT_DIR
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 
 def main():
-    """ Train a Vowpal Wabbit (VW) model through C++ process. """
+    """Train a Vowpal Wabbit (VW) model through C++ process."""
 
-    channel_names = json.loads(os.environ['SM_CHANNELS'])
-    hyperparameters = json.loads(os.environ['SM_HPS'])
+    channel_names = json.loads(os.environ["SM_CHANNELS"])
+    hyperparameters = json.loads(os.environ["SM_HPS"])
 
     # Fetch algorithm hyperparameters
     num_arms = int(hyperparameters.get("num_arms", 0))  # Used if arm features are not present
@@ -45,44 +45,55 @@ def main():
     if exploration_policy == "egreedy":
         vw_args_base = f"--cb_explore_adf --cb_type mtr --epsilon {epsilon}"
     elif exploration_policy in ["regcbopt", "regcb"]:
-        vw_args_base = f"--cb_explore_adf --cb_type mtr --{exploration_policy} --mellowness {mellowness}"
+        vw_args_base = (
+            f"--cb_explore_adf --cb_type mtr --{exploration_policy} --mellowness {mellowness}"
+        )
     else:
         vw_args_base = f"--cb_explore_adf --cb_type mtr --{exploration_policy} {num_policies}"
 
     # If pre-trained model is present
     if MODEL_CHANNEL not in channel_names:
-        logging.info(f"No pre-trained model has been specified in channel {MODEL_CHANNEL}."
-                     f"Training will start from scratch.")
-        vw_agent = VWAgent(cli_args=vw_args_base,
-                           output_dir=MODEL_OUTPUT_DIR,
-                           model_path=None,
-                           test_only=False,
-                           quiet_mode=False,
-                           adf_mode=arm_features_present,
-                           num_actions=num_arms)
+        logging.info(
+            f"No pre-trained model has been specified in channel {MODEL_CHANNEL}."
+            f"Training will start from scratch."
+        )
+        vw_agent = VWAgent(
+            cli_args=vw_args_base,
+            output_dir=MODEL_OUTPUT_DIR,
+            model_path=None,
+            test_only=False,
+            quiet_mode=False,
+            adf_mode=arm_features_present,
+            num_actions=num_arms,
+        )
     else:
         # Load the pre-trained model for training.
-        model_folder = os.environ[f'SM_CHANNEL_{MODEL_CHANNEL.upper()}']
+        model_folder = os.environ[f"SM_CHANNEL_{MODEL_CHANNEL.upper()}"]
         metadata_path, weights_path = extract_model(model_folder)
         logging.info(f"Loading model from {weights_path}")
-        vw_agent = VWAgent.load_model(metadata_loc=metadata_path,
-                                      weights_loc=weights_path,
-                                      test_only=False,
-                                      quiet_mode=False,
-                                      output_dir=MODEL_OUTPUT_DIR)
+        vw_agent = VWAgent.load_model(
+            metadata_loc=metadata_path,
+            weights_loc=weights_path,
+            test_only=False,
+            quiet_mode=False,
+            output_dir=MODEL_OUTPUT_DIR,
+        )
 
     # Start the VW C++ process. This python program will communicate with the C++ process using PIPES
     vw_agent.start()
 
     if "movielens" not in channel_names:
         raise ValueError(
-            "Cannot find `movielens` channel. Please make sure to provide the data as `movielens` channel.")
+            "Cannot find `movielens` channel. Please make sure to provide the data as `movielens` channel."
+        )
 
     # Initialize MovieLens environment
-    env = MovieLens100KEnv(data_dir=os.environ['SM_CHANNEL_MOVIELENS'],
-                           item_pool_size=item_pool_size,
-                           top_k=top_k,
-                           max_users=max_users)
+    env = MovieLens100KEnv(
+        data_dir=os.environ["SM_CHANNEL_MOVIELENS"],
+        item_pool_size=item_pool_size,
+        top_k=top_k,
+        max_users=max_users,
+    )
 
     regrets = []
     random_regrets = []
@@ -92,25 +103,29 @@ def main():
     # Learn by interacting with the environment
     for i in range(total_interactions):
         user_features, items_features = obs
-        actions, probs = vw_agent.choose_actions(shared_features=user_features,
-                                                 candidate_arms_features=items_features,
-                                                 user_id=env.current_user_id,
-                                                 candidate_ids=env.current_item_pool,
-                                                 top_k=5)
+        actions, probs = vw_agent.choose_actions(
+            shared_features=user_features,
+            candidate_arms_features=items_features,
+            user_id=env.current_user_id,
+            candidate_ids=env.current_item_pool,
+            top_k=5,
+        )
 
         clicks, regret, random_regret = env.get_feedback(actions)
         regrets.append(regret)
         random_regrets.append(random_regret)
 
         for index, reward in enumerate(clicks):
-            vw_agent.learn(shared_features=user_features,
-                           candidate_arms_features=items_features,
-                           action_index=actions[index],
-                           reward=reward,
-                           user_id=env.current_user_id,
-                           candidate_ids=env.current_item_pool,
-                           action_prob=probs[index],
-                           cost_fn=lambda x: -x)
+            vw_agent.learn(
+                shared_features=user_features,
+                candidate_arms_features=items_features,
+                action_index=actions[index],
+                reward=reward,
+                user_id=env.current_user_id,
+                candidate_ids=env.current_item_pool,
+                action_prob=probs[index],
+                cost_fn=lambda x: -x,
+            )
 
         # Step the environment to pick next user and new list of candidate items
         obs, rewards, done, info = env.step(actions)
@@ -126,5 +141,5 @@ def main():
         json.dump(all_regrets, file)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

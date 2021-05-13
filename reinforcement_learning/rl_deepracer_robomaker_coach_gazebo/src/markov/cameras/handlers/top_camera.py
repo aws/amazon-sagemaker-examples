@@ -1,17 +1,17 @@
-import math
 import logging
+import math
 import xml.etree.ElementTree as ET
-import rospy
 
-from deepracer_simulation_environment.srv import TopCamDataSrvResponse, TopCamDataSrv
+import rospy
+from deepracer_simulation_environment.srv import TopCamDataSrv, TopCamDataSrvResponse
 from gazebo_msgs.msg import ModelState
 from geometry_msgs.msg import Pose
-from markov.track_geom.track_data import TrackData
-from markov.track_geom.utils import euler_to_quaternion
 from markov.cameras.abs_camera import AbstractCamera
 from markov.cameras.constants import CameraSettings
-from markov.log_handler.logger import Logger
 from markov.gazebo_tracker.trackers.set_model_state_tracker import SetModelStateTracker
+from markov.log_handler.logger import Logger
+from markov.track_geom.track_data import TrackData
+from markov.track_geom.utils import euler_to_quaternion
 
 # Height value is determined from AWS track and is maintained to prevent z fighting in top down
 # view
@@ -28,11 +28,11 @@ LOG = Logger(__name__, logging.INFO).get_logger()
 
 class TopCamera(AbstractCamera):
     """this module is for top camera"""
+
     name = "top_camera"
 
     def __init__(self, namespace=None, model_name=None):
-        super(TopCamera, self).__init__(TopCamera.name, namespace=namespace,
-                                        model_name=model_name)
+        super(TopCamera, self).__init__(TopCamera.name, namespace=namespace, model_name=model_name)
         self.track_data = TrackData.get_instance()
         x_min, y_min, x_max, y_max = self.track_data.outer_border.bounds
         horizontal_width = (x_max - x_min) * (1.0 + PADDING_PCT)
@@ -46,7 +46,7 @@ class TopCamera(AbstractCamera):
                 aspect_ratio = float(DEFAULT_RESOLUTION[0]) / float(DEFAULT_RESOLUTION[1])
                 horizontal_fov = 2.0 * math.atan(aspect_ratio * math.tan(vertical_fov))
         except Exception as ex:
-            LOG.info('Unable to compute top camera fov, using default: %s', ex)
+            LOG.info("Unable to compute top camera fov, using default: %s", ex)
 
         self.camera_settings_dict = CameraSettings.get_empty_dict()
         self.camera_settings_dict[CameraSettings.HORZ_FOV] = horizontal_fov
@@ -54,21 +54,23 @@ class TopCamera(AbstractCamera):
         self.camera_settings_dict[CameraSettings.IMG_WIDTH] = DEFAULT_RESOLUTION[0]
         self.camera_settings_dict[CameraSettings.IMG_HEIGHT] = DEFAULT_RESOLUTION[1]
 
-        rospy.Service('get_top_cam_data', TopCamDataSrv, self._handle_get_top_cam_data)
+        rospy.Service("get_top_cam_data", TopCamDataSrv, self._handle_get_top_cam_data)
 
     def _handle_get_top_cam_data(self, req):
-        '''Response handler for clients requesting the camera settings data
-           req - Client request, which should be an empty request
-        '''
-        return TopCamDataSrvResponse(self.camera_settings_dict[CameraSettings.HORZ_FOV],
-                                     self.camera_settings_dict[CameraSettings.PADDING_PCT],
-                                     self.camera_settings_dict[CameraSettings.IMG_WIDTH],
-                                     self.camera_settings_dict[CameraSettings.IMG_HEIGHT])
+        """Response handler for clients requesting the camera settings data
+        req - Client request, which should be an empty request
+        """
+        return TopCamDataSrvResponse(
+            self.camera_settings_dict[CameraSettings.HORZ_FOV],
+            self.camera_settings_dict[CameraSettings.PADDING_PCT],
+            self.camera_settings_dict[CameraSettings.IMG_WIDTH],
+            self.camera_settings_dict[CameraSettings.IMG_HEIGHT],
+        )
 
     def _get_sdf_string(self, camera_sdf_path):
         tree = ET.parse(camera_sdf_path)
         root = tree.getroot()
-        for fov in root.iter('horizontal_fov'):
+        for fov in root.iter("horizontal_fov"):
             fov.text = str(self.camera_settings_dict[CameraSettings.HORZ_FOV])
         return '<?xml version="1.0"?>\n {}'.format(ET.tostring(root))
 
@@ -77,8 +79,8 @@ class TopCamera(AbstractCamera):
         x_min, y_min, x_max, y_max = self.track_data.outer_border.bounds
         # update camera position
         model_pose = Pose()
-        model_pose.position.x = (x_min+x_max) / 2.0
-        model_pose.position.y = (y_min+y_max) / 2.0
+        model_pose.position.x = (x_min + x_max) / 2.0
+        model_pose.position.y = (y_min + y_max) / 2.0
         model_pose.position.z = CAMERA_HEIGHT
         x, y, z, w = euler_to_quaternion(roll=1.57079, pitch=1.57079, yaw=3.14159)
         model_pose.orientation.x = x

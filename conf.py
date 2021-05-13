@@ -17,12 +17,12 @@
 
 # -- Project information -----------------------------------------------------
 
-project = 'Amazon SageMaker Examples'
-copyright = '2020, Amazon Web Services, Inc. or its affiliates. All rights reserved.'
-author = 'Aaron Markham'
+project = "Amazon SageMaker Examples"
+copyright = "2020, Amazon Web Services, Inc. or its affiliates. All rights reserved."
+author = "Aaron Markham"
 
 # The full version, including alpha/beta/rc tags
-release = '1.0.0'
+release = "1.0.0"
 
 
 # -- General configuration ---------------------------------------------------
@@ -35,16 +35,16 @@ extensions = [
 ]
 
 # extension nbsphinx config
-nbsphinx_execute = 'never'
+nbsphinx_execute = "never"
 
 
 # Add any paths that contain templates here, relative to this directory.
-templates_path = ['_templates']
+templates_path = ["_templates"]
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
+exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
 
 # -- Options for HTML output -------------------------------------------------
@@ -52,12 +52,16 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'sphinx_rtd_theme'
+html_theme = "sphinx_rtd_theme"
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
+html_static_path = ["_static"]
 
 # For Adobe Analytics
-html_js_files = ["https://a0.awsstatic.com/s_code/js/3.0/awshome_s_code.js", "js/analytics.js"]
+html_js_files = [
+    "https://a0.awsstatic.com/s_code/js/3.0/awshome_s_code.js",
+    "aws-ux-shortbread/index.js",
+    "aws-ux-shortbread/init.js",
+]
