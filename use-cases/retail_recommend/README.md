@@ -90,7 +90,7 @@ When you've finished with this solution, make sure that you delete all unwanted 
 ----
 ## Useful Resources
 
-* Predictive maintenance demo video: https://youtu.be/weURTTDc8dM
+* Personalized recommendation demo: https://www.youtube.com/watch?v=o_p_8HXh0tY
 * [Amazon SageMaker Developer Guide](https://docs.aws.amazon.com/sagemaker/latest/dg/whatis.html)
 * [Amazon SageMaker Python SDK Documentation](https://sagemaker.readthedocs.io/en/stable/)
 
