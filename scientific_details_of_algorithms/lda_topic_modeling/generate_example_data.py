@@ -16,7 +16,12 @@ from matplotlib.gridspec import GridSpec, GridSpecFromSubplotSpec
 
 
 def generate_griffiths_data(
-    num_documents=5000, average_document_length=150, num_topics=5, alpha=None, eta=None, seed=0
+    num_documents=5000,
+    average_document_length=150,
+    num_topics=5,
+    alpha=None,
+    eta=None,
+    seed=0,
 ):
     """Returns example documents from Griffiths-Steyvers [1].
 
@@ -145,9 +150,13 @@ def plot_lda(data, nrows, ncols, with_colorbar=True, cmap=cm.viridis):
             index = i * ncols + j
 
             if nrows > 1:
-                im = ax[i, j].matshow(data[index].reshape(n, n), cmap=cmap, vmin=vmin, vmax=vmax)
+                im = ax[i, j].matshow(
+                    data[index].reshape(n, n), cmap=cmap, vmin=vmin, vmax=vmax
+                )
             else:
-                im = ax[j].matshow(data[index].reshape(n, n), cmap=cmap, vmin=vmin, vmax=vmax)
+                im = ax[j].matshow(
+                    data[index].reshape(n, n), cmap=cmap, vmin=vmin, vmax=vmax
+                )
 
     for axi in ax.ravel():
         axi.set_xticks([])
@@ -182,7 +191,9 @@ def match_estimated_topics(topics_known, topics_estimated):
     return permutation, (topics_estimated[permutation, :]).copy()
 
 
-def _document_with_topic(fig, gsi, index, document, topic_mixture=None, vmin=0, vmax=32):
+def _document_with_topic(
+    fig, gsi, index, document, topic_mixture=None, vmin=0, vmax=32
+):
     ax_doc = fig.add_subplot(gsi[:5, :])
     ax_doc.matshow(document.reshape(5, 5), cmap="gray_r", vmin=vmin, vmax=vmax)
     ax_doc.set_xticks([])
@@ -196,7 +207,13 @@ def _document_with_topic(fig, gsi, index, document, topic_mixture=None, vmin=0, 
 
 
 def plot_lda_topics(
-    documents, nrows, ncols, with_colorbar=True, topic_mixtures=None, cmap="Viridis", dpi=160
+    documents,
+    nrows,
+    ncols,
+    with_colorbar=True,
+    topic_mixtures=None,
+    cmap="Viridis",
+    dpi=160,
 ):
     fig = plt.figure()
     gs = GridSpec(nrows, ncols)
