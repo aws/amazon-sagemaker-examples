@@ -24,7 +24,7 @@ RUN ln -sf /usr/bin/python3 /usr/bin/python && \
 RUN pip --no-cache-dir install --upgrade pip setuptools_rust
 
 # Install JAX built with CUDA11 support
-RUN pip --no-cache-dir install --upgrade jax jaxlib==0.1.65+cuda110 -f https://storage.googleapis.com/jax-releases/jax_releases.html
+RUN pip --no-cache-dir install --upgrade jax jaxlib==0.1.66+cuda111 -f https://storage.googleapis.com/jax-releases/jax_releases.html
 
 # Install the SageMaker Training Toolkit
 # This provides entry points for the training script
