@@ -20,10 +20,15 @@ from sagemaker.vpc_utils import VPC_CONFIG_DEFAULT
 
 class JaxEstimator(Framework):
     def __init__(
-        self, entry_point, source_dir=None, hyperparameters=None, image_name=None, **kwargs
+        self,
+        entry_point,
+        source_dir=None,
+        hyperparameters=None,
+        image_uri=None,
+        **kwargs
     ):
         super(JaxEstimator, self).__init__(
-            entry_point, source_dir, hyperparameters, image_name=image_name, **kwargs
+            entry_point, source_dir, hyperparameters, image_uri=image_uri, **kwargs
         )
 
     def create_model(
@@ -45,7 +50,7 @@ class JaxEstimator(Framework):
             model_data=self.model_data,
             role=role or self.role,
             container_log_level=self.container_log_level,
-            framework_version="2.3.1",
+            framework_version="2.4.0",
             sagemaker_session=self.sagemaker_session,
             vpc_config=self.get_vpc_config(vpc_config_override),
             entry_point=entry_point,
