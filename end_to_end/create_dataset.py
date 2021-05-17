@@ -14,9 +14,10 @@ parser.add_argument("--claims-table-name", type=str)
 parser.add_argument("--customers-table-name", type=str)
 parser.add_argument("--bucket-name", type=str)
 parser.add_argument("--bucket-prefix", type=str)
+parser.add_argument("--region", type=str, default="us-east-2")
 args = parser.parse_args()
 
-region = "us-east-2"
+region = args.region
 boto3.setup_default_session(region_name=region)
 s3_client = boto3.client("s3")
 account_id = boto3.client("sts").get_caller_identity()["Account"]
