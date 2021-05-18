@@ -96,7 +96,6 @@ XGBoost
 .. toctree::
     :maxdepth: 1
 
-    xgboost_builtin_rules/xgboost-regression-debugger-rules
     xgboost_realtime_analysis/xgboost-realtime-analysis
     xgboost_census_explanations/xgboost-census-debugger-rules
     xgboost_training_report/higgs_boson_detection
