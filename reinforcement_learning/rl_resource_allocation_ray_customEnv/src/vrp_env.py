@@ -2,7 +2,7 @@ from math import isclose
 
 import gym
 import numpy as np
-from gym.spaces import Box, Discrete, Dict
+from gym.spaces import Box, Dict, Discrete
 from scipy.stats import truncnorm
 
 from utils import vrp_action_go_from_a_to_b
@@ -32,39 +32,51 @@ Go to restaurant i
 
 
 class VRPGymEnvironment(gym.Env):
-    metadata = {
-        'render.modes': ['human', 'rgb_array'],
-        'video.frames_per_second': 8
-    }
+    metadata = {"render.modes": ["human", "rgb_array"], "video.frames_per_second": 8}
 
     def render(self, mode="human", close=False):
         from vrp_view_2D import VRPView2D
+
         if self.vrp_view is None:
-            self.vrp_view = VRPView2D(n_restaurants=self.n_restaurants, n_orders=self.n_orders,
-                                      map_quad=self.map_quad, grid_size=30)
-        return self.vrp_view.update(res_x=self.res_x, res_y=self.res_y, o_status=self.o_status,
-                                    o_x=self.o_x, o_y=self.o_y, dr_x=self.dr_x, dr_y=self.dr_y,
-                                    o_res_map=self.o_res_map, mode=mode)
+            self.vrp_view = VRPView2D(
+                n_restaurants=self.n_restaurants,
+                n_orders=self.n_orders,
+                map_quad=self.map_quad,
+                grid_size=30,
+            )
+        return self.vrp_view.update(
+            res_x=self.res_x,
+            res_y=self.res_y,
+            o_status=self.o_status,
+            o_x=self.o_x,
+            o_y=self.o_y,
+            dr_x=self.dr_x,
+            dr_y=self.dr_y,
+            o_res_map=self.o_res_map,
+            mode=mode,
+        )
 
     def __init__(self, env_config={}):
 
         self.vrp_view = None
-        config_defaults = {'n_restaurants': 2,
-                           'n_orders': 10,
-                           'order_prob': 0.5,
-                           'driver_capacity': 4,
-                           'map_quad': (5, 5),
-                           'order_promise': 60,
-                           'order_timeout_prob': 0.15,
-                           'episode_length': 1000,
-                           'num_zones': 4,
-                           'order_probs_per_zone': (0.1, 0.5, 0.3, 0.1),
-                           'order_reward_min': (8, 5, 2, 1),
-                           'order_reward_max': (12, 8, 5, 3),
-                           'half_norm_scale_reward_per_zone': (0.5, 0.5, 0.5, 0.5),
-                           'penalty_per_timestep': 0.1,
-                           'penalty_per_move': 0.1,
-                           'order_miss_penalty': 50}
+        config_defaults = {
+            "n_restaurants": 2,
+            "n_orders": 10,
+            "order_prob": 0.5,
+            "driver_capacity": 4,
+            "map_quad": (5, 5),
+            "order_promise": 60,
+            "order_timeout_prob": 0.15,
+            "episode_length": 1000,
+            "num_zones": 4,
+            "order_probs_per_zone": (0.1, 0.5, 0.3, 0.1),
+            "order_reward_min": (8, 5, 2, 1),
+            "order_reward_max": (12, 8, 5, 3),
+            "half_norm_scale_reward_per_zone": (0.5, 0.5, 0.5, 0.5),
+            "penalty_per_timestep": 0.1,
+            "penalty_per_move": 0.1,
+            "order_miss_penalty": 50,
+        }
 
         for key, val in config_defaults.items():
             val = env_config.get(key, val)  # Override defaults with constructor parameters
@@ -75,7 +87,7 @@ class VRPGymEnvironment(gym.Env):
         assert len(self.order_probs_per_zone) == self.num_zones
         assert isclose(sum(self.order_probs_per_zone), 1.0)
 
-        self.csv_file = '/opt/ml/output/data/vrp_rewards.csv'
+        self.csv_file = "/opt/ml/output/data/vrp_rewards.csv"
         self.dr_used_capacity = 0
         self.o_x = []
         self.o_y = []
@@ -94,10 +106,10 @@ class VRPGymEnvironment(gym.Env):
         self.clock = 0
 
         # map boundaries
-        self.map_min_x = - self.map_quad[0]
-        self.map_max_x = + self.map_quad[0]
-        self.map_min_y = - self.map_quad[1]
-        self.map_max_y = + self.map_quad[1]
+        self.map_min_x = -self.map_quad[0]
+        self.map_max_x = +self.map_quad[0]
+        self.map_min_y = -self.map_quad[1]
+        self.map_max_y = +self.map_quad[1]
         self.map_range_x = range(-self.map_max_x, self.map_max_x + 1)
         self.map_range_y = range(-self.map_max_y, self.map_max_y + 1)
 
@@ -145,46 +157,46 @@ class VRPGymEnvironment(gym.Env):
         o_time_max = [self.order_promise] * self.n_orders
 
         # Create the observation space
-        orig_observation_space = Box(low=np.array(res_x_min +
-                                                  res_y_min +
-                                                  dr_x_min +
-                                                  dr_y_min +
-                                                  dr_used_capacity_min +
-                                                  [self.driver_capacity] +
-                                                  o_x_min +
-                                                  o_y_min +
-                                                  o_status_min +
-                                                  o_res_map_min +
-                                                  o_time_min +
-                                                  reward_per_order_min
-                                                  ),
-                                     high=np.array(res_x_max +
-                                                   res_y_max +
-                                                   dr_x_max +
-                                                   dr_y_max +
-                                                   dr_used_capacity_max +
-                                                   [self.driver_capacity] +
-                                                   o_x_max +
-                                                   o_y_max +
-                                                   o_status_max +
-                                                   o_res_map_max +
-                                                   o_time_max +
-                                                   reward_per_order_max
-                                                   ),
-                                     dtype=np.int16
-                                     )
+        orig_observation_space = Box(
+            low=np.array(
+                res_x_min
+                + res_y_min
+                + dr_x_min
+                + dr_y_min
+                + dr_used_capacity_min
+                + [self.driver_capacity]
+                + o_x_min
+                + o_y_min
+                + o_status_min
+                + o_res_map_min
+                + o_time_min
+                + reward_per_order_min
+            ),
+            high=np.array(
+                res_x_max
+                + res_y_max
+                + dr_x_max
+                + dr_y_max
+                + dr_used_capacity_max
+                + [self.driver_capacity]
+                + o_x_max
+                + o_y_max
+                + o_status_max
+                + o_res_map_max
+                + o_time_max
+                + reward_per_order_max
+            ),
+            dtype=np.int16,
+        )
         # number of possible actions
         # Wait, Accept Order i, pick up order i, deliver order i, return to restaurant j
         self.max_avail_actions = 1 + 3 * self.n_orders + self.n_restaurants
-        self.observation_space = Dict({
-            # a mask of valid actions (e.g., [0, 0, 1, 0, 0, 1] for 6 max avail)
-            "action_mask": Box(
-                0,
-                1,
-                shape=(self.max_avail_actions,),
-                dtype=np.float32),
-            "real_obs": orig_observation_space
-        }
+        self.observation_space = Dict(
+            {
+                # a mask of valid actions (e.g., [0, 0, 1, 0, 0, 1] for 6 max avail)
+                "action_mask": Box(0, 1, shape=(self.max_avail_actions,), dtype=np.float32),
+                "real_obs": orig_observation_space,
+            }
         )
         self.action_space = Discrete(self.max_avail_actions)
 
@@ -228,31 +240,35 @@ class VRPGymEnvironment(gym.Env):
         relevant_order_index = None
 
         if action == 0:  # Wait
-            action_type = 'wait'
+            action_type = "wait"
         elif action <= self.n_orders:  # Accept an order
-            action_type = 'accept'
+            action_type = "accept"
             relevant_order_index = action - 1
-        elif action <= 2 * self.n_orders:  # Pick up a specific order (and go to the corresponding restaurant for that)
+        elif (
+            action <= 2 * self.n_orders
+        ):  # Pick up a specific order (and go to the corresponding restaurant for that)
             relevant_order_index = action - self.n_orders - 1
-            action_type = 'pickup'
+            action_type = "pickup"
             res_ordered_from = self.o_res_map[relevant_order_index]
             b = [self.res_x[res_ordered_from], self.res_y[res_ordered_from]]
             translated_action = vrp_action_go_from_a_to_b(a, b)
             self.reward -= self.penalty_per_move
         elif action <= 3 * self.n_orders:  # Deliver the order
             relevant_order_index = action - 2 * self.n_orders - 1
-            action_type = 'deliver'
+            action_type = "deliver"
             b = [self.o_x[relevant_order_index], self.o_y[relevant_order_index]]
             translated_action = vrp_action_go_from_a_to_b(a, b)
             self.reward -= self.penalty_per_move
         elif action <= 3 * self.n_orders + self.n_restaurants:  # Return to a restaurant
-            action_type = 'return'
+            action_type = "return"
             destination_res = action - 3 * self.n_orders - 1
             b = [self.res_x[destination_res], self.res_y[destination_res]]
             translated_action = vrp_action_go_from_a_to_b(a, b)
             self.reward -= self.penalty_per_move
         else:
-            raise Exception('Misaligned action space and step function for action {}'.format(action))
+            raise Exception(
+                "Misaligned action space and step function for action {}".format(action)
+            )
 
         self.__update_driver_parameters(action_type, translated_action, relevant_order_index)
         self.__update_environment_parameters()
@@ -263,28 +279,32 @@ class VRPGymEnvironment(gym.Env):
         if self.clock >= self.episode_length:
             done = True
 
-        self.info['no_late_penalty_reward'] = self.reward + self.late_penalty
+        self.info["no_late_penalty_reward"] = self.reward + self.late_penalty
 
         return state, self.reward, done, self.info
 
     def __update_avail_actions(self):
-        self.action_mask = np.array([0.] * self.action_space.n)
+        self.action_mask = np.array([0.0] * self.action_space.n)
         assert len(self.action_mask) == self.max_avail_actions
         # define & update invalid actions
         # always allow "wait" and "return to restaurant"
-        self.action_mask[0] = 1.
-        self.action_mask[(3 * self.n_orders + 1): (3 * self.n_orders + self.n_restaurants + 1)] = 1.
+        self.action_mask[0] = 1.0
+        self.action_mask[
+            (3 * self.n_orders + 1) : (3 * self.n_orders + self.n_restaurants + 1)
+        ] = 1.0
 
         for order_status_index in range(len(self.o_status)):
             if self.o_status[order_status_index] == 1:  # open order
-                self.action_mask[order_status_index + 1] = 1.  # allow "accept"
-            elif self.o_status[
-                order_status_index] == 2 and self.dr_used_capacity < self.driver_capacity:  # accepted order
+                self.action_mask[order_status_index + 1] = 1.0  # allow "accept"
+            elif (
+                self.o_status[order_status_index] == 2
+                and self.dr_used_capacity < self.driver_capacity
+            ):  # accepted order
                 relevant_order_index = order_status_index + self.n_orders + 1
-                self.action_mask[relevant_order_index] = 1.  # allow "pickup"
+                self.action_mask[relevant_order_index] = 1.0  # allow "pickup"
             elif self.o_status[order_status_index] == 3:  # picked up order
                 relevant_order_index = order_status_index + 2 * self.n_orders + 1
-                self.action_mask[relevant_order_index] = 1.  # allow "deliver"
+                self.action_mask[relevant_order_index] = 1.0  # allow "deliver"
 
     def __update_dr_xy(self, a):
         if a == 1:  # UP
@@ -297,41 +317,51 @@ class VRPGymEnvironment(gym.Env):
             self.dr_x = min(self.map_max_x, self.dr_x + 1)
 
     def __update_driver_parameters(self, action_type, translated_action, relevant_order_index):
-        if action_type == 'wait':
+        if action_type == "wait":
             pass  # no action
 
-        elif action_type == 'accept':
+        elif action_type == "accept":
             # if order accept it
             if self.o_status[relevant_order_index] == 1:
                 self.o_status[relevant_order_index] = 2
-                self.reward += self.reward_per_order[relevant_order_index] / 3  # Give some reward for accepting
+                self.reward += (
+                    self.reward_per_order[relevant_order_index] / 3
+                )  # Give some reward for accepting
 
-        elif action_type == 'pickup':
+        elif action_type == "pickup":
             self.__update_dr_xy(translated_action)
             rix = self.o_res_map[relevant_order_index]
             if [self.dr_x, self.dr_y] == [self.res_x[rix], self.res_y[rix]]:
                 if self.o_status[relevant_order_index] == 2:
                     self.o_status[relevant_order_index] = 3
                     self.dr_used_capacity += 1
-                    self.reward += self.reward_per_order[relevant_order_index] / 3  # Give some reward for pickup
+                    self.reward += (
+                        self.reward_per_order[relevant_order_index] / 3
+                    )  # Give some reward for pickup
 
-        elif action_type == 'deliver':
+        elif action_type == "deliver":
             self.__update_dr_xy(translated_action)
             # Check for deliveries
             for o in range(self.n_orders):
                 # If order is picked up by driver and driver is at delivery location, deliver the order
-                if self.o_status[o] == 3 and (self.dr_x == self.o_x[o] and self.dr_y == self.o_y[o]):
+                if self.o_status[o] == 3 and (
+                    self.dr_x == self.o_x[o] and self.dr_y == self.o_y[o]
+                ):
                     if self.o_time[o] <= self.order_promise:
-                        self.reward += self.reward_per_order[o] / 3  # Rest of the reward was given in accept and pickup
+                        self.reward += (
+                            self.reward_per_order[o] / 3
+                        )  # Rest of the reward was given in accept and pickup
                     self.dr_used_capacity -= 1
                     self.__reset_order(o)
-        elif action_type == 'return':
+        elif action_type == "return":
             self.__update_dr_xy(translated_action)
 
         else:
             raise Exception(
-                'Misaligned action space and driver update function: {}, {}, {}'.format(action_type, translated_action,
-                                                                                        relevant_order_index))
+                "Misaligned action space and driver update function: {}, {}, {}".format(
+                    action_type, translated_action, relevant_order_index
+                )
+            )
 
     def __update_environment_parameters(self):
         # Update the waiting times
@@ -348,10 +378,12 @@ class VRPGymEnvironment(gym.Env):
                 # Incur the cost to the driver who had accepted the order
                 if self.o_status[o] >= 2:
                     # Give order miss penalty and take rewards back that were given during accept and pickup
-                    self.reward = (self.reward
-                                   - self.order_miss_penalty
-                                   - self.reward_per_order[o] * (self.o_status[o] == 2) / 3
-                                   - self.reward_per_order[o] * (self.o_status[o] == 3) * 2 / 3)
+                    self.reward = (
+                        self.reward
+                        - self.order_miss_penalty
+                        - self.reward_per_order[o] * (self.o_status[o] == 2) / 3
+                        - self.reward_per_order[o] * (self.o_status[o] == 3) * 2 / 3
+                    )
 
                     self.late_penalty += self.order_miss_penalty
                     if self.o_status[o] == 3:
@@ -422,13 +454,15 @@ class VRPGymEnvironment(gym.Env):
                 i += 1
         # Determine the restaurant to assign the order
         from_res = np.random.choice([i for i in range(self.n_restaurants)], 1)[0]
-        reward = \
-            truncnorm.rvs(
-                (self.order_reward_min[zone] - self.order_reward_min[zone]) / self.half_norm_scale_reward_per_zone[
-                    zone],
-                (self.order_reward_max[zone] - self.order_reward_min[zone]) / self.half_norm_scale_reward_per_zone[
-                    zone],
-                self.order_reward_min[zone], self.half_norm_scale_reward_per_zone[zone], 1)[0]
+        reward = truncnorm.rvs(
+            (self.order_reward_min[zone] - self.order_reward_min[zone])
+            / self.half_norm_scale_reward_per_zone[zone],
+            (self.order_reward_max[zone] - self.order_reward_min[zone])
+            / self.half_norm_scale_reward_per_zone[zone],
+            self.order_reward_min[zone],
+            self.half_norm_scale_reward_per_zone[zone],
+            1,
+        )[0]
         return order_x, order_y, from_res, reward
 
     def __reset_state(self):
@@ -436,10 +470,21 @@ class VRPGymEnvironment(gym.Env):
         assert self.dr_used_capacity <= self.driver_capacity
 
         return {
-            "action_mask": np.array([1.] * self.action_space.n),
-            "real_obs": np.array(self.res_x + self.res_y + [self.dr_x] + [self.dr_y] + [self.dr_used_capacity] + [
-                self.driver_capacity] + self.o_x + self.o_y + self.o_status + self.o_res_map + self.o_time + \
-                                 self.reward_per_order)
+            "action_mask": np.array([1.0] * self.action_space.n),
+            "real_obs": np.array(
+                self.res_x
+                + self.res_y
+                + [self.dr_x]
+                + [self.dr_y]
+                + [self.dr_used_capacity]
+                + [self.driver_capacity]
+                + self.o_x
+                + self.o_y
+                + self.o_status
+                + self.o_res_map
+                + self.o_time
+                + self.reward_per_order
+            ),
         }
 
     def __create_state(self):
@@ -447,6 +492,17 @@ class VRPGymEnvironment(gym.Env):
         assert self.dr_used_capacity == self.o_status.count(3)
         assert self.dr_used_capacity <= self.driver_capacity
 
-        return np.array(self.res_x + self.res_y + [self.dr_x] + [self.dr_y] + [self.dr_used_capacity] + [
-            self.driver_capacity] + self.o_x + self.o_y + self.o_status + self.o_res_map + self.o_time + \
-                        self.reward_per_order)
+        return np.array(
+            self.res_x
+            + self.res_y
+            + [self.dr_x]
+            + [self.dr_y]
+            + [self.dr_used_capacity]
+            + [self.driver_capacity]
+            + self.o_x
+            + self.o_y
+            + self.o_status
+            + self.o_res_map
+            + self.o_time
+            + self.reward_per_order
+        )

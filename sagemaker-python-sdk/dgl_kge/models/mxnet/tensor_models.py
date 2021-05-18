@@ -1,18 +1,21 @@
 import os
-import numpy as np
+
 import mxnet as mx
+import numpy as np
 from mxnet import gluon
 from mxnet import ndarray as nd
 
-from .score_fun import *
 from .. import *
+from .score_fun import *
+
 
 def logsigmoid(val):
-    max_elem = nd.maximum(0., -val)
+    max_elem = nd.maximum(0.0, -val)
     z = nd.exp(-max_elem) + nd.exp(-val - max_elem)
     return -(max_elem + nd.log(z))
 
-get_device = lambda args : mx.gpu(args.gpu) if args.gpu >= 0 else mx.cpu()
+
+get_device = lambda args: mx.gpu(args.gpu) if args.gpu >= 0 else mx.cpu()
 norm = lambda x, p: nd.sum(nd.abs(x) ** p)
 
 get_scalar = lambda x: x.detach().asscalar()
@@ -20,6 +23,7 @@ get_scalar = lambda x: x.detach().asscalar()
 reshape = lambda arr, x, y: arr.reshape(x, y)
 
 cuda = lambda arr, gpu: arr.as_in_context(mx.gpu(gpu))
+
 
 class ExternalEmbedding:
     def __init__(self, args, num, dim, ctx):
@@ -32,9 +36,14 @@ class ExternalEmbedding:
         self.state_step = 0
 
     def init(self, emb_init):
-        nd.random.uniform(-emb_init, emb_init,
-                          shape=self.emb.shape, dtype=self.emb.dtype,
-                          ctx=self.emb.context, out=self.emb)
+        nd.random.uniform(
+            -emb_init,
+            emb_init,
+            shape=self.emb.shape,
+            dtype=self.emb.dtype,
+            ctx=self.emb.context,
+            out=self.emb,
+        )
 
     def share_memory(self):
         # TODO(zhengda) fix this later
@@ -57,7 +66,7 @@ class ExternalEmbedding:
             grad = data.grad
 
             clr = self.args.lr
-            #clr = self.args.lr / (1 + (self.state_step - 1) * group['lr_decay'])
+            # clr = self.args.lr / (1 + (self.state_step - 1) * group['lr_decay'])
 
             # the update is non-linear so indices must be unique
             grad_indices = idx
@@ -74,7 +83,7 @@ class ExternalEmbedding:
             std_values = nd.expand_dims(nd.sqrt(std) + 1e-10, 1)
             if self.gpu >= 0:
                 std_values = std_values.as_in_context(mx.gpu(self.args.gpu))
-            tmp = (-clr * grad_values / std_values)
+            tmp = -clr * grad_values / std_values
             if tmp.context != ctx:
                 tmp = tmp.as_in_context(ctx)
             # TODO(zhengda) the overhead is here.
@@ -86,9 +95,9 @@ class ExternalEmbedding:
         return nd.concat(*data, dim=0)
 
     def save(self, path, name):
-        emb_fname = os.path.join(path, name+'.npy')
+        emb_fname = os.path.join(path, name + ".npy")
         np.save(emb_fname, self.emb.asnumpy())
 
     def load(self, path, name):
-        emb_fname = os.path.join(path, name+'.npy')
+        emb_fname = os.path.join(path, name + ".npy")
         self.emb = nd.array(np.load(emb_fname))

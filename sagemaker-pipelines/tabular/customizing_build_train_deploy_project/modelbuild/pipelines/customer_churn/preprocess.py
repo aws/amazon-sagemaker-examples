@@ -73,12 +73,8 @@ if __name__ == "__main__":
         [int(0.7 * len(model_data)), int(0.9 * len(model_data))],
     )
 
-    pd.DataFrame(train_data).to_csv(
-        f"{base_dir}/train/train.csv", header=False, index=False
-    )
+    pd.DataFrame(train_data).to_csv(f"{base_dir}/train/train.csv", header=False, index=False)
     pd.DataFrame(validation_data).to_csv(
         f"{base_dir}/validation/validation.csv", header=False, index=False
     )
-    pd.DataFrame(test_data).to_csv(
-        f"{base_dir}/test/test.csv", header=False, index=False
-    )
+    pd.DataFrame(test_data).to_csv(f"{base_dir}/test/test.csv", header=False, index=False)

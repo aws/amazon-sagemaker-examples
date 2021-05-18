@@ -1,19 +1,19 @@
-from sagemaker_translate import model_fn, input_fn, output_fn, predict_fn
-
-import flask
 import os
 
+import flask
+from sagemaker_translate import input_fn, model_fn, output_fn, predict_fn
 
-prefix = '/opt/ml/'
-model_path = os.path.join(prefix, 'model')
+prefix = "/opt/ml/"
+model_path = os.path.join(prefix, "model")
 
 print("in predictor.py")
 
 # A singleton for holding the model. This simply loads the model and holds it.
 # It has a predict function that does a prediction based on the model and the input data.
 
+
 class ScoringService(object):
-    model = None                # Where we keep the model when it's loaded
+    model = None  # Where we keep the model when it's loaded
 
     @classmethod
     def get_model(cls):
@@ -37,23 +37,24 @@ class ScoringService(object):
 # The flask app for serving predictions
 app = flask.Flask(__name__)
 
-@app.route('/ping', methods=['GET'])
+
+@app.route("/ping", methods=["GET"])
 def ping():
     """Determine if the container is working and healthy. In this sample container, we declare
     it healthy if we can load the model successfully."""
     health = ScoringService.get_model() is not None  # You can insert a health check here
 
     status = 200 if health else 404
-    return flask.Response(response='\n', status=status, mimetype='application/json')
+    return flask.Response(response="\n", status=status, mimetype="application/json")
 
-@app.route('/invocations', methods=['POST'])
+
+@app.route("/invocations", methods=["POST"])
 def transformation():
-    """Do an inference on a single batch of data. 
-    """
+    """Do an inference on a single batch of data."""
     data = None
-    data = flask.request.data.decode('utf-8')
-    
+    data = flask.request.data.decode("utf-8")
+
     # Do the prediction
     result, accept = ScoringService.predict(data)
 
-    return flask.Response(response=result, status=200, mimetype='text/json')
+    return flask.Response(response=result, status=200, mimetype="text/json")

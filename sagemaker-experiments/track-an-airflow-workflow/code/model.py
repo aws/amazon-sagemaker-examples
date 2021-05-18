@@ -16,23 +16,32 @@ import tensorflow as tf
 
 def get_model(filters=[64, 32], hidden_units=256, dropouts=[0.3, 0.3, 0.5], num_class=10):
     if len(filters) != 2:
-        raise ValueError("Please provide 2 filter size.")   
-    
+        raise ValueError("Please provide 2 filter size.")
+
     if len(dropouts) != 3:
-        raise ValueError("Please provide 3 dropout layer size")    
-    
+        raise ValueError("Please provide 3 dropout layer size")
+
     model = tf.keras.Sequential()
     # Must define the input shape in the first layer of the neural network
-    model.add(tf.keras.layers.Conv2D(
-        filters=filters[0], kernel_size=2, padding='same', activation='relu', input_shape=(28,28,1))) 
+    model.add(
+        tf.keras.layers.Conv2D(
+            filters=filters[0],
+            kernel_size=2,
+            padding="same",
+            activation="relu",
+            input_shape=(28, 28, 1),
+        )
+    )
     model.add(tf.keras.layers.MaxPooling2D(pool_size=2))
     model.add(tf.keras.layers.Dropout(dropouts[0]))
-    model.add(tf.keras.layers.Conv2D(filters=filters[1], kernel_size=2, padding='same', activation='relu'))
+    model.add(
+        tf.keras.layers.Conv2D(filters=filters[1], kernel_size=2, padding="same", activation="relu")
+    )
     model.add(tf.keras.layers.MaxPooling2D(pool_size=2))
     model.add(tf.keras.layers.Dropout(dropouts[1]))
     model.add(tf.keras.layers.Flatten())
-    model.add(tf.keras.layers.Dense(hidden_units, activation='relu'))
+    model.add(tf.keras.layers.Dense(hidden_units, activation="relu"))
     model.add(tf.keras.layers.Dropout(dropouts[2]))
-    model.add(tf.keras.layers.Dense(num_class, activation='softmax'))
-   
+    model.add(tf.keras.layers.Dense(num_class, activation="softmax"))
+
     return model

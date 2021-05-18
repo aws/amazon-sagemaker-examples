@@ -15,8 +15,10 @@
 # specific language governing permissions and limitations
 # under the License.
 
-from imdb import Imdb
 import random
+
+from imdb import Imdb
+
 
 class ConcatDB(Imdb):
     """
@@ -29,8 +31,9 @@ class ConcatDB(Imdb):
     shuffle : bool
         whether to shuffle the initial list
     """
+
     def __init__(self, imdbs, shuffle):
-        super(ConcatDB, self).__init__('concatdb')
+        super(ConcatDB, self).__init__("concatdb")
         if not isinstance(imdbs, list):
             imdbs = [imdbs]
         self.imdbs = imdbs

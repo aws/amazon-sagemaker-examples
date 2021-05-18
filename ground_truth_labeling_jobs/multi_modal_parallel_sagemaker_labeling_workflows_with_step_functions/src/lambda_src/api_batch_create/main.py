@@ -5,15 +5,14 @@ Handles starting a new step function execution for the batch
 and validating input.
 """
 
-import os
-import uuid
 import json
+import os
 import re
+import uuid
 
 import boto3
 import botocore
-
-from shared import db, log, label_arn
+from shared import db, label_arn, log
 from shared.constants import SmgtJobType
 
 batch_step_function_arn = os.getenv("BATCH_CREATION_STEP_FUNCTION_ARN")
@@ -38,9 +37,7 @@ def validate_common_body(body):
 
     batch_metadata = db.get_batch_metadata(batch_id)
     if batch_metadata is not None:
-        error_message = (
-            f"Provided batchId already exists : {batch_id} : {batch_metadata}"
-        )
+        error_message = f"Provided batchId already exists : {batch_id} : {batch_metadata}"
         return error_message
 
     return None
@@ -49,7 +46,6 @@ def validate_common_body(body):
 def execute_step_function(step_function_arn, batch_id, execution_input_payload):
     """Start a step function execution"""
     step_function = boto3.client("stepfunctions")
-
 
     try:
         name = f"{batch_id}-{str(uuid.uuid4())[:8]}"
@@ -60,8 +56,7 @@ def execute_step_function(step_function_arn, batch_id, execution_input_payload):
         )
     except botocore.exceptions.ClientError as error:
         log.logger.error(
-            "Step function execution failed with executionId : %s"
-            " input : %s due to %s",
+            "Step function execution failed with executionId : %s" " input : %s due to %s",
             name,
             execution_input_payload,
             error,
@@ -86,11 +81,13 @@ def validate_attributes_exist(obj, attributes):
             return f"Missing '{attribute}' from {obj}"
     return None
 
+
 def validate_smgt_job_name(job_name):
     """Validates we can use this job name, it matches regex and doesn't exist"""
     if not validate_regex(job_name):
         return "jobName failed regex check, must be lower case, '-'"
     return None
+
 
 def validate_smgt_job_doesnt_exist(job_name):
     """Validate that there is no job with the given name"""
@@ -118,9 +115,7 @@ def validate_input_config(config):
     if not input_manifest_s3_uri and chain_from_job_name:
         return None
 
-    return (
-        "Must specify single 'inputManifestS3Uri' or 'chainFromJobName' as input config"
-    )
+    return "Must specify single 'inputManifestS3Uri' or 'chainFromJobName' as input config"
 
 
 def validate_job_common(job):

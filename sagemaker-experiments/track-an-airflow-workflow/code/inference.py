@@ -13,11 +13,12 @@
 
 import io
 import json
+
 import numpy as np
 
 
 def input_handler(data, context):
-    """ Pre-process request input before it is sent to TensorFlow Serving REST API
+    """Pre-process request input before it is sent to TensorFlow Serving REST API
     Args:
         data (obj): the request data, in format of dict or string
         context (Context): an object containing request and configuration details
@@ -25,13 +26,15 @@ def input_handler(data, context):
         (dict): a JSON-serializable dict that contains request body and headers
     """
 
-    if context.request_content_type == 'text/csv':
+    if context.request_content_type == "text/csv":
         x = np.genfromtxt(data, delimiter=",")
         instance = x.reshape(-1, 28, 28, 1)
         return json.dumps({"instances": instance.tolist()})
 
     else:
-        _return_error(415, 'Unsupported content type "{}"'.format(context.request_content_type or 'Unknown'))
+        _return_error(
+            415, 'Unsupported content type "{}"'.format(context.request_content_type or "Unknown")
+        )
 
 
 def output_handler(data, context):
@@ -43,11 +46,11 @@ def output_handler(data, context):
         (bytes, string): data to return to client, response content type
     """
     if data.status_code != 200:
-        raise Exception(data.content.decode('utf-8'))
+        raise Exception(data.content.decode("utf-8"))
     response_content_type = context.accept_header
     prediction = data.content
     return prediction, response_content_type
 
 
 def _return_error(code, message):
-    raise ValueError('Error: {}, {}'.format(str(code), message))
+    raise ValueError("Error: {}, {}".format(str(code), message))

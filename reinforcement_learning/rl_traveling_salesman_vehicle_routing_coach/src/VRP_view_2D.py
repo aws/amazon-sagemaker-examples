@@ -1,5 +1,5 @@
-import pygame
 import numpy as np
+import pygame
 
 
 class VRPView2D:
@@ -10,10 +10,10 @@ class VRPView2D:
         self.grid_size = grid_size
 
         # map boundaries
-        self.map_min_x = - map_quad[0]
-        self.map_max_x = + map_quad[0]
-        self.map_min_y = - map_quad[1]
-        self.map_max_y = + map_quad[1]
+        self.map_min_x = -map_quad[0]
+        self.map_max_x = +map_quad[0]
+        self.map_min_y = -map_quad[1]
+        self.map_max_y = +map_quad[1]
 
         pygame.init()
         pygame.display.set_caption("VRP")
@@ -26,11 +26,25 @@ class VRPView2D:
 
         # Create a layer for the game
         self.game_surface = pygame.Surface(self.screen.get_size()).convert_alpha()
-        self.game_surface.fill((0, 0, 0, 0,))
+        self.game_surface.fill(
+            (
+                0,
+                0,
+                0,
+                0,
+            )
+        )
 
     def update(self, res_x, res_y, o_status, o_x, o_y, dr_x, dr_y, mode="human"):
         try:
-            self.game_surface.fill((0, 0, 0, 0,))
+            self.game_surface.fill(
+                (
+                    0,
+                    0,
+                    0,
+                    0,
+                )
+            )
 
             self.__draw_restaurant(res_x, res_y)
             self.__draw_orders(o_status, o_x, o_y)

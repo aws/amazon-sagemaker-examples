@@ -5,12 +5,9 @@ conversions between database types and API json.
 
 import boto3
 import botocore
-
 from shared import db
-from shared.constants import (
-    BatchMetadataTableAttributes as Attributes,
-    BatchMetadataType,
-)
+from shared.constants import BatchMetadataTableAttributes as Attributes
+from shared.constants import BatchMetadataType
 from shared.log import logger
 
 
@@ -51,6 +48,7 @@ def create_presigned_url(s3_uri, expiration=86400):
 
     # The response contains the presigned URL
     return response
+
 
 def job_to_human_readable(db_job):
     """Generates a human readable version of a SMGT job metadata (with correct casing for API use)"""
@@ -95,8 +93,7 @@ def first_or_second_level_to_human_readable(batch):
         batch[Attributes.BATCH_ID], BatchMetadataType.JOB_LEVEL
     )
     job_responses = [
-        job_level_to_human_readable(job_level_batch)
-        for job_level_batch in job_level_batches
+        job_level_to_human_readable(job_level_batch) for job_level_batch in job_level_batches
     ]
 
     return {

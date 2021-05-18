@@ -1,31 +1,36 @@
 import argparse
-import random
 import csv
+import random
 
-parser = argparse.ArgumentParser(
-    description="Generate sample data")
-parser.add_argument('--samples', type=int, default=10000,
-                    help="Number of samples to generate")
-parser.add_argument('--filename', type=str, default="samples.csv",
-                    help="Filename to use")
-parser.add_argument('--debug', type=bool, default=False,
-                    help="Whether to print debug messages")
+parser = argparse.ArgumentParser(description="Generate sample data")
+parser.add_argument("--samples", type=int, default=10000, help="Number of samples to generate")
+parser.add_argument("--filename", type=str, default="samples.csv", help="Filename to use")
+parser.add_argument("--debug", type=bool, default=False, help="Whether to print debug messages")
 args = parser.parse_args()
 
 question_words = {
-    "itemization": ["itemization", "deduction", "mortgage", "charitable", "donation", "expense", "local", "state", "tax"],
+    "itemization": [
+        "itemization",
+        "deduction",
+        "mortgage",
+        "charitable",
+        "donation",
+        "expense",
+        "local",
+        "state",
+        "tax",
+    ],
     "estate taxes": ["estate", "inheritance"],
     "medical": ["medical", "expense", "covid"],
     "deferments": ["deferment", "delay", "late", "payment"],
     "investments": ["investment", "401k", "403b", "ira", "capital", "gains", "losses"],
-    "properties": ["properties", "rental", "investment"]
+    "properties": ["properties", "rental", "investment"],
 }
 
 question_categories = list(question_words.keys())
-all_words = [
-    word for category in question_categories for word in question_words[category]]
+all_words = [word for category in question_categories for word in question_words[category]]
 
-csvfile = open(args.filename, 'w')
+csvfile = open(args.filename, "w")
 sample_writer = csv.writer(csvfile)
 sample_writer.writerow(["label", "words"])
 

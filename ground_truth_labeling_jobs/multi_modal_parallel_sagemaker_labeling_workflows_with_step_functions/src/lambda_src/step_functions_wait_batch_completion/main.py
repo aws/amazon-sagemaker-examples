@@ -5,8 +5,8 @@ Step function state that waits for batch completion by storing a step token in d
 import json
 
 from shared import db, log
+from shared.constants import BatchMetadataTableAttributes, BatchStatus
 from shared.lambda_context import get_boto_client
-from shared.constants import BatchStatus, BatchMetadataTableAttributes
 
 
 def lambda_handler(event, context):

@@ -343,7 +343,5 @@ def annotation_consolidation_config(region, job_type):
         },
     }
     return {
-        "AnnotationConsolidationLambdaArn": annotation_consolidation_lambda_arns[
-            job_type
-        ][region]
+        "AnnotationConsolidationLambdaArn": annotation_consolidation_lambda_arns[job_type][region]
     }

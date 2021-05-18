@@ -1,5 +1,6 @@
 import numpy as np
-from gym.spaces import Discrete, Box
+from gym.spaces import Box, Discrete
+
 
 def box_space_from_description(dimension_list):
     """Takes a list of dimension descriptions, and returns a gym.space.Box.
@@ -15,4 +16,3 @@ def box_space_from_description(dimension_list):
     highs = np.asarray(highs)
     shape = None  # Because it gets shape from lows & highs
     return Box(lows, highs, shape, dtype=np.float32)
-

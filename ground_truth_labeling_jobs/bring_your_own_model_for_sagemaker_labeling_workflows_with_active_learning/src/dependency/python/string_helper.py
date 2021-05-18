@@ -1,18 +1,18 @@
-import string
 import random
-
+import string
 from typing import Tuple
 
 
 def generate_random_string(size=8, chars=string.ascii_letters + string.digits) -> str:
     """
-     generate a random string of given characters.
+    generate a random string of given characters.
     """
-    return ''.join(random.choice(chars) for _ in range(size))
+    return "".join(random.choice(chars) for _ in range(size))
 
 
-def generate_job_id_and_s3_path(id_prefix, s3_folder_uri,
-                                job_type="active-learning") -> Tuple[str, str]:
+def generate_job_id_and_s3_path(
+    id_prefix, s3_folder_uri, job_type="active-learning"
+) -> Tuple[str, str]:
     """
     generate a pair of job_id and s3_uri where the ouput of the job is to be stored.
         the id_prefix is used as a prefix for the job.
@@ -22,6 +22,6 @@ def generate_job_id_and_s3_path(id_prefix, s3_folder_uri,
              - "labeling-job" job_type is used for manual labeling prefix.
     """
     suffix = generate_random_string()
-    job_id = "{}-{}".format(id_prefix,suffix)
-    s3_uri = '{}{}-{}/'.format(s3_folder_uri, job_type, suffix)
+    job_id = "{}-{}".format(id_prefix, suffix)
+    s3_uri = "{}{}-{}/".format(s3_folder_uri, job_type, suffix)
     return job_id, s3_uri

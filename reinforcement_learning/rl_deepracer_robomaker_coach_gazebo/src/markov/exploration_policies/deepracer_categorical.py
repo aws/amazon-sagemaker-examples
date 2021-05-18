@@ -1,9 +1,11 @@
 from typing import List
 
 import numpy as np
-
-from rl_coach.core_types import RunPhase, ActionType
-from rl_coach.exploration_policies.exploration_policy import DiscreteActionExplorationPolicy, ExplorationParameters
+from rl_coach.core_types import ActionType, RunPhase
+from rl_coach.exploration_policies.exploration_policy import (
+    DiscreteActionExplorationPolicy,
+    ExplorationParameters,
+)
 from rl_coach.spaces import ActionSpace
 
 
@@ -14,7 +16,7 @@ class DeepRacerCategoricalParameters(ExplorationParameters):
 
     @property
     def path(self):
-        return 'markov.exploration_policies.deepracer_categorical:DeepRacerCategorical'
+        return "markov.exploration_policies.deepracer_categorical:DeepRacerCategorical"
 
 
 class DeepRacerCategorical(DiscreteActionExplorationPolicy):
@@ -24,6 +26,7 @@ class DeepRacerCategorical(DiscreteActionExplorationPolicy):
     In evaluation, the action that has the highest probability will be selected. This is particularly useful for
     actor-critic schemes, where the actors output is a probability distribution over the actions.
     """
+
     def __init__(self, action_space: ActionSpace, use_stochastic_evaluation_policy: bool = False):
         """
         :param action_space: the action space used by the environment

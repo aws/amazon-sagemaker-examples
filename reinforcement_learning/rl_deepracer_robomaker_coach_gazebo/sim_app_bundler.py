@@ -15,11 +15,11 @@ python3 sim_app_bundler.py --tar
 # Clean the build
 python3 sim_app_bundler.py --clean
 """
+import argparse
 import os
+import shutil
 import subprocess
 import tarfile
-import argparse
-import shutil
 
 UNTARRED_SIM_APP_OUTPUT_PATH = "build/simapp/"
 BUILD_PATH = "build"
@@ -74,6 +74,7 @@ BUNDLE_PATH = os.path.join(UNTARRED_SIM_APP_OUTPUT_PATH, "bundle")
 BUNDLE_TAR_PATH = os.path.join(UNTARRED_SIM_APP_OUTPUT_PATH, "bundle.tar")
 METADATA_TAR_PATH = os.path.join(UNTARRED_SIM_APP_OUTPUT_PATH, "metadata.tar")
 
+
 def run_cmd(cmd_args, change_working_directory="./", shell=False, executable=None):
     """
     Function used to execute the shell commands
@@ -95,13 +96,14 @@ def run_cmd(cmd_args, change_working_directory="./", shell=False, executable=Non
         cwd=change_working_directory,
         shell=shell,
         executable=executable,
-        stdout=subprocess.PIPE
+        stdout=subprocess.PIPE,
     )
     result = list()
     for line in iter(process.stdout.readline, b""):
         result.append(line.decode("utf-8").rstrip())
     process.communicate()
     return process.returncode, result
+
 
 def _is_path_exists(path):
     """
@@ -116,6 +118,7 @@ def _is_path_exists(path):
         return True
     return False
 
+
 def untar_simapp_output(sim_app_output_path):
     """
     Function used to untar the AwsSilverstoneSimulation/build/output.tar.gz
@@ -127,17 +130,18 @@ def untar_simapp_output(sim_app_output_path):
     # Untar output.tar.gz
     if not os.path.exists(UNTARRED_SIM_APP_OUTPUT_PATH):
         os.mkdir(UNTARRED_SIM_APP_OUTPUT_PATH)
-    cmd = ['tar', '-xvf', sim_app_output_path, '-C', UNTARRED_SIM_APP_OUTPUT_PATH]
+    cmd = ["tar", "-xvf", sim_app_output_path, "-C", UNTARRED_SIM_APP_OUTPUT_PATH]
     run_cmd(cmd)
 
     # Untar bundle.tar
     os.mkdir(BUNDLE_PATH)
-    cmd = ['tar', '-xvf', BUNDLE_TAR_PATH, '-C', BUNDLE_PATH]
+    cmd = ["tar", "-xvf", BUNDLE_TAR_PATH, "-C", BUNDLE_PATH]
     run_cmd(cmd)
 
     # Untar metadata.tar
-    cmd = ['tar', '-xvf', METADATA_TAR_PATH, '-C', UNTARRED_SIM_APP_OUTPUT_PATH]
+    cmd = ["tar", "-xvf", METADATA_TAR_PATH, "-C", UNTARRED_SIM_APP_OUTPUT_PATH]
     run_cmd(cmd)
+
 
 def clean_tar_files():
     """
@@ -147,6 +151,7 @@ def clean_tar_files():
         os.remove(BUNDLE_TAR_PATH)
     if os.path.exists(METADATA_TAR_PATH):
         os.remove(METADATA_TAR_PATH)
+
 
 def generate_archive_v1():
     """
@@ -168,9 +173,9 @@ def generate_archive_v1():
     """
     print("Bundling the SimApp output.tar.gz")
 
-    bundle_tar_path = os.path.join(BUILD_PATH, 'bundle.tar')
-    metadata_tar_path = os.path.join(BUILD_PATH, 'metadata.tar')
-    archive_tar_gz_path = os.path.join(BUILD_PATH, 'output.tar.gz')
+    bundle_tar_path = os.path.join(BUILD_PATH, "bundle.tar")
+    metadata_tar_path = os.path.join(BUILD_PATH, "metadata.tar")
+    archive_tar_gz_path = os.path.join(BUILD_PATH, "output.tar.gz")
 
     if os.path.exists(bundle_tar_path):
         print("Removing previously build {}".format(bundle_tar_path))
@@ -180,28 +185,26 @@ def generate_archive_v1():
         print("Removing previously build {}".format(archive_tar_gz_path))
         os.remove(archive_tar_gz_path)
 
-    with tarfile.open(metadata_tar_path, 'w') as archive:
-        archive.add(os.path.join(UNTARRED_SIM_APP_OUTPUT_PATH, 'installers.json'),
-                    arcname='installers.json')
+    with tarfile.open(metadata_tar_path, "w") as archive:
+        archive.add(
+            os.path.join(UNTARRED_SIM_APP_OUTPUT_PATH, "installers.json"), arcname="installers.json"
+        )
 
-    _recursive_tar_in_path(bundle_tar_path, os.path.join(UNTARRED_SIM_APP_OUTPUT_PATH, 'bundle'))
+    _recursive_tar_in_path(bundle_tar_path, os.path.join(UNTARRED_SIM_APP_OUTPUT_PATH, "bundle"))
 
-    with tarfile.open(
-            archive_tar_gz_path, 'w:gz', compresslevel=5) as archive:
-        archive.add(
-            os.path.join(UNTARRED_SIM_APP_OUTPUT_PATH, "version"), arcname='version')
-        archive.add(
-            metadata_tar_path, arcname=os.path.basename(metadata_tar_path))
-        archive.add(
-            bundle_tar_path, arcname=os.path.basename(bundle_tar_path))
+    with tarfile.open(archive_tar_gz_path, "w:gz", compresslevel=5) as archive:
+        archive.add(os.path.join(UNTARRED_SIM_APP_OUTPUT_PATH, "version"), arcname="version")
+        archive.add(metadata_tar_path, arcname=os.path.basename(metadata_tar_path))
+        archive.add(bundle_tar_path, arcname=os.path.basename(bundle_tar_path))
 
     print("Removing the previously created tar files")
     os.remove(metadata_tar_path)
     os.remove(bundle_tar_path)
 
-    print('============ Archiving completed. Available at build/Output.tar.gz============ \n')
+    print("============ Archiving completed. Available at build/Output.tar.gz============ \n")
 
-def _recursive_tar_in_path(tar_path, path, *, mode='w'):
+
+def _recursive_tar_in_path(tar_path, path, *, mode="w"):
     """
     As the above generate_archive_v1, this is also copied from the
     colcon build github.
@@ -214,28 +217,26 @@ def _recursive_tar_in_path(tar_path, path, *, mode='w'):
     :param mode: mode flags passed to tarfile
     """
     with tarfile.open(tar_path, mode) as tar:
-        print('Creating tar of {path}'.format(path=path))
+        print("Creating tar of {path}".format(path=path))
         for name in os.listdir(path):
             some_path = os.path.join(path, name)
             tar.add(some_path, arcname=os.path.basename(some_path))
 
+
 def main():
     parser = argparse.ArgumentParser()
-    
-    parser.add_argument('-u', '--untar',
-                        help="Untar the SimApp",
-                        type=str,
-                        required=False)
-    parser.add_argument('-t', '--tar', action='store_true',
-                        help="Tar the simulation application")
 
-    parser.add_argument('-c', '--clean', action='store_true',
-                        help="Clean the untarred simulation application")
+    parser.add_argument("-u", "--untar", help="Untar the SimApp", type=str, required=False)
+    parser.add_argument("-t", "--tar", action="store_true", help="Tar the simulation application")
+
+    parser.add_argument(
+        "-c", "--clean", action="store_true", help="Clean the untarred simulation application"
+    )
 
     args, unknown = parser.parse_known_args()
 
     if args.untar:
-        if(os.path.exists(UNTARRED_SIM_APP_OUTPUT_PATH)):
+        if os.path.exists(UNTARRED_SIM_APP_OUTPUT_PATH):
             print("Untarred version already exists. Please use --clean to clean the build")
         else:
             print("Untarring all files in ./{}".format(UNTARRED_SIM_APP_OUTPUT_PATH))
@@ -249,6 +250,7 @@ def main():
     if args.clean:
         print("Deleting all files in ./{}".format(BUILD_PATH))
         shutil.rmtree(BUILD_PATH, ignore_errors=True)
+
 
 if __name__ == "__main__":
     main()

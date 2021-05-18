@@ -19,16 +19,15 @@ import shutil
 import tarfile
 import tempfile
 
-import numpy
 import chainer
+import numpy
+from src.nlp_utils import make_vocab, normalize_text, split_text, transform_to_array
 
-from src.nlp_utils import transform_to_array, split_text, normalize_text, make_vocab
-
-URL_STSA_BASE = 'https://raw.githubusercontent.com/harvardnlp/sent-conv-torch/master/data/'
+URL_STSA_BASE = "https://raw.githubusercontent.com/harvardnlp/sent-conv-torch/master/data/"
 
 
 def download_dataset(name):
-    files = [name + suff for suff in ['.train', '.test']]
+    files = [name + suff for suff in [".train", ".test"]]
     file_paths = []
     for f_name in files:
         url = os.path.join(URL_STSA_BASE, f_name)
@@ -37,18 +36,15 @@ def download_dataset(name):
     return file_paths
 
 
-def get_stsa_dataset(file_paths, vocab=None, shrink=1,
-                     char_based=False, seed=777):
-    train = read_dataset(
-        file_paths[0], shrink=shrink, char_based=char_based)
+def get_stsa_dataset(file_paths, vocab=None, shrink=1, char_based=False, seed=777):
+    train = read_dataset(file_paths[0], shrink=shrink, char_based=char_based)
     if len(file_paths) == 2:
-        test = read_dataset(
-            file_paths[1], shrink=shrink, char_based=char_based)
+        test = read_dataset(file_paths[1], shrink=shrink, char_based=char_based)
     else:
         numpy.random.seed(seed)
         alldata = numpy.random.permutation(train)
-        train = alldata[:-len(alldata) // 10]
-        test = alldata[-len(alldata) // 10:]
+        train = alldata[: -len(alldata) // 10]
+        test = alldata[-len(alldata) // 10 :]
 
     if vocab is None:
         vocab = make_vocab(train)
@@ -61,7 +57,7 @@ def get_stsa_dataset(file_paths, vocab=None, shrink=1,
 
 def read_dataset(path, shrink=1, char_based=False):
     dataset = []
-    with io.open(path, encoding='utf-8', errors='ignore') as f:
+    with io.open(path, encoding="utf-8", errors="ignore") as f:
         for i, l in enumerate(f):
             if i % shrink != 0 or not len(l.strip()) >= 3:
                 continue

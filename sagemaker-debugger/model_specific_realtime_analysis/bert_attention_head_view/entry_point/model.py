@@ -18,7 +18,7 @@
 # under the License.
 """BertForQA models."""
 
-__all__ = ['BertForQA', 'BertForQALoss']
+__all__ = ["BertForQA", "BertForQALoss"]
 
 from mxnet.gluon import HybridBlock, loss, nn
 from mxnet.gluon.loss import Loss
@@ -47,7 +47,7 @@ class BertForQA(HybridBlock):
             self.span_classifier = nn.Dense(units=2, flatten=False)
 
     def __call__(self, inputs, token_types, valid_length=None):
-        #pylint: disable=arguments-differ, dangerous-default-value
+        # pylint: disable=arguments-differ, dangerous-default-value
         """Generate the unnormalized score for the given the input sequences."""
         # XXX Temporary hack for hybridization as hybridblock does not support None inputs
         valid_length = [] if valid_length is None else valid_length
@@ -82,13 +82,10 @@ class BertForQA(HybridBlock):
 
 
 class BertForQALoss(Loss):
-    """Loss for SQuAD task with BERT.
-
-    """
+    """Loss for SQuAD task with BERT."""
 
     def __init__(self, weight=None, batch_axis=0, **kwargs):  # pylint: disable=unused-argument
-        super(BertForQALoss, self).__init__(
-            weight=None, batch_axis=0, **kwargs)
+        super(BertForQALoss, self).__init__(weight=None, batch_axis=0, **kwargs)
         self.loss = loss.SoftmaxCELoss()
 
     def hybrid_forward(self, F, pred, label):  # pylint: disable=arguments-differ
@@ -111,5 +108,4 @@ class BertForQALoss(Loss):
         start_label = label[0]
         end_pred = pred[1].reshape((0, -3))
         end_label = label[1]
-        return (self.loss(start_pred, start_label) + self.loss(
-            end_pred, end_label)) / 2
+        return (self.loss(start_pred, start_label) + self.loss(end_pred, end_label)) / 2
