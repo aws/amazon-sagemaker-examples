@@ -34,7 +34,7 @@ def get_model():
     return mnist_model
 
 
-def train(model, dataset, epoch):
+def train(model, dataset, epoch, initial_lr):
     # Horovod: Specify `experimental_run_tf_function=False` to ensure TensorFlow
     # uses hvd.DistributedOptimizer() to compute gradients.
     model.compile(
@@ -47,7 +47,7 @@ def train(model, dataset, epoch):
     callbacks = [
         hvd.callbacks.BroadcastGlobalVariablesCallback(0),
         hvd.callbacks.MetricAverageCallback(),
-        hvd.callbacks.LearningRateWarmupCallback(warmup_epochs=3, verbose=1),
+        hvd.callbacks.LearningRateWarmupCallback(initial_lr, warmup_epochs=3, verbose=1),
     ]
 
     if hvd.rank() == 0:
@@ -87,4 +87,4 @@ if __name__ == "__main__":
     dataset = get_data(batch_size)
     mnist_model = get_model()
 
-    train(model=mnist_model, dataset=dataset, epoch=num_epochs)
+    train(model=mnist_model, dataset=dataset, epoch=num_epochs, initial_lr=lr)

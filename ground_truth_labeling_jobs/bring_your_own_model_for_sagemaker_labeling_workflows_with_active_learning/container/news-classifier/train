@@ -18,26 +18,24 @@
 
 from __future__ import print_function
 
-import os
 import json
+import os
 import pickle
+import re
 import sys
 import traceback
 
-from sklearn.feature_extraction import stop_words
-
+import boto3
+import numpy as np
 import pandas as pd
 import tensorflow as tf
-import re
-import numpy as np
-
-import boto3
-
-from tensorflow.python.estimator.export.export import build_raw_serving_input_receiver_fn
-from tensorflow.python.estimator.export.export_output import PredictOutput
-from tensorflow.python.keras.preprocessing.text import Tokenizer
-from tensorflow.python.keras.preprocessing.sequence import pad_sequences
+from sklearn.feature_extraction import stop_words
 from tensorflow.keras.losses import CategoricalCrossentropy
+from tensorflow.python.estimator.export.export import \
+    build_raw_serving_input_receiver_fn
+from tensorflow.python.estimator.export.export_output import PredictOutput
+from tensorflow.python.keras.preprocessing.sequence import pad_sequences
+from tensorflow.python.keras.preprocessing.text import Tokenizer
 
 # These are the paths to where SageMaker mounts interesting things in your container.
 

@@ -1,7 +1,6 @@
 import gym
 import numpy as np
 from gym import spaces
-
 from rl_operations_research_baselines.VRP.VRP_view_2D import VRPView2D
 
 """ 
@@ -34,17 +33,37 @@ Driver Capacity: Infinite( =  # Orders)
 
 
 class VRPEasyEnv(gym.Env):
-
     def render(self, mode="human", close=False):
 
         if self.vrp_view is None:
-            self.vrp_view = VRPView2D(n_restaurants=self.n_restaurants, n_orders=self.n_orders,
-                                      map_quad=self.map_quad, grid_size=25)
-        return self.vrp_view.update(res_x=self.res_x, res_y=self.res_y, o_status=self.o_status,
-                                    o_x=self.o_x, o_y=self.o_y, dr_x=self.dr_x, dr_y=self.dr_y, mode=mode)
+            self.vrp_view = VRPView2D(
+                n_restaurants=self.n_restaurants,
+                n_orders=self.n_orders,
+                map_quad=self.map_quad,
+                grid_size=25,
+            )
+        return self.vrp_view.update(
+            res_x=self.res_x,
+            res_y=self.res_y,
+            o_status=self.o_status,
+            o_x=self.o_x,
+            o_y=self.o_y,
+            dr_x=self.dr_x,
+            dr_y=self.dr_y,
+            mode=mode,
+        )
 
-    def __init__(self, n_restaurants=1, n_orders=2, order_prob=0.3, driver_capacity=5, map_quad=(2, 2),
-                 order_promise=100, order_timeout=100, episode_length=100):
+    def __init__(
+        self,
+        n_restaurants=1,
+        n_orders=2,
+        order_prob=0.3,
+        driver_capacity=5,
+        map_quad=(2, 2),
+        order_promise=100,
+        order_timeout=100,
+        episode_length=100,
+    ):
 
         self.vrp_view = None
         self.map_quad = map_quad
@@ -74,10 +93,10 @@ class VRPEasyEnv(gym.Env):
         self.clock = 0
 
         # map boundaries
-        self.map_min_x = - map_quad[0]
-        self.map_max_x = + map_quad[0]
-        self.map_min_y = - map_quad[1]
-        self.map_max_y = + map_quad[1]
+        self.map_min_x = -map_quad[0]
+        self.map_max_x = +map_quad[0]
+        self.map_min_y = -map_quad[1]
+        self.map_max_y = +map_quad[1]
         self.map_range_x = range(-self.map_max_x, self.map_max_x + 1)
         self.map_range_y = range(-self.map_max_y, self.map_max_y + 1)
 
@@ -118,36 +137,39 @@ class VRPEasyEnv(gym.Env):
         o_time_max = [order_timeout] * n_orders
 
         # Create the observation space
-        self.observation_space = spaces.Box(low=np.array(res_x_min +
-                                                         res_y_min +
-                                                         dr_x_min +
-                                                         dr_y_min +
-                                                         dr_used_capacity_min +
-                                                         [driver_capacity] +
-                                                         o_x_min +
-                                                         o_y_min +
-                                                         o_status_min +
-                                                         o_res_map_min +
-                                                         o_time_min +
-                                                         [order_promise] +
-                                                         [order_timeout]
-                                                         ),
-                                            high=np.array(res_x_max +
-                                                          res_y_max +
-                                                          dr_x_max +
-                                                          dr_y_max +
-                                                          dr_used_capacity_max +
-                                                          [driver_capacity] +
-                                                          o_x_max +
-                                                          o_y_max +
-                                                          o_status_max +
-                                                          o_res_map_max +
-                                                          o_time_max +
-                                                          [order_promise] +
-                                                          [order_timeout]
-                                                          ),
-                                            dtype=np.int16
-                                            )
+        self.observation_space = spaces.Box(
+            low=np.array(
+                res_x_min
+                + res_y_min
+                + dr_x_min
+                + dr_y_min
+                + dr_used_capacity_min
+                + [driver_capacity]
+                + o_x_min
+                + o_y_min
+                + o_status_min
+                + o_res_map_min
+                + o_time_min
+                + [order_promise]
+                + [order_timeout]
+            ),
+            high=np.array(
+                res_x_max
+                + res_y_max
+                + dr_x_max
+                + dr_y_max
+                + dr_used_capacity_max
+                + [driver_capacity]
+                + o_x_max
+                + o_y_max
+                + o_status_max
+                + o_res_map_max
+                + o_time_max
+                + [order_promise]
+                + [order_timeout]
+            ),
+            dtype=np.int16,
+        )
 
         # Action space: no action, up, down, left, right, accept order i
         self.action_space = spaces.Discrete(5 + n_orders)
@@ -221,8 +243,10 @@ class VRPEasyEnv(gym.Env):
             if self.o_status[o] == 3 and (self.dr_x == self.o_x[o] and self.dr_y == self.o_y[o]):
                 # 50 cents of tip/penalty for early/late delivery.
                 # self.reward += (self.order_promise - self.o_time[o]) * 0.5
-                self.reward += max(0.0, (self.order_promise - self.o_time[o]) * 0.5) + (
-                        self.order_timeout - self.o_time[o]) * 0.15
+                self.reward += (
+                    max(0.0, (self.order_promise - self.o_time[o]) * 0.5)
+                    + (self.order_timeout - self.o_time[o]) * 0.15
+                )
                 self.dr_used_capacity -= 1
                 self.o_status[o] = 0
                 self.o_time[o] = 0
@@ -242,7 +266,7 @@ class VRPEasyEnv(gym.Env):
                 # Incur the cost to the driver who had accepted the order
                 # print("Order", o, "has expired.")
                 if self.o_status[o] >= 2:
-                    self.reward -= (self.order_timeout * 0.5)
+                    self.reward -= self.order_timeout * 0.5
                     self.dr_used_capacity -= 1
 
                 self.o_status[o] = 0
@@ -300,9 +324,21 @@ class VRPEasyEnv(gym.Env):
         return order_x, order_y, from_res
 
     def __create_state(self):
-        return self.res_x + self.res_y + [self.dr_x] + [self.dr_y] + [self.dr_used_capacity] + [
-            self.driver_capacity] + self.o_x + self.o_y + self.o_status + self.o_res_map + self.o_time + [
-                   self.order_promise] + [self.order_timeout]
+        return (
+            self.res_x
+            + self.res_y
+            + [self.dr_x]
+            + [self.dr_y]
+            + [self.dr_used_capacity]
+            + [self.driver_capacity]
+            + self.o_x
+            + self.o_y
+            + self.o_status
+            + self.o_res_map
+            + self.o_time
+            + [self.order_promise]
+            + [self.order_timeout]
+        )
 
 
 """
@@ -317,8 +353,16 @@ Driver Capacity: Infinite( =  # Orders)
 
 class VRPMediumEnv(VRPEasyEnv):
     def __init__(self):
-        super().__init__(n_restaurants=1, n_orders=10, order_prob=0.9, driver_capacity=4, map_quad=(8, 8),
-                         order_promise=200, order_timeout=400, episode_length=2000)
+        super().__init__(
+            n_restaurants=1,
+            n_orders=10,
+            order_prob=0.9,
+            driver_capacity=4,
+            map_quad=(8, 8),
+            order_promise=200,
+            order_timeout=400,
+            episode_length=2000,
+        )
 
 
 """
@@ -333,5 +377,13 @@ Driver Capacity: 3
 
 class VRPHardEnv(VRPEasyEnv):
     def __init__(self):
-        super().__init__(n_restaurants=2, n_orders=3, order_prob=0.9, driver_capacity=4, map_quad=(10, 10),
-                         order_promise=60, order_timeout=120, episode_length=5000)
+        super().__init__(
+            n_restaurants=2,
+            n_orders=3,
+            order_prob=0.9,
+            driver_capacity=4,
+            map_quad=(10, 10),
+            order_promise=60,
+            order_timeout=120,
+            episode_length=5000,
+        )

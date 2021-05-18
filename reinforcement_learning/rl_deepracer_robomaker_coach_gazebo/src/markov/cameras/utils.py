@@ -1,13 +1,14 @@
 import math
+
 import numpy as np
 from markov.log_handler.deepracer_exceptions import GenericRolloutException
-from markov.track_geom.utils import euler_to_quaternion, apply_orientation, inverse_quaternion
+from markov.track_geom.utils import apply_orientation, euler_to_quaternion, inverse_quaternion
 
 
 def get_angle_between_two_points_2d_rad(pt1, pt2):
-        dx = pt2.x - pt1.x
-        dy = pt2.y - pt1.y
-        return math.pi if dx == 0 else math.atan2(dy, dx)
+    dx = pt2.x - pt1.x
+    dy = pt2.y - pt1.y
+    return math.pi if dx == 0 else math.atan2(dy, dx)
 
 
 def lerp(current, target, fraction):
@@ -32,15 +33,30 @@ def normalize(vector):
 
 
 def project_to_2d(point_on_plane, plane_center, plane_width, plane_height, plane_quaternion):
-    if not isinstance(point_on_plane, list) and not isinstance(point_on_plane, tuple) \
-            and not isinstance(point_on_plane, np.ndarray):
-        raise GenericRolloutException("point_on_plane must be a type of list, tuple, or numpy.ndarray")
-    if not isinstance(plane_center, list) and not isinstance(plane_center, tuple) \
-            and not isinstance(plane_center, np.ndarray):
-        raise GenericRolloutException("plane_center must be a type of list, tuple, or numpy.ndarray")
-    if not isinstance(plane_quaternion, list) and not isinstance(plane_quaternion, tuple) \
-            and not isinstance(plane_quaternion, np.ndarray):
-        raise GenericRolloutException("plane_quaternion must be a type of list, tuple, or numpy.ndarray")
+    if (
+        not isinstance(point_on_plane, list)
+        and not isinstance(point_on_plane, tuple)
+        and not isinstance(point_on_plane, np.ndarray)
+    ):
+        raise GenericRolloutException(
+            "point_on_plane must be a type of list, tuple, or numpy.ndarray"
+        )
+    if (
+        not isinstance(plane_center, list)
+        and not isinstance(plane_center, tuple)
+        and not isinstance(plane_center, np.ndarray)
+    ):
+        raise GenericRolloutException(
+            "plane_center must be a type of list, tuple, or numpy.ndarray"
+        )
+    if (
+        not isinstance(plane_quaternion, list)
+        and not isinstance(plane_quaternion, tuple)
+        and not isinstance(plane_quaternion, np.ndarray)
+    ):
+        raise GenericRolloutException(
+            "plane_quaternion must be a type of list, tuple, or numpy.ndarray"
+        )
 
     point_on_plane = np.array(point_on_plane)
     plane_center = np.array(plane_center)
@@ -67,11 +83,15 @@ def project_to_2d(point_on_plane, plane_center, plane_width, plane_height, plane
 
 def ray_plane_intersect(ray_origin, ray_dir, plane_normal, plane_offset, threshold=0.0001):
     ray_dir = normalize(ray_dir) if np.dot(ray_dir, ray_dir) - 1.0 > threshold else ray_dir
-    plane_normal = normalize(plane_normal) if np.dot(plane_normal, plane_normal) - 1.0 > threshold else plane_normal
+    plane_normal = (
+        normalize(plane_normal)
+        if np.dot(plane_normal, plane_normal) - 1.0 > threshold
+        else plane_normal
+    )
     point_on_plane = None
     denominator = np.dot(plane_normal, ray_dir)
     if np.abs(denominator) >= threshold:
-        t = (plane_offset - np.dot(ray_origin, plane_normal)) / denominator
+        t = (-plane_offset - np.dot(ray_origin, plane_normal)) / denominator
         # Point on near plane that intersects the ray and the plane
         point_on_plane = ray_origin + t * ray_dir
     return point_on_plane

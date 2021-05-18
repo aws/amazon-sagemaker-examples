@@ -13,17 +13,20 @@
 
 import io
 import json
-import numpy as np
 from collections import namedtuple
+
+import numpy as np
 from PIL import Image
 
-Context = namedtuple('Context',
-                     'model_name, model_version, method, rest_uri, grpc_uri, '
-                     'custom_attributes, request_content_type, accept_header')
+Context = namedtuple(
+    "Context",
+    "model_name, model_version, method, rest_uri, grpc_uri, "
+    "custom_attributes, request_content_type, accept_header",
+)
 
 
 def input_handler(data, context):
-    """ Pre-process request input before it is sent to TensorFlow Serving REST API
+    """Pre-process request input before it is sent to TensorFlow Serving REST API
 
     Args:
         data (obj): the request data, in format of dict or string
@@ -33,7 +36,7 @@ def input_handler(data, context):
         (dict): a JSON-serializable dict that contains request body and headers
     """
 
-    if context.request_content_type == 'application/x-image':
+    if context.request_content_type == "application/x-image":
 
         image_as_bytes = io.BytesIO(data.read())
         image = Image.open(image_as_bytes)
@@ -41,7 +44,9 @@ def input_handler(data, context):
         return json.dumps({"instances": instance.tolist()})
 
     else:
-        _return_error(415, 'Unsupported content type "{}"'.format(context.request_content_type or 'Unknown'))
+        _return_error(
+            415, 'Unsupported content type "{}"'.format(context.request_content_type or "Unknown")
+        )
 
 
 def output_handler(data, context):
@@ -55,11 +60,11 @@ def output_handler(data, context):
         (bytes, string): data to return to client, response content type
     """
     if data.status_code != 200:
-        raise Exception(data.content.decode('utf-8'))
+        raise Exception(data.content.decode("utf-8"))
     response_content_type = context.accept_header
     prediction = data.content
     return prediction, response_content_type
 
 
 def _return_error(code, message):
-    raise ValueError('Error: {}, {}'.format(str(code), message))
+    raise ValueError("Error: {}, {}".format(str(code), message))

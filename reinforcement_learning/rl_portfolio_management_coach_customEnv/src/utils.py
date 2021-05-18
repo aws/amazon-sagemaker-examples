@@ -1,10 +1,11 @@
-import h5py
 import datetime
-from config import START_DATE, DATE_FORMAT, START_DATETIME
+
+import h5py
+from config import DATE_FORMAT, START_DATE, START_DATETIME
 
 
 def read_stock_history(filepath):
-    """ Read data from extracted h5
+    """Read data from extracted h5
 
     Args:
         filepath: path of file
@@ -14,10 +15,10 @@ def read_stock_history(filepath):
         abbreviation:
 
     """
-    with h5py.File(filepath, 'r') as f:
-        history = f['history'][:]
-        abbreviation = f['abbreviation'][:].tolist()
-        abbreviation = [abbr.decode('utf-8') for abbr in abbreviation]
+    with h5py.File(filepath, "r") as f:
+        history = f["history"][:]
+        abbreviation = f["abbreviation"][:].tolist()
+        abbreviation = [abbr.decode("utf-8") for abbr in abbreviation]
     return history, abbreviation
 
 

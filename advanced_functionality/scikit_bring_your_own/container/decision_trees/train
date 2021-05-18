@@ -6,14 +6,13 @@
 
 from __future__ import print_function
 
-import os
 import json
+import os
 import pickle
 import sys
 import traceback
 
 import pandas as pd
-
 from sklearn import tree
 
 # These are the paths to where SageMaker mounts interesting things in your container.

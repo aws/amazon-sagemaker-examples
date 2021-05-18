@@ -5,13 +5,13 @@ import time
 # Third Party
 import numpy as np
 import tensorflow.compat.v2 as tf
+
+# First Party
+from smdebug.tensorflow import KerasHook
 from tensorflow.keras.applications.resnet50 import ResNet50
 from tensorflow.keras.datasets import cifar10
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.utils import to_categorical
-
-# First Party
-from smdebug.tensorflow import KerasHook
 
 
 def between_steps_bottleneck():

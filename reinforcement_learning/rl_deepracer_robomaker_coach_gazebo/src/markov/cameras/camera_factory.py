@@ -1,12 +1,14 @@
+from enum import Enum
+
 from markov.cameras.handlers import FollowCarCamera, TopCamera
 from markov.log_handler.deepracer_exceptions import GenericRolloutException
-from enum import Enum
 
 
 class CameraType(Enum):
     """
     Camera Type enum
     """
+
     FOLLOW_CAR_CAMERA = FollowCarCamera.name
     TOP_CAMERA = TopCamera.name
 
@@ -15,6 +17,7 @@ class CameraFactory(object):
     """
     This class implements a camera factory and is used to create camera.
     """
+
     @staticmethod
     def create_instance(camera_type, namespace=None, model_name=None):
         """
@@ -28,10 +31,8 @@ class CameraFactory(object):
             raise GenericRolloutException("Unknown camera type: {}".format(camera_type))
 
         if camera_type == CameraType.FOLLOW_CAR_CAMERA:
-            return FollowCarCamera(namespace=namespace,
-                                   model_name=model_name)
+            return FollowCarCamera(namespace=namespace, model_name=model_name)
         elif camera_type == CameraType.TOP_CAMERA:
-            return TopCamera(namespace=namespace,
-                             model_name=model_name)
+            return TopCamera(namespace=namespace, model_name=model_name)
         else:
             raise GenericRolloutException("Unknown defined camera type: {}".format(camera_type))

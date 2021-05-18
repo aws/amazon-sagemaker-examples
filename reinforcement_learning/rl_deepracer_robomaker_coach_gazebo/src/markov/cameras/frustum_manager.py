@@ -1,12 +1,14 @@
 import threading
-from markov.log_handler.deepracer_exceptions import GenericRolloutException
+
 from markov.cameras.frustum import Frustum
+from markov.log_handler.deepracer_exceptions import GenericRolloutException
 
 
 class FrustumManager(object):
     """
     Frustum Manager class that manages multiple frustum objects
     """
+
     _instance_ = None
 
     @staticmethod
@@ -34,9 +36,9 @@ class FrustumManager(object):
             version (float): deepracer physics version
         """
         with self.lock:
-            self.frustum_map[agent_name] = Frustum(agent_name=agent_name,
-                                                   observation_list=observation_list,
-                                                   version=version)
+            self.frustum_map[agent_name] = Frustum(
+                agent_name=agent_name, observation_list=observation_list, version=version
+            )
 
     def remove(self, agent_name):
         """Remove given agent's frustum from manager.
@@ -65,4 +67,3 @@ class FrustumManager(object):
         """
         with self.lock:
             return self.frustum_map[agent_name]
-

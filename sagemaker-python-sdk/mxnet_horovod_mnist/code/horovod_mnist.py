@@ -13,11 +13,11 @@
 import argparse
 import logging
 import os
-import zipfile
 import time
+import zipfile
 
-import mxnet as mx
 import horovod.mxnet as hvd
+import mxnet as mx
 from mxnet import autograd, gluon, nd
 from mxnet.test_utils import download
 
@@ -28,8 +28,7 @@ def main(args):
         data_dir = "data-%d" % rank
         if not os.path.isdir(data_dir):
             os.makedirs(data_dir)
-        zip_file_path = download('http://data.mxnet.io/mxnet/data/mnist.zip',
-                                 dirname=data_dir)
+        zip_file_path = download("http://data.mxnet.io/mxnet/data/mnist.zip", dirname=data_dir)
         with zipfile.ZipFile(zip_file_path) as zf:
             zf.extractall(data_dir)
 
@@ -44,7 +43,7 @@ def main(args):
             shuffle=True,
             flat=False,
             num_parts=hvd.size(),
-            part_index=hvd.rank()
+            part_index=hvd.rank(),
         )
 
         val_iter = mx.io.MNISTIter(
@@ -57,13 +56,12 @@ def main(args):
 
         return train_iter, val_iter
 
-
     kernel_size = 5
     strides = 2
     pool_size = 2
     hidden_dim = 512
     output_dim = 10
-    activation = 'relu'
+    activation = "relu"
 
     # Function to define neural network
     def conv_nets():
@@ -106,13 +104,11 @@ def main(args):
     model.hybridize()
 
     # Create optimizer
-    optimizer_params = {'momentum': args.momentum,
-                        'learning_rate': args.lr * hvd.size()}
-    opt = mx.optimizer.create('sgd', **optimizer_params)
+    optimizer_params = {"momentum": args.momentum, "learning_rate": args.lr * hvd.size()}
+    opt = mx.optimizer.create("sgd", **optimizer_params)
 
     # Initialize parameters
-    initializer = mx.init.Xavier(rnd_type='gaussian', factor_type="in",
-                                 magnitude=2)
+    initializer = mx.init.Xavier(rnd_type="gaussian", factor_type="in", magnitude=2)
     model.initialize(initializer, ctx=context)
 
     # Horovod: fetch and broadcast parameters
@@ -148,55 +144,60 @@ def main(args):
 
             if nbatch % 100 == 0:
                 name, acc = metric.get()
-                logging.info('[Epoch %d Batch %d] Training: %s=%f' %
-                             (epoch, nbatch, name, acc))
+                logging.info("[Epoch %d Batch %d] Training: %s=%f" % (epoch, nbatch, name, acc))
 
         if hvd.rank() == 0:
             elapsed = time.time() - tic
             speed = nbatch * args.batch_size * hvd.size() / elapsed
-            logging.info('Epoch[%d]\tSpeed=%.2f samples/s\tTime cost=%f',
-                         epoch, speed, elapsed)
+            logging.info("Epoch[%d]\tSpeed=%.2f samples/s\tTime cost=%f", epoch, speed, elapsed)
 
         # Evaluate model accuracy
         _, train_acc = metric.get()
         name, val_acc = evaluate(model, val_data, context)
         if hvd.rank() == 0:
-            logging.info('Epoch[%d]\tTrain: %s=%f\tValidation: %s=%f', epoch, name,
-                         train_acc, name, val_acc)
+            logging.info(
+                "Epoch[%d]\tTrain: %s=%f\tValidation: %s=%f", epoch, name, train_acc, name, val_acc
+            )
 
         if hvd.rank() == 0 and epoch == args.epochs - 1:
-            assert val_acc > 0.96, "Achieved accuracy (%f) is lower than expected\
-                                    (0.96)" % val_acc
+            assert val_acc > 0.96, (
+                "Achieved accuracy (%f) is lower than expected\
+                                    (0.96)"
+                % val_acc
+            )
 
-    if hvd.rank()==0:
-        global_training_time =time.time() - global_tic
+    if hvd.rank() == 0:
+        global_training_time = time.time() - global_tic
         print("Global elpased time on training:{}".format(global_training_time))
         device = context.device_type + str(num_workers)
-        logging.info('Device info: %s', device)
+        logging.info("Device info: %s", device)
+
 
 def parse_args():
     # Handling script arguments
-    parser = argparse.ArgumentParser(description='MXNet MNIST Distributed Example')
-    parser.add_argument('--batch-size', type=int, default=64,
-                        help='training batch size (default: 64)')
-    parser.add_argument('--dtype', type=str, default='float32',
-                        help='training data type (default: float32)')
-    parser.add_argument('--epochs', type=int, default=1,
-                        help='number of training epochs (default: 5)')
-    parser.add_argument('--lr', type=float, default=0.01,
-                        help='learning rate (default: 0.01)')
-    parser.add_argument('--momentum', type=float, default=0.9,
-                        help='SGD momentum (default: 0.9)')
-    parser.add_argument('--no-cuda', type=bool, default=False,
-                        help='disable training on GPU (default: False)')
-    
+    parser = argparse.ArgumentParser(description="MXNet MNIST Distributed Example")
+    parser.add_argument(
+        "--batch-size", type=int, default=64, help="training batch size (default: 64)"
+    )
+    parser.add_argument(
+        "--dtype", type=str, default="float32", help="training data type (default: float32)"
+    )
+    parser.add_argument(
+        "--epochs", type=int, default=1, help="number of training epochs (default: 5)"
+    )
+    parser.add_argument("--lr", type=float, default=0.01, help="learning rate (default: 0.01)")
+    parser.add_argument("--momentum", type=float, default=0.9, help="SGD momentum (default: 0.9)")
+    parser.add_argument(
+        "--no-cuda", type=bool, default=False, help="disable training on GPU (default: False)"
+    )
+
     # Container Environment
-    parser.add_argument('--hosts', type=list, default=json.loads(os.environ['SM_HOSTS']))
-    parser.add_argument('--current-host', type=str, default=os.environ['SM_CURRENT_HOST'])
-    parser.add_argument('--model-dir', type=str, default=os.environ['SM_MODEL_DIR'])
-    parser.add_argument('--data-dir', type=str, default=os.environ['SM_CHANNEL_TRAINING'])
-    parser.add_argument('--num-gpus', type=int, default=os.environ['SM_NUM_GPUS'])
-    
+    parser.add_argument("--hosts", type=list, default=json.loads(os.environ["SM_HOSTS"]))
+    parser.add_argument("--current-host", type=str, default=os.environ["SM_CURRENT_HOST"])
+    parser.add_argument("--model-dir", type=str, default=os.environ["SM_MODEL_DIR"])
+    parser.add_argument("--data-dir", type=str, default=os.environ["SM_CHANNEL_TRAINING"])
+    parser.add_argument("--num-gpus", type=int, default=os.environ["SM_NUM_GPUS"])
+
     args = parser.parse_args()
 
     if not args.no_cuda:
@@ -205,10 +206,10 @@ def parse_args():
             args.no_cuda = True
     return args
 
+
 if __name__ == "__main__":
 
     args = parse_args()
     logging.basicConfig(level=logging.INFO)
     logging.info(args)
     main(args)
-    

@@ -54,17 +54,9 @@ R
 ====
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
 
-   ../r_examples/r_sagemaker_hello_world/r_sagemaker_hello_world
-   ../advanced_functionality/r_kernel/example_r_notebook
-
-
-..
-   notebooks have no title and will not render
-   ../r_examples/r_end_2_end/r_sagemaker_abalone
-   ../r_examples/r_batch_transform/r_xgboost_batch_transform
-   ../advanced_functionality/r_kernel/using_r_with_amazon_sagemaker
+   ../r_examples/index
 
 
 Scikit-learn

@@ -15,21 +15,21 @@ from __future__ import absolute_import
 
 import base64
 import contextlib
+import json
 import os
-import time
 import shlex
 import shutil
 import subprocess
 import sys
 import tempfile
+import time
 
 import boto3
-import json
 
 IMAGE_TEMPLATE = "{account}.dkr.ecr.{region}.amazonaws.com/{image_name}:{version}"
 
 
-def build_and_push_docker_image(repository_name, dockerfile='Dockerfile', build_args={}):
+def build_and_push_docker_image(repository_name, dockerfile="Dockerfile", build_args={}):
     """Builds a docker image from the specified dockerfile, and pushes it to
     ECR.  Handles things like ECR login, creating the repository.
 
@@ -42,15 +42,15 @@ def build_and_push_docker_image(repository_name, dockerfile='Dockerfile', build_
     return ecr_tag
 
 
-def _build_from_dockerfile(repository_name, dockerfile='Dockerfile', build_args={}):
-    build_cmd = ['docker', 'build', '-t', repository_name, '-f', dockerfile, '.']
-    for k,v in build_args.items():
-        build_cmd += ['--build-arg', '%s=%s' % (k,v)]
+def _build_from_dockerfile(repository_name, dockerfile="Dockerfile", build_args={}):
+    build_cmd = ["docker", "build", "-t", repository_name, "-f", dockerfile, "."]
+    for k, v in build_args.items():
+        build_cmd += ["--build-arg", "%s=%s" % (k, v)]
 
     print("Building docker image %s from %s" % (repository_name, dockerfile))
     _execute(build_cmd)
     print("Done building docker image %s" % repository_name)
-    
+
 
 def _find_base_image_in_dockerfile(dockerfile):
     dockerfile_lines = open(dockerfile).readlines()
@@ -72,14 +72,14 @@ def push(tag, aws_account=None, aws_region=None):
         (string): ECR repo image that was pushed
     """
     session = boto3.Session()
-    aws_account = aws_account or session.client("sts").get_caller_identity()['Account']
+    aws_account = aws_account or session.client("sts").get_caller_identity()["Account"]
     aws_region = aws_region or session.region_name
     try:
-        repository_name, version = tag.split(':')
+        repository_name, version = tag.split(":")
     except ValueError:  # split failed because no :
         repository_name = tag
         version = "latest"
-    ecr_client = session.client('ecr', region_name=aws_region)
+    ecr_client = session.client("ecr", region_name=aws_region)
 
     _create_ecr_repo(ecr_client, repository_name)
     _ecr_login(ecr_client, aws_account)
@@ -89,11 +89,11 @@ def push(tag, aws_account=None, aws_region=None):
 
 
 def _push(aws_account, aws_region, tag):
-    ecr_repo = '%s.dkr.ecr.%s.amazonaws.com' % (aws_account, aws_region)
-    ecr_tag = '%s/%s' % (ecr_repo, tag)
-    _execute(['docker', 'tag', tag, ecr_tag])
+    ecr_repo = "%s.dkr.ecr.%s.amazonaws.com" % (aws_account, aws_region)
+    ecr_tag = "%s/%s" % (ecr_repo, tag)
+    _execute(["docker", "tag", tag, ecr_tag])
     print("Pushing docker image to ECR repository %s/%s\n" % (ecr_repo, tag))
-    _execute(['docker', 'push', ecr_tag])
+    _execute(["docker", "push", ecr_tag])
     print("Done pushing %s" % ecr_tag)
     return ecr_tag
 
@@ -111,34 +111,34 @@ def _create_ecr_repo(ecr_client, repository_name):
 
 def _ecr_login(ecr_client, aws_account):
     auth = ecr_client.get_authorization_token(registryIds=[aws_account])
-    authorization_data = auth['authorizationData'][0]
+    authorization_data = auth["authorizationData"][0]
 
-    raw_token = base64.b64decode(authorization_data['authorizationToken'])
-    token = raw_token.decode('utf-8').strip('AWS:')
-    ecr_url = auth['authorizationData'][0]['proxyEndpoint']
+    raw_token = base64.b64decode(authorization_data["authorizationToken"])
+    token = raw_token.decode("utf-8").strip("AWS:")
+    ecr_url = auth["authorizationData"][0]["proxyEndpoint"]
 
-    cmd = ['docker', 'login', '-u', 'AWS', '-p', token, ecr_url]
+    cmd = ["docker", "login", "-u", "AWS", "-p", token, ecr_url]
     _execute(cmd, quiet=True)
     print("Logged into ECR")
 
 
 def _ecr_login_if_needed(image):
-    ecr_client = boto3.client('ecr')
+    ecr_client = boto3.client("ecr")
 
     # Only ECR images need login
-    if not ('dkr.ecr' in image and 'amazonaws.com' in image):
+    if not ("dkr.ecr" in image and "amazonaws.com" in image):
         return
 
     # do we have the image?
-    if _check_output('docker images -q %s' % image).strip():
+    if _check_output("docker images -q %s" % image).strip():
         return
 
-    aws_account = image.split('.')[0]
+    aws_account = image.split(".")[0]
     _ecr_login(ecr_client, aws_account)
 
 
 @contextlib.contextmanager
-def _tmpdir(suffix='', prefix='tmp', dir=None):  # type: (str, str, str) -> None
+def _tmpdir(suffix="", prefix="tmp", dir=None):  # type: (str, str, str) -> None
     """Create a temporary directory with a context manager. The file is deleted when the context exits.
 
     The prefix, suffix, and dir arguments are the same as for mkstemp().
@@ -160,10 +160,8 @@ def _tmpdir(suffix='', prefix='tmp', dir=None):  # type: (str, str, str) -> None
 
 def _execute(command, quiet=False):
     if not quiet:
-        print("$ %s" % ' '.join(command))
-    process = subprocess.Popen(command,
-                               stdout=subprocess.PIPE,
-                               stderr=subprocess.STDOUT)
+        print("$ %s" % " ".join(command))
+    process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     try:
         _stream_output(process)
     except RuntimeError as e:

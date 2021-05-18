@@ -1,8 +1,9 @@
 import os
+
 import numpy as np
 
 
-class MovieLens100KEnv():
+class MovieLens100KEnv:
     def __init__(self, data_dir="./ml-100k", item_pool_size=None, top_k=5, max_users=100):
         """
         Args:
@@ -16,7 +17,7 @@ class MovieLens100KEnv():
             needs this to calculate the optimal expected reward.
 
             max_users: The environment will sample from `max_users` only. If set to None,
-            all users i.e. 943 will be used for sampling. This parameter can be used to 
+            all users i.e. 943 will be used for sampling. This parameter can be used to
             simplify the learning problem.
 
         """
@@ -28,9 +29,9 @@ class MovieLens100KEnv():
         self._reset()
 
     def _preprocess_data(self, data_dir):
-        metadata_file = os.path.join(data_dir, 'u.item')
-        genre_file = os.path.join(data_dir, 'u.genre')
-        ratings_data = os.path.join(data_dir, 'u.data')
+        metadata_file = os.path.join(data_dir, "u.item")
+        genre_file = os.path.join(data_dir, "u.genre")
+        ratings_data = os.path.join(data_dir, "u.data")
 
         num_users = 943
         num_items = 1682
@@ -39,7 +40,7 @@ class MovieLens100KEnv():
         self.item_features = np.zeros((num_items, 19))
         movie_names = {}
 
-        with open(metadata_file, encoding='latin-1') as f:
+        with open(metadata_file, encoding="latin-1") as f:
             for line in f.readlines():
                 line = line.strip().split("|")
                 item_id = int(line[0]) - 1
@@ -88,7 +89,9 @@ class MovieLens100KEnv():
         # List of all the items that the user has rated in the past
         self.current_item_pool = np.flatnonzero(self.attractiveness_means[self.current_user_id])
         if self.item_pool_size and (len(self.current_item_pool) > self.item_pool_size):
-            random_indices = np.random.choice(len(self.current_item_pool), size=self.item_pool_size, replace=False)
+            random_indices = np.random.choice(
+                len(self.current_item_pool), size=self.item_pool_size, replace=False
+            )
             self.current_item_pool = self.current_item_pool[random_indices]
         self.current_items_embedding = self.item_features[self.current_item_pool]
 
@@ -119,7 +122,7 @@ class MovieLens100KEnv():
 
         recommended_item_ids = self.current_item_pool[actions]
         attraction_probs = self.attractiveness_means[self.step_count][recommended_item_ids]
-        
+
         random_indices = np.random.choice(len(recommended_item_ids), size=self.top_k, replace=False)
         random_item_ids = self.current_item_pool[random_indices]
         random_attraction_probs = self.attractiveness_means[self.step_count][random_item_ids]
@@ -130,13 +133,13 @@ class MovieLens100KEnv():
         clicks = np.random.binomial(1, attraction_probs)
         if clicks.sum() > 1:
             first_click = np.flatnonzero(clicks)[0]
-            clicks = clicks[:first_click + 1]
+            clicks = clicks[: first_click + 1]
 
         expected_reward = 1 - np.prod(1 - attraction_probs)
         expected_reward_random = 1 - np.prod(1 - random_attraction_probs)
 
         current_pool_probs = self.attractiveness_means[self.step_count][self.current_item_pool]
-        optimal_attraction_probs = np.sort(current_pool_probs)[::-1][:self.top_k]
+        optimal_attraction_probs = np.sort(current_pool_probs)[::-1][: self.top_k]
         expected_optimal_reward = 1 - np.prod(1 - optimal_attraction_probs)
         regret = expected_optimal_reward - expected_reward
         regret_random = expected_optimal_reward - expected_reward_random

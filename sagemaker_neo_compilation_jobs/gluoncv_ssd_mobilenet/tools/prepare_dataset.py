@@ -19,13 +19,17 @@
 # under the License.
 
 from __future__ import print_function
-import sys, os
+
 import argparse
+import os
 import subprocess
+import sys
+
 curr_path = os.path.abspath(os.path.dirname(__file__))
-sys.path.append(os.path.join(curr_path, '..'))
-from pascal_voc import PascalVoc
+sys.path.append(os.path.join(curr_path, ".."))
 from concat_db import ConcatDB
+from pascal_voc import PascalVoc
+
 
 def load_pascal(image_set, year, devkit_path, shuffle=False):
     """
@@ -46,9 +50,9 @@ def load_pascal(image_set, year, devkit_path, shuffle=False):
     ----------
     Imdb
     """
-    image_set = [y.strip() for y in image_set.split(',')]
+    image_set = [y.strip() for y in image_set.split(",")]
     assert image_set, "No image_set specified"
-    year = [y.strip() for y in year.split(',')]
+    year = [y.strip() for y in year.split(",")]
     assert year, "No year specified"
 
     # make sure (# sets == # years)
@@ -68,30 +72,46 @@ def load_pascal(image_set, year, devkit_path, shuffle=False):
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description='Prepare lists for dataset')
-    parser.add_argument('--dataset', dest='dataset', help='dataset to use',
-                        default='pascal', type=str)
-    parser.add_argument('--year', dest='year', help='which year to use',
-                        default='2007,2012', type=str)
-    parser.add_argument('--set', dest='set', help='train, val, trainval, test',
-                        default='trainval', type=str)
-    parser.add_argument('--target', dest='target', help='output list file',
-                        default=os.path.join(curr_path, '..', 'train.lst'),
-                        type=str)
-    parser.add_argument('--root', dest='root_path', help='dataset root path',
-                        default=os.path.join(curr_path, '..', 'VOCdevkit'),
-                        type=str)
-    parser.add_argument('--no-shuffle', dest='shuffle', help='shuffle list',
-                        action='store_false')
-    parser.add_argument('--num-thread', dest='num_thread', type=int, default=4,
-                        help='number of thread to use while runing im2rec.py')
+    parser = argparse.ArgumentParser(description="Prepare lists for dataset")
+    parser.add_argument(
+        "--dataset", dest="dataset", help="dataset to use", default="pascal", type=str
+    )
+    parser.add_argument(
+        "--year", dest="year", help="which year to use", default="2007,2012", type=str
+    )
+    parser.add_argument(
+        "--set", dest="set", help="train, val, trainval, test", default="trainval", type=str
+    )
+    parser.add_argument(
+        "--target",
+        dest="target",
+        help="output list file",
+        default=os.path.join(curr_path, "..", "train.lst"),
+        type=str,
+    )
+    parser.add_argument(
+        "--root",
+        dest="root_path",
+        help="dataset root path",
+        default=os.path.join(curr_path, "..", "VOCdevkit"),
+        type=str,
+    )
+    parser.add_argument("--no-shuffle", dest="shuffle", help="shuffle list", action="store_false")
+    parser.add_argument(
+        "--num-thread",
+        dest="num_thread",
+        type=int,
+        default=4,
+        help="number of thread to use while runing im2rec.py",
+    )
 
     args = parser.parse_args()
     return args
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     args = parse_args()
-    if args.dataset == 'pascal':
+    if args.dataset == "pascal":
         db = load_pascal(args.set, args.year, args.root_path, args.shuffle)
         print("saving list to disk...")
         db.save_imglist(args.target, root=args.root_path)
@@ -100,14 +120,19 @@ if __name__ == '__main__':
 
     print("List file {} generated...".format(args.target))
 
-    cmd_arguments = ["python",
-                    os.path.join(curr_path, "im2rec.py"),
-                    os.path.abspath(args.target), os.path.abspath(args.root_path),
-                    "--pack-label", "--num-thread", str(args.num_thread)]
+    cmd_arguments = [
+        "python",
+        os.path.join(curr_path, "im2rec.py"),
+        os.path.abspath(args.target),
+        os.path.abspath(args.root_path),
+        "--pack-label",
+        "--num-thread",
+        str(args.num_thread),
+    ]
 
     if not args.shuffle:
         cmd_arguments.append("--no-shuffle")
 
     subprocess.check_call(cmd_arguments)
 
-    print("Record file {} generated...".format(args.target.split('.')[0] + '.rec'))
+    print("Record file {} generated...".format(args.target.split(".")[0] + ".rec"))

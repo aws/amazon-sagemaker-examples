@@ -6,13 +6,12 @@ import time
 from enum import Enum
 
 import boto3
-
 import ray
 from ray.tune import run_experiments
 
 from .configuration_list import ConfigurationList
-from .sage_cluster_communicator import SageClusterCommunicator
 from .docker_utils import get_ip_from_host
+from .sage_cluster_communicator import SageClusterCommunicator
 
 TERMINATION_SIGNAL = "JOB_TERMINATED"
 
@@ -24,13 +23,14 @@ class Cluster(Enum):
     for Neural Network training and secondary cluster has CPU instances for rollouts.
     For single machine or homogeneous cluster, primary is the default type.
     """
+
     Primary = "primary"
     Secondary = "secondary"
 
 
 class SageMakerRayLauncher(object):
     """Base class for SageMaker RL applications using Ray-RLLib.
-    Customers should sub-class this, fill in the required methods, and 
+    Customers should sub-class this, fill in the required methods, and
     call .train_main() to start a training process.
 
     Example::
@@ -43,7 +43,7 @@ class SageMakerRayLauncher(object):
         class MyLauncher(SageMakerRayLauncher):
             def register_env_creator(self):
                 register_env("RoboschoolHumanoid-v1", create_environment)
-                
+
             def get_experiment_config(self):
                 return {
                   "training": {
@@ -62,10 +62,14 @@ class SageMakerRayLauncher(object):
         self.num_gpus = int(os.environ.get("SM_NUM_GPUS", 0))
 
         self.cluster_type = self._get_cluster_type()
-        self.num_instances_secondary_cluster = int(os.environ.get("SM_HP_RL_NUM_INSTANCES_SECONDARY", 0))
+        self.num_instances_secondary_cluster = int(
+            os.environ.get("SM_HP_RL_NUM_INSTANCES_SECONDARY", 0)
+        )
         self.host_name = os.environ.get("SM_CURRENT_HOST", "algo-1")
         self.hosts_info = json.loads(os.environ.get("SM_RESOURCE_CONFIG"))["hosts"]
-        self.is_master_node = self.hosts_info[0] == self.host_name and self.cluster_type == Cluster.Primary
+        self.is_master_node = (
+            self.hosts_info[0] == self.host_name and self.cluster_type == Cluster.Primary
+        )
 
         self.sage_cluster_communicator = SageClusterCommunicator()
 
@@ -77,16 +81,18 @@ class SageMakerRayLauncher(object):
             return Cluster.Secondary
 
     def register_env_creator(self):
-        """Sub-classes must implement this.
-        """
-        raise NotImplementedError("Subclasses should implement this to call ray.tune.registry.register_env")
+        """Sub-classes must implement this."""
+        raise NotImplementedError(
+            "Subclasses should implement this to call ray.tune.registry.register_env"
+        )
 
     def get_experiment_config(self):
-        raise NotImplementedError("Subclasses must define the experiment config to pass to ray.tune.run_experiments")
+        raise NotImplementedError(
+            "Subclasses must define the experiment config to pass to ray.tune.run_experiments"
+        )
 
     def customize_experiment_config(self, config):
-        """Applies command-line hyperparameters to the config.
-        """
+        """Applies command-line hyperparameters to the config."""
         # TODO: use ConfigList from Coach launcher, and share customization code.
         hyperparams_dict = json.loads(os.environ.get("SM_HPS", "{}"))
 
@@ -127,9 +133,12 @@ class SageMakerRayLauncher(object):
                 return config
             master_ip = get_ip_from_host(host_name=self.host_name)
             self.start_ray_cluster(master_ip)
-            self.sage_cluster_communicator.write_host_config(ip=master_ip,
-                                                             host_name="%s:%s" % (self.cluster_type.value, self.host_name))
-            self.sage_cluster_communicator.create_s3_signal("%s:%s" % (self.cluster_type.value, self.host_name))
+            self.sage_cluster_communicator.write_host_config(
+                ip=master_ip, host_name="%s:%s" % (self.cluster_type.value, self.host_name)
+            )
+            self.sage_cluster_communicator.create_s3_signal(
+                "%s:%s" % (self.cluster_type.value, self.host_name)
+            )
             print("Waiting for %s worker nodes to join!" % (len(all_wokers_host_names)))
             self.sage_cluster_communicator.wait_for_signals(all_wokers_host_names)
             print("All worker nodes have joined the cluster. Now training...")
@@ -140,24 +149,33 @@ class SageMakerRayLauncher(object):
             self.sage_cluster_communicator.wait_for_signals([master_hostname])
             print("Attempting to join ray cluster.")
             self.join_ray_cluster(master_ip, node_ip)
-            self.sage_cluster_communicator.create_s3_signal("%s:%s" % (self.cluster_type.value, self.host_name))
+            self.sage_cluster_communicator.create_s3_signal(
+                "%s:%s" % (self.cluster_type.value, self.host_name)
+            )
             print("Joined ray cluster at %s successfully!" % master_ip)
-            self.sage_cluster_communicator.wait_for_signals([TERMINATION_SIGNAL], timeout=sys.maxsize)
+            self.sage_cluster_communicator.wait_for_signals(
+                [TERMINATION_SIGNAL], timeout=sys.maxsize
+            )
             print("Received job termination signal. Shutting down.")
 
         return config
 
     def start_ray_cluster(self, master_ip):
-        p = subprocess.Popen("ray start --head --redis-port=6379 --no-ui --node-ip-address=%s" % master_ip,
-                             shell=True,
-                             stderr=subprocess.STDOUT)
+        p = subprocess.Popen(
+            "ray start --head --redis-port=6379 --no-ui --node-ip-address=%s" % master_ip,
+            shell=True,
+            stderr=subprocess.STDOUT,
+        )
         time.sleep(3)
         if p.poll() != 0:
             raise RuntimeError("Could not start Ray server.")
 
     def join_ray_cluster(self, master_ip, node_ip):
-        p = subprocess.Popen("ray start --redis-address=%s:6379 --node-ip-address=%s" % (master_ip, node_ip),
-                             shell=True, stderr=subprocess.STDOUT)
+        p = subprocess.Popen(
+            "ray start --redis-address=%s:6379 --node-ip-address=%s" % (master_ip, node_ip),
+            shell=True,
+            stderr=subprocess.STDOUT,
+        )
         time.sleep(3)
         if p.poll() != 0:
             raise RuntimeError("Could not join Ray server running at %s:6379" % master_ip)
@@ -187,7 +205,6 @@ class SageMakerRayLauncher(object):
 
     @classmethod
     def train_main(cls):
-        """main function that kicks things off
-        """
+        """main function that kicks things off"""
         launcher = cls()
         launcher.launch()

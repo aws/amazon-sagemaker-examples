@@ -32,6 +32,14 @@ Templates
    curating_aws_marketplace_listing_and_sample_notebook/Algorithm/Sample_Notebook_Template/title_of_your_product-Algorithm
    curating_aws_marketplace_listing_and_sample_notebook/ModelPackage/Sample_Notebook_Template/title_of_your_product-Model
 
+Use AWS Data Exchange products
+==============================
+
+.. toctree::
+   :maxdepth: 0
+
+   using_data/using_data_with_ml_model/using-dataset-product-from-aws-data-exchange-with-ml-model-from-aws-marketplace
+
 
 Use AWS Marketplace algorithms
 ==============================

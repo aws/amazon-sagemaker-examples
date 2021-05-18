@@ -1,22 +1,31 @@
-'''This module defines the concrete classes for training'''
-from markov.agent_ctrl.utils import load_action_space
+"""This module defines the concrete classes for training"""
 from markov.agent_ctrl.agent_ctrl_interface import AgentCtrlInterface
+from markov.agent_ctrl.utils import load_action_space
+
 
 class TrainingCtrl(AgentCtrlInterface):
-    '''Concrete class for an agent that drives forward'''
-    def __init__(self, agent_name, path_to_json):
-        '''agent_name - String containing the name of the agent
-           path_to_json - String containing absolute path to model meta data json containing
-                          the action space
-        '''
+    """Concrete class for an agent that drives forward"""
+
+    def __init__(self, agent_name, model_metadata):
+        """constructor for the training agent ctrl
+
+        Args:
+            agent_name (str): name of the agent
+            model_metadata (ModelMetadata): object containing the details in the model metadata json file
+        """
         # Store the name of the agent used to set agents position on the track
         self._agent_name_ = agent_name
-        #Create default reward parameters
-        self._action_space_, _ = load_action_space(path_to_json)
+        # Create default reward parameters
+        self._action_space_ = load_action_space(model_metadata)
+        self._model_metadata_ = model_metadata
 
     @property
     def action_space(self):
         return self._action_space_
+
+    @property
+    def model_metadata(self):
+        return self._model_metadata_
 
     def reset_agent(self):
         pass

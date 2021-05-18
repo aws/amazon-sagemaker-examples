@@ -14,9 +14,9 @@
 # limitations under the License.
 #
 
+import logging
 import sys
 import traceback
-import logging
 
 from HPOConfig import HPOConfig
 from MLWorkflow import create_workflow
@@ -35,10 +35,7 @@ def train():
         dataset = ml_workflow.handle_missing_data(dataset)
 
         # split into train and test set
-        X_train, X_test, y_train, y_test = ml_workflow.split_dataset(
-            dataset,
-            random_state=i_fold
-        )
+        X_train, X_test, y_train, y_test = ml_workflow.split_dataset(dataset, random_state=i_fold)
 
         # train model
         trained_model = ml_workflow.fit(X_train, y_train)
@@ -60,10 +57,10 @@ def train():
 
 
 def configure_logging():
-    hpo_log = logging.getLogger('hpo_log')
+    hpo_log = logging.getLogger("hpo_log")
     log_handler = logging.StreamHandler()
     log_handler.setFormatter(
-        logging.Formatter('%(asctime)-15s %(levelname)8s %(name)s %(message)s')
+        logging.Formatter("%(asctime)-15s %(levelname)8s %(name)s %(message)s")
     )
     hpo_log.addHandler(log_handler)
     hpo_log.setLevel(logging.DEBUG)

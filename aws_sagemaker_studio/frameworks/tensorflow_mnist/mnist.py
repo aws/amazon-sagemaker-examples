@@ -26,7 +26,7 @@ def cnn_model_fn(features, labels, mode):
     # Input Layer
     # Reshape X to 4-D tensor: [batch_size, width, height, channels]
     # MNIST images are 28x28 pixels, and have one color channel
-    input_layer = tf.reshape(features['x'], [-1, 28, 28, 1])
+    input_layer = tf.reshape(features["x"], [-1, 28, 28, 1])
 
     # Convolutional Layer #1
     # Computes 32 features using a 5x5 filter with ReLU activation.
@@ -34,11 +34,7 @@ def cnn_model_fn(features, labels, mode):
     # Input Tensor Shape: [batch_size, 28, 28, 1]
     # Output Tensor Shape: [batch_size, 28, 28, 32]
     conv1 = tf.layers.conv2d(
-        inputs=input_layer,
-        filters=32,
-        kernel_size=[5, 5],
-        padding='same',
-        activation=tf.nn.relu
+        inputs=input_layer, filters=32, kernel_size=[5, 5], padding="same", activation=tf.nn.relu
     )
 
     # Pooling Layer #1
@@ -53,11 +49,7 @@ def cnn_model_fn(features, labels, mode):
     # Input Tensor Shape: [batch_size, 14, 14, 32]
     # Output Tensor Shape: [batch_size, 14, 14, 64]
     conv2 = tf.layers.conv2d(
-        inputs=pool1,
-        filters=64,
-        kernel_size=[5, 5],
-        padding='same',
-        activation=tf.nn.relu
+        inputs=pool1, filters=64, kernel_size=[5, 5], padding="same", activation=tf.nn.relu
     )
 
     # Pooling Layer #2
@@ -79,7 +71,8 @@ def cnn_model_fn(features, labels, mode):
 
     # Add dropout operation; 0.6 probability that element will be kept
     dropout = tf.layers.dropout(
-        inputs=dense, rate=0.4, training=mode == tf.estimator.ModeKeys.TRAIN)
+        inputs=dense, rate=0.4, training=mode == tf.estimator.ModeKeys.TRAIN
+    )
 
     # Logits layer
     # Input Tensor Shape: [batch_size, 1024]
@@ -88,10 +81,10 @@ def cnn_model_fn(features, labels, mode):
 
     predictions = {
         # Generate predictions (for PREDICT and EVAL mode)
-        'classes': tf.argmax(input=logits, axis=1),
+        "classes": tf.argmax(input=logits, axis=1),
         # Add `softmax_tensor` to the graph. It is used for PREDICT and by the
         # `logging_hook`.
-        'probabilities': tf.nn.softmax(logits, name='softmax_tensor')
+        "probabilities": tf.nn.softmax(logits, name="softmax_tensor"),
     }
     if mode == tf.estimator.ModeKeys.PREDICT:
         return tf.estimator.EstimatorSpec(mode=mode, predictions=predictions)
@@ -102,28 +95,25 @@ def cnn_model_fn(features, labels, mode):
     # Configure the Training Op (for TRAIN mode)
     if mode == tf.estimator.ModeKeys.TRAIN:
         optimizer = tf.train.GradientDescentOptimizer(learning_rate=0.001)
-        train_op = optimizer.minimize(
-            loss=loss,
-            global_step=tf.train.get_global_step())
+        train_op = optimizer.minimize(loss=loss, global_step=tf.train.get_global_step())
         return tf.estimator.EstimatorSpec(mode=mode, loss=loss, train_op=train_op)
 
     # Add evaluation metrics (for EVAL mode)
     eval_metric_ops = {
-        'accuracy': tf.metrics.accuracy(
-            labels=labels, predictions=predictions['classes'])}
-    return tf.estimator.EstimatorSpec(
-        mode=mode, loss=loss, eval_metric_ops=eval_metric_ops)
+        "accuracy": tf.metrics.accuracy(labels=labels, predictions=predictions["classes"])
+    }
+    return tf.estimator.EstimatorSpec(mode=mode, loss=loss, eval_metric_ops=eval_metric_ops)
 
 
 def _load_training_data(base_dir):
-    x_train = np.load(os.path.join(base_dir, 'train_data.npy'))
-    y_train = np.load(os.path.join(base_dir, 'train_labels.npy'))
+    x_train = np.load(os.path.join(base_dir, "train_data.npy"))
+    y_train = np.load(os.path.join(base_dir, "train_labels.npy"))
     return x_train, y_train
 
 
 def _load_testing_data(base_dir):
-    x_test = np.load(os.path.join(base_dir, 'eval_data.npy'))
-    y_test = np.load(os.path.join(base_dir, 'eval_labels.npy'))
+    x_test = np.load(os.path.join(base_dir, "eval_data.npy"))
+    y_test = np.load(os.path.join(base_dir, "eval_labels.npy"))
     return x_test, y_test
 
 
@@ -133,21 +123,21 @@ def _parse_args():
     # Data, model, and output directories.
     # model_dir is always passed in from SageMaker.
     # By default this is a S3 path under the default bucket.
-    parser.add_argument('--model_dir', type=str)
-    parser.add_argument('--sm-model-dir', type=str, default=os.environ.get('SM_MODEL_DIR'))
-    parser.add_argument('--train', type=str, default=os.environ.get('SM_CHANNEL_TRAINING'))
-    parser.add_argument('--hosts', type=list, default=json.loads(os.environ.get('SM_HOSTS')))
-    parser.add_argument('--current-host', type=str, default=os.environ.get('SM_CURRENT_HOST'))
+    parser.add_argument("--model_dir", type=str)
+    parser.add_argument("--sm-model-dir", type=str, default=os.environ.get("SM_MODEL_DIR"))
+    parser.add_argument("--train", type=str, default=os.environ.get("SM_CHANNEL_TRAINING"))
+    parser.add_argument("--hosts", type=list, default=json.loads(os.environ.get("SM_HOSTS")))
+    parser.add_argument("--current-host", type=str, default=os.environ.get("SM_CURRENT_HOST"))
 
     return parser.parse_known_args()
 
 
 def serving_input_fn():
-    inputs = {'x': tf.placeholder(tf.float32, [None, 784])}
+    inputs = {"x": tf.placeholder(tf.float32, [None, 784])}
     return tf.estimator.export.ServingInputReceiver(inputs, inputs)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     args, _ = _parse_args()
 
     train_data, train_labels = _load_training_data(args.train)
@@ -158,24 +148,17 @@ if __name__ == '__main__':
 
     # Set up logging for predictions
     # Log the values in the 'Softmax' tensor with label 'probabilities'
-    tensors_to_log = {'probabilities': 'softmax_tensor'}
+    tensors_to_log = {"probabilities": "softmax_tensor"}
     logging_hook = tf.train.LoggingTensorHook(tensors=tensors_to_log, every_n_iter=50)
 
     # Train the model
     train_input_fn = tf.estimator.inputs.numpy_input_fn(
-        x={'x': train_data},
-        y=train_labels,
-        batch_size=100,
-        num_epochs=None,
-        shuffle=True
+        x={"x": train_data}, y=train_labels, batch_size=100, num_epochs=None, shuffle=True
     )
 
     # Evaluate the model and print results
     eval_input_fn = tf.estimator.inputs.numpy_input_fn(
-        x={'x': eval_data},
-        y=eval_labels,
-        num_epochs=1,
-        shuffle=False
+        x={"x": eval_data}, y=eval_labels, num_epochs=1, shuffle=False
     )
 
     train_spec = tf.estimator.TrainSpec(train_input_fn, max_steps=20000)
