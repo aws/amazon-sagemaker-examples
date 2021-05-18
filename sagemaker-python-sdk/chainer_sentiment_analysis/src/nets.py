@@ -1,14 +1,13 @@
-import numpy
-
 import chainer
 import chainer.functions as F
 import chainer.links as L
+import numpy
 from chainer import reporter
 
-embed_init = chainer.initializers.Uniform(.25)
+embed_init = chainer.initializers.Uniform(0.25)
 
 
-def sequence_embed(embed, xs, dropout=0.):
+def sequence_embed(embed, xs, dropout=0.0):
     """Efficient embedding function for variable-length sequences
 
     This output is equally to
@@ -37,7 +36,7 @@ def sequence_embed(embed, xs, dropout=0.):
     return exs
 
 
-def block_embed(embed, x, dropout=0.):
+def block_embed(embed, x, dropout=0.0):
     """Embedding function followed by convolution
 
     Args:
@@ -68,16 +67,16 @@ class TextClassifier(chainer.Chain):
 
     """A classifier using a given encoder.
 
-     This chain encodes a sentence and classifies it into classes.
+    This chain encodes a sentence and classifies it into classes.
 
-     Args:
-         encoder (Link): A callable encoder, which extracts a feature.
-             Input is a list of variables whose shapes are
-             "(sentence_length, )".
-             Output is a variable whose shape is "(batchsize, n_units)".
-         n_class (int): The number of classes to be predicted.
+    Args:
+        encoder (Link): A callable encoder, which extracts a feature.
+            Input is a list of variables whose shapes are
+            "(sentence_length, )".
+            Output is a variable whose shape is "(batchsize, n_units)".
+        n_class (int): The number of classes to be predicted.
 
-     """
+    """
 
     def __init__(self, encoder, n_class, dropout=0.1):
         super(TextClassifier, self).__init__()
@@ -92,8 +91,8 @@ class TextClassifier(chainer.Chain):
 
         loss = F.softmax_cross_entropy(concat_outputs, concat_truths)
         accuracy = F.accuracy(concat_outputs, concat_truths)
-        reporter.report({'loss': loss.data}, self)
-        reporter.report({'accuracy': accuracy.data}, self)
+        reporter.report({"loss": loss.data}, self)
+        reporter.report({"accuracy": accuracy.data}, self)
         return loss
 
     def predict(self, xs, softmax=False, argmax=False):
@@ -124,8 +123,7 @@ class RNNEncoder(chainer.Chain):
     def __init__(self, n_layers, n_vocab, n_units, dropout=0.1):
         super(RNNEncoder, self).__init__()
         with self.init_scope():
-            self.embed = L.EmbedID(n_vocab, n_units,
-                                   initialW=embed_init)
+            self.embed = L.EmbedID(n_vocab, n_units, initialW=embed_init)
             self.encoder = L.NStepLSTM(n_layers, n_units, n_units, dropout)
 
         self.n_layers = n_layers
@@ -135,7 +133,7 @@ class RNNEncoder(chainer.Chain):
     def __call__(self, xs):
         exs = sequence_embed(self.embed, xs, self.dropout)
         last_h, last_c, ys = self.encoder(None, None, exs)
-        assert(last_h.shape == (self.n_layers, len(xs), self.out_units))
+        assert last_h.shape == (self.n_layers, len(xs), self.out_units)
         concat_outputs = last_h[-1]
         return concat_outputs
 
@@ -161,17 +159,16 @@ class CNNEncoder(chainer.Chain):
         out_units = n_units // 3
         super(CNNEncoder, self).__init__()
         with self.init_scope():
-            self.embed = L.EmbedID(n_vocab, n_units, ignore_label=-1,
-                                   initialW=embed_init)
+            self.embed = L.EmbedID(n_vocab, n_units, ignore_label=-1, initialW=embed_init)
             self.cnn_w3 = L.Convolution2D(
-                n_units, out_units, ksize=(3, 1), stride=1, pad=(2, 0),
-                nobias=True)
+                n_units, out_units, ksize=(3, 1), stride=1, pad=(2, 0), nobias=True
+            )
             self.cnn_w4 = L.Convolution2D(
-                n_units, out_units, ksize=(4, 1), stride=1, pad=(3, 0),
-                nobias=True)
+                n_units, out_units, ksize=(4, 1), stride=1, pad=(3, 0), nobias=True
+            )
             self.cnn_w5 = L.Convolution2D(
-                n_units, out_units, ksize=(5, 1), stride=1, pad=(4, 0),
-                nobias=True)
+                n_units, out_units, ksize=(5, 1), stride=1, pad=(4, 0), nobias=True
+            )
             self.mlp = MLP(n_layers, out_units * 3, dropout)
 
         self.out_units = out_units * 3
@@ -231,8 +228,7 @@ class BOWEncoder(chainer.Chain):
     def __init__(self, n_vocab, n_units, dropout=0.1):
         super(BOWEncoder, self).__init__()
         with self.init_scope():
-            self.embed = L.EmbedID(n_vocab, n_units, ignore_label=-1,
-                                   initialW=embed_init)
+            self.embed = L.EmbedID(n_vocab, n_units, ignore_label=-1, initialW=embed_init)
 
         self.out_units = n_units
         self.dropout = dropout

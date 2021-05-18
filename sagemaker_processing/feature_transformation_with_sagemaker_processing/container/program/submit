@@ -3,15 +3,14 @@
 from __future__ import print_function
 
 import os
-import sys
-import subprocess
-import traceback
-import bootstrap
 import signal
+import subprocess
 import sys
 import time
-
+import traceback
 from shlex import quote
+
+import bootstrap
 
 prefix = '/opt/ml/processing/'
 

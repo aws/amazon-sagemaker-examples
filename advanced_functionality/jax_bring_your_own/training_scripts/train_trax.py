@@ -15,8 +15,8 @@ Train Trax model and serialize as TF SavedModel
 """
 import argparse
 
-import trax
 import tensorflow as tf
+import trax
 from trax import layers as tl
 from trax.supervised import training
 
@@ -57,8 +57,8 @@ def save_model_tf(model_to_save):
 
 def _parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--train_steps', type=int, default=50)
-    parser.add_argument('--learning_rate', type=float, default=0.001)
+    parser.add_argument("--train_steps", type=int, default=50)
+    parser.add_argument("--learning_rate", type=float, default=0.001)
 
     return parser.parse_args()
 

@@ -12,15 +12,14 @@
 # language governing permissions and limitations under the License.
 from __future__ import absolute_import
 
-import yaml
+import collections
 import logging
 import multiprocessing
-
 import os
 import shlex
 import subprocess
 
-import collections
+import yaml
 
 logging.basicConfig()
 logger = logging.getLogger(__name__)
@@ -39,7 +38,7 @@ INPUT_DATA_CONFIG_FILE = "inputdataconfig.json"
 
 
 def load_config(path):
-    with open(path, 'r') as f:
+    with open(path, "r") as f:
         return yaml.load(f)
 
 
@@ -56,7 +55,7 @@ def load_input_data_config():
 
 
 def get_channel_dir(channel):
-    """ Returns the directory containing the channel data file(s) which is:
+    """Returns the directory containing the channel data file(s) which is:
     - <self.base_dir>/input/data/<channel>
     Returns:
         (str) The input data directory for the specified channel.
@@ -71,9 +70,9 @@ def get_available_gpus():
         (int): number of gpus available in the current container.
     """
     try:
-        cmd = shlex.split('nvidia-smi --list-gpus')
+        cmd = shlex.split("nvidia-smi --list-gpus")
         output = str(subprocess.check_output(cmd))
-        return sum([1 for x in output.split('\n') if x.startswith('GPU ')])
+        return sum([1 for x in output.split("\n") if x.startswith("GPU ")])
     except OSError:
         logger.warning("No GPUs detected (normal if no gpus installed)")
         return 0
@@ -88,8 +87,8 @@ def create_trainer_environment():
     Returns: an instance of `TrainerEnvironment`
     """
     resource_config = load_resource_config()
-    current_host = resource_config['current_host']
-    hosts = resource_config['hosts']
+    current_host = resource_config["current_host"]
+    hosts = resource_config["hosts"]
 
     input_data_config = load_input_data_config()
     channel_dirs = {channel: get_channel_dir(channel) for channel in input_data_config}
@@ -97,19 +96,21 @@ def create_trainer_environment():
     available_cpus = get_available_cpus()
     available_gpus = get_available_gpus()
 
-    env = TrainerEnvironment(input_dir=INPUT_PATH,
-                             input_config_dir=INPUT_CONFIG_PATH,
-                             model_dir=MODEL_PATH,
-                             output_dir=OUTPUT_PATH,
-                             output_data_dir=OUTPUT_DATA_PATH,
-                             current_host=current_host,
-                             hosts=hosts,
-                             channel_dirs=channel_dirs,
-                             available_gpus=available_gpus,
-                             available_cpus=available_cpus,
-                             hyperparameters=load_hyperparameters(),
-                             resource_config=resource_config,
-                             input_data_config=load_input_data_config())
+    env = TrainerEnvironment(
+        input_dir=INPUT_PATH,
+        input_config_dir=INPUT_CONFIG_PATH,
+        model_dir=MODEL_PATH,
+        output_dir=OUTPUT_PATH,
+        output_data_dir=OUTPUT_DATA_PATH,
+        current_host=current_host,
+        hosts=hosts,
+        channel_dirs=channel_dirs,
+        available_gpus=available_gpus,
+        available_cpus=available_cpus,
+        hyperparameters=load_hyperparameters(),
+        resource_config=resource_config,
+        input_data_config=load_input_data_config(),
+    )
     return env
 
 
@@ -118,6 +119,7 @@ class HyperParameters(collections.Mapping):
     in the `get` method.
 
     """
+
     def __init__(self, hyperparameters_dict):
         self.hyperparameters_dict = hyperparameters_dict
 
@@ -147,7 +149,7 @@ class HyperParameters(collections.Mapping):
             if not object_type:
                 return value
             elif object_type == bool:
-                if value.lower() in ['True', 'true']:
+                if value.lower() in ["True", "true"]:
                     return True
                 return False
             else:
@@ -163,10 +165,25 @@ class HyperParameters(collections.Mapping):
 
 
 class TrainerEnvironment(
-    collections.namedtuple('TrainerEnvironment', [
-        'input_dir', 'input_config_dir', 'model_dir', 'output_dir', 'hyperparameters', 'resource_config',
-        'input_data_config', 'output_data_dir', 'hosts', 'channel_dirs', 'current_host', 'available_gpus',
-        'available_cpus'])):
+    collections.namedtuple(
+        "TrainerEnvironment",
+        [
+            "input_dir",
+            "input_config_dir",
+            "model_dir",
+            "output_dir",
+            "hyperparameters",
+            "resource_config",
+            "input_data_config",
+            "output_data_dir",
+            "hosts",
+            "channel_dirs",
+            "current_host",
+            "available_gpus",
+            "available_cpus",
+        ],
+    )
+):
     """Provides access to aspects of the training environment relevant to training jobs, including
     hyperparameters, system characteristics, filesystem locations, environment variables and configuration settings.
 
@@ -205,9 +222,23 @@ class TrainerEnvironment(
         model.save(os.path.join(model_dir, 'saved_model'))
         ```
     """
-    def __new__(cls, input_dir, input_config_dir, model_dir, output_dir, hyperparameters, resource_config,
-                input_data_config, output_data_dir, hosts, channel_dirs, current_host, available_gpus,
-                available_cpus):
+
+    def __new__(
+        cls,
+        input_dir,
+        input_config_dir,
+        model_dir,
+        output_dir,
+        hyperparameters,
+        resource_config,
+        input_data_config,
+        output_data_dir,
+        hosts,
+        channel_dirs,
+        current_host,
+        available_gpus,
+        available_cpus,
+    ):
         """
 
         Args:
@@ -302,6 +333,19 @@ class TrainerEnvironment(
         Returns:
             A `TrainerEnvironment` object.
         """
-        return super(TrainerEnvironment, cls).__new__(cls,
-            input_dir, input_config_dir, model_dir, output_dir, hyperparameters, resource_config, input_data_config,
-            output_data_dir, hosts, channel_dirs, current_host, available_gpus, available_cpus)
+        return super(TrainerEnvironment, cls).__new__(
+            cls,
+            input_dir,
+            input_config_dir,
+            model_dir,
+            output_dir,
+            hyperparameters,
+            resource_config,
+            input_data_config,
+            output_data_dir,
+            hosts,
+            channel_dirs,
+            current_host,
+            available_gpus,
+            available_cpus,
+        )

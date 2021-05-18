@@ -22,15 +22,15 @@ import tensorflow as tf
 from six.moves import cPickle as pickle
 from six.moves import xrange
 
-CIFAR_FILENAME = 'cifar-10-python.tar.gz'
-CIFAR_DOWNLOAD_URL = 'https://www.cs.toronto.edu/~kriz/' + CIFAR_FILENAME
-CIFAR_LOCAL_FOLDER = 'cifar-10-batches-py'
+CIFAR_FILENAME = "cifar-10-python.tar.gz"
+CIFAR_DOWNLOAD_URL = "https://www.cs.toronto.edu/~kriz/" + CIFAR_FILENAME
+CIFAR_LOCAL_FOLDER = "cifar-10-batches-py"
 
 
 def download_and_extract(data_dir):
     # download CIFAR-10 if not already downloaded.
     tf.contrib.learn.datasets.base.maybe_download(CIFAR_FILENAME, data_dir, CIFAR_DOWNLOAD_URL)
-    tarfile.open(os.path.join(data_dir, CIFAR_FILENAME), 'r:gz').extractall(data_dir)
+    tarfile.open(os.path.join(data_dir, CIFAR_FILENAME), "r:gz").extractall(data_dir)
 
 
 def _int64_feature(value):
@@ -44,41 +44,44 @@ def _bytes_feature(value):
 def _get_file_names():
     """Returns the file names expected to exist in the input_dir."""
     return {
-        'train': ['data_batch_%d' % i for i in xrange(1, 5)],
-        'validation': ['data_batch_5'],
-        'eval': ['test_batch'],
+        "train": ["data_batch_%d" % i for i in xrange(1, 5)],
+        "validation": ["data_batch_5"],
+        "eval": ["test_batch"],
     }
 
 
 def read_pickle_from_file(filename):
-    with tf.io.gfile.GFile(filename, 'rb') as f:
+    with tf.io.gfile.GFile(filename, "rb") as f:
         if sys.version_info.major >= 3:
-            return pickle.load(f, encoding='bytes')
+            return pickle.load(f, encoding="bytes")
         else:
             return pickle.load(f)
 
 
 def convert_to_tfrecord(input_files, output_file):
     """Converts a file to TFRecords."""
-    print('Generating %s' % output_file)
+    print("Generating %s" % output_file)
     with tf.io.TFRecordWriter(output_file) as record_writer:
         for input_file in input_files:
             data_dict = read_pickle_from_file(input_file)
-            data = data_dict[b'data']
-            labels = data_dict[b'labels']
+            data = data_dict[b"data"]
+            labels = data_dict[b"labels"]
 
             num_entries_in_batch = len(labels)
             for i in range(num_entries_in_batch):
-                example = tf.train.Example(features=tf.train.Features(
-                    feature={
-                        'image': _bytes_feature(data[i].tobytes()),
-                        'label': _int64_feature(labels[i])
-                    }))
+                example = tf.train.Example(
+                    features=tf.train.Features(
+                        feature={
+                            "image": _bytes_feature(data[i].tobytes()),
+                            "label": _int64_feature(labels[i]),
+                        }
+                    )
+                )
             record_writer.write(example.SerializeToString())
 
 
 def main(data_dir):
-    print('Download from {} and extract.'.format(CIFAR_DOWNLOAD_URL))
+    print("Download from {} and extract.".format(CIFAR_DOWNLOAD_URL))
     download_and_extract(data_dir)
 
     file_names = _get_file_names()
@@ -87,7 +90,7 @@ def main(data_dir):
         input_files = [os.path.join(input_dir, f) for f in files]
 
         mode_dir = os.path.join(data_dir, mode)
-        output_file = os.path.join(mode_dir, mode + '.tfrecords')
+        output_file = os.path.join(mode_dir, mode + ".tfrecords")
         if not os.path.exists(mode_dir):
             os.makedirs(mode_dir)
         try:
@@ -98,18 +101,15 @@ def main(data_dir):
         # Convert to tf.train.Example and write the to TFRecords.
         convert_to_tfrecord(input_files, output_file)
 
-    print('Done!')
-    shutil.rmtree(os.path.join(data_dir, 'cifar-10-batches-py'))
-    os.remove(os.path.join(data_dir, 'cifar-10-python.tar.gz'))  # Remove the original .tzr.gz files
+    print("Done!")
+    shutil.rmtree(os.path.join(data_dir, "cifar-10-batches-py"))
+    os.remove(os.path.join(data_dir, "cifar-10-python.tar.gz"))  # Remove the original .tzr.gz files
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        '--data-dir',
-        type=str,
-        default='',
-        help='Directory to download and extract CIFAR-10 to.'
+        "--data-dir", type=str, default="", help="Directory to download and extract CIFAR-10 to."
     )
 
     args = parser.parse_args()

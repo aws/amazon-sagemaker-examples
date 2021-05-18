@@ -1,10 +1,13 @@
 import os
+from decimal import Decimal
 
 import boto3
 from boto3.dynamodb.conditions import Key
-from .constants import BatchMetadataTableAttributes as Attributes, BatchCurrentStep, BatchMetadataType, BatchStatus
-from decimal import Decimal
 from shared import log
+
+from .constants import BatchCurrentStep
+from .constants import BatchMetadataTableAttributes as Attributes
+from .constants import BatchMetadataType, BatchStatus
 
 BATCH_EXECUTION_METADATA_TABLE_NAME = os.getenv("BATCH_EXECUTION_METADATA_TABLE_NAME", "")
 
@@ -12,10 +15,7 @@ dynamodb = boto3.resource("dynamodb")
 batch_execution_metadata_table = dynamodb.Table(BATCH_EXECUTION_METADATA_TABLE_NAME)
 
 
-def get_child_batch_metadata(
-        parent_batch_id,
-        metadata_type
-):
+def get_child_batch_metadata(parent_batch_id, metadata_type):
     """Returns all the metadata associated to the parent batch.
 
     Parameters
@@ -29,8 +29,9 @@ def get_child_batch_metadata(
     :param parent_batch_id: id of the parent batch metadata of interest
     """
     response = batch_execution_metadata_table.query(
-        IndexName = "ParentBatchIdIndex",
-        KeyConditionExpression = Key(Attributes.PARENT_BATCH_ID).eq(parent_batch_id))
+        IndexName="ParentBatchIdIndex",
+        KeyConditionExpression=Key(Attributes.PARENT_BATCH_ID).eq(parent_batch_id),
+    )
 
     items = []
     for item in response["Items"]:
@@ -40,11 +41,7 @@ def get_child_batch_metadata(
     return items
 
 
-
-
-def get_batch_metadata(
-        batch_id
-):
+def get_batch_metadata(batch_id):
     """Fetches a batch execution metadata by the batch_execution_job_id.
 
     Parameters
@@ -56,7 +53,7 @@ def get_batch_metadata(
     Dynamo db item in question
     """
     response = batch_execution_metadata_table.get_item(
-        Key = {
+        Key={
             Attributes.BATCH_ID: batch_id,
         },
     )
@@ -64,20 +61,21 @@ def get_batch_metadata(
 
 
 def get_child_batch_metadata_all(
-        parent_batch_id,
+    parent_batch_id,
 ):
     """Returns all metadata associated with parent batch without filtering
 
     :param batch_id: id to retrieve the associated batch_execution_metadata
     """
     response = batch_execution_metadata_table.query(
-        IndexName = "ParentBatchIdIndex",
-        KeyConditionExpression = Key(Attributes.PARENT_BATCH_ID).eq(parent_batch_id))
+        IndexName="ParentBatchIdIndex",
+        KeyConditionExpression=Key(Attributes.PARENT_BATCH_ID).eq(parent_batch_id),
+    )
 
     return response["Items"]
 
 
-def get_batch_metadata_by_labeling_job_name(labeling_job_name, metadata_type = None):
+def get_batch_metadata_by_labeling_job_name(labeling_job_name, metadata_type=None):
     """Returns all the metadata associated to the parent batch.
 
     Parameters
@@ -91,26 +89,28 @@ def get_batch_metadata_by_labeling_job_name(labeling_job_name, metadata_type = N
     :param metadata_type: metadata type of the batch
     """
     response = batch_execution_metadata_table.query(
-        IndexName = "LabelingJobNameIndex",
-        KeyConditionExpression = Key(Attributes.LABELING_JOB_NAME).eq(labeling_job_name))
+        IndexName="LabelingJobNameIndex",
+        KeyConditionExpression=Key(Attributes.LABELING_JOB_NAME).eq(labeling_job_name),
+    )
 
     if metadata_type is None:
         return response["Items"]
 
-
     singular_item = []
     for item in response["Items"]:
-        if item[Attributes.LABELING_JOB_NAME] == labeling_job_name and \
-                item[Attributes.BATCH_METADATA_TYPE] == metadata_type:
+        if (
+            item[Attributes.LABELING_JOB_NAME] == labeling_job_name
+            and item[Attributes.BATCH_METADATA_TYPE] == metadata_type
+        ):
             singular_item.append(item)
 
-    #Return a list to make API return type to be consistent.
+    # Return a list to make API return type to be consistent.
     return singular_item
 
 
 def update_batch_status(
-        batch_execution_job_id,
-        status,
+    batch_execution_job_id,
+    status,
 ):
     """Updates the status of a given batch_execution_job_id
 
@@ -124,14 +124,14 @@ def update_batch_status(
     Dynamo db update item response
     """
     response = batch_execution_metadata_table.update_item(
-        Key = {
+        Key={
             Attributes.BATCH_ID: batch_execution_job_id,
         },
-        UpdateExpression = "set #st=:s",
-        ExpressionAttributeValues = {
+        UpdateExpression="set #st=:s",
+        ExpressionAttributeValues={
             ":s": status,
         },
-        ExpressionAttributeNames = {
+        ExpressionAttributeNames={
             "#st": Attributes.BATCH_STATUS,
         },
     )
@@ -139,8 +139,8 @@ def update_batch_status(
 
 
 def update_batch_child_count(
-        batch_execution_job_id,
-        added_count,
+    batch_execution_job_id,
+    added_count,
 ):
     """Updates the status of a given batch_execution_job_id and returns true if completed
 
@@ -155,17 +155,15 @@ def update_batch_child_count(
     Dynamo db update item response
     """
     response = batch_execution_metadata_table.update_item(
-        Key = {
+        Key={
             Attributes.BATCH_ID: batch_execution_job_id,
         },
-        UpdateExpression = "set #response_count_attr=#response_count_attr+:added_count_val",
-        ExpressionAttributeValues = {
-            ":added_count_val": added_count
-        },
-        ExpressionAttributeNames = {
+        UpdateExpression="set #response_count_attr=#response_count_attr+:added_count_val",
+        ExpressionAttributeValues={":added_count_val": added_count},
+        ExpressionAttributeNames={
             "#response_count_attr": Attributes.NUM_CHILD_BATCHES_COMPLETE,
         },
-        ReturnValues = "ALL_NEW"
+        ReturnValues="ALL_NEW",
     )
 
     attributes = response.get("Attributes")
@@ -185,8 +183,8 @@ def update_batch_child_count(
 
 
 def update_batch_step_token(
-        batch_id,
-        step_token,
+    batch_id,
+    step_token,
 ):
     """Updates the step token of the given batch.
     Used for async waiting in step function invocations.
@@ -201,14 +199,14 @@ def update_batch_step_token(
     Dynamo db update item response
     """
     response = batch_execution_metadata_table.update_item(
-        Key = {
+        Key={
             Attributes.BATCH_ID: batch_id,
         },
-        UpdateExpression = "set #st=:s",
-        ExpressionAttributeValues = {
+        UpdateExpression="set #st=:s",
+        ExpressionAttributeValues={
             ":s": step_token,
         },
-        ExpressionAttributeNames = {
+        ExpressionAttributeNames={
             "#st": Attributes.STATE_TOKEN,
         },
     )
@@ -216,12 +214,12 @@ def update_batch_step_token(
 
 
 def insert_transformed_input_batch_metadata(
-        batch_id,
-        batch_status,
-        batch_current_step,
-        batch_metadata_type,
-        error_message,
-        labeling_jobs,
+    batch_id,
+    batch_status,
+    batch_current_step,
+    batch_metadata_type,
+    error_message,
+    labeling_jobs,
 ):
     """Creates a new record in the batch execution metadata table.
 
@@ -239,22 +237,18 @@ def insert_transformed_input_batch_metadata(
     :param batch_status: Status of the execute state to be in
     """
     dynamo_db_item = {
-        Attributes.BATCH_ID                     : batch_id,
-        Attributes.BATCH_STATUS                 : batch_status,
-        Attributes.BATCH_CURRENT_STEP           : batch_current_step,
-        Attributes.BATCH_METADATA_TYPE          : batch_metadata_type,
-        Attributes.MESSAGE                      : error_message,
-        Attributes.LABELING_JOBS                : labeling_jobs,
+        Attributes.BATCH_ID: batch_id,
+        Attributes.BATCH_STATUS: batch_status,
+        Attributes.BATCH_CURRENT_STEP: batch_current_step,
+        Attributes.BATCH_METADATA_TYPE: batch_metadata_type,
+        Attributes.MESSAGE: error_message,
+        Attributes.LABELING_JOBS: labeling_jobs,
     }
-    return batch_execution_metadata_table.put_item(Item = dynamo_db_item)
+    return batch_execution_metadata_table.put_item(Item=dynamo_db_item)
 
 
 def insert_batch_metadata_input(
-        batch_id,
-        parent_batch_id,
-        down_sampling_rate,
-        input_manifest,
-        batch_status
+    batch_id, parent_batch_id, down_sampling_rate, input_manifest, batch_status
 ):
     """Inserts new batch metadata input post First level job
 
@@ -273,22 +267,18 @@ def insert_batch_metadata_input(
     """
 
     dynamo_db_item = {
-        Attributes.BATCH_ID           : batch_id,
-        Attributes.DOWN_SAMPLING_RATE : Decimal(str(down_sampling_rate)),
+        Attributes.BATCH_ID: batch_id,
+        Attributes.DOWN_SAMPLING_RATE: Decimal(str(down_sampling_rate)),
         Attributes.BATCH_METADATA_TYPE: BatchMetadataType.HUMAN_INPUT_METADATA,
         Attributes.JOB_OUTPUT_LOCATION: input_manifest,
-        Attributes.PARENT_BATCH_ID    : parent_batch_id,
-        Attributes.BATCH_STATUS       : batch_status,
+        Attributes.PARENT_BATCH_ID: parent_batch_id,
+        Attributes.BATCH_STATUS: batch_status,
     }
 
-    return batch_execution_metadata_table.put_item(Item = dynamo_db_item)
+    return batch_execution_metadata_table.put_item(Item=dynamo_db_item)
 
 
-def update_batch_status(
-        batch_id,
-        status,
-        error_message = ""
-):
+def update_batch_status(batch_id, status, error_message=""):
     """Updates the status of a given batch_id
 
     Parameters
@@ -303,25 +293,22 @@ def update_batch_status(
     """
 
     response = batch_execution_metadata_table.update_item(
-        Key = {
+        Key={
             Attributes.BATCH_ID: batch_id,
         },
-        UpdateExpression = "set #st=:s, #errorMessage=:message",
-        ExpressionAttributeValues = {
-            ":s"      : status,
-            ":message": error_message
-        },
-        ExpressionAttributeNames = {
-            "#st"          : Attributes.BATCH_STATUS,
-            "#errorMessage": Attributes.MESSAGE
+        UpdateExpression="set #st=:s, #errorMessage=:message",
+        ExpressionAttributeValues={":s": status, ":message": error_message},
+        ExpressionAttributeNames={
+            "#st": Attributes.BATCH_STATUS,
+            "#errorMessage": Attributes.MESSAGE,
         },
     )
     return response
 
 
 def update_batch_current_step(
-        batch_id,
-        current_step,
+    batch_id,
+    current_step,
 ):
     """Updates the status of a given batch_id
 
@@ -336,24 +323,20 @@ def update_batch_current_step(
     """
 
     response = batch_execution_metadata_table.update_item(
-        Key = {
+        Key={
             Attributes.BATCH_ID: batch_id,
         },
-        UpdateExpression = "set #step=:current_step",
-        ExpressionAttributeValues = {
-            ":current_step": current_step
-        },
-        ExpressionAttributeNames = {
-            "#step": Attributes.BATCH_CURRENT_STEP
-        },
+        UpdateExpression="set #step=:current_step",
+        ExpressionAttributeValues={":current_step": current_step},
+        ExpressionAttributeNames={"#step": Attributes.BATCH_CURRENT_STEP},
     )
     return response
 
 
 def associate_with_child_batch(
-        parent_batch_id,
-        child_batch_id,
-        child_batch_metadata_type,
+    parent_batch_id,
+    child_batch_id,
+    child_batch_metadata_type,
 ):
     """Updates the status of a given batch_id
 
@@ -377,26 +360,22 @@ def associate_with_child_batch(
         attribute = Attributes.SECOND_LEVEL_BATCH_METADATA_ID
 
     response = batch_execution_metadata_table.update_item(
-        Key = {
+        Key={
             Attributes.BATCH_ID: parent_batch_id,
         },
-        UpdateExpression = "set #child_batch_id_attr=:child_batch_id_val",
-        ExpressionAttributeValues = {
-            ":child_batch_id_val": child_batch_id
-        },
-        ExpressionAttributeNames = {
-            "#child_batch_id_attr": attribute
-        },
+        UpdateExpression="set #child_batch_id_attr=:child_batch_id_val",
+        ExpressionAttributeValues={":child_batch_id_val": child_batch_id},
+        ExpressionAttributeNames={"#child_batch_id_attr": attribute},
     )
     return response
 
 
 def insert_perform_labeling_job_metadata(
-        parent_batch_id,
-        batch_id,
-        batch_status,
-        batch_metadata_type,
-        num_children_batches,
+    parent_batch_id,
+    batch_id,
+    batch_status,
+    batch_metadata_type,
+    num_children_batches,
 ):
     """Creates a new record in the batch execution metadata table.
 
@@ -413,26 +392,26 @@ def insert_perform_labeling_job_metadata(
     """
 
     dynamo_db_item = {
-        Attributes.PARENT_BATCH_ID       : parent_batch_id,
-        Attributes.BATCH_ID              : batch_id,
-        Attributes.BATCH_STATUS          : batch_status,
-        Attributes.BATCH_METADATA_TYPE   : batch_metadata_type,
-        Attributes.NUM_CHILD_BATCHES  : num_children_batches,
-        Attributes.NUM_CHILD_BATCHES_COMPLETE  : 0,
+        Attributes.PARENT_BATCH_ID: parent_batch_id,
+        Attributes.BATCH_ID: batch_id,
+        Attributes.BATCH_STATUS: batch_status,
+        Attributes.BATCH_METADATA_TYPE: batch_metadata_type,
+        Attributes.NUM_CHILD_BATCHES: num_children_batches,
+        Attributes.NUM_CHILD_BATCHES_COMPLETE: 0,
     }
-    return batch_execution_metadata_table.put_item(Item = dynamo_db_item)
+    return batch_execution_metadata_table.put_item(Item=dynamo_db_item)
 
 
 def insert_job_level_metadata(
-        parent_batch_id,
-        batch_id,
-        batch_status,
-        labeling_job_name,
-        label_attribute_name,
-        label_category_s3_uri,
-        job_input_s3_uri,
-        job_output_s3_uri,
-        num_frames=None,
+    parent_batch_id,
+    batch_id,
+    batch_status,
+    labeling_job_name,
+    label_attribute_name,
+    label_category_s3_uri,
+    job_input_s3_uri,
+    job_output_s3_uri,
+    num_frames=None,
 ):
     """Creates a new record in the batch execution metadata table.
 
@@ -449,15 +428,15 @@ def insert_job_level_metadata(
     """
 
     dynamo_db_item = {
-        Attributes.PARENT_BATCH_ID       : parent_batch_id,
-        Attributes.BATCH_ID              : batch_id,
-        Attributes.BATCH_STATUS          : batch_status,
-        Attributes.BATCH_METADATA_TYPE   : BatchMetadataType.JOB_LEVEL,
-        Attributes.LABELING_JOB_NAME     : labeling_job_name,
-        Attributes.LABEL_CATEGORY_CONFIG : label_category_s3_uri,
-        Attributes.LABEL_ATTRIBUTE_NAME  : label_attribute_name,
-        Attributes.JOB_INPUT_LOCATION    : job_input_s3_uri,
-        Attributes.JOB_OUTPUT_LOCATION   : job_output_s3_uri,
+        Attributes.PARENT_BATCH_ID: parent_batch_id,
+        Attributes.BATCH_ID: batch_id,
+        Attributes.BATCH_STATUS: batch_status,
+        Attributes.BATCH_METADATA_TYPE: BatchMetadataType.JOB_LEVEL,
+        Attributes.LABELING_JOB_NAME: labeling_job_name,
+        Attributes.LABEL_CATEGORY_CONFIG: label_category_s3_uri,
+        Attributes.LABEL_ATTRIBUTE_NAME: label_attribute_name,
+        Attributes.JOB_INPUT_LOCATION: job_input_s3_uri,
+        Attributes.JOB_OUTPUT_LOCATION: job_output_s3_uri,
     }
 
     if num_frames is not None:
@@ -465,11 +444,12 @@ def insert_job_level_metadata(
         dynamo_db_item[Attributes.NUM_CHILD_BATCHES] = num_frames
         dynamo_db_item[Attributes.NUM_CHILD_BATCHES_COMPLETE] = 0
 
-    return batch_execution_metadata_table.put_item(Item = dynamo_db_item)
+    return batch_execution_metadata_table.put_item(Item=dynamo_db_item)
+
 
 def update_batch_down_sample_location(
-        batch_id,
-        down_sample_location,
+    batch_id,
+    down_sample_location,
 ):
     """Append new down_sample location to the existing batchId
     Parameters
@@ -481,26 +461,19 @@ def update_batch_down_sample_location(
     Dynamo db update item response
     """
     response = batch_execution_metadata_table.update_item(
-        Key = {
+        Key={
             Attributes.BATCH_ID: batch_id,
         },
-        UpdateExpression = "set #attr_down_sample_location=:down_sample_location",
-        ExpressionAttributeValues = {
-            ":down_sample_location": down_sample_location
-        },
-        ExpressionAttributeNames = {
+        UpdateExpression="set #attr_down_sample_location=:down_sample_location",
+        ExpressionAttributeValues={":down_sample_location": down_sample_location},
+        ExpressionAttributeNames={
             "#attr_down_sample_location": Attributes.JOB_DOWN_SAMPLE_LOCATION
         },
     )
     return response
 
 
-def insert_processed_input_batch_metadata(
-        parent_batch_id,
-        batch_id,
-        job_name,
-        job_input_location
-):
+def insert_processed_input_batch_metadata(parent_batch_id, batch_id, job_name, job_input_location):
     """Inserts a single frame of data.
     :param parent_batch_id: Batch that owns this frame.
     :param batch_id: Unique ID, "batchId/frameIndex" for frames, matches SNS Deduplication key
@@ -511,19 +484,20 @@ def insert_processed_input_batch_metadata(
     We are re-using the batch metadata table.
     """
     dynamo_db_item = {
-        Attributes.PARENT_BATCH_ID    : parent_batch_id,
-        Attributes.BATCH_ID           : batch_id,
+        Attributes.PARENT_BATCH_ID: parent_batch_id,
+        Attributes.BATCH_ID: batch_id,
         Attributes.BATCH_METADATA_TYPE: BatchMetadataType.PROCESS_LEVEL,
-        Attributes.LABELING_JOB_NAME  : job_name,
-        Attributes.JOB_INPUT_LOCATION : job_input_location,
+        Attributes.LABELING_JOB_NAME: job_name,
+        Attributes.JOB_INPUT_LOCATION: job_input_location,
     }
-    return batch_execution_metadata_table.put_item(Item = dynamo_db_item)
+    return batch_execution_metadata_table.put_item(Item=dynamo_db_item)
+
 
 def insert_frame_batch_metadata(
-        parent_batch_id,
-        batch_id,
-        batch_status,
-        frame_index,
+    parent_batch_id,
+    batch_id,
+    batch_status,
+    frame_index,
 ):
     """Inserts a single frame of data.
     :param parent_batch_id: Batch that owns this frame.
@@ -535,25 +509,23 @@ def insert_frame_batch_metadata(
     We are re-using the batch metadata table.
     """
     dynamo_db_item = {
-        Attributes.PARENT_BATCH_ID    : parent_batch_id,
-        Attributes.BATCH_ID           : batch_id,
-        Attributes.BATCH_STATUS       : batch_status,
+        Attributes.PARENT_BATCH_ID: parent_batch_id,
+        Attributes.BATCH_ID: batch_id,
+        Attributes.BATCH_STATUS: batch_status,
         Attributes.BATCH_METADATA_TYPE: BatchMetadataType.FRAME_LEVEL,
-        Attributes.FRAME_INDEX        : frame_index,
+        Attributes.FRAME_INDEX: frame_index,
     }
-    return batch_execution_metadata_table.put_item(Item = dynamo_db_item)
+    return batch_execution_metadata_table.put_item(Item=dynamo_db_item)
 
 
-def get_frame_batch_metadata(
-        batch_frame_id
-):
+def get_frame_batch_metadata(batch_frame_id):
     """Inserts a single frame of data.
     :param batch_frame_id: Unique ID, "batchId/frameIndex" for frames, matches SNS Deduplication key
 
     We are re-using the batch metadata table.
     """
     response = batch_execution_metadata_table.get_item(
-        Key = {
+        Key={
             Attributes.BATCH_ID: batch_frame_id,
         },
     )
@@ -561,19 +533,15 @@ def get_frame_batch_metadata(
 
 
 def mark_batch_and_children_failed(
-        batch_id,
-        error_message = "",
+    batch_id,
+    error_message="",
 ):
     """Marks a whole batch as failed, including all children batches.
 
     :param batch_id: Unique ID of the batch to mark as deleted.
     :param error_message: Optional error message to store in dynamo with frame.
     """
-    update_batch_status(
-        batch_id,
-        BatchStatus.INTERNAL_ERROR,
-        error_message = error_message
-    )
+    update_batch_status(batch_id, BatchStatus.INTERNAL_ERROR, error_message=error_message)
 
     items = get_child_batch_metadata_all(batch_id)
     for item in items:
@@ -594,12 +562,15 @@ def get_batches_by_type_status(batch_type, batch_status):
     try:
         # TODO: Replace with get_item
         response = batch_execution_metadata_table.query(
-            IndexName = "BatchMetadataTypeStatusIndex",
-            KeyConditionExpression = Key("BatchMetadataType").eq(batch_type) & Key("BatchStatus").eq(batch_status),
+            IndexName="BatchMetadataTypeStatusIndex",
+            KeyConditionExpression=Key("BatchMetadataType").eq(batch_type)
+            & Key("BatchStatus").eq(batch_status),
         )
         log.logger.info("DDB response {}".format(response))
     except Exception as err:
-        log.logger.error(f"failed to query DynamoDB for batch type {batch_type} status {batch_status}, error: {err}")
+        log.logger.error(
+            f"failed to query DynamoDB for batch type {batch_type} status {batch_status}, error: {err}"
+        )
         return None
 
     items = response.get("Items")

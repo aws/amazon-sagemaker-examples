@@ -1,21 +1,17 @@
 import ast
-
-import pickle
-from copy import deepcopy
-
 import math
-
-import pandas as pd
-from typing import List, Tuple, Union
-import numpy as np
+import pickle
 import random
+from copy import deepcopy
+from typing import List, Tuple, Union
 
-from rl_coach.core_types import Transition, Episode
+import numpy as np
+import pandas as pd
+from rl_coach.core_types import CsvDataset, Episode, Transition
 from rl_coach.filters.filter import InputFilter
 from rl_coach.logger import screen
 from rl_coach.memories.memory import Memory, MemoryGranularity, MemoryParameters
-from rl_coach.utils import ReaderWriterLock, ProgressBar
-from rl_coach.core_types import CsvDataset
+from rl_coach.utils import ProgressBar, ReaderWriterLock
 
 
 class DeepRacerMemoryParameters(MemoryParameters):
@@ -27,7 +23,7 @@ class DeepRacerMemoryParameters(MemoryParameters):
 
     @property
     def path(self):
-        return 'markov.memories.deepracer_memory:DeepRacerMemory'
+        return "markov.memories.deepracer_memory:DeepRacerMemory"
 
 
 class DeepRacerMemory(Memory):
@@ -37,8 +33,12 @@ class DeepRacerMemory(Memory):
     in the episode.
     """
 
-    def __init__(self, max_size: Tuple[MemoryGranularity, int] = (MemoryGranularity.Transitions, 1000000), n_step=-1,
-                 train_to_eval_ratio: int = 1):
+    def __init__(
+        self,
+        max_size: Tuple[MemoryGranularity, int] = (MemoryGranularity.Transitions, 1000000),
+        n_step=-1,
+        train_to_eval_ratio: int = 1,
+    ):
         """
         :param max_size: the maximum number of transitions or episodes to hold in the memory
         """
@@ -68,7 +68,7 @@ class DeepRacerMemory(Memory):
         return length
 
     def num_complete_episodes(self):
-        """ Get the number of complete episodes in ER """
+        """Get the number of complete episodes in ER"""
         length = self._length - 1
 
         return length
@@ -97,14 +97,20 @@ class DeepRacerMemory(Memory):
                     batch = self._buffer[episode_idx].transitions
                 else:
                     transition_idx = np.random.randint(size, self._buffer[episode_idx].length())
-                    batch = self._buffer[episode_idx].transitions[transition_idx - size:transition_idx]
+                    batch = self._buffer[episode_idx].transitions[
+                        transition_idx - size : transition_idx
+                    ]
             else:
-                transitions_idx = np.random.randint(self.num_transitions_in_complete_episodes(), size=size)
+                transitions_idx = np.random.randint(
+                    self.num_transitions_in_complete_episodes(), size=size
+                )
                 batch = [self.transitions[i] for i in transitions_idx]
 
         else:
-            raise ValueError("The episodic replay buffer cannot be sampled since there are no complete episodes yet. "
-                             "There is currently 1 episodes with {} transitions".format(self._buffer[0].length()))
+            raise ValueError(
+                "The episodic replay buffer cannot be sampled since there are no complete episodes yet. "
+                "There is currently 1 episodes with {} transitions".format(self._buffer[0].length())
+            )
 
         return batch
 
@@ -154,7 +160,9 @@ class DeepRacerMemory(Memory):
 
         # The last batch drawn will usually be < batch_size (=the size variable)
         for i in range(math.ceil(len(shuffled_transition_indices) / size)):
-            sample_data = [self.transitions[j] for j in shuffled_transition_indices[i * size: (i + 1) * size]]
+            sample_data = [
+                self.transitions[j] for j in shuffled_transition_indices[i * size : (i + 1) * size]
+            ]
 
             yield sample_data
 
@@ -163,7 +171,7 @@ class DeepRacerMemory(Memory):
         Get all the transitions from all the complete episodes in the buffer
         :return: a list of transitions
         """
-        return self.transitions[:self.num_transitions_in_complete_episodes()]
+        return self.transitions[: self.num_transitions_in_complete_episodes()]
 
     def get_all_complete_episodes(self) -> List[Episode]:
         """
@@ -276,8 +284,9 @@ class DeepRacerMemory(Memory):
         :return: None
         """
         self.assert_not_frozen()
-        assert episode_index == 0 or episode_index == -1, "_remove_episode only supports removing the first or the last " \
-                                                          "episode"
+        assert episode_index == 0 or episode_index == -1, (
+            "_remove_episode only supports removing the first or the last " "episode"
+        )
 
         if len(self._buffer) > 0:
             episode_length = self._buffer[episode_index].length()
@@ -331,7 +340,7 @@ class DeepRacerMemory(Memory):
         episode = None
         if last_complete_episode_index >= 0:
             episode = self.get(last_complete_episode_index)
-   
+
         return episode
 
     def clean(self) -> None:
@@ -367,17 +376,19 @@ class DeepRacerMemory(Memory):
 
         df = pd.read_csv(csv_dataset.filepath)
         if len(df) > self.max_size[1]:
-            screen.warning("Warning! The number of transitions to load into the replay buffer ({}) is "
-                           "bigger than the max size of the replay buffer ({}). The excessive transitions will "
-                           "not be stored.".format(len(df), self.max_size[1]))
+            screen.warning(
+                "Warning! The number of transitions to load into the replay buffer ({}) is "
+                "bigger than the max size of the replay buffer ({}). The excessive transitions will "
+                "not be stored.".format(len(df), self.max_size[1])
+            )
 
-        episode_ids = df['episode_id'].unique()
+        episode_ids = df["episode_id"].unique()
         progress_bar = ProgressBar(len(episode_ids))
-        state_columns = [col for col in df.columns if col.startswith('state_feature')]
+        state_columns = [col for col in df.columns if col.startswith("state_feature")]
 
         for e_id in episode_ids:
             progress_bar.update(e_id)
-            df_episode_transitions = df[df['episode_id'] == e_id]
+            df_episode_transitions = df[df["episode_id"] == e_id]
             input_filter.reset()
 
             if len(df_episode_transitions) < 2:
@@ -386,18 +397,26 @@ class DeepRacerMemory(Memory):
 
             episode = Episode()
             transitions = []
-            for (_, current_transition), (_, next_transition) in zip(df_episode_transitions[:-1].iterrows(),
-                                                                     df_episode_transitions[1:].iterrows()):
+            for (_, current_transition), (_, next_transition) in zip(
+                df_episode_transitions[:-1].iterrows(), df_episode_transitions[1:].iterrows()
+            ):
                 state = np.array([current_transition[col] for col in state_columns])
                 next_state = np.array([next_transition[col] for col in state_columns])
 
                 transitions.append(
-                    Transition(state={'observation': state},
-                               action=int(current_transition['action']), reward=current_transition['reward'],
-                               next_state={'observation': next_state}, game_over=False,
-                               info={'all_action_probabilities':
-                               ast.literal_eval(current_transition['all_action_probabilities'])}),
-                                )
+                    Transition(
+                        state={"observation": state},
+                        action=int(current_transition["action"]),
+                        reward=current_transition["reward"],
+                        next_state={"observation": next_state},
+                        game_over=False,
+                        info={
+                            "all_action_probabilities": ast.literal_eval(
+                                current_transition["all_action_probabilities"]
+                            )
+                        },
+                    ),
+                )
 
             transitions = input_filter.filter(transitions, deep_copy=False)
             for t in transitions:
@@ -435,15 +454,20 @@ class DeepRacerMemory(Memory):
         """
         self._split_training_and_evaluation_datasets()
         self.evaluation_dataset_as_episodes = deepcopy(
-            self.get_all_complete_episodes_from_to(self.get_last_training_set_episode_id() + 1,
-                                                       self.num_complete_episodes()))
+            self.get_all_complete_episodes_from_to(
+                self.get_last_training_set_episode_id() + 1, self.num_complete_episodes()
+            )
+        )
 
         if len(self.evaluation_dataset_as_episodes) == 0:
-            raise ValueError('train_to_eval_ratio is too high causing the evaluation set to be empty. '
-                             'Consider decreasing its value.')
+            raise ValueError(
+                "train_to_eval_ratio is too high causing the evaluation set to be empty. "
+                "Consider decreasing its value."
+            )
 
-        self.evaluation_dataset_as_transitions = [t for e in self.evaluation_dataset_as_episodes
-                                                  for t in e.transitions]
+        self.evaluation_dataset_as_transitions = [
+            t for e in self.evaluation_dataset_as_episodes for t in e.transitions
+        ]
 
     def _split_training_and_evaluation_datasets(self):
         """
@@ -453,20 +477,29 @@ class DeepRacerMemory(Memory):
 
         if self.last_training_set_transition_id is None:
             if self.train_to_eval_ratio < 0 or self.train_to_eval_ratio >= 1:
-                raise ValueError('train_to_eval_ratio should be in the (0, 1] range.')
+                raise ValueError("train_to_eval_ratio should be in the (0, 1] range.")
 
-            transition = self.transitions[round(self.train_to_eval_ratio * self.num_transitions_in_complete_episodes())]
+            transition = self.transitions[
+                round(self.train_to_eval_ratio * self.num_transitions_in_complete_episodes())
+            ]
             episode_num, episode = self.get_episode_for_transition(transition)
             self.last_training_set_episode_id = episode_num
-            self.last_training_set_transition_id = \
-                len([t for e in self.get_all_complete_episodes_from_to(0, self.last_training_set_episode_id + 1) for t in e])
+            self.last_training_set_transition_id = len(
+                [
+                    t
+                    for e in self.get_all_complete_episodes_from_to(
+                        0, self.last_training_set_episode_id + 1
+                    )
+                    for t in e
+                ]
+            )
 
     def save(self, file_path: str) -> None:
         """
         Save the replay buffer contents to a pickle file
         :param file_path: the path to the file that will be used to store the pickled transitions
         """
-        with open(file_path, 'wb') as file:
+        with open(file_path, "wb") as file:
             pickle.dump(self.get_all_complete_episodes(), file)
 
     def load_pickled(self, file_path: str) -> None:
@@ -477,13 +510,15 @@ class DeepRacerMemory(Memory):
         """
         self.assert_not_frozen()
 
-        with open(file_path, 'rb') as file:
+        with open(file_path, "rb") as file:
             episodes = pickle.load(file)
             num_transitions = sum([len(e.transitions) for e in episodes])
             if num_transitions > self.max_size[1]:
-                screen.warning("Warning! The number of transition to load into the replay buffer ({}) is "
-                               "bigger than the max size of the replay buffer ({}). The excessive transitions will "
-                               "not be stored.".format(num_transitions, self.max_size[1]))
+                screen.warning(
+                    "Warning! The number of transition to load into the replay buffer ({}) is "
+                    "bigger than the max size of the replay buffer ({}). The excessive transitions will "
+                    "not be stored.".format(num_transitions, self.max_size[1])
+                )
 
             progress_bar = ProgressBar(len(episodes))
             for episode_idx, episode in enumerate(episodes):

@@ -2,9 +2,12 @@ import argparse
 import json
 import logging
 import os
-from os.path import join
-import sagemaker_containers
 import sys
+import time
+from os.path import join
+
+import boto3
+import sagemaker_containers
 import torch
 import torch.distributed as dist
 import torch.nn as nn
@@ -13,10 +16,6 @@ import torch.optim as optim
 import torch.utils.data
 import torch.utils.data.distributed
 from torchvision import datasets, transforms
-
-import boto3
-
-import time
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -66,9 +65,7 @@ def _get_train_data_loader(batch_size, training_dir, is_distributed, **kwargs):
         download=False,
     )
     train_sampler = (
-        torch.utils.data.distributed.DistributedSampler(dataset)
-        if is_distributed
-        else None
+        torch.utils.data.distributed.DistributedSampler(dataset) if is_distributed else None
     )
     return torch.utils.data.DataLoader(
         dataset,
@@ -118,16 +115,12 @@ def train(args, tracker=None):
         os.environ["WORLD_SIZE"] = str(world_size)
         host_rank = args.hosts.index(args.current_host)
         os.environ["RANK"] = str(host_rank)
-        dist.init_process_group(
-            backend=args.backend, rank=host_rank, world_size=world_size
-        )
+        dist.init_process_group(backend=args.backend, rank=host_rank, world_size=world_size)
         logger.info(
             "Initialized the distributed environment: '{}' backend on {} nodes. ".format(
                 args.backend, dist.get_world_size()
             )
-            + "Current host rank is {}. Number of gpus: {}".format(
-                dist.get_rank(), args.num_gpus
-            )
+            + "Current host rank is {}. Number of gpus: {}".format(dist.get_rank(), args.num_gpus)
         )
 
     # set the seed for generating random numbers
@@ -135,9 +128,7 @@ def train(args, tracker=None):
     if use_cuda:
         torch.cuda.manual_seed(args.seed)
 
-    train_loader = _get_train_data_loader(
-        args.batch_size, args.data_dir, is_distributed, **kwargs
-    )
+    train_loader = _get_train_data_loader(args.batch_size, args.data_dir, is_distributed, **kwargs)
     test_loader = _get_test_data_loader(args.test_batch_size, args.data_dir, **kwargs)
 
     logger.info(
@@ -203,12 +194,8 @@ def test(model, test_loader, device, tracker=None):
         for data, target in test_loader:
             data, target = data.to(device), target.to(device)
             output = model(data)
-            test_loss += F.nll_loss(
-                output, target, size_average=False
-            ).item()  # sum up batch loss
-            pred = output.max(1, keepdim=True)[
-                1
-            ]  # get the index of the max log-probability
+            test_loss += F.nll_loss(output, target, size_average=False).item()  # sum up batch loss
+            pred = output.max(1, keepdim=True)[1]  # get the index of the max log-probability
             correct += pred.eq(target.view_as(pred)).sum().item()
 
     test_loss /= len(test_loader.dataset)
@@ -263,9 +250,7 @@ if __name__ == "__main__":
         metavar="N",
         help="number of epochs to train (default: 10)",
     )
-    parser.add_argument(
-        "--optimizer", type=str, default="sgd", help="optimizer for training."
-    )
+    parser.add_argument("--optimizer", type=str, default="sgd", help="optimizer for training.")
     parser.add_argument(
         "--lr",
         type=float,
@@ -300,9 +285,7 @@ if __name__ == "__main__":
         default=10,
         help="number of channels in hidden conv layer",
     )
-    parser.add_argument(
-        "--seed", type=int, default=1, metavar="S", help="random seed (default: 1)"
-    )
+    parser.add_argument("--seed", type=int, default=1, metavar="S", help="random seed (default: 1)")
     parser.add_argument(
         "--log-interval",
         type=int,
@@ -318,16 +301,10 @@ if __name__ == "__main__":
     )
 
     # Container environment
-    parser.add_argument(
-        "--hosts", type=list, default=json.loads(os.environ["SM_HOSTS"])
-    )
-    parser.add_argument(
-        "--current-host", type=str, default=os.environ["SM_CURRENT_HOST"]
-    )
+    parser.add_argument("--hosts", type=list, default=json.loads(os.environ["SM_HOSTS"]))
+    parser.add_argument("--current-host", type=str, default=os.environ["SM_CURRENT_HOST"])
     parser.add_argument("--model-dir", type=str, default=os.environ["SM_MODEL_DIR"])
-    parser.add_argument(
-        "--data-dir", type=str, default=os.environ["SM_CHANNEL_TRAINING"]
-    )
+    parser.add_argument("--data-dir", type=str, default=os.environ["SM_CHANNEL_TRAINING"])
     parser.add_argument("--num-gpus", type=int, default=os.environ["SM_NUM_GPUS"])
 
     args = parser.parse_args()

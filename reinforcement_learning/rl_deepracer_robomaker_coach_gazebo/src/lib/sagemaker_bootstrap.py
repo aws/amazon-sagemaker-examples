@@ -21,24 +21,24 @@ logger = logging.getLogger(__name__)
 
 
 def train():
-    """Runs the configured SAGEMAKER_TRAINING_COMMAND with all 
+    """Runs the configured SAGEMAKER_TRAINING_COMMAND with all
     the hyperparameters.
     """
     os.chdir("/opt/ml/code")
 
-    user_args = os.environ.get('SM_USER_ARGS', '')
+    user_args = os.environ.get("SM_USER_ARGS", "")
     logger.info("SM_USER_ARGS=%s" % user_args)
     logger.info("All eniron vars=%s" % os.environ)
-    hyperparams = ' '.join(json.loads(user_args))
+    hyperparams = " ".join(json.loads(user_args))
 
-    params_blob = os.environ.get('SM_TRAINING_ENV', '')
+    params_blob = os.environ.get("SM_TRAINING_ENV", "")
     params = json.loads(params_blob)
     hyperparams_dict = params["hyperparameters"]
 
     s3_bucket = hyperparams_dict.get("s3_bucket", "gsaur-test")
     s3_prefix = hyperparams_dict.get("s3_prefix", "sagemaker")
 
-    base_cmd = os.environ.get('SAGEMAKER_TRAINING_COMMAND', 'python train.py')
+    base_cmd = os.environ.get("SAGEMAKER_TRAINING_COMMAND", "python train.py")
     cmd = "%s %s" % (base_cmd, hyperparams)
     logger.info("Launching training command: %s" % cmd)
     retval = os.system(cmd)

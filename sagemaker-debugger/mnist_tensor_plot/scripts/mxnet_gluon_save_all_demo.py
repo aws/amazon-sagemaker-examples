@@ -9,10 +9,9 @@ from mxnet import autograd, gluon, init
 from mxnet.gluon import nn
 from mxnet.gluon.data.vision import datasets, transforms
 
+
 def parse_args():
-    parser = argparse.ArgumentParser(
-        description="Train a mxnet gluon model for MNIST dataset"
-    )
+    parser = argparse.ArgumentParser(description="Train a mxnet gluon model for MNIST dataset")
     parser.add_argument("--batch-size", type=int, default=256, help="Batch size")
     opt = parser.parse_args()
     return opt
@@ -56,6 +55,7 @@ def train_model(batch_size, net, train_data, valid_data):
             )
         )
 
+
 def prepare_data(batch_size):
     mnist_train = datasets.MNIST(train=True)
     X, y = mnist_train[0]
@@ -84,6 +84,7 @@ def prepare_data(batch_size):
     )
     return train_data, valid_data
 
+
 # Create a model using gluon API. Note: debugger hook currently
 # supports MXNet gluon models only.
 def create_gluon_model():
@@ -102,6 +103,7 @@ def create_gluon_model():
     net.initialize(init=init.Xavier(), ctx=mx.cpu())
     return net
 
+
 def main():
     opt = parse_args()
     # Create a Gluon Model.
@@ -112,6 +114,7 @@ def main():
     train_data, valid_data = prepare_data(batch_size)
 
     train_model(batch_size, net, train_data, valid_data)
+
 
 if __name__ == "__main__":
     main()

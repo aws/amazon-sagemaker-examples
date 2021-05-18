@@ -29,19 +29,23 @@ class Net(nn.Module):
         x = self.fc2(x)
         return F.log_softmax(x, dim=1)
 
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
 
 def model_fn(model_dir):
     model = Net().to(device)
-    model.eval() 
+    model.eval()
     return model
+
 
 # data preprocessing
 def input_fn(request_body, request_content_type):
-    assert request_content_type=='application/json'
-    data = json.loads(request_body)['inputs']
+    assert request_content_type == "application/json"
+    data = json.loads(request_body)["inputs"]
     data = torch.tensor(data, dtype=torch.float32, device=device)
     return data
+
 
 # inference
 def predict_fn(input_object, model):
@@ -49,9 +53,9 @@ def predict_fn(input_object, model):
         prediction = model(input_object)
     return prediction
 
+
 # postprocess
 def output_fn(predictions, content_type):
-    assert content_type == 'application/json'
+    assert content_type == "application/json"
     res = predictions.cpu().numpy().tolist()
     return json.dumps(res)
-    

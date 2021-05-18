@@ -3,22 +3,36 @@
 
 from __future__ import print_function
 
-import os
-import sys
-import stat
-import json
-import shutil
-import flask
-from flask import Flask, jsonify, request, make_response, Response
-import glob
-import pandas as pd
-import numpy as np
 import csv
+import glob
+import json
+import os
+import shutil
+import stat
+import sys
 from io import StringIO
+
+import flask
+import numpy as np
+import pandas as pd
+from flask import Flask, Response, jsonify, make_response, request
 from joblib import dump, load
 from sagemaker_containers.beta.framework import (
-    content_types, encoders, env, modules, transformer, worker)
-from utils import write_failure_file, print_json_object, load_json_object, save_model_artifacts, print_files_in_path
+    content_types,
+    encoders,
+    env,
+    modules,
+    transformer,
+    worker,
+)
+
+from utils import (
+    load_json_object,
+    print_files_in_path,
+    print_json_object,
+    save_model_artifacts,
+    write_failure_file,
+)
 
 model_artifacts_path = "/opt/ml/model/"
 feature_column = "words"
@@ -39,7 +53,7 @@ def load_model():
         le = load(os.path.join(model_artifacts_path, "label.joblib"))
 
 
-@app.route('/ping', methods=['GET'])
+@app.route("/ping", methods=["GET"])
 def ping():
     """Determine if the container is working and healthy. In this sample container, we declare
     it healthy if we can load the model successfully."""
@@ -47,10 +61,10 @@ def ping():
     health = preprocessor is not None and le is not None
 
     status = 200 if health else 404
-    return flask.Response(response='\n', status=status, mimetype='application/json')
+    return flask.Response(response="\n", status=status, mimetype="application/json")
 
 
-@app.route('/invocations', methods=['POST'])
+@app.route("/invocations", methods=["POST"])
 def transformation():
 
     print("data: ", request.data[:100])
@@ -60,26 +74,23 @@ def transformation():
 
     load_model()
 
-    content_type = request.headers['Content-Type']
+    content_type = request.headers["Content-Type"]
     print("Content type", content_type)
-    accept = request.headers['Accept']
+    accept = request.headers["Accept"]
     print("Accept", accept)
 
     input_data = request.data.decode()
 
-    first_entry = input_data.split('\n', 1)[0].split(',', 1)[0]
+    first_entry = input_data.split("\n", 1)[0].split(",", 1)[0]
     print("First entry is: ", first_entry)
     df = None
 
     if first_entry == "label" or first_entry.startswith("category_"):
-        recs = [(row[0], set(row[1:]))
-                for row in csv.reader(StringIO(input_data))]
+        recs = [(row[0], set(row[1:])) for row in csv.reader(StringIO(input_data))]
         if first_entry == "label":
-            df = pd.DataFrame.from_records(
-                recs[1:], columns=[label_column, feature_column])
+            df = pd.DataFrame.from_records(recs[1:], columns=[label_column, feature_column])
         else:
-            df = pd.DataFrame.from_records(
-                recs, columns=[label_column, feature_column])
+            df = pd.DataFrame.from_records(recs, columns=[label_column, feature_column])
         # This is a labelled example, includes the ring label
         print("Length indicates that label is included")
     else:
@@ -111,8 +122,7 @@ def transformation():
 
         return Response(json.dumps(json_output), mimetype=accept)
     # TODO: use custom flag to indicate that this is in a pipeline rather than relying on the '*/*'
-    elif accept == 'text/csv' or accept == '*/*':
+    elif accept == "text/csv" or accept == "*/*":
         return Response(encoders.encode(prediction, "text/csv"), mimetype="text/csv")
     else:
-        raise RuntimeError(
-            "{} accept type is not supported by this script.".format(accept))
+        raise RuntimeError("{} accept type is not supported by this script.".format(accept))

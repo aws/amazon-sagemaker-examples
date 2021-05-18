@@ -6,21 +6,19 @@ forces, like if a job suddenly fails due to invalid input we didn't
 validate fully, this will still write the job state back to the DB.
 """
 import json
+import os
+from re import search
 
 import boto3
-
 from shared import db, log
-from re import search
-import os
-
-from shared.constants import BatchStatus, BatchMetadataTableAttributes, BatchMetadataType
+from shared.constants import BatchMetadataTableAttributes, BatchMetadataType, BatchStatus
 from shared.db import get_batch_metadata_by_labeling_job_name
 
 sfn_client = boto3.client("stepfunctions")
 s3_client = boto3.client("s3")
-s3 = boto3.resource('s3')
+s3 = boto3.resource("s3")
 
-glue_bucket_name = bucket_path = os.environ.get('GLUE_WM_BUCKET_NAME',None)
+glue_bucket_name = bucket_path = os.environ.get("GLUE_WM_BUCKET_NAME", None)
 
 
 def extract_labeling_job(job_arn):
@@ -32,23 +30,29 @@ def mark_job_batch_complete(job_level_batch):
     log.logger.info(f"Signaling batch_meta to resume execution {job_level_batch}")
 
     batch_id = job_level_batch[BatchMetadataTableAttributes.BATCH_ID]
-    if job_level_batch[BatchMetadataTableAttributes.BATCH_STATUS] != BatchStatus.WAIT_FOR_SMGT_RESPONSE:
+    if (
+        job_level_batch[BatchMetadataTableAttributes.BATCH_STATUS]
+        != BatchStatus.WAIT_FOR_SMGT_RESPONSE
+    ):
         log.logger.error("Invalid batch status, ignoring request")
         return
     db.update_batch_status(batch_id, BatchStatus.COMPLETE)
 
     # Copy worker metrics from groundtruth bucket to raw_worker_metrics
     # folder in the glue bucket
-    jobOutputLocation = job_level_batch['JobOutputLocation']
-    bucketName = jobOutputLocation.split('/')[2]
+    jobOutputLocation = job_level_batch["JobOutputLocation"]
+    bucketName = jobOutputLocation.split("/")[2]
     groundtruth_bucket = s3.Bucket(bucketName)
 
-    for obj in groundtruth_bucket.objects.filter(Prefix='/'.join(jobOutputLocation.split('/')[3:6])):
-        if obj.key.endswith('.json') and 'worker-response' in obj.key:
-            if not obj.key.endswith('.jpg.json'):
+    for obj in groundtruth_bucket.objects.filter(
+        Prefix="/".join(jobOutputLocation.split("/")[3:6])
+    ):
+        if obj.key.endswith(".json") and "worker-response" in obj.key:
+            if not obj.key.endswith(".jpg.json"):
                 new_key = f"raw_worker_metrics/{'/'.join(obj.key.split('/')[1:])}"
-                s3_client.copy_object(Bucket=glue_bucket_name, CopySource=f"{bucketName}/{obj.key}", Key=new_key)
-
+                s3_client.copy_object(
+                    Bucket=glue_bucket_name, CopySource=f"{bucketName}/{obj.key}", Key=new_key
+                )
 
     parent_batch_id = job_level_batch[BatchMetadataTableAttributes.PARENT_BATCH_ID]
     if not db.update_batch_child_count(parent_batch_id, 1):
@@ -83,11 +87,12 @@ def process_new_status(job_arn, job_status, invoked_function_arn):
     log.logger.info(f"Processing job arn '{job_arn}' with status '{job_status}'")
 
     labeling_job_name = extract_labeling_job(job_arn)
-    batch_metadata = db.get_batch_metadata_by_labeling_job_name(labeling_job_name, BatchMetadataType.JOB_LEVEL)
+    batch_metadata = db.get_batch_metadata_by_labeling_job_name(
+        labeling_job_name, BatchMetadataType.JOB_LEVEL
+    )
 
     if len(batch_metadata) > 0:
         mark_job_batch_complete(batch_metadata[0])
-
 
 
 def lambda_handler(event, context):

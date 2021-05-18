@@ -15,6 +15,7 @@ import torchvision.transforms as transforms
 from smdebug import modes
 from smdebug.pytorch import get_hook
 
+
 def train(batch_size, epoch, net, hook, device, local_rank):
     transform_train = transforms.Compose(
         [

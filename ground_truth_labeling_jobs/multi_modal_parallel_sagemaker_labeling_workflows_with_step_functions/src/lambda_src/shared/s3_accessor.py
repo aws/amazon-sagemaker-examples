@@ -1,5 +1,4 @@
 import boto3
-
 from shared import log
 
 s3 = boto3.resource("s3")

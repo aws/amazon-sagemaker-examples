@@ -6,9 +6,9 @@ It is currently a no-op.
 """
 
 import boto3
-
 from shared import db, log
 from shared.constants import BatchCurrentStep, BatchMetadataType, BatchStatus
+
 
 def lambda_handler(event, context):
     """
@@ -30,7 +30,6 @@ def lambda_handler(event, context):
     batch_id = event["batchId"]
 
     error_message = ""
-
 
     """
     Example database entry input for batch

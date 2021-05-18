@@ -1,11 +1,12 @@
-import os
 import errno
+import os
+
 import horovod.tensorflow as hvd
+
+# SMP: Import TF2.x API
+import smdistributed.modelparallel.tensorflow as smp
 import tensorflow as tf
 from tensorflow.keras.layers import Conv2D, Dense, Flatten
-
-# SMP: Import TF2.x API 
-import smdistributed.modelparallel.tensorflow as smp
 
 tf.random.set_seed(1234)
 
@@ -46,7 +47,7 @@ test_ds = (
 )
 
 
-# SMP: Define smp.DistributedModel the same way as Keras sub-classing API 
+# SMP: Define smp.DistributedModel the same way as Keras sub-classing API
 class MyModel(smp.DistributedModel):
     def __init__(self):
         super(MyModel, self).__init__()
@@ -92,7 +93,7 @@ def train_step(images, labels, first_batch):
     gradients = [hvd.allreduce(g.accumulate()) for g in gradients]
     optimizer.apply_gradients(zip(gradients, model.trainable_variables))
 
-    # Horovod: Broadcast the variables after first batch 
+    # Horovod: Broadcast the variables after first batch
     if first_batch:
         hvd.broadcast_variables(model.variables, root_rank=0)
         hvd.broadcast_variables(optimizer.variables(), root_rank=0)

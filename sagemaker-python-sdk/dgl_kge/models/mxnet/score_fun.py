@@ -1,8 +1,9 @@
-import numpy as np
 import mxnet as mx
+import numpy as np
 from mxnet import gluon
-from mxnet.gluon import nn
 from mxnet import ndarray as nd
+from mxnet.gluon import nn
+
 
 class TransEScore(nn.Block):
     def __init__(self, gamma):
@@ -10,11 +11,11 @@ class TransEScore(nn.Block):
         self.gamma = gamma
 
     def edge_func(self, edges):
-        head = edges.src['emb']
-        tail = edges.dst['emb']
-        rel = edges.data['emb']
+        head = edges.src["emb"]
+        tail = edges.dst["emb"]
+        rel = edges.data["emb"]
         score = head + rel - tail
-        return {'score': self.gamma - nd.norm(score, ord=1, axis=-1)}
+        return {"score": self.gamma - nd.norm(score, ord=1, axis=-1)}
 
     def prepare(self, g, gpu_id, trace=False):
         pass
@@ -22,6 +23,7 @@ class TransEScore(nn.Block):
     def create_neg_prepare(self, neg_head):
         def fn(rel_id, num_chunks, head, tail, gpu_id, trace=False):
             return head, tail
+
         return fn
 
     def update(self):
@@ -42,21 +44,26 @@ class TransEScore(nn.Block):
     def create_neg(self, neg_head):
         gamma = self.gamma
         if neg_head:
+
             def fn(heads, relations, tails, num_chunks, chunk_size, neg_sample_size):
                 hidden_dim = heads.shape[1]
                 heads = heads.reshape(num_chunks, 1, neg_sample_size, hidden_dim)
                 tails = tails - relations
-                tails = tails.reshape(num_chunks,chunk_size, 1, hidden_dim)
+                tails = tails.reshape(num_chunks, chunk_size, 1, hidden_dim)
                 return gamma - nd.norm(heads - tails, ord=1, axis=-1)
+
             return fn
         else:
+
             def fn(heads, relations, tails, num_chunks, chunk_size, neg_sample_size):
                 hidden_dim = heads.shape[1]
                 heads = heads + relations
                 heads = heads.reshape(num_chunks, chunk_size, 1, hidden_dim)
                 tails = tails.reshape(num_chunks, 1, neg_sample_size, hidden_dim)
                 return gamma - nd.norm(heads - tails, ord=1, axis=-1)
+
             return fn
+
 
 class TransRScore(nn.Block):
     def __init__(self, gamma, projection_emb, relation_dim, entity_dim):
@@ -67,23 +74,28 @@ class TransRScore(nn.Block):
         self.entity_dim = entity_dim
 
     def edge_func(self, edges):
-        head = edges.data['head_emb']
-        tail = edges.data['tail_emb']
-        rel = edges.data['emb']
+        head = edges.data["head_emb"]
+        tail = edges.data["tail_emb"]
+        rel = edges.data["emb"]
         score = head + rel - tail
-        return {'score': self.gamma - nd.norm(score, ord=1, axis=-1)}
+        return {"score": self.gamma - nd.norm(score, ord=1, axis=-1)}
 
     def prepare(self, g, gpu_id, trace=False):
-        head_ids, tail_ids = g.all_edges(order='eid')
-        projection = self.projection_emb(g.edata['id'], gpu_id, trace)
+        head_ids, tail_ids = g.all_edges(order="eid")
+        projection = self.projection_emb(g.edata["id"], gpu_id, trace)
         projection = projection.reshape(-1, self.entity_dim, self.relation_dim)
-        head_emb = g.ndata['emb'][head_ids.as_in_context(g.ndata['emb'].context)].expand_dims(axis=-2)
-        tail_emb = g.ndata['emb'][tail_ids.as_in_context(g.ndata['emb'].context)].expand_dims(axis=-2)
-        g.edata['head_emb'] = nd.batch_dot(head_emb, projection).squeeze()
-        g.edata['tail_emb'] = nd.batch_dot(tail_emb, projection).squeeze()
+        head_emb = g.ndata["emb"][head_ids.as_in_context(g.ndata["emb"].context)].expand_dims(
+            axis=-2
+        )
+        tail_emb = g.ndata["emb"][tail_ids.as_in_context(g.ndata["emb"].context)].expand_dims(
+            axis=-2
+        )
+        g.edata["head_emb"] = nd.batch_dot(head_emb, projection).squeeze()
+        g.edata["tail_emb"] = nd.batch_dot(tail_emb, projection).squeeze()
 
     def create_neg_prepare(self, neg_head):
         if neg_head:
+
             def fn(rel_id, num_chunks, head, tail, gpu_id, trace=False):
                 # pos node, project to its relation
                 projection = self.projection_emb(rel_id, gpu_id, trace)
@@ -112,8 +124,10 @@ class TransRScore(nn.Block):
                     heads.append(head_negs)
                 head = nd.stack(*heads)
                 return head, tail
+
             return fn
         else:
+
             def fn(rel_id, num_chunks, head, tail, gpu_id, trace=False):
                 # pos node, project to its relation
                 projection = self.projection_emb(rel_id, gpu_id, trace)
@@ -141,6 +155,7 @@ class TransRScore(nn.Block):
                     tails.append(tail_negs)
                 tail = nd.stack(*tails)
                 return head, tail
+
             return fn
 
     def forward(self, g):
@@ -153,41 +168,46 @@ class TransRScore(nn.Block):
         self.projection_emb.update()
 
     def save(self, path, name):
-        self.projection_emb.save(path, name+'projection')
+        self.projection_emb.save(path, name + "projection")
 
     def load(self, path, name):
-        self.projection_emb.load(path, name+'projection')
+        self.projection_emb.load(path, name + "projection")
 
     def create_neg(self, neg_head):
         gamma = self.gamma
         if neg_head:
+
             def fn(heads, relations, tails, num_chunks, chunk_size, neg_sample_size):
                 relations = relations.reshape(num_chunks, -1, self.relation_dim)
                 tails = tails - relations
                 tails = tails.reshape(num_chunks, -1, 1, self.relation_dim)
                 score = heads - tails
                 return gamma - nd.norm(score, ord=1, axis=-1)
+
             return fn
         else:
+
             def fn(heads, relations, tails, num_chunks, chunk_size, neg_sample_size):
                 relations = relations.reshape(num_chunks, -1, self.relation_dim)
                 heads = heads - relations
                 heads = heads.reshape(num_chunks, -1, 1, self.relation_dim)
                 score = heads - tails
                 return gamma - nd.norm(score, ord=1, axis=-1)
+
             return fn
+
 
 class DistMultScore(nn.Block):
     def __init__(self):
         super(DistMultScore, self).__init__()
 
     def edge_func(self, edges):
-        head = edges.src['emb']
-        tail = edges.dst['emb']
-        rel = edges.data['emb']
+        head = edges.src["emb"]
+        tail = edges.dst["emb"]
+        rel = edges.data["emb"]
         score = head * rel * tail
         # TODO: check if there exists minus sign and if gamma should be used here(jin)
-        return {'score': nd.sum(score, axis=-1)}
+        return {"score": nd.sum(score, axis=-1)}
 
     def prepare(self, g, gpu_id, trace=False):
         pass
@@ -195,6 +215,7 @@ class DistMultScore(nn.Block):
     def create_neg_prepare(self, neg_head):
         def fn(rel_id, num_chunks, head, tail, gpu_id, trace=False):
             return head, tail
+
         return fn
 
     def update(self):
@@ -214,37 +235,44 @@ class DistMultScore(nn.Block):
 
     def create_neg(self, neg_head):
         if neg_head:
+
             def fn(heads, relations, tails, num_chunks, chunk_size, neg_sample_size):
                 hidden_dim = heads.shape[1]
                 heads = heads.reshape(num_chunks, neg_sample_size, hidden_dim)
                 heads = nd.transpose(heads, axes=(0, 2, 1))
                 tmp = (tails * relations).reshape(num_chunks, chunk_size, hidden_dim)
                 return nd.linalg_gemm2(tmp, heads)
+
             return fn
         else:
+
             def fn(heads, relations, tails, num_chunks, chunk_size, neg_sample_size):
                 hidden_dim = heads.shape[1]
                 tails = tails.reshape(num_chunks, neg_sample_size, hidden_dim)
                 tails = nd.transpose(tails, axes=(0, 2, 1))
                 tmp = (heads * relations).reshape(num_chunks, chunk_size, hidden_dim)
                 return nd.linalg_gemm2(tmp, tails)
+
             return fn
+
 
 class ComplExScore(nn.Block):
     def __init__(self):
         super(ComplExScore, self).__init__()
 
     def edge_func(self, edges):
-        real_head, img_head = nd.split(edges.src['emb'], num_outputs=2, axis=-1)
-        real_tail, img_tail = nd.split(edges.dst['emb'], num_outputs=2, axis=-1)
-        real_rel, img_rel = nd.split(edges.data['emb'], num_outputs=2, axis=-1)
+        real_head, img_head = nd.split(edges.src["emb"], num_outputs=2, axis=-1)
+        real_tail, img_tail = nd.split(edges.dst["emb"], num_outputs=2, axis=-1)
+        real_rel, img_rel = nd.split(edges.data["emb"], num_outputs=2, axis=-1)
 
-        score = real_head * real_tail * real_rel \
-                + img_head * img_tail * real_rel \
-                + real_head * img_tail * img_rel \
-                - img_head * real_tail * img_rel
+        score = (
+            real_head * real_tail * real_rel
+            + img_head * img_tail * real_rel
+            + real_head * img_tail * img_rel
+            - img_head * real_tail * img_rel
+        )
         # TODO: check if there exists minus sign and if gamma should be used here(jin)
-        return {'score': nd.sum(score, -1)}
+        return {"score": nd.sum(score, -1)}
 
     def prepare(self, g, gpu_id, trace=False):
         pass
@@ -252,6 +280,7 @@ class ComplExScore(nn.Block):
     def create_neg_prepare(self, neg_head):
         def fn(rel_id, num_chunks, head, tail, gpu_id, trace=False):
             return head, tail
+
         return fn
 
     def update(self):
@@ -271,6 +300,7 @@ class ComplExScore(nn.Block):
 
     def create_neg(self, neg_head):
         if neg_head:
+
             def fn(heads, relations, tails, num_chunks, chunk_size, neg_sample_size):
                 hidden_dim = heads.shape[1]
                 emb_real, emb_img = nd.split(tails, num_outputs=2, axis=-1)
@@ -282,8 +312,10 @@ class ComplExScore(nn.Block):
                 heads = heads.reshape(num_chunks, neg_sample_size, hidden_dim)
                 heads = nd.transpose(heads, axes=(0, 2, 1))
                 return nd.linalg_gemm2(tmp, heads)
+
             return fn
         else:
+
             def fn(heads, relations, tails, num_chunks, chunk_size, neg_sample_size):
                 hidden_dim = heads.shape[1]
                 emb_real, emb_img = nd.split(heads, num_outputs=2, axis=-1)
@@ -296,7 +328,9 @@ class ComplExScore(nn.Block):
                 tails = tails.reshape(num_chunks, neg_sample_size, hidden_dim)
                 tails = nd.transpose(tails, axes=(0, 2, 1))
                 return nd.linalg_gemm2(tmp, tails)
+
             return fn
+
 
 class RESCALScore(nn.Block):
     def __init__(self, relation_dim, entity_dim):
@@ -305,13 +339,13 @@ class RESCALScore(nn.Block):
         self.entity_dim = entity_dim
 
     def edge_func(self, edges):
-        head = edges.src['emb']
-        tail = edges.dst['emb'].expand_dims(2)
-        rel = edges.data['emb']
+        head = edges.src["emb"]
+        tail = edges.dst["emb"].expand_dims(2)
+        rel = edges.data["emb"]
         rel = rel.reshape(-1, self.relation_dim, self.entity_dim)
         score = head * mx.nd.batch_dot(rel, tail).squeeze()
         # TODO: check if use self.gamma
-        return {'score': mx.nd.sum(score, -1)}
+        return {"score": mx.nd.sum(score, -1)}
         # return {'score': self.gamma - th.norm(score, p=1, dim=-1)}
 
     def prepare(self, g, gpu_id, trace=False):
@@ -320,6 +354,7 @@ class RESCALScore(nn.Block):
     def create_neg_prepare(self, neg_head):
         def fn(rel_id, num_chunks, head, tail, gpu_id, trace=False):
             return head, tail
+
         return fn
 
     def update(self):
@@ -339,27 +374,32 @@ class RESCALScore(nn.Block):
 
     def create_neg(self, neg_head):
         if neg_head:
+
             def fn(heads, relations, tails, num_chunks, chunk_size, neg_sample_size):
                 hidden_dim = heads.shape[1]
                 heads = heads.reshape(num_chunks, neg_sample_size, hidden_dim)
-                heads = mx.nd.transpose(heads, axes=(0,2,1))
+                heads = mx.nd.transpose(heads, axes=(0, 2, 1))
                 tails = tails.expand_dims(2)
                 relations = relations.reshape(-1, self.relation_dim, self.entity_dim)
                 tmp = mx.nd.batch_dot(relations, tails).squeeze()
                 tmp = tmp.reshape(num_chunks, chunk_size, hidden_dim)
                 return nd.linalg_gemm2(tmp, heads)
+
             return fn
         else:
+
             def fn(heads, relations, tails, num_chunks, chunk_size, neg_sample_size):
                 hidden_dim = heads.shape[1]
                 tails = tails.reshape(num_chunks, neg_sample_size, hidden_dim)
-                tails = mx.nd.transpose(tails, axes=(0,2,1))
+                tails = mx.nd.transpose(tails, axes=(0, 2, 1))
                 heads = heads.expand_dims(2)
                 relations = relations.reshape(-1, self.relation_dim, self.entity_dim)
                 tmp = mx.nd.batch_dot(relations, heads).squeeze()
                 tmp = tmp.reshape(num_chunks, chunk_size, hidden_dim)
                 return nd.linalg_gemm2(tmp, tails)
+
             return fn
+
 
 class RotatEScore(nn.Block):
     def __init__(self, gamma, emb_init, eps=1e-10):
@@ -369,18 +409,18 @@ class RotatEScore(nn.Block):
         self.eps = eps
 
     def edge_func(self, edges):
-        real_head, img_head = nd.split(edges.src['emb'], num_outputs=2, axis=-1)
-        real_tail, img_tail = nd.split(edges.dst['emb'], num_outputs=2, axis=-1)
+        real_head, img_head = nd.split(edges.src["emb"], num_outputs=2, axis=-1)
+        real_tail, img_tail = nd.split(edges.dst["emb"], num_outputs=2, axis=-1)
 
-        phase_rel = edges.data['emb'] / (self.emb_init / np.pi)
+        phase_rel = edges.data["emb"] / (self.emb_init / np.pi)
         re_rel, im_rel = nd.cos(phase_rel), nd.sin(phase_rel)
         real_score = real_head * re_rel - img_head * im_rel
         img_score = real_head * im_rel + img_head * re_rel
         real_score = real_score - real_tail
         img_score = img_score - img_tail
-        #sqrt((x*x).sum() + eps)
+        # sqrt((x*x).sum() + eps)
         score = mx.nd.sqrt(real_score * real_score + img_score * img_score + self.eps).sum(-1)
-        return {'score': self.gamma - score} 
+        return {"score": self.gamma - score}
 
     def prepare(self, g, gpu_id, trace=False):
         pass
@@ -388,6 +428,7 @@ class RotatEScore(nn.Block):
     def create_neg_prepare(self, neg_head):
         def fn(rel_id, num_chunks, head, tail, gpu_id, trace=False):
             return head, tail
+
         return fn
 
     def update(self):
@@ -410,6 +451,7 @@ class RotatEScore(nn.Block):
         emb_init = self.emb_init
         eps = self.eps
         if neg_head:
+
             def fn(heads, relations, tails, num_chunks, chunk_size, neg_sample_size):
                 hidden_dim = heads.shape[1]
                 emb_real, emb_img = nd.split(tails, num_outputs=2, axis=-1)
@@ -424,11 +466,15 @@ class RotatEScore(nn.Block):
 
                 score = tmp - heads
                 score_real, score_img = nd.split(score, num_outputs=2, axis=-1)
-                score = mx.nd.sqrt(score_real * score_real + score_img * score_img + self.eps).sum(-1)
- 
+                score = mx.nd.sqrt(score_real * score_real + score_img * score_img + self.eps).sum(
+                    -1
+                )
+
                 return gamma - score
+
             return fn
         else:
+
             def fn(heads, relations, tails, num_chunks, chunk_size, neg_sample_size):
                 hidden_dim = heads.shape[1]
                 emb_real, emb_img = nd.split(heads, num_outputs=2, axis=-1)
@@ -443,9 +489,10 @@ class RotatEScore(nn.Block):
 
                 score = tmp - tails
                 score_real, score_img = nd.split(score, num_outputs=2, axis=-1)
-                score = mx.nd.sqrt(score_real * score_real + score_img * score_img + self.eps).sum(-1)
- 
+                score = mx.nd.sqrt(score_real * score_real + score_img * score_img + self.eps).sum(
+                    -1
+                )
+
                 return gamma - score
+
             return fn
-
-

@@ -1,8 +1,9 @@
-import signal
-import pprint
 import json
 import os
+import pprint
+import signal
 from os import path
+
 
 class ExitSignalHandler:
     def __init__(self):
@@ -15,23 +16,27 @@ class ExitSignalHandler:
 
 
 def write_failure_file(failure_file_path, failure_reason):
-    failure_file = open(failure_file_path, 'w')
+    failure_file = open(failure_file_path, "w")
     failure_file.write(failure_reason)
     failure_file.close()
-    
+
+
 def save_model_artifacts(model_artifacts_path, net):
-    if (path.exists(model_artifacts_path)):
-        model_file = open(model_artifacts_path + 'model.dummy', 'w')
+    if path.exists(model_artifacts_path):
+        model_file = open(model_artifacts_path + "model.dummy", "w")
         model_file.write("Dummy model.")
         model_file.close()
-    
+
+
 def print_json_object(json_object):
     pprint.pprint(json_object)
-        
+
+
 def load_json_object(json_file_path):
     with open(json_file_path) as json_file:
         return json.load(json_file)
-    
+
+
 def print_files_in_path(path):
     files = []
     # r=root, d=directories, f = files

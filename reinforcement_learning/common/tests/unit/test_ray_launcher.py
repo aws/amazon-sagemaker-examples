@@ -11,10 +11,11 @@
 # ANY KIND, either express or implied. See the License for the specific
 # language governing permissions and limitations under the License.
 from __future__ import absolute_import
-import pytest
-from mock import Mock, MagicMock, patch
 
+import pytest
+from mock import MagicMock, Mock, patch
 from sagemaker_rl.ray_launcher import SageMakerRayLauncher
+
 
 @patch("sagemaker_rl.ray_launcher.SageMakerRayLauncher.__init__", return_value=None)
 @patch("sagemaker_rl.ray_launcher.change_permissions_recursive")
