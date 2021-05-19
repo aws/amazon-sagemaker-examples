@@ -50,7 +50,7 @@ class JaxEstimator(Framework):
             model_data=self.model_data,
             role=role or self.role,
             container_log_level=self.container_log_level,
-            framework_version="2.4.0",
+            framework_version="2.3.1",
             sagemaker_session=self.sagemaker_session,
             vpc_config=self.get_vpc_config(vpc_config_override),
             entry_point=entry_point,
