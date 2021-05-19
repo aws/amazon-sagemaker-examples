@@ -78,12 +78,15 @@ Model monitor
    :maxdepth: 1
 
    ../sagemaker_model_monitor/index
-   
+
 Multi-Model Deployment
 ======================
 
 .. toctree::
    :maxdepth: 1
 
-   ../advanced_functionality/multi_model_sklearn_no_cache
-
+   ../advanced_functionality/multi_model_bring_your_own/multi_model_endpoint_bring_your_own
+   ../advanced_functionality/multi_model_linear_learner_home_value/linear_learner_multi_model_endpoint_inf_pipeline
+   ../advanced_functionality/multi_model_pytorch/pytorch_multi_model_endpoint
+   ../advanced_functionality/multi_model_sklearn_home_value/sklearn_multi_model_endpoint_home_value
+   ../advanced_functionality/multi_model_xgboost_home_value/xgboost_multi_model_endpoint_home_value

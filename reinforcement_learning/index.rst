@@ -130,17 +130,6 @@ Use SageMaker RL to address a canonical operations research problem, aka, a knap
    rl_knapsack_coach_custom/rl_knapsack_coach_customEnv
 
 
-Object tracker
---------------
-
-Use RL to train a TurtleBot object tracker using Amazon SageMaker Reinforcement Learning and AWS RoboMaker.
-
-.. toctree::
-   :maxdepth: 0
-
-   rl_objecttracker_robomaker_coach_gazebo/rl_objecttracker_coach_robomaker
-
-
 Network compression
 -------------------
 
