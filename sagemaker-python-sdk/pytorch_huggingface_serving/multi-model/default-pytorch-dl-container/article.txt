@@ -1,0 +1,66 @@
+The Amazon Technical Academy upskilling program targets Amazon employees aspiring to become software engineers. Its leader says education is key to long-term success.
+The benefits are vast for Amazon employees accepted into Amazon Technical Academy, one of six training programs included in Upskilling 2025, Amazon’s $700 million commitment to equip more than 100,000 Amazon employees with new professional skills by 2025.
+
+Amazon Technical Academy trains employees in the essential skills needed to transition to entry-level software developer engineer roles at Amazon. The program requires no previous computer training from applicants, only a high school diploma or GED—and the fortitude to get through a rigorous nine-month, full-time program created by expert Amazon software engineers.
+
+Hundreds of Amazon employees have enrolled in Amazon Technical Academy since its launch in 2017. Amazon Technical Academy has placed 98% of its graduates into software development engineer roles within Amazon, with their salary and compensation packages increasing an average of 93%. Applicants accepted into the tuition-free program receive a stipend to cover living costs and a subsidy to maintain their benefits plan.
+
+As part of its commitment to provide career advancement opportunities for employees, the company invested more than $12 million into this program in 2020 alone.
+
+Ashley Rajagopal, a longtime Amazon employee who has held various roles across Amazon’s Consumer business, leads the program. She joined Amazon Technical Academy early on, as a small team of engineers and product managers evaluating whether Amazon could upskill employees into software engineering careers regardless of their tech skills or backgrounds.
+
+Ashely Rajagopal wears a black dress with a jean jacket and a long gold necklace. She smiles as she stands outside in a park.
+Ashley Rajagopal leads the Amazon Technical Academy.
+Photo by Mitch Pittman/Amazon
+“Key to our success has been our deliberate effort to demystify the skills it takes to become a software engineer,” Rajagopal said. “As we’ve defined those skills, we have intentionally evolved our curriculum and teaching approach to be accessible to participants who didn’t have the opportunity, either because of background or financial limitations, to pursue a college degree in software engineering.”
+
+Graduates come from a vast array of professional backgrounds at Amazon, including fulfillment center associates, program managers, recruitment coordinators, executive assistants, and financial analysts. Their personal backgrounds are just as varied: single parents, immigrants, college graduates, GED recipients. The diversity is a reflection of Amazon Technical Academy’s intentional accessibility.
+
+What graduates all have in common, Rajagopal said, is career ownership and a desire to pursue a new professional path.
+
+“Our graduates all had a vision for their future and an unwavering commitment to advance into a technical role. Amazon Technical Academy was simply here to open the door to a role as a software engineer and offer the support they needed to get there. I love their passion to pursue their dreams,” Rajagopal said.
+
+“Someone saw something in me when I came to work at Amazon 11 years ago,” said added. “I had managers invest in me. I feel like it’s really important for me to share that with other people and to pass that along. I believe education is the key to giving people a vision and path to reach their potential and taking control of their career progression.”
+
+Software engineering for all
+Since its inception, Amazon Technical Academy has aimed to not only help individuals advance their careers to better support themselves and their families, but to provide Amazon hiring managers with high-performing software engineers who understand Amazon’s systems and culture.
+
+“We had an idea—a really big idea—that we could reimagine how Amazon trains and recruits software engineers. In true Amazon fashion, we focused on building what would work best for our customers, our customers being both the participants and our hiring managers,” Rajagopal said.
+
+Over the last four years, the team worked tirelessly to build the right curriculum. They conducted extensive focus groups with software development managers and software engineers from across the company to identify all of the skills that software engineers need to use day-to-day in their job and throughout their career.
+
+Ashely Rajagopal sits on a bench outside with vibrant greenery behind her. She is focused while she works on her laptop.
+Photo by Mitch Pittman/Amazon
+“We broke up complex software engineering topics into small, discreet skills,” Rajagopal said.
+
+With the catalog of skills, Amazon Technical Academy sought to reimagine how to teach these skills to make them more accessible to a broad audience. The learning environment is structured in a flipped classroom environment where students read and watch the lecture materials before coming to class. This gives them the opportunity to spend as much time as they need to learn the material before deep diving into the topics in a classroom with other students and an instructor.
+
+The lecture materials and assignments teach the skills using broadly understood, real-world examples outside the stereotypical software engineering culture. “When we deep dive into a particular topic, we don’t teach in abstract, mathematical concepts that are regularly used in a traditional computer science university setting,” said Rajagopal. “Instead, we relate the concept to real life examples like cleaning your room, growing a flower, or opening a Russian nesting doll that many people are familiar with.”
+
+Amazon Technical Academy takes off
+This unusual approach has allowed Amazon Technical Academy to attract and successfully train participants from a wide array of educational and professional backgrounds. While the program’s pilot cohort was limited to corporate employees in Seattle, the program subsequently opened applications to all employees in the U.S., and now “a third of participants don’t have a college degree and 40% of our participants were previously in the hourly workforce,” Rajagopal said.
+
+“We pursue people across all backgrounds. Holistically, for Amazon, it’s important,” she added. “We’re looking to rethink and reimagine, and eliminate some of the barriers that exist in particular industries.
+
+Amazon Technical Academy is now offered as a free, core training and job-placement program that equips Amazon employees with essential skills needed to transition to and thrive in technical careers at Amazon. The program focuses on combining instructor-led, project-based learning with real-world application.
+
+The result is graduates who can expertly work with the most widely used software engineering tools, including Amazon Web Services (AWS) cloud computing technology. When the program ends, Amazon Technical Academy graduates transition into full-time, entry-level software engineering roles.
+
+“Over the last two years, we’ve focused on building out this program,” Rajagopal said. “We started as a small proof-of-concept for corporate employees with live, in-person instruction from a tenured Amazon software engineer.”
+
+Amazon Technical Academy expands beyond Amazon
+With a solid foundation of coursework and graduate success in place, Amazon Technical Academy is now working with two online training partners—Lambda School and Kenzie Academy—to bring its rigorous curriculum to students outside Amazon. Graduates will leave the programs with deep knowledge of software engineering skills and tools, including AWS cloud computing technology.
+
+The new Amazon-backed engineering-focused programs will offer more people access to Amazon Technical Academy coursework, which is especially helpful for individuals who did not pursue a more traditional four-year computer science degree. Graduates will be armed with the industry-leading, bar-raising skills required of Amazon software engineers.
+
+Lambda School and Kenzie Academy already have strong technical foundations: Lambda School focuses on training data scientists and web developers, and the Kenzie Academy offers programs in software engineering and UX design. Both schools are adopting Amazon Technical Academy’s curriculum and making adjustments to align with their program structure and student needs. Lambda School will begin accepting applications in August 2021 and Kenzie Academy will begin accepting applications immediately.
+
+The schools aim to recruit a diverse student body (e.g., gender, racial, and financial diversity in their applicant pool). Lambda School’s Enterprise Backend Development Program will be a nine-month, full-time, fully remote course. Kenzie Academy’s Software Engineering Program will be a nine- to 12-month, full-time, fully remote course with no fixed class time.
+
+Their programs will ready graduates for a market that, according to the Bureau of Labor Statistics, is expected to grow twice as fast for computer science professionals than for the rest of the labor market from 2014 to 2024. The bureau’s research also found that in 2019, the median annual salary for computer science occupations was about $48,000 more than the median wage for all occupations in the U.S.
+
+“We are very proud to partner with Amazon on our forthcoming Enterprise Backend Development Program,” said Austen Allred, Lambda School CEO. “We’re thrilled to provide this opportunity to our future students. Backend is a skill set that is incredibly in demand with all of our largest hiring partners and this enables us to deliver a world class curriculum.”
+
+“We are excited to work with Amazon to expand access to the Amazon Technical Academy software engineering curriculum to the general public,” said Chok Ooi, Executive Director, Kenzie Academy. “At Kenzie Academy, our focus is on leveling the playing field to enable more Americans to pursue tech careers. This is a great opportunity to combine Amazon’s exclusive software engineering curriculum with our expertise in propelling a diverse range of learners to professional success.”
+
+To learn more about Amazon’s Upskilling 2025 commitment and Amazon Technical Academy, you can visit Amazon’s Upskilling website, or email: ata-contact-us@amazon.com.
