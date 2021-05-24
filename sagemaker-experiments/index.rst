@@ -6,6 +6,13 @@ Get started with Experiments
 
    mnist-handwritten-digits-classification-experiment/mnist-handwritten-digits-classification-experiment
 
+TensorFlow2 CIFAR-10 training
+=============================
+
+.. toctree::
+   :maxdepth: 1
+
+   tensorflow2-cifar10-classification-experiment/tensorflow2-cifar10-classification-experiment
 
 Airflow workflow tracking
 =========================
