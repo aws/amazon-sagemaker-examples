@@ -150,13 +150,9 @@ def plot_lda(data, nrows, ncols, with_colorbar=True, cmap=cm.viridis):
             index = i * ncols + j
 
             if nrows > 1:
-                im = ax[i, j].matshow(
-                    data[index].reshape(n, n), cmap=cmap, vmin=vmin, vmax=vmax
-                )
+                im = ax[i, j].matshow(data[index].reshape(n, n), cmap=cmap, vmin=vmin, vmax=vmax)
             else:
-                im = ax[j].matshow(
-                    data[index].reshape(n, n), cmap=cmap, vmin=vmin, vmax=vmax
-                )
+                im = ax[j].matshow(data[index].reshape(n, n), cmap=cmap, vmin=vmin, vmax=vmax)
 
     for axi in ax.ravel():
         axi.set_xticks([])
@@ -191,9 +187,7 @@ def match_estimated_topics(topics_known, topics_estimated):
     return permutation, (topics_estimated[permutation, :]).copy()
 
 
-def _document_with_topic(
-    fig, gsi, index, document, topic_mixture=None, vmin=0, vmax=32
-):
+def _document_with_topic(fig, gsi, index, document, topic_mixture=None, vmin=0, vmax=32):
     ax_doc = fig.add_subplot(gsi[:5, :])
     ax_doc.matshow(document.reshape(5, 5), cmap="gray_r", vmin=vmin, vmax=vmax)
     ax_doc.set_xticks([])
