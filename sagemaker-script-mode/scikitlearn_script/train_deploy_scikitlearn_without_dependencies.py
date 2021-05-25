@@ -37,9 +37,7 @@ def load_dataset(path):
     Load entire dataset.
     """
     # Take the set of files and read them all into a single pandas dataframe
-    files = [
-        os.path.join(path, file) for file in os.listdir(path) if file.endswith("csv")
-    ]
+    files = [os.path.join(path, file) for file in os.listdir(path) if file.endswith("csv")]
 
     if len(files) == 0:
         raise ValueError("Invalid # of files in dir: {}".format(path))
