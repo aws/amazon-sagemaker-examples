@@ -111,9 +111,7 @@ def train():
     epochs = args.epochs
     learning_rate = args.learning_rate
     logger.info(
-        "batch_size = {}, epochs = {}, learning rate = {}".format(
-            batch_size, epochs, learning_rate
-        )
+        "batch_size = {}, epochs = {}, learning rate = {}".format(batch_size, epochs, learning_rate)
     )
 
     train_dl = DataLoader(train_ds, batch_size, shuffle=True)

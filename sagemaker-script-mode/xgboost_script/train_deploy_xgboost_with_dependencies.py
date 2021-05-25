@@ -31,9 +31,7 @@ def parse_args():
     parser = argparse.ArgumentParser()
 
     # Hyperparameters sent by the client are passed as command-line arguments to the script
-    parser.add_argument(
-        "--num_round", type=int, default=os.environ.get("SM_HP_num_round")
-    )
+    parser.add_argument("--num_round", type=int, default=os.environ.get("SM_HP_num_round"))
     parser.add_argument("--max_depth", type=int, default=5)
     parser.add_argument("--eta", type=float, default=0.2)
     parser.add_argument("--objective", type=str, default="reg:squarederror")
@@ -77,4 +75,3 @@ if __name__ == "__main__":
 
     args, _ = parse_args()
     train()
-
