@@ -8,8 +8,7 @@ assignees: ''
 ---
 
 **Link to the notebook**
-Add the link to the notebook
-
+Add the link to the notebook.
 
 **What aspects of the notebook can be improved?**
 
