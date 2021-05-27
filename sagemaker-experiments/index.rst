@@ -6,7 +6,7 @@ Get started with Experiments
 
    mnist-handwritten-digits-classification-experiment/mnist-handwritten-digits-classification-experiment
 
-Tensorflow2 CIFAR-10 training
+TensorFlow2 CIFAR-10 training
 =============================
 
 .. toctree::
