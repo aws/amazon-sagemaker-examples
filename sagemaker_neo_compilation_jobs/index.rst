@@ -19,14 +19,6 @@ Apache MXNet
    mxnet_mnist/mxnet_mnist_neo
 
 
-Inferentia
-==========
-
-.. toctree::
-   :maxdepth: 1
-
-   deploy_tensorflow_model_on_Inf1_instance/tensorflow_distributed_mnist_neo_inf1
-
 
 PyTorch
 =======
