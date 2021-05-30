@@ -1,1 +1,0 @@
-# Training Data Folder
