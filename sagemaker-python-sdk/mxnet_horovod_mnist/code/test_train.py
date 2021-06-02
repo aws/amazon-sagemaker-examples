@@ -3,13 +3,9 @@ import os
 import sys
 
 import boto3
-from train import parse_args, train
+from horovod_mnist import parse_args, main
 
 dirname = os.path.dirname(os.path.abspath(__file__))
-
-with open(os.path.join(dirname, "config.json"), "r") as f:
-    CONFIG = json.load(f)
-
 
 def download_from_s3(data_dir="/tmp/data", train=True):
     """Download MNIST dataset and convert it to numpy array
@@ -32,7 +28,7 @@ def download_from_s3(data_dir="/tmp/data", train=True):
 
     # download objects
     s3 = boto3.client("s3")
-    bucket = CONFIG["public_bucket"]
+    bucket = "sagemaker-sample-files" 
     for obj in [images_file, labels_file]:
         key = os.path.join("datasets/image/MNIST", obj)
         dest = os.path.join(data_dir, obj)
@@ -57,4 +53,4 @@ if __name__ == "__main__":
     download_from_s3()
     download_from_s3(train=False)
     args = parse_args()
-    train(args)
+    main(args)
