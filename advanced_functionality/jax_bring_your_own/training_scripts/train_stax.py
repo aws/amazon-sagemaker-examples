@@ -11,15 +11,18 @@
 # ANY KIND, either express or implied. See the License for the specific
 # language governing permissions and limitations under the License.
 """
-Train JAX model and serialize as TF SavedModel
+Train JAX model using purely functional code and serialize as TF SavedModel
 """
-import argparse
-import functools
-import time
 
-import jax
-import jax.numpy as jnp
-import numpy as np
+import argparse
+import time
+from itertools import count
+
+from jax import random, grad, jit, numpy as jnp
+
+from jax.experimental import optimizers
+from jax.experimental import stax
+from jax.experimental.stax import Conv, Dense, Relu, LogSoftmax, Flatten
 import tensorflow as tf
 import tensorflow_datasets as tfds
 from jax.experimental import jax2tf
@@ -31,7 +34,7 @@ def load_fashion_mnist(split: tfds.Split, batch_size: int):
     def _prepare_example(x):
         image = tf.cast(x["image"], tf.float32) / 255.0
         label = tf.one_hot(x["label"], 10)
-        return (image, label)
+        return image, label
 
     ds = ds.map(_prepare_example)
     # drop_remainder=True is important for use with Keras
@@ -39,75 +42,85 @@ def load_fashion_mnist(split: tfds.Split, batch_size: int):
     return ds
 
 
-class PureJaxMNIST:
-    name = "mnist_pure_jax"
+def init_nn():
+    """
+    Initialize Stax model. This function can be customized as needed to define architecture
+    """
+    layers = [
+        Conv(16, (3, 3)),
+        Relu,
+        Conv(16, (3, 3)),
+        Relu,
+        Flatten,
+        Dense(10),
+        LogSoftmax,
+    ]
 
-    @staticmethod
-    def predict(params, inputs, with_classifier=True):
-        x = inputs.reshape(
-            (inputs.shape[0], np.prod(inputs.shape[1:]))
-        )  # flatten to f32[B, 784]
-        for w, b in params[:-1]:
-            x = jnp.dot(x, w) + b
-            x = jnp.tanh(x)
+    return stax.serial(*layers)
 
-        if not with_classifier:
-            return x
-        final_w, final_b = params[-1]
-        logits = jnp.dot(x, final_w) + final_b
-        return logits - jax.scipy.special.logsumexp(logits, axis=1, keepdims=True)
 
-    @staticmethod
+def get_acc_loss_and_update_fns(predict_fn, opt_update, get_params):
+    def accuracy(params, ds):
+        aggregate_mean = 0.0
+        for batch in ds.as_numpy_iterator():
+            inputs, targets = batch
+            target_class = jnp.argmax(targets, axis=1)
+            predicted_class = jnp.argmax(predict_fn(params, inputs), axis=1)
+            aggregate_mean += jnp.mean(predicted_class == target_class)
+        return aggregate_mean / len(ds)
+
+    @jit
     def loss(params, inputs, labels):
-        predictions = PureJaxMNIST.predict(params, inputs, with_classifier=True)
+        predictions = predict_fn(params, inputs)
         return -jnp.mean(jnp.sum(predictions * labels, axis=1))
 
-    @staticmethod
-    def accuracy(predict, params, dataset):
-        @jax.jit
-        def _per_batch(inputs, labels):
-            target_class = jnp.argmax(labels, axis=1)
-            predicted_class = jnp.argmax(predict(params, inputs), axis=1)
-            return jnp.mean(predicted_class == target_class)
+    @jit
+    def update(i, opt_state, batch):
+        params = get_params(opt_state)
+        return opt_update(i, grad(loss)(params, batch[0], batch[1]), opt_state)
 
-        batched = [
-            _per_batch(inputs, labels) for inputs, labels in tfds.as_numpy(dataset)
-        ]
-        return jnp.mean(jnp.stack(batched))
+    return accuracy, loss, update
 
-    @staticmethod
-    def update(params, step_size, inputs, labels):
-        grads = jax.grad(PureJaxMNIST.loss)(params, inputs, labels)
-        return [
-            (w - step_size * dw, b - step_size * db)
-            for (w, b), (dw, db) in zip(params, grads)
-        ]
 
-    @staticmethod
-    def train(train_ds, test_ds, num_epochs, step_size, with_classifier=True):
-        layer_sizes = [784, 512, 512, 10]
+def train(train_ds, test_ds, num_epochs, step_size):
+    """
+    The primary training loop is defined here
 
-        rng = jax.random.PRNGKey(0)
-        params = [
-            (0.1 * jax.random.normal(rng, (m, n)), 0.1 * jax.random.normal(rng, (n,)))
-            for m, n, in zip(layer_sizes[:-1], layer_sizes[1:])
-        ]
+    - Initialize optimizer
+    - Initialize neural network. In Stax, this means get a `predict` function and a pytree of parameters/weights.
+    - Initialize parameters according to random seed
+    - Create the loss calculation and parameter/optimizer combination update
+    - Run in for loop for `num_epochs`
 
-        for epoch in range(num_epochs):
-            start_time = time.time()
-            for inputs, labels in tfds.as_numpy(train_ds):
-                params = jax.jit(PureJaxMNIST.update)(params, step_size, inputs, labels)
-            epoch_time = time.time() - start_time
-            train_acc = PureJaxMNIST.accuracy(PureJaxMNIST.predict, params, train_ds)
-            test_acc = PureJaxMNIST.accuracy(PureJaxMNIST.predict, params, test_ds)
-            print(f"{PureJaxMNIST.name}: Epoch {epoch} in {epoch_time:0.2f} sec")
-            print(f"{PureJaxMNIST.name}: Training set accuracy {train_acc}")
-            print(f"{PureJaxMNIST.name}: Test set accuracy {test_acc}")
+    """
+    rng = random.PRNGKey(42)
+    opt_init, opt_update, get_params = optimizers.adam(step_size=step_size)
 
-        return (
-            functools.partial(PureJaxMNIST.predict, with_classifier=with_classifier),
-            params,
-        )
+    init_nn_params, predict_fn = init_nn()
+    _, init_params = init_nn_params(rng, (-1, 28, 28, 1))
+    opt_state = opt_init(init_params)
+    itercount = count()
+
+    accuracy, loss, update = get_acc_loss_and_update_fns(
+        predict_fn, opt_update, get_params
+    )
+
+    for epoch in range(num_epochs):
+        start_time = time.time()
+        for train_batch in train_ds.as_numpy_iterator():
+            opt_state = update(next(itercount), opt_state, train_batch)
+
+        params = get_params(opt_state)
+        train_acc = accuracy(params, train_ds)
+        test_acc = accuracy(params, test_ds)
+
+        epoch_time = time.time() - start_time
+
+        print(f"Epoch {epoch} in {epoch_time:0.2f} sec")
+        print(f"Training set accuracy {train_acc}")
+        print(f"Test set accuracy {test_acc}")
+
+    return predict_fn, params
 
 
 def save_model_tf(prediction_function, params_to_save):
@@ -170,8 +183,10 @@ if __name__ == "__main__":
     train_ds = load_fashion_mnist(tfds.Split.TRAIN, batch_size=args.batch_size)
     test_ds = load_fashion_mnist(tfds.Split.TEST, batch_size=args.batch_size)
 
-    (predict_fn, predict_params) = PureJaxMNIST.train(
-        train_ds, test_ds, args.num_epochs, args.learning_rate, with_classifier=True
+    predict_fn, final_params = train(
+        train_ds, test_ds, args.num_epochs, args.learning_rate
     )
 
-    save_model_tf(predict_fn, predict_params)
+    print("finished training")
+
+    save_model_tf(predict_fn, final_params)

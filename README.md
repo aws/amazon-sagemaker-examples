@@ -1,8 +1,32 @@
+![SageMaker](https://github.com/aws/amazon-sagemaker-examples/raw/master/_static/sagemaker-banner.png)
+
 # Amazon SageMaker Examples
 
-This repository contains example notebooks that show how to apply machine learning and deep learning in [Amazon SageMaker](https://aws.amazon.com/sagemaker)
+Example Jupyter notebooks that demonstrate how to build, train, and deploy machine learning models using Amazon SageMaker.
 
-## Examples
+## :books: Background
+
+[Amazon SageMaker](https://aws.amazon.com/sagemaker/) is a fully managed service for data science and machine learning (ML) workflows.
+You can use Amazon SageMaker to simplify the process of building, training, and deploying ML models.
+
+The [SageMaker example notebooks](https://sagemaker-examples.readthedocs.io/en/latest/) are Jupyter notebooks that demonstrate the usage of Amazon SageMaker.
+
+## :hammer_and_wrench: Setup
+
+The quickest setup to run example notebooks includes:
+- An [AWS account](http://docs.aws.amazon.com/sagemaker/latest/dg/gs-account.html)
+- Proper [IAM User and Role](http://docs.aws.amazon.com/sagemaker/latest/dg/authentication-and-access-control.html) setup
+- An [Amazon SageMaker Notebook Instance](http://docs.aws.amazon.com/sagemaker/latest/dg/gs-setup-working-env.html)
+- An [S3 bucket](http://docs.aws.amazon.com/sagemaker/latest/dg/gs-config-permissions.html)
+
+## :computer: Usage
+
+These example notebooks are automatically loaded into SageMaker Notebook Instances.
+They can be accessed by clicking on the `SageMaker Examples` tab in Jupyter or the SageMaker logo in JupyterLab.
+
+Although most examples utilize key Amazon SageMaker functionality like distributed, managed training or real-time hosted endpoints, these notebooks can be run outside of Amazon SageMaker Notebook Instances with minimal modification (updating IAM role definition and installing the necessary libraries).
+
+## :notebook: Examples
 
 ### Introduction to Ground Truth Labeling Jobs
 
@@ -214,24 +238,13 @@ These examples show you how to use model-packages and algorithms from AWS Market
 - [Using Dataset Products](aws_marketplace/using_data)
   - [Using Dataset Product from AWS Data Exchange with ML model from AWS Marketplace](aws_marketplace/using_data/using_data_with_ml_model) is a sample notebook which shows how a dataset from AWS Data Exchange can be used with an ML Model Package from AWS Marketplace.
 
-### Under Development
+## :balance_scale: License
 
-These Amazon SageMaker examples fully illustrate a concept, but may require some additional configuration on the users part to complete.
+This library is licensed under the [Apache 2.0 License](http://aws.amazon.com/apache2.0/).
+For more details, please take a look at the [LICENSE](https://github.com/aws/amazon-sagemaker-examples/blob/master/LICENSE.txt) file.
 
-## FAQ
+## :handshake: Contributing
 
-_What do I need in order to get started?_
-
-- The quickest setup to run example notebooks includes:
-  - An [AWS account](http://docs.aws.amazon.com/sagemaker/latest/dg/gs-account.html)
-  - Proper [IAM User and Role](http://docs.aws.amazon.com/sagemaker/latest/dg/authentication-and-access-control.html) setup
-  - An [Amazon SageMaker Notebook Instance](http://docs.aws.amazon.com/sagemaker/latest/dg/gs-setup-working-env.html)
-  - An [S3 bucket](http://docs.aws.amazon.com/sagemaker/latest/dg/gs-config-permissions.html)
-
-_Will these examples work outside of Amazon SageMaker Notebook Instances?_
-
-- Although most examples utilize key Amazon SageMaker functionality like distributed, managed training or real-time hosted endpoints, these notebooks can be run outside of Amazon SageMaker Notebook Instances with minimal modification (updating IAM role definition and installing the necessary libraries).
-
-_How do I contribute my own example notebook?_
-
-- Although we're extremely excited to receive contributions from the community, we're still working on the best mechanism to take in examples from external sources. Please bear with us in the short-term if pull requests take longer than expected or are closed.
+Although we're extremely excited to receive contributions from the community, we're still working on the best mechanism to take in examples from external sources. Please bear with us in the short-term if pull requests take longer than expected or are closed.
+Please read our [contributing guidelines](https://github.com/aws/amazon-sagemaker-examples/blob/master/CONTRIBUTING.md)
+if you'd like to open an issue or submit a pull request.
