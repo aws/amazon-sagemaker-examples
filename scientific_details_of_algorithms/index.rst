@@ -18,8 +18,6 @@ Linear learner
    :maxdepth: 1
 
    linear_learner_multiclass_classification/linear_learner_multiclass_classification
-   linear_learner_class_weights_loss_functions/linear_learner_class_weights_loss_functions
-
 
 Neural topic modeling (NTM)
 ===========================
