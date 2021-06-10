@@ -18,7 +18,8 @@ import os
 
 import pandas as pd
 from sklearn import tree
-from sklearn.externals import joblib
+#from sklearn.externals import joblib
+import joblib
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -48,8 +49,9 @@ if __name__ == "__main__":
     train_data = pd.concat(raw_data)
 
     # labels are in the first column
-    train_y = train_data.ix[:, 0]
-    train_X = train_data.ix[:, 1:]
+    train_y = train_data.iloc[:, 0]
+    train_X = train_data.iloc[:, 1:]
+    
 
     # Here we support a single hyperparameter, 'max_leaf_nodes'. Note that you can add as many
     # as your training my require in the ArgumentParser above.
