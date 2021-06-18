@@ -137,7 +137,7 @@ Person Counting use case
 .. toctree::
    :maxdepth: 0
 
-   using_model_packages/person_counting_use_case_model_evaluation_deep_dive/person_counting_use_case_model_evaluation_deep_dive
+   using_model_packages/evaluating_aws_marketplace_models_for_person_counting_use_case/evaluating_aws_marketplace_models_for_person_counting_use_case
 
 
 Use AWS Marketplace open source model packages
