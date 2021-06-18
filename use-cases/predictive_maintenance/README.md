@@ -1,5 +1,6 @@
 # Fleet Predictive Maintenance
----
+
+----
 
 ## Contents
 
@@ -11,7 +12,7 @@
 1. [Cleaning Up](#CleaningUp)
 1. [Useful Resources](#UsefulResources)
 
----
+----
 
 ## Background
 The purpose of this notebook is to demonstrate a Predictive Maintenance (PrM) solution for automible fleet maintenance via Amazon SageMaker Studio. This will give business users a quick path towards a PrM POC. In this notebook, we focus on preprocessing engine sensor data before feature engineering and building an initial model leveraging SageMaker's algorithms. The overall topics covered in this notebook are the following:  
@@ -31,7 +32,7 @@ When machinery breaks down, it negatively affects a businesses' efficiency, prod
 
 For more information on PrM, read [A Complete Guide To Predictive Maintenance](https://limblecmms.com/blog/predictive-maintenance/#). 
 
----
+----
 
 ## Approach
 
@@ -61,7 +62,8 @@ The nature of predictive maintenace solutions requires a domain knowledge expert
 1. Data Issues   
 Issues related to data can also pose a challenge in creating a reliable and accurate PrM solution. Some of the data issues most commonly faced are imbalanced classes, inaccurately labeled failure data, not enough data and not collecting the right data for the use case. In particular, not having enough failure data compared to non-failure data (class imbalance) is a difficult problem to solve for any classificaiton solution. In order to address this issue, we will attempt to resolve the imbalanced classes between failures and non-failures in the modeling section. 
 
----
+----
+
 ## Data
 
 As with any ML solution, for Predictive Maintenance, it is necessary to have relevant data, quality data and enough data to adequately train, test and validate a model. In terms of relevant data, the sensors must collect data that is related to the equipment or machinery they are predicting for. As for the quality and quantity of data, the data needs to be as accurate and robust as possible with sufficient enough failure data. For data decisions, it is important to combine the analysis done by Data Scientists with Domain Experts in order to understand the quality of the data, gather and understand appropriate data and sufficient amounts of data.    
@@ -87,7 +89,7 @@ A cycle is a specific legnth of time defined for a use case. Based on the sensor
 
 
 
----
+----
 
 ## Requirements
 
@@ -114,7 +116,7 @@ Specifications:
 * seaborn
 
 
----
+----
 ## Architecture
 
 As part of the solution, the following services are used:
@@ -127,7 +129,7 @@ As part of the solution, the following services are used:
 
 ![Fleet PrM Architecture with SageMaker Studio](./images/solution_arch_diagram.png "Solution Architecture Diagram")
 
----
+----
 ## Cleaning Up
 
 When you've finished with this solution, make sure that you delete all unwanted AWS resources. 
@@ -135,8 +137,10 @@ When you've finished with this solution, make sure that you delete all unwanted 
 **Caution**: You need to manually delete any extra resources that you may have created in this notebook. Some examples include, extra Amazon S3 buckets (to the solution's default bucket) and extra Amazon SageMaker endpoints (using a custom name).
 
 
----
+----
 ## Useful Resources
 
+
+* Predictive maintenance demo: https://youtu.be/weURTTDc8dM
 * [Amazon SageMaker Developer Guide](https://docs.aws.amazon.com/sagemaker/latest/dg/whatis.html)
 * [Amazon SageMaker Python SDK Documentation](https://sagemaker.readthedocs.io/en/stable/)
