@@ -15,10 +15,10 @@ Fleet Predictive Maintenance
 .. toctree::
     :maxdepth: 1
 
-    predmaint/0_usecase_and_architecture_predmaint
-    predmaint/1_dataprep_dw_job_predmaint
-    predmaint/2_dataprep_predmaint
-    predmaint/3_train_tune_predict_predmaint
+    predictive_maintenance/0_usecase_and_architecture_predmaint
+    predictive_maintenance/1_dataprep_dw_job_predmaint
+    predictive_maintenance/2_dataprep_predmaint
+    predictive_maintenance/3_train_tune_predict_predmaint
 
 
 E-Commerce Personalization

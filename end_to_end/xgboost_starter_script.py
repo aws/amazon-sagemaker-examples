@@ -46,15 +46,22 @@ if __name__ == "__main__":
     )
 
     print(f"[0]#011train-auc:{cv_results.iloc[-1]['train-auc-mean']}")
+    #print(f"[1]#011train-auc std:{cv_results.iloc[-1]['train-auc-std']}")
     print(f"[1]#011validation-auc:{cv_results.iloc[-1]['test-auc-mean']}")
+    #print(f"[1]#011validation-auc std:{cv_results.iloc[-1]['test-auc-std']}")
 
     metrics_data = {
-        "classification_metrics": {
-            "validation:auc": {"value": cv_results.iloc[-1]["test-auc-mean"]},
-            "train:auc": {"value": cv_results.iloc[-1]["train-auc-mean"]},
+        "binary_classification_metrics": {
+            "validation:auc": {
+                "value": cv_results.iloc[-1]["test-auc-mean"],
+                "standard_deviation": cv_results.iloc[-1]["test-auc-std"]
+            },
+            "train:auc": {
+                "value": cv_results.iloc[-1]["train-auc-mean"],
+                "standard_deviation": cv_results.iloc[-1]["train-auc-std"]
+            },
         }
     }
-
     model = xgb.train(params=params, dtrain=dtrain, num_boost_round=len(cv_results))
 
     # Save the model to the location specified by ``model_dir``
