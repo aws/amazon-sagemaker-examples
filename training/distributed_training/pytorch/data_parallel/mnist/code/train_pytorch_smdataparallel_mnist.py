@@ -125,9 +125,7 @@ def main():
         metavar="N",
         help="how many batches to wait before logging training status",
     )
-    parser.add_argument(
-        "--save-model", action="store_true", default=False, help="For Saving the current Model"
-    )
+
     parser.add_argument(
         "--verbose",
         action="store_true",
@@ -226,8 +224,8 @@ def main():
             test(model, device, test_loader)
         scheduler.step()
 
-    if args.save_model:
-        torch.save(model.state_dict(), "mnist_cnn.pt")
+
+    torch.save(model.state_dict(), "/opt/ml/model/model.pth")
 
 
 if __name__ == "__main__":
