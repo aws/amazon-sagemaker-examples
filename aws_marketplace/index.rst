@@ -146,8 +146,7 @@ Right-sizing your Amazon SageMaker Endpoints
 .. toctree::
    :maxdepth: 0
 
-
-using_model_packages/right_sizing_amazon_sagemaker_endpoints/right-sizing-amazon-sagemaker-endpoints
+   using_model_packages/right_sizing_amazon_sagemaker_endpoints/right-sizing-amazon-sagemaker-endpoints
 
 
 Use AWS Marketplace open source model packages
