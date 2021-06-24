@@ -37,9 +37,11 @@ These examples show you how to use model-packages and algorithms from AWS Market
 	- [Amazon Augmented AI with AWS Marketplace ML models](using_model_packages/amazon_augmented_ai_with_aws_marketplace_ml_models) will show you how to use AWS Marketplace pre-trained ML models with Amazon Augmented AI to implement human-in-loop workflow reviews with your ML model predictions.
 	- [Monitoring data quality in third-party models from AWS Marketplace](using_model_packages/data_quality_monitoring) will show you how to perform Data Quality monitoring on a pre-trained third-party model from AWS Marketplace.
   - [Evaluating ML models from AWS Marketplace for person counting use case](using_model_packages/evaluating_aws_marketplace_models_for_person_counting_use_case) will show you how to use two AWS Marketplace GluonCV pre-trained ML models for person counting use case and evaluate each model for performance in different types of crowd images.	
+  - [Right-sizing your Amazon SageMaker Endpoints](using_model_packages/right_sizing_amazon_sagemaker_endpoints) is a sample notebook that guides you through the process of choosing the correct instance type for model serving depending on the expected performance (number of requests per second) and endpoint costs.
 
 - [Using Dataset Products](using_data)
 	- [Using dataset from AWS Data Exchange with ML model from AWS Marketplace](using_data/using_data_with_ml_model) is a sample notebook which shows how a dataset from AWS Data Exchange can be used with an ML Model Package from AWS Marketplace.
+    
 ## FAQ
 
 *What do I need in order to get started?*
