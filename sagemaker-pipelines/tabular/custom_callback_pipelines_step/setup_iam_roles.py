@@ -83,7 +83,7 @@ def create_task_runner_role(role_name):
     return role_arn
 
 
-def create_glue_pipeline_role(role_name, default_bucket):
+def create_glue_pipeline_role(role_name, bucket):
     response = iam.create_role(
         RoleName = role_name,
         AssumeRolePolicyDocument = json.dumps({
@@ -104,7 +104,7 @@ def create_glue_pipeline_role(role_name, default_bucket):
     role_arn = response['Role']['Arn']
     
     response = iam.attach_role_policy(
-        RoleName=glue_role_name,
+        RoleName=role_name,
         PolicyArn='arn:aws:iam::aws:policy/service-role/AWSGlueServiceRole'
     )
 
@@ -114,7 +114,7 @@ def create_glue_pipeline_role(role_name, default_bucket):
             {
                 "Effect": "Allow",
                 "Action": "s3:*",
-                "Resource": f"arn:aws:s3:::{default_bucket}"
+                "Resource": f"arn:aws:s3:::{bucket}"
             }
         ]
     })
