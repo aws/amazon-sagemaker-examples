@@ -1,19 +1,17 @@
-import argparse
 import logging
 import os
-import tarfile
-import zipfile
 import json
-import subprocess
 
 if os.getenv("AWS_EXECUTION_ENV") == "AWS_Lambda_python3.8":
     import sys
 
     sys.path.insert(0, "/opt/latestboto3/")
 import boto3
+from botocore.exceptions import ClientError
 
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger()
+logger.setLevel(os.getenv("LOGGING_LEVEL", logging.INFO))
 sm_client = boto3.client("sagemaker")
 
 
@@ -27,23 +25,35 @@ def handler(event, context):
         payload = json.loads(record["body"])
         token = payload["token"]
 
-        # Retrieve leatest approved model
+        # Retrieve latest approved model
         model_package_group_name = os.getenv("ModelPackageGroupName")
         pck = get_approved_package(model_package_group_name)
-        model_description = sm_client.describe_model_package(
-            ModelPackageName=pck["ModelPackageArn"]
-        )
+        try:
+            model_description = sm_client.describe_model_package(
+                ModelPackageName=pck["ModelPackageArn"]
+            )
+        except ClientError as e:
+            error_msg = f"describe_model_package failed: {e.response['Error']['Code']}, {e.response['Error']['Message']}"
+            raise Exception(error_msg)
+
         model_url = model_description["InferenceSpecification"]["Containers"][0]["ModelDataUrl"]
         image_uri = model_description["InferenceSpecification"]["Containers"][0]["Image"]
 
         # Call SageMaker to complete the step
-        sm_client.send_pipeline_execution_step_success(
-            CallbackToken=token,
-            OutputParameters=[
-                {"Name": "ModelUrl", "Value": model_url},
-                {"Name": "ImageUri", "Value": image_uri},
-            ],
-        )
+        try:
+            sm_client.send_pipeline_execution_step_success(
+                CallbackToken=token,
+                OutputParameters=[
+                    {"Name": "ModelUrl", "Value": model_url},
+                    {"Name": "ImageUri", "Value": image_uri},
+                ],
+            )
+        except ClientError as e:
+            error_msg = (
+                f"send_pipeline_execution_step_success failed: "
+                f"{e.response['Error']['Code']}, {e.response['Error']['Message']}"
+            )
+            raise Exception(error_msg)
 
 
 def get_approved_package(model_package_group_name):
@@ -57,24 +67,34 @@ def get_approved_package(model_package_group_name):
     """
     try:
         # Get the latest approved model package
-        response = sm_client.list_model_packages(
-            ModelPackageGroupName=model_package_group_name,
-            ModelApprovalStatus="Approved",
-            SortBy="CreationTime",
-            MaxResults=100,
-        )
-        approved_packages = response["ModelPackageSummaryList"]
-
-        # Fetch more packages if none returned with continuation token
-        while len(approved_packages) == 0 and "NextToken" in response:
-            logger.debug("Getting more packages for token: {}".format(response["NextToken"]))
+        try:
             response = sm_client.list_model_packages(
                 ModelPackageGroupName=model_package_group_name,
                 ModelApprovalStatus="Approved",
                 SortBy="CreationTime",
                 MaxResults=100,
-                NextToken=response["NextToken"],
             )
+        except ClientError as e:
+            error_msg = f"list_model_packages failed: {e.response['Error']['Code']}, {e.response['Error']['Message']}"
+            raise Exception(error_msg)
+
+        approved_packages = response["ModelPackageSummaryList"]
+
+        # Fetch more packages if none returned with continuation token
+        while len(approved_packages) == 0 and "NextToken" in response:
+            logger.debug(f"Getting more packages for token: {response['NextToken']}")
+            try:
+                response = sm_client.list_model_packages(
+                    ModelPackageGroupName=model_package_group_name,
+                    ModelApprovalStatus="Approved",
+                    SortBy="CreationTime",
+                    MaxResults=100,
+                    NextToken=response["NextToken"],
+                )
+            except ClientError as e:
+                error_msg = f"describe_model_package failed: {e.response['Error']['Code']}, {e.response['Error']['Message']}"
+                raise Exception(error_msg)
+
             approved_packages.extend(response["ModelPackageSummaryList"])
 
         # Return error if no packages found
@@ -89,7 +109,6 @@ def get_approved_package(model_package_group_name):
         model_package_arn = approved_packages[0]["ModelPackageArn"]
         logger.info(f"Identified the latest approved model package: {model_package_arn}")
         return approved_packages[0]
-        # return model_package_arn
     except ClientError as e:
         error_message = e.response["Error"]["Message"]
         logger.error(error_message)
