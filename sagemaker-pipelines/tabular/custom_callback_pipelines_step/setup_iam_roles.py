@@ -29,6 +29,13 @@ def create_ecs_task_role(role_name):
             RoleName=role_name,
             PolicyArn='arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy'
         )
+        
+        response = iam.put_role_policy(
+            RoleName=role_name,
+            PolicyName='create_log_group',
+            PolicyDocument='{"Version":"2012-10-17","Statement":{"Effect":"Allow","Action":"logs:CreateLogGroup","Resource":"*"}}'
+        )
+        
         return role_arn
     
     except iam.exceptions.EntityAlreadyExistsException:
@@ -87,6 +94,13 @@ def create_task_runner_role(role_name):
             PolicyName='glue_logs_sagemaker',
             PolicyDocument=role_policy_document
         )
+        
+        response = iam.put_role_policy(
+            RoleName=role_name,
+            PolicyName='create_log_group',
+            PolicyDocument='{"Version":"2012-10-17","Statement":{"Effect":"Allow","Action":"logs:CreateLogGroup","Resource":"*"}}'
+        )
+        
         return role_arn
 
     except iam.exceptions.EntityAlreadyExistsException:
@@ -120,7 +134,7 @@ def create_glue_pipeline_role(role_name, bucket):
             RoleName=role_name,
             PolicyArn='arn:aws:iam::aws:policy/service-role/AWSGlueServiceRole'
         )
-
+        
         role_policy_document = json.dumps({
             "Version": "2012-10-17",
             "Statement": [
@@ -131,12 +145,30 @@ def create_glue_pipeline_role(role_name, bucket):
                 }
             ]
         })
-
+        
         response = iam.put_role_policy(
             RoleName=role_name,
-            PolicyName='glue_s3',
+            PolicyName='glue_s3_bucket',
             PolicyDocument=role_policy_document
         )
+        
+        role_policy_document = json.dumps({
+            "Version": "2012-10-17",
+            "Statement": [
+                {
+                    "Effect": "Allow",
+                    "Action": "s3:*",
+                    "Resource": f"arn:aws:s3:::{bucket}/*"
+                }
+            ]
+        })
+        
+        response = iam.put_role_policy(
+            RoleName=role_name,
+            PolicyName='glue_s3_objects',
+            PolicyDocument=role_policy_document
+        )
+        
         return role_arn
 
     except iam.exceptions.EntityAlreadyExistsException:
