@@ -24,6 +24,12 @@ This notebook requires these images in `./images/`:
 * `cloud-trails.png`
 * `s3-sse-enabled.png`
 
+## Client-side Encryption with Feature Store using AWS Encryption SDK
+An advanced example how to do client-side encryption with Feature Store using the [AWS Encryption SDK library](https://docs.aws.amazon.com/encryption-sdk/latest/developer-guide/introduction.html) which encrypts your data prior to ingesting it into your Online or Offline Feature Store. 
+
+This notebook reequires this data set in `./data/`:
+* `credit_card_approval_synthetic.csv`
+
 ## Fraud Detection with Feature Store
 For an advanced example on how to use Feature Store for a Fraud Detection use-case, see [Fraud Detection with Feature Store](https://sagemaker-examples.readthedocs.io/en/latest/sagemaker-featurestore/sagemaker_featurestore_fraud_detection_python_sdk.html), and it's associated notebook, `sagemaker_featurestore_fraud_detection_python_sdk.ipynb`.
 
