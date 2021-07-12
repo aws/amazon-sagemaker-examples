@@ -16,7 +16,12 @@ from matplotlib.gridspec import GridSpec, GridSpecFromSubplotSpec
 
 
 def generate_griffiths_data(
-    num_documents=5000, average_document_length=150, num_topics=5, alpha=None, eta=None, seed=0
+    num_documents=5000,
+    average_document_length=150,
+    num_topics=5,
+    alpha=None,
+    eta=None,
+    seed=0,
 ):
     """Returns example documents from Griffiths-Steyvers [1].
 
@@ -196,7 +201,13 @@ def _document_with_topic(fig, gsi, index, document, topic_mixture=None, vmin=0, 
 
 
 def plot_lda_topics(
-    documents, nrows, ncols, with_colorbar=True, topic_mixtures=None, cmap="Viridis", dpi=160
+    documents,
+    nrows,
+    ncols,
+    with_colorbar=True,
+    topic_mixtures=None,
+    cmap="Viridis",
+    dpi=160,
 ):
     fig = plt.figure()
     gs = GridSpec(nrows, ncols)

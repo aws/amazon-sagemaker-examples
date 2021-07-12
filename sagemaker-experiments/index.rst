@@ -6,6 +6,13 @@ Get started with Experiments
 
    mnist-handwritten-digits-classification-experiment/mnist-handwritten-digits-classification-experiment
 
+TensorFlow2 California Housing Regression training
+==================================================
+
+.. toctree::
+   :maxdepth: 1
+
+   tensorflow2-california-housing-regression-experiment/tensorflow2-california-housing-regression-experiment
 
 Airflow workflow tracking
 =========================

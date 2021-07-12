@@ -87,7 +87,7 @@ PyTorch
 
    pytorch_iterative_model_pruning/iterative_model_pruning_resnet
    pytorch_iterative_model_pruning/iterative_model_pruning_alexnet
-   pytorch_custom_container/pytorch_byoc_smdebug
+   pytorch_model_debugging/pytorch_script_change_smdebug
 
 
 XGBoost
@@ -96,7 +96,6 @@ XGBoost
 .. toctree::
     :maxdepth: 1
 
-    xgboost_builtin_rules/xgboost-regression-debugger-rules
     xgboost_realtime_analysis/xgboost-realtime-analysis
     xgboost_census_explanations/xgboost-census-debugger-rules
     xgboost_training_report/higgs_boson_detection

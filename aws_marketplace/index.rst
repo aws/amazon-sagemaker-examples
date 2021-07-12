@@ -131,6 +131,15 @@ Amazon Augmented AI (A2I) with AWS Marketplace ML models
    using_model_packages/amazon_augmented_ai_with_aws_marketplace_ml_models/amazon_augmented_ai_with_aws_marketplace_ml_models
 
 
+Person Counting use case
+--------------------------------------------------------
+
+.. toctree::
+   :maxdepth: 0
+
+   using_model_packages/evaluating_aws_marketplace_models_for_person_counting_use_case/evaluating_aws_marketplace_models_for_person_counting_use_case
+
+
 Use AWS Marketplace open source model packages
 ==================================
 

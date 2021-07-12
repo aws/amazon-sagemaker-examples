@@ -24,7 +24,7 @@ def serving_input_fn(params):
 
 def train_input_fn(training_dir, params):
     """Returns input function that would feed the model during training"""
-    return _generate_input_fn(training_dir, "iris_training.csv")
+    return _generate_input_fn(training_dir, "iris_train.csv")
 
 
 def eval_input_fn(training_dir, params):

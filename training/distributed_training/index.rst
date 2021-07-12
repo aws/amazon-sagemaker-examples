@@ -83,6 +83,18 @@ library.
       - `SageMaker model parallel developer guide <https://docs.aws.amazon.com/sagemaker/latest/dg/model-parallel.html>`_
       - `SageMaker Python SDK - model parallel APIs <https://sagemaker.readthedocs.io/en/stable/api/training/smd_model_parallel.html>`_
 
+.. _mpi
+
+MPI 
+===================================
+
+Use MPI on SageMaker
+--------------------
+
+.. toctree::
+    :maxdepth: 1
+
+    mpi_on_sagemaker/intro
 
 .. _pytorch-distributed:
 

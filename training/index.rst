@@ -13,6 +13,16 @@ Algorithms
    algorithms
 
 
+Bring your own model with Script Mode
+======================================
+
+.. toctree::
+   :maxdepth: 1
+
+   ../sagemaker-script-mode/index
+
+
+
 Bring your own container
 ========================
 

@@ -4,7 +4,7 @@ import logging
 import os
 import sys
 
-import sagemaker_containers
+
 import torch
 import torch.distributed as dist
 import torch.nn as nn
