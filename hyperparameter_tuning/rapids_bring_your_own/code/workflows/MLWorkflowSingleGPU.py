@@ -24,7 +24,7 @@ import joblib
 import xgboost
 from cuml.ensemble import RandomForestClassifier
 from cuml.metrics import accuracy_score
-from cuml.preprocessing.model_selection import train_test_split
+from cuml.model_selection import train_test_split
 from MLWorkflow import MLWorkflow, timer_decorator
 
 hpo_log = logging.getLogger("hpo_log")
