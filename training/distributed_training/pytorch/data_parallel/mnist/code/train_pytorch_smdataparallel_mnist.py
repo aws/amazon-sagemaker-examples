@@ -14,11 +14,13 @@
 from __future__ import print_function
 
 import argparse
+from packaging.version import Version
 import os
 import time
 
 import smdistributed.dataparallel.torch.distributed as dist
 import torch
+import torchvision
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
@@ -30,6 +32,26 @@ from model_def import Net
 from smdistributed.dataparallel.torch.parallel.distributed import DistributedDataParallel as DDP
 from torch.optim.lr_scheduler import StepLR
 from torchvision import datasets, transforms
+
+# override dependency on mirrors provided by torch vision package
+# from torchvision 0.9.1, 2 candidate mirror website links will be added before "resources" items automatically
+# Reference PR: https://github.com/pytorch/vision/pull/3559
+TORCHVISION_VERSION = "0.9.1"
+if Version(torchvision.__version__) < Version(TORCHVISION_VERSION):
+    datasets.MNIST.resources = [
+        ('https://dlinfra-mnist-dataset.s3-us-west-2.amazonaws.com/mnist/train-images-idx3-ubyte.gz',
+         'f68b3c2dcbeaaa9fbdd348bbdeb94873'),
+        ('https://dlinfra-mnist-dataset.s3-us-west-2.amazonaws.com/mnist/train-labels-idx1-ubyte.gz',
+         'd53e105ee54ea40749a09fcbcd1e9432'),
+        ('https://dlinfra-mnist-dataset.s3-us-west-2.amazonaws.com/mnist/t10k-images-idx3-ubyte.gz',
+         '9fb629c4189551a2d022fa330f9573f3'),
+        ('https://dlinfra-mnist-dataset.s3-us-west-2.amazonaws.com/mnist/t10k-labels-idx1-ubyte.gz',
+         'ec29112dd5afa0611ce80d1b7f02629c')
+    ]
+else:
+    datasets.MNIST.mirrors = [
+        'https://dlinfra-mnist-dataset.s3-us-west-2.amazonaws.com/mnist/'
+    ]
 
 
 class CUDANotFoundException(Exception):
