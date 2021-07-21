@@ -8,7 +8,7 @@ SageMaker Model Registry is a central location where customers can manage their 
 
 ### MLOps
 
-MLOps, or Machine Learning Operations, is the concept of applying DevOps practices on the lifecycle of a machine learning model. MLOps usually consists of two workflows that sits on either side of a machine learning model registry; one to train a model and one to deploy a model. A model registry is a central location to manage machine learning models, where ML engineers and data scientists can compare different model versions, visualize metrics, and decide which versions to accept and which to reject. Ideally, approving a new version of a model triggers a pipeline that ultimately deploys the model into production.
+MLOps, or Machine Learning Operations, is the concept of applying DevOps practices on the lifecycle of a machine learning model. Among many other things, MLOps usually consists of two workflows that sits on either side of a machine learning model registry; one to train a model and one to deploy a model. A model registry is a central location to manage machine learning models, where ML engineers and data scientists can compare different model versions, visualize metrics, and decide which versions to accept and which to reject. Ideally, approving a new version of a model triggers a pipeline that ultimately deploys the model into production.
 
 
 From a high-level perspective, it can look like this.
@@ -20,4 +20,4 @@ The deployment pipeline is what is most similar to traditional CI/CD methods, pr
 ![High-level MLOps with training pipeline](images/high-level-train.png "High-level MLOps with training pipeline")
 
 
-**This notebook**, demonstrate how SageMaker Pipelines can be used to create a reusable machine learning pipeline that preprocesses, trains, evaluates and registers a machine learning model with the SageMaker Model Registry for visualization and comparison of different model versions. 
+**This notebook**, demonstrate how SageMaker Pipelines can be used to create a reusable machine learning pipeline that preprocesses, trains, evaluates and registers a machine learning model with the SageMaker Model Registry for visualization and comparison of different model versions.
