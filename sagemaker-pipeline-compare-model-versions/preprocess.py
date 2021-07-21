@@ -10,8 +10,7 @@ logger.setLevel(logging.INFO)
 if __name__ == "__main__":
     logger.info("Starting preprocessing.")
 
-    input_data_path = os.path.join(
-        "/opt/ml/processing/input", "churn-dataset.csv")
+    input_data_path = os.path.join("/opt/ml/processing/input", "churn-dataset.csv")
 
     try:
         os.makedirs("/opt/ml/processing/train")
@@ -32,8 +31,7 @@ if __name__ == "__main__":
     df["Area Code"] = df["Area Code"].astype(object)
 
     # Drop several other columns
-    df = df.drop(["Day Charge", "Eve Charge",
-                  "Night Charge", "Intl Charge"], axis=1)
+    df = df.drop(["Day Charge", "Eve Charge", "Night Charge", "Intl Charge"], axis=1)
 
     # Convert categorical variables into dummy/indicator variables.
     model_data = pd.get_dummies(df)
@@ -53,10 +51,8 @@ if __name__ == "__main__":
         [int(0.7 * len(model_data)), int(0.9 * len(model_data))],
     )
 
-    train_data.to_csv(
-        "/opt/ml/processing/train/train.csv", header=False, index=False)
+    train_data.to_csv("/opt/ml/processing/train/train.csv", header=False, index=False)
     validation_data.to_csv(
         "/opt/ml/processing/validation/validation.csv", header=False, index=False
     )
-    test_data.to_csv("/opt/ml/processing/test/test.csv",
-                     header=False, index=False)
+    test_data.to_csv("/opt/ml/processing/test/test.csv", header=False, index=False)
