@@ -28,8 +28,8 @@ if __name__ == "__main__":
 
     logger.debug("Loading xgboost model.")
     model = pickle.load(open("xgboost-model", "rb"))
-
-    print("Loading test input data")
+    
+    logger.debug("Loading test input data.")
     test_path = "/opt/ml/processing/test/test.csv"
     df = pd.read_csv(test_path, header=None)
 
