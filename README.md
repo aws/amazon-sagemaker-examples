@@ -198,6 +198,12 @@ These examples show you how to build Machine Learning models with frameworks lik
 - [Inference with SparkML Serving](sagemaker-python-sdk/sparkml_serving_emr_mleap_abalone) shows how to build an ML model with Apache Spark using Amazon EMR on Abalone dataset and deploy in SageMaker with SageMaker SparkML Serving.
 - [Pipeline Inference with Scikit-learn and LinearLearner](sagemaker-python-sdk/scikit_learn_inference_pipeline) builds a ML pipeline using Scikit-learn preprocessing and LinearLearner algorithm in single endpoint
 
+#### SageMaker Hosting
+
+These examples show you how to host models for real-time inference using the SageMaker Python SDK.
+
+-[Right-sizing your Amazon SageMaker Endpoints](sagemaker-python-sdk/sagemaker-hosting/right-sizing-amazon-sagemaker-endpoints) is a sample notebook that guides you through the process of choosing the correct instance type for model serving depending on the expected performance (number of requests per second) and endpoint costs.
+
 ### Using Amazon SageMaker with Apache Spark
 
 These examples show how to use Amazon SageMaker for model training, hosting, and inference through Apache Spark using [SageMaker Spark](https://github.com/aws/sagemaker-spark). SageMaker Spark allows you to interleave Spark Pipeline stages with Pipeline stages that interact with Amazon SageMaker.
