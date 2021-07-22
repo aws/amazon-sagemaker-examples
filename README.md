@@ -202,7 +202,7 @@ These examples show you how to build Machine Learning models with frameworks lik
 
 These examples show you how to host models for real-time inference using the SageMaker Python SDK.
 
--[Right-sizing your Amazon SageMaker Endpoints](sagemaker-python-sdk/sagemaker-hosting/right-sizing-amazon-sagemaker-endpoints) is a sample notebook that guides you through the process of choosing the correct instance type for model serving depending on the expected performance (number of requests per second) and endpoint costs.
+- [Right-sizing your Amazon SageMaker Endpoints](sagemaker-python-sdk/sagemaker-hosting/right-sizing-amazon-sagemaker-endpoints) is a sample notebook that guides you through the process of choosing the correct instance type for model serving depending on the expected performance (number of requests per second) and endpoint costs.
 
 ### Using Amazon SageMaker with Apache Spark
 
