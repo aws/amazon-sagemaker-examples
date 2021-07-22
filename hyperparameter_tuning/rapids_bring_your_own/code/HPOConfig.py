@@ -200,12 +200,6 @@ class HPOConfig(object):
 
         elif len(parquet_files):
             hpo_log.info("Parquet input files detected")
-            """
-            if "single-CPU" in self.compute_type:
-                # pandas read_parquet needs a directory input - no longer the case with newest pandas
-                target_files = directory_structure["train_data"] + "/"
-            else:
-            """
             target_files = parquet_files
             input_file_type = "Parquet"
         else:
