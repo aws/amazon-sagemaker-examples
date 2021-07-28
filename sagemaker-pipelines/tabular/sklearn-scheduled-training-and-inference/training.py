@@ -6,7 +6,7 @@ from joblib import dump, load
 import pandas as pd, numpy as np, os, argparse
 from shutil import copy
 
-# inference function - tells SageMaker how to load the model and do the prediction
+# inference functions - tells SageMaker how to load the model 
 def model_fn(model_dir):
     preproc = load(os.path.join(model_dir, "preproc.joblib"))
     model = load(os.path.join(model_dir, "model.joblib"))
@@ -14,6 +14,8 @@ def model_fn(model_dir):
         ('preproc', preproc),('model', model)
     ])
     return pipe
+
+# inference functions - tells SageMaker how to do the prediction
 def predict_fn(input_data, model):
     prediction = model.predict(input_data)
     return np.array(prediction)
