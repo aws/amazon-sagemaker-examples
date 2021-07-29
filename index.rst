@@ -40,7 +40,8 @@ On SageMaker Studio, you will need to open a terminal, go to your home folder, t
    :maxdepth: 1
    :caption: SageMaker End-to-End Examples
 
-   end_to_end/index
+   end_to_end/fraud_detection/index
+   end_to_end/music_recommendation/index
 
 
 .. toctree::
