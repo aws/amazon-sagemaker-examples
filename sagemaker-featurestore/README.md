@@ -30,10 +30,11 @@ In `feature_store_client_side_encryption.ipynb` we demonstrate how client-side e
 This notebook requires this synthetic data set in `./data/`:
 * `credit_card_approval_synthetic.csv`
 
-
-## How to securely store an image dataset in your Feature Store with KMS key?
+## Securely store an image dataset in your Feature Store with KMS key
 In `feature_store_securely_store_images.ipynb` we demonstrate how to securely store a dataset of images into your Feature Store using KMS key. 
 
+## Securely store the output of an image or text classification labelling job from Amazon Ground Truth directly into Feature Store using a KMS key
+In `feature_store_object_detection_ground_truth.ipynb`, we demonstrate how to pipe the output of an image or text classification labelling job from Amazon Ground Truth directly into Feature Store. 
 
 ## Fraud Detection with Feature Store
 For an advanced example on how to use Feature Store for a Fraud Detection use-case, see [Fraud Detection with Feature Store](https://sagemaker-examples.readthedocs.io/en/latest/sagemaker-featurestore/sagemaker_featurestore_fraud_detection_python_sdk.html), and it's associated notebook, `sagemaker_featurestore_fraud_detection_python_sdk.ipynb`.
