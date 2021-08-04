@@ -53,7 +53,6 @@ class MLWorkflowSingleCPU(MLWorkflow):
         if "Parquet" in self.hpo_config.input_file_type:
             hpo_log.info("> parquet data ingestion")
 
-            # assert isinstance(self.hpo_config.target_files, str)
             filepath = self.hpo_config.target_files
 
             dataset = pandas.read_parquet(
