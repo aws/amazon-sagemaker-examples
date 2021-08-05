@@ -19,7 +19,7 @@ def create_lambda_role(role_name):
                     }
                 ]
             }),
-            Description='Role for Lambda to call ECS Fargate task'
+            Description='Role for Lambda to call SageMaker functions'
         )
 
         role_arn = response['Role']['Arn']
