@@ -20,7 +20,7 @@ output [
     dims: [128, 768]
   },
   {
-    name: "1442"
+    name: "1634"
     data_type: TYPE_FP32
     dims: [768]
   }
