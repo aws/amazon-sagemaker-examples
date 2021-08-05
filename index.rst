@@ -128,6 +128,7 @@ On SageMaker Studio, you will need to open a terminal, go to your home folder, t
    :maxdepth: 1
    :caption: Advanced examples
 
+   sagemaker-clarify/index
    scientific_details_of_algorithms/index
    aws_marketplace/index
 

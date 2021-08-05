@@ -130,6 +130,13 @@ These examples provide and introduction to SageMaker Debugger which allows debug
 - [Reacting to CloudWatch Events from Rules to take an action based on status with TensorFlow](sagemaker-debugger/tensorflow_action_on_rule/)
 - [Using SageMaker Debugger with a custom PyTorch container](sagemaker-debugger/pytorch_custom_container/)
 
+### Amazon SageMaker Clarify
+
+These examples provide an introduction to SageMaker Clarify which provides machine learning developers with greater visibility into their training data and models so they can identify and limit bias and explain predictions.
+
+* [Fairness and Explainability with SageMaker Clarify](sagemaker_processing/fairness_and_explainability) shows how to use SageMaker Clarify Processor API to measure the pre-training bias of a dataset and post-training bias of a model, and explain the importance of the input features on the model's decision.
+* [Amazon SageMaker Clarify Model Monitors](sagemaker_model_monitor/fairness_and_explainability) shows how to use SageMaker Clarify Model Monitor API to schedule bias monitor to monitor predictions for bias drift on a regular basis, and schedule explainability monitor to monitor predictions for feature attribution drift on a regular basis.
+
 ### Advanced Amazon SageMaker Functionality
 
 These examples that showcase unique functionality available in Amazon SageMaker. They cover a broad range of topics and will utilize a variety of methods, but aim to provide the user with sufficient insight or inspiration to develop within Amazon SageMaker.
