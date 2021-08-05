@@ -34,9 +34,6 @@ object_detection
    :maxdepth: 1
 
    ../introduction_to_amazon_algorithms/object_detection_birds/object_detection_birds
-   ../introduction_to_amazon_algorithms/object_detection_pascalvoc_coco/object_detection_incremental_training
-   ../introduction_to_amazon_algorithms/object_detection_pascalvoc_coco/object_detection_image_json_format
-   ../introduction_to_amazon_algorithms/object_detection_pascalvoc_coco/object_detection_recordio_format
 
 
 semantic_segmentation
