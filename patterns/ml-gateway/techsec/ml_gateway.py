@@ -7,38 +7,42 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 
-def deploy_ml_gateway_pattern(sagemaker_endpoint_name: str, region: str,
-                              s3_bucket_name: str) -> str:
-        """
-        Create an API Gateway HTTP endpoint that points to a Lambda function
-        which points to a SageMaker endpoint.
+def deploy_ml_gateway_pattern(
+    sagemaker_endpoint_name: str, region: str, s3_bucket_name: str
+) -> str:
+    """
+    Create an API Gateway HTTP endpoint that points to a Lambda function
+    which points to a SageMaker endpoint.
 
-        :param sagemaker_endpoint_name: str
-        :param s3_bucket_name: str
-        :return: str
-        """
-        
-        cloudformation = boto3.client('cloudformation', region_name=region)
-        timestamp: int = strftime('%d%H%M%S', gmtime())
-        stack_name: str = f'ml-gateway-{timestamp}'
-        lambda_name: str = f'serverless-artillery-{timestamp}-dev-loadGenerator'
-        cloudformation.create_stack(StackName=stack_name,
-                                    TemplateBody=ml_gateway_cf_body(region),
-                                    Parameters=[{'ParameterKey': 'SageMakerEndPointName',
-                                                 'ParameterValue': sagemaker_endpoint_name},
-                                                {'ParameterKey': 'LambdaName',
-                                                 'ParameterValue': f'invoke-sagemaker-endpoint-{timestamp}'},
-                                                {'ParameterKey': 'S3BucketName',
-                                                 'ParameterValue': s3_bucket_name}],
-                                    Capabilities=['CAPABILITY_IAM']
-                                    )
-        waiter = cloudformation.get_waiter('stack_create_complete')
-        logger.info('Creating ML Gateway...')
-        waiter.wait(StackName=stack_name)
-        logger.info('ML Gateway created!')
-        response = cloudformation.describe_stacks(StackName=stack_name)
-        api_gateway_endpoint_url = response['Stacks'][0]['Outputs'][0]['OutputValue']
-        return f'{api_gateway_endpoint_url}/TestStage/Model'
+    :param sagemaker_endpoint_name: str
+    :param s3_bucket_name: str
+    :return: str
+    """
+
+    cloudformation = boto3.client("cloudformation", region_name=region)
+    timestamp: int = strftime("%d%H%M%S", gmtime())
+    stack_name: str = f"ml-gateway-{timestamp}"
+    lambda_name: str = f"serverless-artillery-{timestamp}-dev-loadGenerator"
+    cloudformation.create_stack(
+        StackName=stack_name,
+        TemplateBody=ml_gateway_cf_body(region),
+        Parameters=[
+            {"ParameterKey": "SageMakerEndPointName", "ParameterValue": sagemaker_endpoint_name},
+            {
+                "ParameterKey": "LambdaName",
+                "ParameterValue": f"invoke-sagemaker-endpoint-{timestamp}",
+            },
+            {"ParameterKey": "S3BucketName", "ParameterValue": s3_bucket_name},
+        ],
+        Capabilities=["CAPABILITY_IAM"],
+    )
+    waiter = cloudformation.get_waiter("stack_create_complete")
+    logger.info("Creating ML Gateway...")
+    waiter.wait(StackName=stack_name)
+    logger.info("ML Gateway created!")
+    response = cloudformation.describe_stacks(StackName=stack_name)
+    api_gateway_endpoint_url = response["Stacks"][0]["Outputs"][0]["OutputValue"]
+    return f"{api_gateway_endpoint_url}/TestStage/Model"
 
 
 def ml_gateway_cf_body(region: str) -> str:
@@ -245,5 +249,5 @@ def ml_gateway_cf_body(region: str) -> str:
     }
 }
     """
-    
-    return template_body.replace('lambda:us-west-1', f'lambda:{region}')
+
+    return template_body.replace("lambda:us-west-1", f"lambda:{region}")
