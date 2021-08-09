@@ -3,8 +3,8 @@ import torchvision.models as models
 import argparse
 import os
 
-device = 'cuda' if torch.cuda.is_available() else 'cpu'
-print('Using {} device'.format(device))
+device = "cuda" if torch.cuda.is_available() else "cpu"
+print("Using {} device".format(device))
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
