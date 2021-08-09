@@ -1,0 +1,6 @@
+.ipynb_checkpoints/
+data/
+.DS_Store
+function.zip
+lambda_function.py
+__pycache__/
