@@ -8,3 +8,4 @@ Amazon SageMaker Model Building Pipelines is a tool for building machine learnin
 
    tabular/abalone_build_train_deploy/sagemaker-pipelines-preprocess-train-evaluate-batch-transform
    tabular/customizing_build_train_deploy_project/modelbuild/sagemaker-pipelines-customized-project
+   tabular/tensorflow2-california-housing-sagemaker-pipelines-model-registry/tensorflow2-california-housing-sagemaker-pipelines-model-registry
