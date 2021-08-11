@@ -22,7 +22,4 @@ The notebook performs the following steps:
 
 The attached notebook can be run in Amazon SageMaker Studio. 
 
-## License
-
-This library is licensed under the MIT-0 License. See the LICENSE file.
 
