@@ -211,3 +211,4 @@ def create_feature_group(
         else:
             raise (e)
     return feature_group, feature_group_already_exists
+
