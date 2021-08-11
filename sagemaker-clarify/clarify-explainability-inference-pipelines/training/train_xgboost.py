@@ -8,6 +8,7 @@ import pickle as pkl
 
 import xgboost
 
+
 def parse_args():
 
     parser = argparse.ArgumentParser()
@@ -22,36 +23,37 @@ def parse_args():
     parser.add_argument("--num_round", type=int, default=100)
     parser.add_argument("--subsample", type=float, default=0.8)
     parser.add_argument("--early_stopping_rounds", type=int, default=20)
-    
-    parser.add_argument('--train', type=str, default=os.environ.get('SM_CHANNEL_TRAIN'))
-    parser.add_argument('--validation', type=str, default=os.environ.get('SM_CHANNEL_VALIDATION'))
+
+    parser.add_argument("--train", type=str, default=os.environ.get("SM_CHANNEL_TRAIN"))
+    parser.add_argument("--validation", type=str, default=os.environ.get("SM_CHANNEL_VALIDATION"))
 
     args = parser.parse_args()
 
     return args
 
+
 def main():
 
     args = parse_args()
     train_files_path, validation_files_path = args.train, args.validation
-    
-    train_features_path = os.path.join(args.train, 'train_features.csv')
-    train_labels_path = os.path.join(args.train, 'train_labels.csv')
-    
-    val_features_path = os.path.join(args.validation, 'val_features.csv')
-    val_labels_path = os.path.join(args.validation, 'val_labels.csv')
-    
-    print('Loading training dataframes...')
+
+    train_features_path = os.path.join(args.train, "train_features.csv")
+    train_labels_path = os.path.join(args.train, "train_labels.csv")
+
+    val_features_path = os.path.join(args.validation, "val_features.csv")
+    val_labels_path = os.path.join(args.validation, "val_labels.csv")
+
+    print("Loading training dataframes...")
     df_train_features = pd.read_csv(train_features_path)
     df_train_labels = pd.read_csv(train_labels_path)
-    
-    print('Loading validation dataframes...')
+
+    print("Loading validation dataframes...")
     df_val_features = pd.read_csv(val_features_path)
     df_val_labels = pd.read_csv(val_labels_path)
-    
+
     X = df_train_features.values
     y = df_train_labels.values
-    
+
     val_X = df_val_features.values
     val_y = df_val_labels.values
 
@@ -67,19 +69,18 @@ def main():
         "min_child_weight": args.min_child_weight,
         "silent": args.silent,
         "objective": args.objective,
-        "subsample" : args.subsample,
-        "eval_metric" : args.eval_metric,
-        "early_stopping_rounds" : args.early_stopping_rounds
+        "subsample": args.subsample,
+        "eval_metric": args.eval_metric,
+        "early_stopping_rounds": args.early_stopping_rounds,
     }
 
     bst = xgboost.train(
-        params=params,
-        dtrain=dtrain,
-        evals=watchlist,
-        num_boost_round=args.num_round)
-    
-    model_dir = os.environ.get('SM_MODEL_DIR')
-    pkl.dump(bst, open(model_dir + '/model.bin', 'wb'))
+        params=params, dtrain=dtrain, evals=watchlist, num_boost_round=args.num_round
+    )
+
+    model_dir = os.environ.get("SM_MODEL_DIR")
+    pkl.dump(bst, open(model_dir + "/model.bin", "wb"))
+
 
 if __name__ == "__main__":
     main()
