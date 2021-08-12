@@ -14,4 +14,5 @@ There are two main components to this service:
 
 This notebook walks the user through steps for compiling a pre-trained model using AWS SageMaker Neo service. We show how to package this compiled model and then load it to the Agent on the Edge Device to make predictions with. Finally, we show how to capture model's input and output to S3 via the Agent.
 
-- [SageMaker Edge Example](sagemaker_edge_example)
+- [SageMaker Edge Example](sagemaker_edge_example/sagemaker_edge_example.ipynb)
+- [SageMaker Edge Manager Greengrass Example](sagemaker_edge_example/sagemaker_edge_greengrass_example.ipynb)
