@@ -13,14 +13,14 @@
 
 # Background
 
-SageMaker FeatureStore makes it easy to create and manage curated features for machine learning (ML) development. It serves as the single source of truth to store, retrieve, remove, track, share, discover, and control access to features. SageMaker Feature Store enables data ingestion via a high TPS API and data consumption via the online and offline stores.
+SageMaker Feature Store makes it easy to create and manage curated features for machine learning (ML) development. It serves as the single source of truth to store, retrieve, remove, track, share, discover, and control access to features. SageMaker Feature Store enables data ingestion via a high TPS API and data consumption via the online and offline stores.
 
 In this notebook we use SageMaker Feature Store to prepare and store features to train a heart failure detection model using medical record data. This notebook demonstrates how the dataset can be ingested into the Feature Store, queried to create a training dataset, and quickly accessed during inference. We also see how to integrate SageMaker Feature Store with SageMaker Data Wrangler and SageMaker Pipelines to process, store and use features in machine learning development.
 
 
 # Prereqs
 
-The following policies need to be attached to the SageMaker execution role that you use to run this notebook:
+The following IAM policies need to be attached to the SageMaker execution role that you use to run this notebook:
 
 - AmazonSageMakerFullAccess
 - AmazonSageMakerFeatureStoreAccess
@@ -31,7 +31,7 @@ Note that the AmazonS3FullAccess policy is not attached to your role by default 
 
 # Data
 
-This notebook uses the publically available [Heart failure clinical records Data Set](https://archive.ics.uci.edu/ml/datasets/Heart+failure+clinical+records) that can be downloaded from the UCI machine learning Repository, as described in the notebook. The data set contains medical record information for a small sample of heart failure patients, including demographic, diagnostic and laboratory test data.
+This notebook uses the publicly available [Heart failure clinical records Data Set](https://archive.ics.uci.edu/ml/datasets/Heart+failure+clinical+records) that can be downloaded from the UCI machine learning Repository, as described in the notebook. The data set contains medical record information for a small sample of heart failure patients, including demographic, diagnostic and laboratory test data.
 
 **heart_failure_clinical_records_dataset.csv**  
 
@@ -56,11 +56,11 @@ The dataset contains one table with thirteen (13) columns:
  
 ![architecture diagram](/fs1.PNG)
  
-First, we'll prepare the data for feature store, create a Feature Group and then ingest our data in to the Feature Group. Our features will be available in the offline feature store within minutes. We then use the feature store to build a training dataset, fit a simple model and return predictions.
+First, we'll prepare the data for Feature Store, create a Feature Group and then ingest our data in to the Feature Group. Our features will be available in the offline feature store within minutes. We then use the feature store to build a training dataset, fit a simple model and return predictions.
 
 # Clean Up
 
-In order to prevent ongoing charges to your AWS account, clean up any resources we spun up during this tutorial. An easy way to track and delete related training resources is to [tag them](https://docs.aws.amazon.com/general/latest/gr/aws_tagging.html) or create the resources all under the same [resource group](https://us-east-2.console.aws.amazon.com/resource-groups/home) so that later you can easily search and delete unwanted resources.
+In order to prevent ongoing charges to your AWS account, clean up any resources we spun up during this tutorial.
 
 
 # Other Resources
