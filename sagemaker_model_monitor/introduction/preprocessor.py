@@ -11,9 +11,9 @@ def preprocess_handler(inference_record):
     input_data = {}
     output_data = {}
 
-    input_data["feature0"] = random.randint(1, 3)
-    input_data["feature1"] = random.uniform(0, 1.6)
-    input_data["feature2"] = random.uniform(0, 1.6)
+    input_data["feature000"] = random.randint(1, 3)
+    input_data["feature001"] = random.uniform(0, 1.6)
+    input_data["feature002"] = random.uniform(0, 1.6)
 
     output_data["prediction0"] = random.uniform(1, 30)
 
