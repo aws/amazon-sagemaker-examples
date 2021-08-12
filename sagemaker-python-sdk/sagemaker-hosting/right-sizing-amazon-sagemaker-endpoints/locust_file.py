@@ -39,9 +39,7 @@ class QuickstartUser(FastHttpUser):
     # picks a random image from input directory and invokes the API Gateway
     @task
     def predict(self):
-        images_dir = "./val2017/"
-        random_file = random.choice(os.listdir(images_dir))
-        with open(f"{images_dir}{random_file}", "rb") as f:
+        with open(f"plants.jpg", "rb") as f:
             image = f.read()
 
         payload = {"data": str(image), "endpoint": os.environ["endpoint"]}

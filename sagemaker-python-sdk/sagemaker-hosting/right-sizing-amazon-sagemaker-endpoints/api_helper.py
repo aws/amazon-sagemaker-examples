@@ -27,53 +27,8 @@ def create_infra(project_name, account_id, region):
     API Gateway endpoint URL.
     """
     ## SETUP THE ROLES AND POLICIES
-
-    # Create role that can be assumed by Lambda
-    trust_policy = {
-        "Version": "2012-10-17",
-        "Statement": [
-            {
-                "Effect": "Allow",
-                "Principal": {"Service": "lambda.amazonaws.com"},
-                "Action": "sts:AssumeRole",
-            }
-        ],
-    }
-
-    role = iam_client.create_role(
-        RoleName=f"LambdaRoleToInvokeSageMakerEndpoint{project_name}",
-        AssumeRolePolicyDocument=json.dumps(trust_policy),
-        Description="Role for Lambda function to invoke SageMaker endpoints",
-    )
-
-    # Create policy for the role, allowing Lambda to invoke SageMaker endpoint
-    policy_doc = {
-        "Version": "2012-10-17",
-        "Statement": [
-            {
-                "Action": [
-                    "logs:CreateLogGroup",
-                    "logs:CreateLogStream",
-                    "logs:PutLogEvents",
-                    "sagemaker:InvokeEndpoint",
-                ],
-                "Resource": ["arn:aws:logs:*:*:*", "arn:aws:sagemaker:*:*:*"],
-                "Effect": "Allow",
-            }
-        ],
-    }
-
-    policy = iam_client.create_policy(
-        PolicyName=f"LambdaSageMakerAccessPolicy{project_name}",
-        PolicyDocument=json.dumps(policy_doc),
-    )
-
-    # Attach policy to role
-    response = iam_resource.Role(role["Role"]["RoleName"]).attach_policy(
-        PolicyArn=policy["Policy"]["Arn"]
-    )
-
-    LambdaRoleArn = role["Role"]["Arn"]
+    # Use the default ServiceCatalogProducts role for Lambda functions
+    lambda_role_arn = f"arn:aws:iam::{account_id}:role/service-role/AmazonSageMakerServiceCatalogProductsUseRole"
 
     time.sleep(10)
 
@@ -87,7 +42,7 @@ def create_infra(project_name, account_id, region):
     response = lambda_client.create_function(
         FunctionName=f"request-predictions-{project_name}",
         Runtime="python3.8",
-        Role=LambdaRoleArn,
+        Role=lambda_role_arn,
         Handler="lambda_index.lambda_handler",
         Code={"ZipFile": open("./lambda_function.zip", "rb").read()},
         Description="Function to invoke endpoint and return predictions",
@@ -196,21 +151,6 @@ def delete_infra(project_name, account_id, rest_api_id, models_list):
     """
 
     try:
-        iam_client.detach_role_policy(
-            RoleName=f"LambdaRoleToInvokeSageMakerEndpoint{project_name}",
-            PolicyArn=f"arn:aws:iam::{account_id}:policy/LambdaSageMakerAccessPolicy{project_name}",
-        )
-
-        iam_client.delete_policy(
-            PolicyArn=f"arn:aws:iam::{account_id}:policy/LambdaSageMakerAccessPolicy{project_name}"
-        )
-        print("IAM Policy deleted.")
-
-        iam_client.delete_role(
-            RoleName=f"LambdaRoleToInvokeSageMakerEndpoint{project_name}"
-        )
-        print("IAM Role deleted.")
-
         lambda_client.delete_function(
             FunctionName=f"request-predictions-{project_name}"
         )

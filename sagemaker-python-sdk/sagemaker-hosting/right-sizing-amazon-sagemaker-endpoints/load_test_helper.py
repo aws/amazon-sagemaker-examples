@@ -51,7 +51,6 @@ def run_load_tests(api_url, endpoints_list):
 
     return f"results-{time_stamp}"
 
-
 def get_pricing(instance_type, duration="hour"):
     """
     Return current SageMaker pricing for a given instance.
