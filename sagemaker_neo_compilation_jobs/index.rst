@@ -6,7 +6,6 @@ Get started with model compilation with Neo
 
    xgboost_customer_churn/xgboost_customer_churn_neo
    imageclassification_caltech/Image-classification-fulltraining-highlevel-neo
-   gluoncv_ssd_mobilenet/gluoncv_ssd_mobilenet_neo
 
 
 Apache MXNet
