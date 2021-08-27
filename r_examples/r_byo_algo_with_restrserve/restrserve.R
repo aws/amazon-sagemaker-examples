@@ -7,9 +7,9 @@ bst <- xgb.load("xgb.model")
 # create a closure around our xgboost model and input data processing
 inference <- function(x){
   ds <- xgb.DMatrix(data = x )
-  predict(bst, ds)
+  output <- predict(bst, ds)
+  list(output=output)
 }
-
 app = Application$new()
 
 app$add_get(
@@ -21,7 +21,7 @@ app$add_get(
 app$add_post(
   path = "/invocations",
   FUN = function(request, response) {
-    result = list(outputs = inference(do.call(rbind,request$body$features)))
+    result = inference(do.call(rbind,request$body$features))
     response$set_content_type("application/json")
     response$set_body(result)
   })
