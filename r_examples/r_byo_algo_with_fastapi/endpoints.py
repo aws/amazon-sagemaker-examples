@@ -29,5 +29,5 @@ def make_endpoints(r_inference_func):
 
 # A function we can call from R to launch the FastAPI application
 def run_app(app):
-    uvicorn.run(app, host="0.0.0.0", port=5000, log_level="info")
+    uvicorn.run(app, host="0.0.0.0", port=8080, log_level="info")
 

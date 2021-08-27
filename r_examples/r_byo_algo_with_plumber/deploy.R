@@ -8,8 +8,9 @@ bst <- xgb.load("xgb.model")
 # create a closure around our xgboost model and input data processing
 inference <- function(x){
   ds <- xgb.DMatrix(data = x )
-  predict(bst, ds)
+  output <- predict(bst, ds)
+  list(output=output)
 }
 
 app <- plumb('endpoints.R')
-app$run(host='0.0.0.0', port=5000)
+app$run(host='0.0.0.0', port=8080)
