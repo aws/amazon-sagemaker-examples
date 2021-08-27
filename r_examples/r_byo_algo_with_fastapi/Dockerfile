@@ -12,8 +12,7 @@ RUN apt-get -y update && apt-get install -y --no-install-recommends \
 
 RUN pip install fastapi uvicorn numpy
 
-RUN R -e "install.packages('reticulate', repos='https://cloud.r-project.org')"
-RUN R -e "install.packages(c('xgboost'), repos='https://cloud.r-project.org')"
+RUN R -e "install.packages(c('reticulate','xgboost'), repos='https://cloud.r-project.org')"
 
 COPY endpoints.py /opt/ml/endpoints.py
 COPY deploy.R /opt/ml/deploy.R
