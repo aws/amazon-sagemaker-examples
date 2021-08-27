@@ -11,7 +11,7 @@
 #' Ping to show server is there
 #' @get /ping
 function() {
-    return('')
+    return('Alive')
 }
 
 
