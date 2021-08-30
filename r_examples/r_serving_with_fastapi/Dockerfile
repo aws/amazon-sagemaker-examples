@@ -21,6 +21,3 @@ COPY xgb.model /opt/ml/xgb.model
 WORKDIR /opt/ml
 
 ENTRYPOINT ["/usr/bin/Rscript", "/opt/ml/deploy.R", "--no-save"]
-
-
-
