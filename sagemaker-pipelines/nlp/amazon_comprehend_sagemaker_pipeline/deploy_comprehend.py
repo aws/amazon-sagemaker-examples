@@ -15,17 +15,24 @@ print(sys.argv)
 
 def deploy(args):
     s3 = boto3.client("s3")
-    arn = s3.get_object(Bucket=urlparse(args.arn_path).netloc, Key=urlparse(f"{args.arn_path}/arn.txt").path[1:])["Body"].read().decode().strip()
+    arn = (
+        s3.get_object(
+            Bucket=urlparse(args.arn_path).netloc, Key=urlparse(f"{args.arn_path}/arn.txt").path[1:]
+        )["Body"]
+        .read()
+        .decode()
+        .strip()
+    )
 
     endpoint_response = comprehend.create_endpoint(
         EndpointName=f'custom-classifier-{time.strftime("%Y-%m-%d-%H-%M-%S")}',
         ModelArn=arn,
-        DesiredInferenceUnits=10
+        DesiredInferenceUnits=10,
     )
-    
-    endpoint_arn = endpoint_response['EndpointArn']
-    
-    max_time = time.time() + 15 * 60 # 15 min
+
+    endpoint_arn = endpoint_response["EndpointArn"]
+
+    max_time = time.time() + 15 * 60  # 15 min
     while time.time() < max_time:
         describe_endpoint = comprehend.describe_endpoint(EndpointArn=endpoint_arn)
         status = describe_endpoint["EndpointProperties"]["Status"]
@@ -42,12 +49,12 @@ def deploy(args):
             with open(endpoint_arn_path, "w") as f:
                 f.write(endpoint_arn)
             break
-    
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--arn-path", type=str, help="Path to the Arn on S3")
     args = parser.parse_args()
     print(args)
-    
+
     deploy(args)
