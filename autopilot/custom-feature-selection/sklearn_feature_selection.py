@@ -2,6 +2,7 @@ from __future__ import print_function
 
 import argparse
 import csv
+import joblib
 import json
 import os
 import shutil
@@ -19,7 +20,6 @@ from sagemaker_containers.beta.framework import (
     transformer,
     worker,
 )
-from sklearn.externals import joblib
 from sklearn.feature_selection import RFE, SelectKBest, f_regression, mutual_info_regression
 from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
