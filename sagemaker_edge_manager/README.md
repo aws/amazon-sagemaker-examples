@@ -2,9 +2,9 @@
 
 SageMaker Edge Manager is a new service from Amazon SageMaker that lets you:
 
-+ prepares custom models for edge device hardware
-+ includes a runtime for running machine learning inference efficiently on edge devices
-+ enables the device to send samples of data from each model securely to SageMaker for relabeling and retraining.
++ prepare custom models for edge device hardware
++ include a runtime for running machine learning inference efficiently on edge devices
++ enable the device to send samples of data from each model securely to SageMaker for relabeling and retraining.
 
 There are two main components to this service:
 
