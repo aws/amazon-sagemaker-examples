@@ -10,4 +10,4 @@ Data Preparation and Inference Using SageMaker Feature Store
 .. toctree::
    :maxdepth: 2
 
-   ml_gateway
+   ml-gateway
