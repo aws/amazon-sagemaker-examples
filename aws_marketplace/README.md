@@ -40,6 +40,8 @@ These examples show you how to use model-packages and algorithms from AWS Market
 
 - [Using Dataset Products](using_data)
 	- [Using dataset from AWS Data Exchange with ML model from AWS Marketplace](using_data/using_data_with_ml_model) is a sample notebook which shows how a dataset from AWS Data Exchange can be used with an ML Model Package from AWS Marketplace.
+	- [Using Shutterstock Image Datasets to train Image Classification Models](using_data/image_classification_with_shutterstock_image_datasets) provides a detailed walkthrough on how to use the [Free Sample: Images & Metadata of “Whole Foods” Shoppers](https://aws.amazon.com/marketplace/pp/prodview-y6xuddt42fmbu?qid=1623195111604&sr=0-1&ref_=srh_res_product_title#offers) from Shutterstock's Image Datasets to train a multi-label image classification model using Shutterstock's pre-labeled image assets. You can learn more about this implementation [from this blog post](https://aws.amazon.com/blogs/awsmarketplace/using-shutterstocks-image-datasets-to-train-your-computer-vision-models/).
+	
 ## FAQ
 
 *What do I need in order to get started?*
