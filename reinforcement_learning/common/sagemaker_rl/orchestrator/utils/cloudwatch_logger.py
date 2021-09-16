@@ -1,35 +1,31 @@
-import time
 import json
+import time
 
 
-class CloudWatchLogger():
-
+class CloudWatchLogger:
     def __init__(self, cw_client, region_name):
         self.region_name = region_name
         self.cw_client = cw_client
-    
+
     def get_cloudwatch_dashboard_details(self, experiment_id):
         # update for non-commercial region
         cw_dashboard_url = f"https://{self.region_name}.console.aws.amazon.com/cloudwatch/home?region={self.region_name}#dashboards:name={experiment_id};start=PT1H"
         text = f"You can monitor your Training/Hosting evaluation metrics on this [CloudWatch Dashboard]({cw_dashboard_url})"
         text += "\n\n(Note: This would need Trained/Hosted Models to be evaluated in order to publish Evaluation Scores)"
         return text
-    
+
     def publish_latest_hosting_information(
-            self,
-            experiment_id,
-            latest_hosted_model_id,
-            latest_hosted_model_score
-            ):
+        self, experiment_id, latest_hosted_model_id, latest_hosted_model_score
+    ):
         self.cw_client.put_metric_data(
             Namespace=experiment_id,
             MetricData=[
                 {
                     "MetricName": "latest_hosted_model_id_continuous",
                     "Timestamp": time.time(),
-                    "Value": int(latest_hosted_model_id.split('-')[-1])
+                    "Value": int(latest_hosted_model_id.split("-")[-1]),
                 }
-            ]
+            ],
         )
         self.cw_client.put_metric_data(
             Namespace=experiment_id,
@@ -37,26 +33,23 @@ class CloudWatchLogger():
                 {
                     "MetricName": "latest_hosted_model_score_continuous",
                     "Timestamp": time.time(),
-                    "Value": float(latest_hosted_model_score)
+                    "Value": float(latest_hosted_model_score),
                 }
-            ]
+            ],
         )
-    
+
     def publish_latest_training_information(
-            self,
-            experiment_id,
-            latest_trained_model_id,
-            latest_trained_model_score
-            ):
+        self, experiment_id, latest_trained_model_id, latest_trained_model_score
+    ):
         self.cw_client.put_metric_data(
             Namespace=experiment_id,
             MetricData=[
                 {
                     "MetricName": "latest_trained_model_id_continuous",
                     "Timestamp": time.time(),
-                    "Value": int(latest_trained_model_id.split('-')[-1])
+                    "Value": int(latest_trained_model_id.split("-")[-1]),
                 }
-            ]
+            ],
         )
         self.cw_client.put_metric_data(
             Namespace=experiment_id,
@@ -64,16 +57,13 @@ class CloudWatchLogger():
                 {
                     "MetricName": "latest_trained_model_score_continuous",
                     "Timestamp": time.time(),
-                    "Value": float(latest_trained_model_score)
+                    "Value": float(latest_trained_model_score),
                 }
-            ]
+            ],
         )
-    
+
     def publish_newly_trained_model_eval_information(
-        self,
-        experiment_id,
-        new_trained_model_id,
-        new_trained_model_score
+        self, experiment_id, new_trained_model_id, new_trained_model_score
     ):
         self.cw_client.put_metric_data(
             Namespace=experiment_id,
@@ -81,9 +71,9 @@ class CloudWatchLogger():
                 {
                     "MetricName": "newly_trained_model_id",
                     "Timestamp": time.time(),
-                    "Value": int(new_trained_model_id.split('-')[-1])
+                    "Value": int(new_trained_model_id.split("-")[-1]),
                 }
-            ]
+            ],
         )
         self.cw_client.put_metric_data(
             Namespace=experiment_id,
@@ -91,45 +81,30 @@ class CloudWatchLogger():
                 {
                     "MetricName": "newly_trained_model_score",
                     "Timestamp": time.time(),
-                    "Value": float(new_trained_model_score)
+                    "Value": float(new_trained_model_score),
                 }
-            ]
+            ],
         )
-    
-    def publish_rewards_for_simulation(
-            self,
-            experiment_id,
-            reported_rewards_sum
-            ):
+
+    def publish_rewards_for_simulation(self, experiment_id, reported_rewards_sum):
         self.cw_client.put_metric_data(
             Namespace=experiment_id,
             MetricData=[
                 {
                     "MetricName": "reported_rewards_score",
                     "Timestamp": time.time(),
-                    "Value": float(reported_rewards_sum)
+                    "Value": float(reported_rewards_sum),
                 }
-            ]
+            ],
         )
 
-    def create_cloudwatch_dashboard_from_experiment_id(
-            self,
-            experiment_id
-            ):
+    def create_cloudwatch_dashboard_from_experiment_id(self, experiment_id):
         cw_json = self.get_cloudwatch_dashboard_json_for_experiment_id(
-            experiment_id,
-            self.region_name
-            )
-        self.cw_client.put_dashboard(
-            DashboardName=experiment_id,
-            DashboardBody=cw_json
+            experiment_id, self.region_name
         )
+        self.cw_client.put_dashboard(DashboardName=experiment_id, DashboardBody=cw_json)
 
-    def get_cloudwatch_dashboard_json_for_experiment_id(
-            self,
-            experiment_id,
-            region_name
-            ):
+    def get_cloudwatch_dashboard_json_for_experiment_id(self, experiment_id, region_name):
         dashboard_json = {
             "widgets": [
                 {
@@ -143,17 +118,15 @@ class CloudWatchLogger():
                             [
                                 experiment_id,
                                 "latest_hosted_model_id_continuous",
-                                {
-                                    "label": "(ModelId suffix part only)"
-                                }
+                                {"label": "(ModelId suffix part only)"},
                             ]
                         ],
                         "view": "singleValue",
                         "region": region_name,
                         "title": "Currently Hosted Model Id",
                         "period": 60,
-                        "stat": "Maximum"
-                    }
+                        "stat": "Maximum",
+                    },
                 },
                 {
                     "type": "metric",
@@ -166,15 +139,15 @@ class CloudWatchLogger():
                             [
                                 experiment_id,
                                 "latest_hosted_model_score_continuous",
-                                {"label": "EvalScore" }
+                                {"label": "EvalScore"},
                             ]
                         ],
                         "view": "singleValue",
                         "region": region_name,
                         "title": "Currently Hosted Model Eval Score (On latest data)",
                         "period": 60,
-                        "stat": "Minimum"
-                    }
+                        "stat": "Minimum",
+                    },
                 },
                 {
                     "type": "metric",
@@ -187,7 +160,7 @@ class CloudWatchLogger():
                             [
                                 experiment_id,
                                 "latest_trained_model_id_continuous",
-                                { "label": "(ModelId suffix only)" }
+                                {"label": "(ModelId suffix only)"},
                             ]
                         ],
                         "view": "singleValue",
@@ -196,8 +169,8 @@ class CloudWatchLogger():
                         "stat": "Maximum",
                         "period": 60,
                         "setPeriodToTimeRange": False,
-                        "stacked": True
-                    }
+                        "stacked": True,
+                    },
                 },
                 {
                     "type": "metric",
@@ -210,15 +183,15 @@ class CloudWatchLogger():
                             [
                                 experiment_id,
                                 "latest_trained_model_score_continuous",
-                                { "label": "EvalScore" }
+                                {"label": "EvalScore"},
                             ]
                         ],
                         "view": "singleValue",
                         "region": region_name,
                         "title": "Latest Trained Model Eval Score",
                         "period": 60,
-                        "stat": "Maximum"
-                    }
+                        "stat": "Maximum",
+                    },
                 },
                 {
                     "type": "metric",
@@ -228,11 +201,7 @@ class CloudWatchLogger():
                     "height": 9,
                     "properties": {
                         "metrics": [
-                            [ 
-                                experiment_id,
-                                "newly_trained_model_score",
-                                {"label": "EvalScore" }    
-                            ]
+                            [experiment_id, "newly_trained_model_score", {"label": "EvalScore"}]
                         ],
                         "view": "timeSeries",
                         "stacked": False,
@@ -240,13 +209,8 @@ class CloudWatchLogger():
                         "stat": "Maximum",
                         "period": 60,
                         "title": "New Model Eval Score Over Time",
-                        "yAxis": {
-                            "left": {
-                                "min": 0,
-                                "max": 1
-                            }
-                        }
-                    }
+                        "yAxis": {"left": {"min": 0, "max": 1}},
+                    },
                 },
                 {
                     "type": "metric",
@@ -256,11 +220,7 @@ class CloudWatchLogger():
                     "height": 9,
                     "properties": {
                         "metrics": [
-                            [
-                                experiment_id,
-                                "reported_rewards_score",
-                                {"label": "Rewards" }
-                            ]
+                            [experiment_id, "reported_rewards_score", {"label": "Rewards"}]
                         ],
                         "view": "timeSeries",
                         "stacked": False,
@@ -268,18 +228,11 @@ class CloudWatchLogger():
                         "stat": "Maximum",
                         "period": 60,
                         "title": "Experiment's Reported Rewards",
-                        "yAxis": {
-                            "left": {
-                                "min": 0,
-                                "max": 1
-                            }
-                        },
+                        "yAxis": {"left": {"min": 0, "max": 1}},
                         "liveData": True,
-                        "legend": {
-                            "position": "bottom"
-                        }
-                    }
-                }
+                        "legend": {"position": "bottom"},
+                    },
+                },
             ]
         }
         return json.dumps(dashboard_json)

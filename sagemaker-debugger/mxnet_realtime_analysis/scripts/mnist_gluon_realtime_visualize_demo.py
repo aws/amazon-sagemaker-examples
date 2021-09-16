@@ -8,6 +8,7 @@ from mxnet import autograd, gluon, init
 from mxnet.gluon import nn
 from mxnet.gluon.data.vision import datasets, transforms
 
+
 def parse_args():
     parser = argparse.ArgumentParser(
         description="Train a mxnet gluon model for FashonMNIST dataset"
@@ -106,6 +107,7 @@ def create_gluon_model():
     net.initialize(init=init.Xavier(), ctx=mx.cpu())
     return net
 
+
 def main():
     opt = parse_args()
 
@@ -117,6 +119,7 @@ def main():
     train_data, valid_data = prepare_data(batch_size)
 
     train_model(batch_size, net, train_data, valid_data, opt.learning_rate, opt.epochs)
+
 
 if __name__ == "__main__":
     main()

@@ -1,9 +1,7 @@
 from time import sleep
 
 import numpy as np
-
-from TSP_baseline_utils import tsp_action_go_from_a_to_b, tsp_dp_approx_sol, \
-    tsp_dp_opt_sol
+from TSP_baseline_utils import tsp_action_go_from_a_to_b, tsp_dp_approx_sol, tsp_dp_opt_sol
 from TSP_env import TSPEasyEnv, TSPMediumEnv
 
 
@@ -46,7 +44,7 @@ def get_mean_baseline_reward(env=TSPEasyEnv(), num_of_episodes=100):
     return np.mean(env_total_rewards), np.std(env_total_rewards)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     env = TSPMediumEnv()
     env.reset()
     optimal_sln = True
@@ -78,8 +76,7 @@ if __name__ == '__main__':
         if action is not None:
             next_state, reward, done, _ = env.step(action)
             env.render()
-            print("Action: {0}, Reward: {1:.1f}, Done: {2}"
-                  .format(action, reward, done))
+            print("Action: {0}, Reward: {1:.1f}, Done: {2}".format(action, reward, done))
             total_reward += reward
         else:
             print("No action taken.")

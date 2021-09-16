@@ -11,32 +11,31 @@
 # ANY KIND, either express or implied. See the License for the specific
 # language governing permissions and limitations under the License.
 
-import os 
 import gzip
+import os
+
 import numpy as np
 
 
 def load_train_dataset(droot):
     return _load_dataset(
-        xfile=os.path.join(droot, 'train-images-idx3-ubyte.gz'),
-        yfile=os.path.join(droot, 'train-labels-idx1-ubyte.gz'),
+        xfile=os.path.join(droot, "train-images-idx3-ubyte.gz"),
+        yfile=os.path.join(droot, "train-labels-idx1-ubyte.gz"),
     )
 
 
 def load_test_dataset(root):
     return _load_dataset(
-        xfile=os.path.join(droot, 't10k-images-idx3-ubyte.gz'),
-        yfile=os.path.join(droot, 't10k-labels-idx1-ubyte.gz'),
+        xfile=os.path.join(droot, "t10k-images-idx3-ubyte.gz"),
+        yfile=os.path.join(droot, "t10k-labels-idx1-ubyte.gz"),
     )
 
-    
+
 def _load_dataset(xfile, yfile):
-    with gzip.open(yfile, 'rb') as lbpath:
+    with gzip.open(yfile, "rb") as lbpath:
         y_test = np.frombuffer(lbpath.read(), np.uint8, offset=8)
-    
-    with gzip.open(xfile, 'rb') as imgpath:
-        x_test = np.frombuffer(
-            imgpath.read(), np.uint8, offset=16).reshape(len(y_test), 28, 28, 1)
-    
+
+    with gzip.open(xfile, "rb") as imgpath:
+        x_test = np.frombuffer(imgpath.read(), np.uint8, offset=16).reshape(len(y_test), 28, 28, 1)
+
     return x_test, y_test
-    

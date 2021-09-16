@@ -6,14 +6,13 @@
 
 from __future__ import print_function
 
-import os
 import json
+import os
 import pickle
 import sys
 import traceback
 
 import pandas as pd
-
 from sklearn import tree
 
 # These are the paths to where SageMaker mounts interesting things in your container.
@@ -49,8 +48,8 @@ def train():
         train_data = pd.concat(raw_data)
 
         # labels are in the first column
-        train_y = train_data.ix[:,0]
-        train_X = train_data.ix[:,1:]
+        train_y = train_data.iloc[:,0]
+        train_X = train_data.iloc[:,1:]
 
         # Here we only support a single hyperparameter. Note that hyperparameters are always passed in as
         # strings, so we need to do any necessary conversions.
@@ -63,7 +62,7 @@ def train():
         clf = clf.fit(train_X, train_y)
 
         # save the model
-        with open(os.path.join(model_path, 'decision-tree-model.pkl'), 'w') as out:
+        with open(os.path.join(model_path, 'decision-tree-model.pkl'), 'wb') as out:
             pickle.dump(clf, out)
         print('Training complete.')
     except Exception as e:

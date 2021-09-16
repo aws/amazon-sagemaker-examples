@@ -34,7 +34,7 @@ RUN pip install --upgrade \
     lz4 \
     psutil
 
-RUN pip install sagemaker-containers --upgrade
+RUN pip install sagemaker-tensorflow-training==20.1.4
 
 RUN pip install roboschool==1.0.46
 

@@ -1,29 +1,35 @@
 import gym
 import numpy as np
 from gym import spaces
-
 from TSP_view_2D import TSPView2D
 
 
 class TSPEasyEnv(gym.Env):
-
     def render(self, mode="human", close=False):
 
         if self.tsp_view is None:
             self.tsp_view = TSPView2D(self.n_orders, self.map_quad, grid_size=25)
 
-        return self.tsp_view.update(self.agt_at_restaurant, self.restaurant_x, self.restaurant_y, self.o_delivery,
-                                    self.o_x, self.o_y, self.agt_x, self.agt_y, mode)
+        return self.tsp_view.update(
+            self.agt_at_restaurant,
+            self.restaurant_x,
+            self.restaurant_y,
+            self.o_delivery,
+            self.o_x,
+            self.o_y,
+            self.agt_x,
+            self.agt_y,
+            mode,
+        )
 
-    def __init__(self, n_orders=4, map_quad=(2, 2), max_time=50, 
-                randomized_orders=False):
+    def __init__(self, n_orders=4, map_quad=(2, 2), max_time=50, randomized_orders=False):
 
         self.tsp_view = None
         self.map_quad = map_quad
 
         self.o_y = []
         self.o_x = []
-        
+
         self.randomized_orders = randomized_orders
 
         self.n_orders = n_orders
@@ -40,10 +46,10 @@ class TSPEasyEnv(gym.Env):
 
         self.max_time = max_time
 
-        self.map_min_x = - map_quad[0]
-        self.map_max_x = + map_quad[0]
-        self.map_min_y = - map_quad[1]
-        self.map_max_y = + map_quad[1]
+        self.map_min_x = -map_quad[0]
+        self.map_max_x = +map_quad[0]
+        self.map_min_y = -map_quad[1]
+        self.map_max_y = +map_quad[1]
 
         # agent x,
         agt_x_min = [self.map_min_x]
@@ -76,14 +82,32 @@ class TSPEasyEnv(gym.Env):
 
         self.observation_space = spaces.Box(
             low=np.array(
-                agt_x_min + agt_y_min + o_x_min + o_y_min + [0] + [0] + o_delivery_min + [
-                    agt_at_restaurant_min] + o_time_min + [
-                    agt_time_min] + [0]),
+                agt_x_min
+                + agt_y_min
+                + o_x_min
+                + o_y_min
+                + [0]
+                + [0]
+                + o_delivery_min
+                + [agt_at_restaurant_min]
+                + o_time_min
+                + [agt_time_min]
+                + [0]
+            ),
             high=np.array(
-                agt_x_max + agt_y_max + o_x_max + o_y_max + [0] + [0] + o_delivery_max + [
-                    agt_at_restaurant_max] + o_time_max + [
-                    agt_time_max] + [self.max_time]),
-            dtype=np.int16
+                agt_x_max
+                + agt_y_max
+                + o_x_max
+                + o_y_max
+                + [0]
+                + [0]
+                + o_delivery_max
+                + [agt_at_restaurant_max]
+                + o_time_max
+                + [agt_time_max]
+                + [self.max_time]
+            ),
+            dtype=np.int16,
         )
 
         # Action space, UP, DOWN, LEFT, RIGHT
@@ -98,12 +122,12 @@ class TSPEasyEnv(gym.Env):
         if self.randomized_orders:
             # Enforce uniqueness of orders, to prevent multiple orders being placed on the same points
             # And ensure actual orders in the episode are always == n_orders as expected
-            orders=[]
+            orders = []
             while len(orders) != self.n_orders:
                 orders += [self.__receive_order()]
                 orders = list(set(orders))
         else:
-            orders = [(-2, -2), (1,1), (2,0), (0, -2)] 
+            orders = [(-2, -2), (1, 1), (2, 0), (0, -2)]
         self.o_x = [x for x, y in orders]
         self.o_y = [y for x, y in orders]
         self.o_delivery = [0] * self.n_orders
@@ -160,31 +184,48 @@ class TSPEasyEnv(gym.Env):
         self.agt_time += 1
 
         # Check if agent is at restaurant
-        self.agt_at_restaurant = int((self.agt_x == self.restaurant_x) and (self.agt_y == self.restaurant_y))
+        self.agt_at_restaurant = int(
+            (self.agt_x == self.restaurant_x) and (self.agt_y == self.restaurant_y)
+        )
 
     def __compute_state(self):
-        return [self.agt_x] + [self.agt_y] + self.o_x + self.o_y + [self.restaurant_x] + [
-            self.restaurant_y] + self.o_delivery + [
-                   self.agt_at_restaurant] + self.o_time + [
-                   self.agt_time] + [(self.max_time - self.agt_time)]
+        return (
+            [self.agt_x]
+            + [self.agt_y]
+            + self.o_x
+            + self.o_y
+            + [self.restaurant_x]
+            + [self.restaurant_y]
+            + self.o_delivery
+            + [self.agt_at_restaurant]
+            + self.o_time
+            + [self.agt_time]
+            + [(self.max_time - self.agt_time)]
+        )
 
     def __receive_order(self):
 
         # Generate a single order, not at the center (where the restaurant is)
-        self.order_x = \
-            np.random.choice([i for i in range(self.map_min_x, self.map_max_x + 1) if i != self.restaurant_x], 1)[0]
-        self.order_y = \
-            np.random.choice([i for i in range(self.map_min_y, self.map_max_y + 1) if i != self.restaurant_y], 1)[0]
+        self.order_x = np.random.choice(
+            [i for i in range(self.map_min_x, self.map_max_x + 1) if i != self.restaurant_x], 1
+        )[0]
+        self.order_y = np.random.choice(
+            [i for i in range(self.map_min_y, self.map_max_y + 1) if i != self.restaurant_y], 1
+        )[0]
 
         return self.order_x, self.order_y
 
     def __compute_reward(self):
-        return np.sum(np.asarray(self.o_delivery) * self.max_time / (np.asarray(self.o_time) + 0.0001)) \
-               - self.agt_time
+        return (
+            np.sum(np.asarray(self.o_delivery) * self.max_time / (np.asarray(self.o_time) + 0.0001))
+            - self.agt_time
+        )
+
 
 class TSPMediumEnv(TSPEasyEnv):
     def __init__(self, n_orders=4, map_quad=(2, 2), max_time=50, randomized_orders=True):
         super().__init__(n_orders, map_quad, max_time, randomized_orders)
+
 
 class TSPHardEnv(TSPEasyEnv):
     def __init__(self, n_orders=10, map_quad=(10, 10), max_time=5000, randomized_orders=True):

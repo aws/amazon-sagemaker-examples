@@ -14,4 +14,3 @@ class CustomGradientRule(Rule):
             if abs_mean > self.threshold:
                 return True
         return False
-    

@@ -1,9 +1,10 @@
 import json
 import logging
-import boto3
-from pathlib import Path
-import shutil
 import os
+import shutil
+from pathlib import Path
+
+import boto3
 import pandas as pd
 
 logger = logging.getLogger(__name__)
@@ -13,7 +14,7 @@ def validate_experience(experience):
     """
     Validate the collected experience has required keys.
     """
-    keys = ["shared_context", "actions_context" ,"action_prob", "action", "reward", "user_id"]
+    keys = ["shared_context", "actions_context", "action_prob", "action", "reward", "user_id"]
     for key in keys:
         is_valid = key in experience
         if not is_valid:
@@ -21,7 +22,7 @@ def validate_experience(experience):
     return True
 
 
-class CSVReader():
+class CSVReader:
     """Reader object that loads experiences from CSV file chunks.
     The input files will be read from in an random order."""
 
@@ -38,7 +39,7 @@ class CSVReader():
                     yield line_dict
 
 
-class JsonLinesReader():
+class JsonLinesReader:
     """Reader object that loads experiences from JSON file chunks.
     The input files will be read from in an random order."""
 
@@ -58,7 +59,7 @@ class JsonLinesReader():
         return experience
 
     def _try_parse(self, line):
-        if line is None or line.strip() == '':
+        if line is None or line.strip() == "":
             return None
         try:
             line_json = json.loads(line.strip())
@@ -68,8 +69,7 @@ class JsonLinesReader():
             assert "prob" in line_json, "prob not found in record"
             return line_json
         except Exception:
-            logger.exception("Ignoring corrupt json record in {}: {}".format(
-                self.cur_file, line))
+            logger.exception("Ignoring corrupt json record in {}: {}".format(self.cur_file, line))
             return None
 
     def _next_line(self):
@@ -89,8 +89,7 @@ class JsonLinesReader():
             if not line:
                 logger.debug("Ignoring empty file {}".format(self.cur_file))
         if not line:
-            raise ValueError("Failed to read next line from files: {}".format(
-                self.files))
+            raise ValueError("Failed to read next line from files: {}".format(self.files))
         return line
 
     def _next_file(self):
@@ -124,7 +123,9 @@ def extract_model(tar_gz_folder):
     This function extracts the model.tar.gz and then
     returns a tuple (str, str) of metadata string and model weights URL on disk.
     """
-    shutil.unpack_archive(filename=os.path.join(tar_gz_folder, "model.tar.gz"), extract_dir=tar_gz_folder)
+    shutil.unpack_archive(
+        filename=os.path.join(tar_gz_folder, "model.tar.gz"), extract_dir=tar_gz_folder
+    )
     return get_vw_model(tar_gz_folder)
 
 
@@ -143,7 +144,7 @@ def download_manifest_data(manifest_file_path, output_dir):
     with open(manifest_file_path.as_posix()) as f:
         manifest = json.load(f)
     s3_prefix = manifest[0]["prefix"]
-    s3 = boto3.client('s3')
+    s3 = boto3.client("s3")
     for file in manifest[1:]:
         s3_uri = os.path.join(s3_prefix, file)
         bucket, key, file_name = parse_s3_uri(s3_uri)

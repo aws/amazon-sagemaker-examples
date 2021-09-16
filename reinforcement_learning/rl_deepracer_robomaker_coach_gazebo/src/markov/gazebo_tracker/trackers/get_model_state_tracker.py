@@ -1,20 +1,21 @@
-import threading
-from markov.log_handler.deepracer_exceptions import GenericRolloutException
 import copy
-import rospy
+import threading
 
+import markov.gazebo_tracker.constants as consts
+import rospy
 from deepracer_msgs.srv import GetModelStates
 from gazebo_msgs.srv import GetModelStateResponse
-from markov.track_geom.constants import GET_MODEL_STATES
-from markov.rospy_wrappers import ServiceProxyWrapper
 from markov.gazebo_tracker.abs_tracker import AbstractTracker
-import markov.gazebo_tracker.constants as consts
+from markov.log_handler.deepracer_exceptions import GenericRolloutException
+from markov.rospy_wrappers import ServiceProxyWrapper
+from markov.track_geom.constants import GET_MODEL_STATES
 
 
 class GetModelStateTracker(AbstractTracker):
     """
     GetModelState Tracker class
     """
+
     _instance_ = None
 
     @staticmethod
@@ -39,8 +40,7 @@ class GetModelStateTracker(AbstractTracker):
         GetModelStateTracker._instance_ = self
         super(GetModelStateTracker, self).__init__(priority=consts.TrackerPriority.HIGH)
 
-    def get_model_state(self, model_name, relative_entity_name, blocking=False,
-                        auto_sync=True):
+    def get_model_state(self, model_name, relative_entity_name, blocking=False, auto_sync=True):
         """
         Return model state of given model name based on given relative entity
 
@@ -88,8 +88,7 @@ class GetModelStateTracker(AbstractTracker):
         """
         if self.model_names:
             with self.lock:
-                res = self._get_model_states(self.model_names,
-                                             self.relative_entity_names)
+                res = self._get_model_states(self.model_names, self.relative_entity_names)
                 if res.success:
                     for model_state, status in zip(res.model_states, res.status):
                         if status:

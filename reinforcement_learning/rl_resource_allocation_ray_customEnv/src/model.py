@@ -1,11 +1,15 @@
 import tensorflow as tf
+
 try:
     import tensorflow.contrib.slim as slim
 except ImportError:
     import tf_slim as slim
+try:
+    from ray.rllib.models.misc import normc_initializer
+except ImportError:
+    from ray.rllib.models.tf.misc import normc_initializer
 
 from ray.rllib.models import Model, ModelCatalog
-from ray.rllib.models.misc import normc_initializer
 
 
 class ActionMaskModel(Model):
@@ -25,19 +29,21 @@ class ActionMaskModel(Model):
                 size,
                 weights_initializer=normc_initializer(1.0),
                 activation_fn=tf.nn.tanh,
-                scope=label)
+                scope=label,
+            )
         action_logits = slim.fully_connected(
             last_layer,
             num_outputs,
             weights_initializer=normc_initializer(0.01),
             activation_fn=None,
-            scope="fc_out")
+            scope="fc_out",
+        )
 
         if num_outputs == 1:
             return action_logits, last_layer
 
         # Mask out invalid actions (use tf.float32.min for stability)
-        inf_mask = tf.maximum(tf.log(mask), tf.float32.min)
+        inf_mask = tf.maximum(tf.math.log(mask), tf.float32.min)
         masked_logits = inf_mask + action_logits
 
         return masked_logits, last_layer

@@ -6,7 +6,6 @@ Get started with model compilation with Neo
 
    xgboost_customer_churn/xgboost_customer_churn_neo
    imageclassification_caltech/Image-classification-fulltraining-highlevel-neo
-   gluoncv_ssd_mobilenet/gluoncv_ssd_mobilenet_neo
 
 
 Apache MXNet
@@ -18,14 +17,6 @@ Apache MXNet
    gluoncv_yolo_darknet/gluoncv_yolo_darknet_neo
    mxnet_mnist/mxnet_mnist_neo
 
-
-Inferentia
-==========
-
-.. toctree::
-   :maxdepth: 1
-
-   deploy_tensorflow_model_on_Inf1_instance/tensorflow_distributed_mnist_neo_inf1
 
 
 PyTorch

@@ -1,5 +1,6 @@
+#########################
 Train Models on SageMaker
-=============================
+#########################
 
 Examples on how to train models with SageMaker.
 
@@ -10,6 +11,16 @@ Algorithms
    :maxdepth: 2
 
    algorithms
+
+
+Bring your own model with Script Mode
+======================================
+
+.. toctree::
+   :maxdepth: 1
+
+   ../sagemaker-script-mode/index
+
 
 
 Bring your own container
@@ -45,7 +56,7 @@ Distributed Training
 .. toctree::
    :maxdepth: 1
 
-   distributed
+   distributed_training/index
 
 
 Experiments

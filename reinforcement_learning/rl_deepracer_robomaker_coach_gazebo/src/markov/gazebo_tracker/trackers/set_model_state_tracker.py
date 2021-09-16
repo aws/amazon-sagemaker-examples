@@ -1,19 +1,20 @@
 import threading
-from markov.log_handler.deepracer_exceptions import GenericRolloutException
-import rospy
 
+import markov.gazebo_tracker.constants as consts
+import rospy
 from deepracer_msgs.srv import SetModelStates
 from gazebo_msgs.srv import SetModelStateResponse
-from markov.track_geom.constants import SET_MODEL_STATES
-from markov.rospy_wrappers import ServiceProxyWrapper
 from markov.gazebo_tracker.abs_tracker import AbstractTracker
-import markov.gazebo_tracker.constants as consts
+from markov.log_handler.deepracer_exceptions import GenericRolloutException
+from markov.rospy_wrappers import ServiceProxyWrapper
+from markov.track_geom.constants import SET_MODEL_STATES
 
 
 class SetModelStateTracker(AbstractTracker):
     """
     SetModelState Tracker class
     """
+
     _instance_ = None
 
     @staticmethod

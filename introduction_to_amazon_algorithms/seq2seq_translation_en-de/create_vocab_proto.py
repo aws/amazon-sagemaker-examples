@@ -7,22 +7,21 @@
 # or in the "license" file accompanying this file. This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 
 import argparse
-from collections import Counter
-from contextlib import ExitStack
 import gzip
 import io
-from itertools import chain, islice
 import json
 import logging
+import multiprocessing
 import os
 import pickle
 import struct
-import multiprocessing
+from collections import Counter
+from contextlib import ExitStack
+from itertools import chain, islice
+from typing import Dict, Generator, Iterable, List, Mapping
 
-from record_pb2 import Record
 import boto3
-from typing import Dict, Iterable, Mapping, Generator
-from typing import List
+from record_pb2 import Record
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -42,11 +41,12 @@ VOCAB_ENCODING = "utf-8"
 
 # RecordIO and Protobuf related utilities
 
+
 def write_recordio(f, data):
-    kmagic = 0xced7230a
+    kmagic = 0xCED7230A
     length = len(data)
-    f.write(struct.pack('I', kmagic))
-    f.write(struct.pack('I', length))
+    f.write(struct.pack("I", kmagic))
+    f.write(struct.pack("I", length))
     upper_align = ((length + 3) >> 2) << 2
     padding = bytes([0x00 for _ in range(upper_align - length)])
     f.write(data)
@@ -55,20 +55,20 @@ def write_recordio(f, data):
 
 def list_to_record_bytes(source: List[int] = None, target: List[int] = None):
     record = Record()
-    record.features['source'].int32_tensor.values.extend(source)
-    record.features['target'].int32_tensor.values.extend(target)
+    record.features["source"].int32_tensor.values.extend(source)
+    record.features["target"].int32_tensor.values.extend(target)
     return record.SerializeToString()
 
 
 def read_next(f):
-    kmagic = 0xced7230a
+    kmagic = 0xCED7230A
     raw_bytes = f.read(4)
     if not raw_bytes:
         return
-    m = struct.unpack('I', raw_bytes)[0]
+    m = struct.unpack("I", raw_bytes)[0]
     if m != kmagic:
         raise ValueError("Incorrect encoding")
-    length = struct.unpack('I', f.read(4))[0]
+    length = struct.unpack("I", f.read(4))[0]
     upper_align = ((length + 3) >> 2) << 2
     data = f.read(upper_align)
     return data[:length]
@@ -81,20 +81,20 @@ def to_proto(f, sources, targets):
 
 
 def write_to_s3(fobj, bucket, key):
-    return boto3.Session().resource('s3').Bucket(bucket).Object(key).upload_fileobj(fobj)
+    return boto3.Session().resource("s3").Bucket(bucket).Object(key).upload_fileobj(fobj)
 
 
 def upload_to_s3(bucket, key, sources, targets):
     f = io.BytesIO()
     to_proto(f, sources, targets)
     f.seek(0)
-    url = 's3n://{}/{}'.format(bucket, key)
-    print('Writing to {}'.format(url))
+    url = "s3n://{}/{}".format(bucket, key)
+    print("Writing to {}".format(url))
     write_to_s3(f, bucket, key)
-    print('Done writing to {}'.format(url))
+    print("Done writing to {}".format(url))
 
 
-def smart_open(filename: str, mode: str = "rt", ftype: str = "auto", errors: str = 'replace'):
+def smart_open(filename: str, mode: str = "rt", ftype: str = "auto", errors: str = "replace"):
     """
     Returns a file descriptor for filename with UTF-8 encoding.
     If mode is "rt", file is opened read-only.
@@ -109,10 +109,10 @@ def smart_open(filename: str, mode: str = "rt", ftype: str = "auto", errors: str
     :param errors: Encoding error handling during reading. Defaults to 'replace'
     :return: File descriptor
     """
-    if ftype == 'gzip' or ftype == 'gz' or (ftype == 'auto' and filename.endswith(".gz")):
-        return gzip.open(filename, mode=mode, encoding='utf-8', errors=errors)
+    if ftype == "gzip" or ftype == "gz" or (ftype == "auto" and filename.endswith(".gz")):
+        return gzip.open(filename, mode=mode, encoding="utf-8", errors=errors)
     else:
-        return open(filename, mode=mode, encoding='utf-8', errors=errors)
+        return open(filename, mode=mode, encoding="utf-8", errors=errors)
 
 
 def get_tokens(line: str) -> Generator[str, None, None]:
@@ -128,41 +128,101 @@ def get_tokens(line: str) -> Generator[str, None, None]:
 
 
 def add_optional_args(model_params):
-    model_params.add_argument('-vs', '--val-source', required=False, type=str, help='Validation source file.')
-    model_params.add_argument('-vt', '--val-target', required=False, type=str, help='Validation target file.')
-    model_params.add_argument('-to', '--train-output', required=False, type=str, default="train.rec",
-                              help="Output filename (protobuf encoded .rec file) to write the processed train file. "
-                                   "Default: %(default)s")
-    model_params.add_argument('-vo', '--val-output', required=False, type=str, default="val.rec",
-                              help="Output filename (protobuf encoded .rec file) to write the processed validation "
-                                   "file. Default: %(default)s")
-    model_params.add_argument('-single-vocab', action="store_true", default=False,
-                              help="Include this flag to build a single vocab for both source and target.")
-    model_params.add_argument('--vocab-source-json', required=False, type=str, default=None,
-                              help="Path to source vocab json if it already exists")
-    model_params.add_argument('--vocab-target-json', required=False, type=str, default=None,
-                              help="Path to vocab target json if it already exists")
-    model_params.add_argument('--num-words-source', required=False, type=int, default=50000,
-                              help='Maximum vocabulary size for source. Default: %(default)s')
-    model_params.add_argument('--num-words-target', required=False, type=int, default=50000,
-                              help='Maximum vocabulary size for target. Default: %(default)s')
-    model_params.add_argument('--word-min-count-source', required=False, type=int, default=1,
-                              help='Minimum frequency of words to be included in source vocabulary. '
-                                   'Default: %(default)s')
-    model_params.add_argument('--word-min-count-target', required=False, type=int, default=1,
-                              help='Minimum frequency of words to be included in target vocabulary. '
-                                   'Default: %(default)s')
+    model_params.add_argument(
+        "-vs", "--val-source", required=False, type=str, help="Validation source file."
+    )
+    model_params.add_argument(
+        "-vt", "--val-target", required=False, type=str, help="Validation target file."
+    )
+    model_params.add_argument(
+        "-to",
+        "--train-output",
+        required=False,
+        type=str,
+        default="train.rec",
+        help="Output filename (protobuf encoded .rec file) to write the processed train file. "
+        "Default: %(default)s",
+    )
+    model_params.add_argument(
+        "-vo",
+        "--val-output",
+        required=False,
+        type=str,
+        default="val.rec",
+        help="Output filename (protobuf encoded .rec file) to write the processed validation "
+        "file. Default: %(default)s",
+    )
+    model_params.add_argument(
+        "-single-vocab",
+        action="store_true",
+        default=False,
+        help="Include this flag to build a single vocab for both source and target.",
+    )
+    model_params.add_argument(
+        "--vocab-source-json",
+        required=False,
+        type=str,
+        default=None,
+        help="Path to source vocab json if it already exists",
+    )
+    model_params.add_argument(
+        "--vocab-target-json",
+        required=False,
+        type=str,
+        default=None,
+        help="Path to vocab target json if it already exists",
+    )
+    model_params.add_argument(
+        "--num-words-source",
+        required=False,
+        type=int,
+        default=50000,
+        help="Maximum vocabulary size for source. Default: %(default)s",
+    )
+    model_params.add_argument(
+        "--num-words-target",
+        required=False,
+        type=int,
+        default=50000,
+        help="Maximum vocabulary size for target. Default: %(default)s",
+    )
+    model_params.add_argument(
+        "--word-min-count-source",
+        required=False,
+        type=int,
+        default=1,
+        help="Minimum frequency of words to be included in source vocabulary. "
+        "Default: %(default)s",
+    )
+    model_params.add_argument(
+        "--word-min-count-target",
+        required=False,
+        type=int,
+        default=1,
+        help="Minimum frequency of words to be included in target vocabulary. "
+        "Default: %(default)s",
+    )
 
 
 def add_vocab_args(required, optional):
-    required.add_argument('-ts', '--train-source', required=True, type=str, help='Training source file.')
-    required.add_argument('-tt', '--train-target', required=True, type=str, help='Training target file.')
+    required.add_argument(
+        "-ts", "--train-source", required=True, type=str, help="Training source file."
+    )
+    required.add_argument(
+        "-tt", "--train-target", required=True, type=str, help="Training target file."
+    )
     add_optional_args(optional)
 
 
-def build_from_paths(input_source: str, input_target: str, single_vocab: bool = False, num_words_source: int = 50000,
-                     num_words_target: int = 50000, min_count_source: int = 1, min_count_target: int = 1) -> (
-        Dict[str, int], Dict[str, int]):
+def build_from_paths(
+    input_source: str,
+    input_target: str,
+    single_vocab: bool = False,
+    num_words_source: int = 50000,
+    num_words_target: int = 50000,
+    min_count_source: int = 1,
+    min_count_target: int = 1,
+) -> (Dict[str, int], Dict[str, int]):
     """
     Creates vocabulary from paths to a file in sentence-per-line format. A sentence is just a whitespace delimited
     list of tokens. Note that special symbols like the beginning of sentence (BOS) symbol will be added to the
@@ -179,10 +239,14 @@ def build_from_paths(input_source: str, input_target: str, single_vocab: bool = 
     with ExitStack() as stack:
         logger.info("Building vocabulary from dataset: %s and %s", input_source, input_target)
         files = (stack.enter_context(smart_open(path)) for path in [input_source, input_target])
-        return build_vocab(*files, single_vocab=single_vocab, num_words_source=num_words_source,
-                           num_words_target=num_words_target,
-                           min_count_source=min_count_source,
-                           min_count_target=min_count_target)
+        return build_vocab(
+            *files,
+            single_vocab=single_vocab,
+            num_words_source=num_words_source,
+            num_words_target=num_words_target,
+            min_count_source=min_count_source,
+            min_count_target=min_count_target
+        )
 
 
 def read_worker(q_in, q_out):
@@ -204,8 +268,14 @@ def write_worker(q_out, output_file):
             write_recordio(f, deq)
 
 
-def write_to_file(input_source: str, input_target: str, output_file: str, vocab_source: Dict[str, int],
-                  vocab_target: Dict[str, int], file_type: str = "train"):
+def write_to_file(
+    input_source: str,
+    input_target: str,
+    output_file: str,
+    vocab_source: Dict[str, int],
+    vocab_target: Dict[str, int],
+    file_type: str = "train",
+):
     """
     Converts the input strings to integers. Processes all the input files and writes into a single file each
     line if which is a list of integers.
@@ -216,11 +286,15 @@ def write_to_file(input_source: str, input_target: str, output_file: str, vocab_
     :param vocab_target: String to Integer mapping of target vocabulary
     """
     num_read_workers = max(multiprocessing.cpu_count() - 1, 1)
-    logger.info('Spawning %s encoding worker(s) for encoding %s datasets!', str(num_read_workers), file_type)
+    logger.info(
+        "Spawning %s encoding worker(s) for encoding %s datasets!", str(num_read_workers), file_type
+    )
     q_in = [multiprocessing.Queue() for i in range(num_read_workers)]
     q_out = multiprocessing.Queue()
-    read_process = [multiprocessing.Process(target=read_worker,
-                                            args=(q_in[i], q_out)) for i in range(num_read_workers)]
+    read_process = [
+        multiprocessing.Process(target=read_worker, args=(q_in[i], q_out))
+        for i in range(num_read_workers)
+    ]
     for p in read_process:
         p.start()
     write_process = multiprocessing.Process(target=write_worker, args=(q_out, output_file))
@@ -235,16 +309,26 @@ def write_to_file(input_source: str, input_target: str, output_file: str, vocab_
             if line_source.strip() == "" or line_target.strip() == "":
                 lines_ignored += 1
                 continue
-            int_source = [vocab_source.get(token, vocab_source[UNK_SYMBOL]) for token in get_tokens(line_source)]
-            int_target = [vocab_target.get(token, vocab_target[UNK_SYMBOL]) for token in get_tokens(line_target)]
+            int_source = [
+                vocab_source.get(token, vocab_source[UNK_SYMBOL])
+                for token in get_tokens(line_source)
+            ]
+            int_target = [
+                vocab_target.get(token, vocab_target[UNK_SYMBOL])
+                for token in get_tokens(line_target)
+            ]
             item = (int_source, int_target)
             q_in[lines_processed % len(q_in)].put(item)
             lines_processed += 1
 
-    logger.info("""Processed %s lines for encoding to protobuf. %s lines were ignored as they didn't have
-                any content in either the source or the target file!""", lines_processed, lines_ignored)
+    logger.info(
+        """Processed %s lines for encoding to protobuf. %s lines were ignored as they didn't have
+                any content in either the source or the target file!""",
+        lines_processed,
+        lines_ignored,
+    )
 
-    logger.info('Completed writing the encoding queue!')
+    logger.info("Completed writing the encoding queue!")
     for q in q_in:
         q.put(None)
     for p in read_process:
@@ -266,16 +350,27 @@ def prune_vocab(raw_vocab, num_words, min_count):
     vocab = islice((w for c, w in pruned_vocab), num_words)
 
     word_to_id = {word: idx for idx, word in enumerate(chain(VOCAB_SYMBOLS, vocab))}
-    logger.info("Final vocabulary: %d types (min frequency %d, top %d types)", len(word_to_id), min_count, num_words)
+    logger.info(
+        "Final vocabulary: %d types (min frequency %d, top %d types)",
+        len(word_to_id),
+        min_count,
+        num_words,
+    )
 
     # Important: pad symbol becomes index 0
     assert word_to_id[PAD_SYMBOL] == PAD_ID
     return word_to_id
 
 
-def build_vocab(data_source: Iterable[str], data_target: Iterable[str], single_vocab: bool = False,
-                num_words_source: int = 50000, num_words_target: int = 50000, min_count_source: int = 1,
-                min_count_target: int = 1) -> (Dict[str, int], Dict[str, int]):
+def build_vocab(
+    data_source: Iterable[str],
+    data_target: Iterable[str],
+    single_vocab: bool = False,
+    num_words_source: int = 50000,
+    num_words_target: int = 50000,
+    min_count_source: int = 1,
+    min_count_target: int = 1,
+) -> (Dict[str, int], Dict[str, int]):
     """
     Creates a vocabulary mapping from words to ids. Increasing integer ids are assigned by word frequency,
     using lexical sorting as a tie breaker. The only exception to this are special symbols such as the padding symbol
@@ -293,17 +388,29 @@ def build_vocab(data_source: Iterable[str], data_target: Iterable[str], single_v
 
     if single_vocab:
         data = chain(data_source, data_target)
-        raw_vocab = Counter(token for line in data for token in get_tokens(line) if token not in vocab_symbols_set)
+        raw_vocab = Counter(
+            token for line in data for token in get_tokens(line) if token not in vocab_symbols_set
+        )
         logger.info("Initial vocabulary: %d types" % len(raw_vocab))
         return prune_vocab(raw_vocab, num_words_source, min_count_source), None
     else:
-        raw_vocab_source = Counter(token for line in data_source for token in get_tokens(line) if token not in
-                                   vocab_symbols_set)
-        raw_vocab_target = Counter(token for line in data_target for token in get_tokens(line) if token not in
-                                   vocab_symbols_set)
+        raw_vocab_source = Counter(
+            token
+            for line in data_source
+            for token in get_tokens(line)
+            if token not in vocab_symbols_set
+        )
+        raw_vocab_target = Counter(
+            token
+            for line in data_target
+            for token in get_tokens(line)
+            if token not in vocab_symbols_set
+        )
 
-        return (prune_vocab(raw_vocab_source, num_words_source, min_count_source),
-                prune_vocab(raw_vocab_target, num_words_target, min_count_target))
+        return (
+            prune_vocab(raw_vocab_source, num_words_source, min_count_source),
+            prune_vocab(raw_vocab_target, num_words_target, min_count_target),
+        )
 
 
 def vocab_to_pickle(vocab: Mapping, path: str):
@@ -312,7 +419,7 @@ def vocab_to_pickle(vocab: Mapping, path: str):
     :param vocab: Vocabulary mapping.
     :param path: Output file path.
     """
-    with open(path, 'wb') as out:
+    with open(path, "wb") as out:
         pickle.dump(vocab, out)
         logger.info('Vocabulary saved to "%s"', path)
 
@@ -347,7 +454,7 @@ def vocab_from_pickle(path: str) -> Dict:
     :param path: Path to pickle file containing the vocabulary.
     :return: The loaded vocabulary.
     """
-    with open(path, 'rb') as inp:
+    with open(path, "rb") as inp:
         vocab = pickle.load(inp)
         logger.info('Vocabulary (%d words) loaded from "%s"', len(vocab), path)
         return vocab
@@ -375,18 +482,23 @@ def reverse_vocab(vocab: Dict[str, int]) -> Dict[int, str]:
 
 
 def main():
-    params = argparse.ArgumentParser(description='CLI to build vocabulary and pre-process input file.')
-    required = params.add_argument_group('required arguments')
+    params = argparse.ArgumentParser(
+        description="CLI to build vocabulary and pre-process input file."
+    )
+    required = params.add_argument_group("required arguments")
     add_vocab_args(required, params)
     args = params.parse_args()
 
     if not args.vocab_source_json or not args.vocab_target_json:
-        vocab_source, vocab_target = build_from_paths(input_source=args.train_source, input_target=args.train_target,
-                                                      single_vocab=args.single_vocab,
-                                                      num_words_source=args.num_words_source,
-                                                      num_words_target=args.num_words_target,
-                                                      min_count_source=args.word_min_count_source,
-                                                      min_count_target=args.word_min_count_target)
+        vocab_source, vocab_target = build_from_paths(
+            input_source=args.train_source,
+            input_target=args.train_target,
+            single_vocab=args.single_vocab,
+            num_words_source=args.num_words_source,
+            num_words_target=args.num_words_target,
+            min_count_source=args.word_min_count_source,
+            min_count_target=args.word_min_count_target,
+        )
         logger.info("Source vocabulary size: %d ", len(vocab_source))
         vocab_to_json(vocab_source, "vocab.src" + JSON_SUFFIX)
 
@@ -399,10 +511,19 @@ def main():
         vocab_target = vocab_from_json(args.vocab_target_json)
 
     vocab_target = vocab_target or vocab_source
-    write_to_file(args.train_source, args.train_target, args.train_output, vocab_source, vocab_target)
+    write_to_file(
+        args.train_source, args.train_target, args.train_output, vocab_source, vocab_target
+    )
 
     if args.val_source and args.val_target:
-        write_to_file(args.val_source, args.val_target, args.val_output, vocab_source, vocab_target, "validation")
+        write_to_file(
+            args.val_source,
+            args.val_target,
+            args.val_output,
+            vocab_source,
+            vocab_target,
+            "validation",
+        )
 
 
 if __name__ == "__main__":

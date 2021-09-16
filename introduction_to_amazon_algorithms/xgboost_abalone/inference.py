@@ -15,7 +15,6 @@ import os
 import pickle as pkl
 
 import numpy as np
-
 import sagemaker_xgboost_container.encoder as xgb_encoders
 
 
@@ -38,9 +37,7 @@ def input_fn(request_body, request_content_type):
     if request_content_type == "text/libsvm":
         return xgb_encoders.libsvm_to_dmatrix(request_body)
     else:
-        raise ValueError(
-            "Content type {} is not supported.".format(request_content_type)
-        )
+        raise ValueError("Content type {} is not supported.".format(request_content_type))
 
 
 def predict_fn(input_data, model):
@@ -51,16 +48,16 @@ def predict_fn(input_data, model):
     and the remaining columns are the feature contributions (SHAP values) for that prediction.
     """
     prediction = model.predict(input_data)
-    feature_contribs = model.predict(input_data, pred_contribs=True)
+    feature_contribs = model.predict(input_data, pred_contribs=True, validate_features=False)
     output = np.hstack((prediction[:, np.newaxis], feature_contribs))
     return output
 
 
-def output_fn(prediction, content_type):
+def output_fn(predictions, content_type):
     """
     After invoking predict_fn, the model server invokes `output_fn`.
     """
-    if content_type == "application/json":
-        return json.dumps(prediction.tolist())
+    if content_type == "text/csv":
+        return ",".join(str(x) for x in predictions[0])
     else:
         raise ValueError("Content type {} is not supported.".format(content_type))

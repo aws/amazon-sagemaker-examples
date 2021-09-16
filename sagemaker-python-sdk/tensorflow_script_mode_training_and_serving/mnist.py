@@ -12,18 +12,17 @@
 # language governing permissions and limitations under the License.
 """Convolutional Neural Network Estimator for MNIST, built with tf.layers."""
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
+
+import argparse
+import json
+import logging as _logging
+import os
+import sys as _sys
 
 import numpy as np
 import tensorflow as tf
-import os
-import json
-import argparse
 from tensorflow.python.platform import tf_logging
-import logging as _logging
-import sys as _sys
 
 
 def cnn_model_fn(features, labels, mode):
@@ -39,11 +38,8 @@ def cnn_model_fn(features, labels, mode):
     # Input Tensor Shape: [batch_size, 28, 28, 1]
     # Output Tensor Shape: [batch_size, 28, 28, 32]
     conv1 = tf.layers.conv2d(
-        inputs=input_layer,
-        filters=32,
-        kernel_size=[5, 5],
-        padding="same",
-        activation=tf.nn.relu)
+        inputs=input_layer, filters=32, kernel_size=[5, 5], padding="same", activation=tf.nn.relu
+    )
 
     # Pooling Layer #1
     # First max pooling layer with a 2x2 filter and stride of 2
@@ -57,11 +53,8 @@ def cnn_model_fn(features, labels, mode):
     # Input Tensor Shape: [batch_size, 14, 14, 32]
     # Output Tensor Shape: [batch_size, 14, 14, 64]
     conv2 = tf.layers.conv2d(
-        inputs=pool1,
-        filters=64,
-        kernel_size=[5, 5],
-        padding="same",
-        activation=tf.nn.relu)
+        inputs=pool1, filters=64, kernel_size=[5, 5], padding="same", activation=tf.nn.relu
+    )
 
     # Pooling Layer #2
     # Second max pooling layer with a 2x2 filter and stride of 2
@@ -82,7 +75,8 @@ def cnn_model_fn(features, labels, mode):
 
     # Add dropout operation; 0.6 probability that element will be kept
     dropout = tf.layers.dropout(
-        inputs=dense, rate=0.4, training=mode == tf.estimator.ModeKeys.TRAIN)
+        inputs=dense, rate=0.4, training=mode == tf.estimator.ModeKeys.TRAIN
+    )
 
     # Logits layer
     # Input Tensor Shape: [batch_size, 1024]
@@ -94,38 +88,38 @@ def cnn_model_fn(features, labels, mode):
         "classes": tf.argmax(input=logits, axis=1),
         # Add `softmax_tensor` to the graph. It is used for PREDICT and by the
         # `logging_hook`.
-        "probabilities": tf.nn.softmax(logits, name="softmax_tensor")
+        "probabilities": tf.nn.softmax(logits, name="softmax_tensor"),
     }
     if mode == tf.estimator.ModeKeys.PREDICT:
-      return tf.estimator.EstimatorSpec(mode=mode, predictions=predictions)
+        return tf.estimator.EstimatorSpec(mode=mode, predictions=predictions)
 
     # Calculate Loss (for both TRAIN and EVAL modes)
     loss = tf.losses.sparse_softmax_cross_entropy(labels=labels, logits=logits)
 
     # Configure the Training Op (for TRAIN mode)
     if mode == tf.estimator.ModeKeys.TRAIN:
-      optimizer = tf.train.GradientDescentOptimizer(learning_rate=0.001)
-      train_op = optimizer.minimize(
-          loss=loss,
-          global_step=tf.train.get_global_step())
-      return tf.estimator.EstimatorSpec(mode=mode, loss=loss, train_op=train_op)
+        optimizer = tf.train.GradientDescentOptimizer(learning_rate=0.001)
+        train_op = optimizer.minimize(loss=loss, global_step=tf.train.get_global_step())
+        return tf.estimator.EstimatorSpec(mode=mode, loss=loss, train_op=train_op)
 
     # Add evaluation metrics (for EVAL mode)
     eval_metric_ops = {
-        "accuracy": tf.metrics.accuracy(
-            labels=labels, predictions=predictions["classes"])}
-    return tf.estimator.EstimatorSpec(
-        mode=mode, loss=loss, eval_metric_ops=eval_metric_ops)
+        "accuracy": tf.metrics.accuracy(labels=labels, predictions=predictions["classes"])
+    }
+    return tf.estimator.EstimatorSpec(mode=mode, loss=loss, eval_metric_ops=eval_metric_ops)
+
 
 def _load_training_data(base_dir):
-    x_train = np.load(os.path.join(base_dir, 'train_data.npy'))
-    y_train = np.load(os.path.join(base_dir, 'train_labels.npy'))
+    x_train = np.load(os.path.join(base_dir, "train_data.npy"))
+    y_train = np.load(os.path.join(base_dir, "train_labels.npy"))
     return x_train, y_train
 
+
 def _load_testing_data(base_dir):
-    x_test = np.load(os.path.join(base_dir, 'eval_data.npy'))
-    y_test = np.load(os.path.join(base_dir, 'eval_labels.npy'))
+    x_test = np.load(os.path.join(base_dir, "eval_data.npy"))
+    y_test = np.load(os.path.join(base_dir, "eval_labels.npy"))
     return x_test, y_test
+
 
 def _parse_args():
 
@@ -133,17 +127,19 @@ def _parse_args():
 
     # Data, model, and output directories
     # model_dir is always passed in from SageMaker. By default this is a S3 path under the default bucket.
-    parser.add_argument('--model_dir', type=str)
-    parser.add_argument('--sm-model-dir', type=str, default=os.environ.get('SM_MODEL_DIR'))
-    parser.add_argument('--train', type=str, default=os.environ.get('SM_CHANNEL_TRAINING'))
-    parser.add_argument('--hosts', type=list, default=json.loads(os.environ.get('SM_HOSTS')))
-    parser.add_argument('--current-host', type=str, default=os.environ.get('SM_CURRENT_HOST'))
+    parser.add_argument("--model_dir", type=str)
+    parser.add_argument("--sm-model-dir", type=str, default=os.environ.get("SM_MODEL_DIR"))
+    parser.add_argument("--train", type=str, default=os.environ.get("SM_CHANNEL_TRAINING"))
+    parser.add_argument("--hosts", type=list, default=json.loads(os.environ.get("SM_HOSTS")))
+    parser.add_argument("--current-host", type=str, default=os.environ.get("SM_CURRENT_HOST"))
 
     return parser.parse_known_args()
 
+
 def serving_input_fn():
-    inputs = {'x': tf.placeholder(tf.float32, [None, 784])}
+    inputs = {"x": tf.placeholder(tf.float32, [None, 784])}
     return tf.estimator.export.ServingInputReceiver(inputs, inputs)
+
 
 if __name__ == "__main__":
     args, unknown = _parse_args()
@@ -152,29 +148,22 @@ if __name__ == "__main__":
     eval_data, eval_labels = _load_testing_data(args.train)
 
     # Create the Estimator
-    mnist_classifier = tf.estimator.Estimator(
-        model_fn=cnn_model_fn, model_dir=args.model_dir)
+    mnist_classifier = tf.estimator.Estimator(model_fn=cnn_model_fn, model_dir=args.model_dir)
 
     # Set up logging for predictions
     # Log the values in the "Softmax" tensor with label "probabilities"
     tensors_to_log = {"probabilities": "softmax_tensor"}
-    logging_hook = tf.train.LoggingTensorHook(
-        tensors=tensors_to_log, every_n_iter=50)
+    logging_hook = tf.train.LoggingTensorHook(tensors=tensors_to_log, every_n_iter=50)
 
     # Train the model
     train_input_fn = tf.estimator.inputs.numpy_input_fn(
-        x={"x": train_data},
-        y=train_labels,
-        batch_size=100,
-        num_epochs=None,
-        shuffle=True)
+        x={"x": train_data}, y=train_labels, batch_size=100, num_epochs=None, shuffle=True
+    )
 
     # Evaluate the model and print results
     eval_input_fn = tf.estimator.inputs.numpy_input_fn(
-        x={"x": eval_data},
-        y=eval_labels,
-        num_epochs=1,
-        shuffle=False)
+        x={"x": eval_data}, y=eval_labels, num_epochs=1, shuffle=False
+    )
 
     train_spec = tf.estimator.TrainSpec(train_input_fn, max_steps=20000)
     eval_spec = tf.estimator.EvalSpec(eval_input_fn)

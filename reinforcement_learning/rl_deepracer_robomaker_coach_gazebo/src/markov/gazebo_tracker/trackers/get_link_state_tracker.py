@@ -1,20 +1,21 @@
-import threading
-from markov.log_handler.deepracer_exceptions import GenericRolloutException
 import copy
-import rospy
+import threading
 
+import markov.gazebo_tracker.constants as consts
+import rospy
 from deepracer_msgs.srv import GetLinkStates
 from gazebo_msgs.srv import GetLinkStateResponse
-from markov.track_geom.constants import GET_LINK_STATES
-from markov.rospy_wrappers import ServiceProxyWrapper
 from markov.gazebo_tracker.abs_tracker import AbstractTracker
-import markov.gazebo_tracker.constants as consts
+from markov.log_handler.deepracer_exceptions import GenericRolloutException
+from markov.rospy_wrappers import ServiceProxyWrapper
+from markov.track_geom.constants import GET_LINK_STATES
 
 
 class GetLinkStateTracker(AbstractTracker):
     """
     GetLinkState Tracker class
     """
+
     _instance_ = None
 
     @staticmethod
@@ -39,8 +40,7 @@ class GetLinkStateTracker(AbstractTracker):
         GetLinkStateTracker._instance_ = self
         super(GetLinkStateTracker, self).__init__(priority=consts.TrackerPriority.HIGH)
 
-    def get_link_state(self, link_name, reference_frame, blocking=False,
-                       auto_sync=True):
+    def get_link_state(self, link_name, reference_frame, blocking=False, auto_sync=True):
         """
         Return link state of given link name based on given reference frame
 
@@ -84,8 +84,7 @@ class GetLinkStateTracker(AbstractTracker):
         """
         if self.link_names:
             with self.lock:
-                res = self._get_link_states(self.link_names,
-                                                    self.reference_frames)
+                res = self._get_link_states(self.link_names, self.reference_frames)
                 if res.success:
                     for link_state, status in zip(res.link_states, res.status):
                         if status:

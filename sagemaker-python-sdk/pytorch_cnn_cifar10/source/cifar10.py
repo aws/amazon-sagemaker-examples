@@ -1,12 +1,11 @@
 import argparse
 import logging
-import sagemaker_containers
-
 import os
 
 import torch
 import torch.distributed as dist
 import torch.nn as nn
+import torch.nn.functional as F
 import torch.nn.parallel
 import torch.optim
 import torch.utils.data
@@ -14,12 +13,16 @@ import torch.utils.data.distributed
 import torchvision
 import torchvision.models
 import torchvision.transforms as transforms
-import torch.nn.functional as F
+
+try:
+    from sagemaker_inference import environment
+except:
+    from sagemaker_training import environment
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
-classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
+classes = ("plane", "car", "bird", "cat", "deer", "dog", "frog", "horse", "ship", "truck")
 
 
 # https://github.com/pytorch/tutorials/blob/master/beginner_source/blitz/cifar10_tutorial.py#L118
@@ -50,33 +53,40 @@ def _train(args):
     if is_distributed:
         # Initialize the distributed environment.
         world_size = len(args.hosts)
-        os.environ['WORLD_SIZE'] = str(world_size)
+        os.environ["WORLD_SIZE"] = str(world_size)
         host_rank = args.hosts.index(args.current_host)
-        os.environ['RANK'] = str(host_rank)
+        os.environ["RANK"] = str(host_rank)
         dist.init_process_group(backend=args.dist_backend, rank=host_rank, world_size=world_size)
         logger.info(
-            'Initialized the distributed environment: \'{}\' backend on {} nodes. '.format(
-                args.dist_backend,
-                dist.get_world_size()) + 'Current host rank is {}. Using cuda: {}. Number of gpus: {}'.format(
-                dist.get_rank(), torch.cuda.is_available(), args.num_gpus))
+            "Initialized the distributed environment: '{}' backend on {} nodes. ".format(
+                args.dist_backend, dist.get_world_size()
+            )
+            + "Current host rank is {}. Using cuda: {}. Number of gpus: {}".format(
+                dist.get_rank(), torch.cuda.is_available(), args.num_gpus
+            )
+        )
 
-    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    device = "cuda" if torch.cuda.is_available() else "cpu"
     logger.info("Device Type: {}".format(device))
 
     logger.info("Loading Cifar10 dataset")
     transform = transforms.Compose(
-        [transforms.ToTensor(),
-         transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+        [transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))]
+    )
 
-    trainset = torchvision.datasets.CIFAR10(root=args.data_dir, train=True,
-                                            download=False, transform=transform)
-    train_loader = torch.utils.data.DataLoader(trainset, batch_size=args.batch_size,
-                                               shuffle=True, num_workers=args.workers)
+    trainset = torchvision.datasets.CIFAR10(
+        root=args.data_dir, train=True, download=False, transform=transform
+    )
+    train_loader = torch.utils.data.DataLoader(
+        trainset, batch_size=args.batch_size, shuffle=True, num_workers=args.workers
+    )
 
-    testset = torchvision.datasets.CIFAR10(root=args.data_dir, train=False,
-                                           download=False, transform=transform)
-    test_loader = torch.utils.data.DataLoader(testset, batch_size=args.batch_size,
-                                              shuffle=False, num_workers=args.workers)
+    testset = torchvision.datasets.CIFAR10(
+        root=args.data_dir, train=False, download=False, transform=transform
+    )
+    test_loader = torch.utils.data.DataLoader(
+        testset, batch_size=args.batch_size, shuffle=False, num_workers=args.workers
+    )
 
     logger.info("Model loaded")
     model = Net()
@@ -109,52 +119,71 @@ def _train(args):
             # print statistics
             running_loss += loss.item()
             if i % 2000 == 1999:  # print every 2000 mini-batches
-                print('[%d, %5d] loss: %.3f' %
-                      (epoch + 1, i + 1, running_loss / 2000))
+                print("[%d, %5d] loss: %.3f" % (epoch + 1, i + 1, running_loss / 2000))
                 running_loss = 0.0
-    print('Finished Training')
+    print("Finished Training")
     return _save_model(model, args.model_dir)
 
 
 def _save_model(model, model_dir):
     logger.info("Saving the model.")
-    path = os.path.join(model_dir, 'model.pth')
+    path = os.path.join(model_dir, "model.pth")
     # recommended way from http://pytorch.org/docs/master/notes/serialization.html
     torch.save(model.cpu().state_dict(), path)
 
 
 def model_fn(model_dir):
-    logger.info('model_fn')
+    logger.info("model_fn")
     device = "cuda" if torch.cuda.is_available() else "cpu"
     model = Net()
     if torch.cuda.device_count() > 1:
         logger.info("Gpu count: {}".format(torch.cuda.device_count()))
         model = nn.DataParallel(model)
 
-    with open(os.path.join(model_dir, 'model.pth'), 'rb') as f:
+    with open(os.path.join(model_dir, "model.pth"), "rb") as f:
         model.load_state_dict(torch.load(f))
     return model.to(device)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--workers', type=int, default=2, metavar='W',
-                        help='number of data loading workers (default: 2)')
-    parser.add_argument('--epochs', type=int, default=2, metavar='E',
-                        help='number of total epochs to run (default: 2)')
-    parser.add_argument('--batch_size', type=int, default=4, metavar='BS',
-                        help='batch size (default: 4)')
-    parser.add_argument('--lr', type=float, default=0.001, metavar='LR',
-                        help='initial learning rate (default: 0.001)')
-    parser.add_argument('--momentum', type=float, default=0.9, metavar='M', help='momentum (default: 0.9)')
-    parser.add_argument('--dist_backend', type=str, default='gloo', help='distributed backend (default: gloo)')
+    parser.add_argument(
+        "--workers",
+        type=int,
+        default=2,
+        metavar="W",
+        help="number of data loading workers (default: 2)",
+    )
+    parser.add_argument(
+        "--epochs",
+        type=int,
+        default=2,
+        metavar="E",
+        help="number of total epochs to run (default: 2)",
+    )
+    parser.add_argument(
+        "--batch_size", type=int, default=4, metavar="BS", help="batch size (default: 4)"
+    )
+    parser.add_argument(
+        "--lr",
+        type=float,
+        default=0.001,
+        metavar="LR",
+        help="initial learning rate (default: 0.001)",
+    )
+    parser.add_argument(
+        "--momentum", type=float, default=0.9, metavar="M", help="momentum (default: 0.9)"
+    )
+    parser.add_argument(
+        "--dist_backend", type=str, default="gloo", help="distributed backend (default: gloo)"
+    )
 
-    env = sagemaker_containers.training_env()
-    parser.add_argument('--hosts', type=list, default=env.hosts)
-    parser.add_argument('--current-host', type=str, default=env.current_host)
-    parser.add_argument('--model-dir', type=str, default=env.model_dir)
-    parser.add_argument('--data-dir', type=str, default=env.channel_input_dirs.get('training'))
-    parser.add_argument('--num-gpus', type=int, default=env.num_gpus)
+    env = environment.Environment()
+    parser.add_argument("--hosts", type=list, default=env.hosts)
+    parser.add_argument("--current-host", type=str, default=env.current_host)
+    parser.add_argument("--model-dir", type=str, default=env.model_dir)
+    parser.add_argument("--data-dir", type=str, default=env.channel_input_dirs.get("training"))
+    parser.add_argument("--num-gpus", type=int, default=env.num_gpus)
 
     _train(parser.parse_args())
