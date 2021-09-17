@@ -1,28 +1,37 @@
 import logging
+
 import numpy as np
-
-from markov.rospy_wrappers import ServiceProxyWrapper
-from markov.domain_randomizations.abs_randomizer import AbstractRandomizer
-from markov.log_handler.logger import Logger
-from markov.domain_randomizations.constants import (ModelRandomizerType, GazeboServiceName,
-                                                    Color,
-                                                    RANGE_MIN, RANGE_MAX)
 import rospy
+from deepracer_msgs.srv import GetVisualNames, GetVisualNamesRequest
 from gazebo_msgs.srv import GetModelProperties, GetModelPropertiesRequest
+from markov.domain_randomizations.abs_randomizer import AbstractRandomizer
+from markov.domain_randomizations.constants import (
+    RANGE_MAX,
+    RANGE_MIN,
+    Color,
+    GazeboServiceName,
+    ModelRandomizerType,
+)
+from markov.gazebo_tracker.trackers.set_visual_color_tracker import SetVisualColorTracker
+from markov.log_handler.logger import Logger
+from markov.rospy_wrappers import ServiceProxyWrapper
 from std_msgs.msg import ColorRGBA
-
-from deepracer_msgs.srv import (GetVisualNames, GetVisualNamesRequest,
-                                SetVisualColors, SetVisualColorsRequest, SetVisualColorsResponse)
-
 
 logger = Logger(__name__, logging.INFO).get_logger()
 
 
 class ModelVisualRandomizer(AbstractRandomizer):
     """Model Visual Randomizer class"""
-    def __init__(self, model_name, model_randomizer_type, num_selection=-1,
-                 link_name_filter=None, visual_name_filter=None,
-                 color_range=None):
+
+    def __init__(
+        self,
+        model_name,
+        model_randomizer_type,
+        num_selection=-1,
+        link_name_filter=None,
+        visual_name_filter=None,
+        color_range=None,
+    ):
         """
         Constructor
         - Bit of explanation regarding model_randomizer_type:
@@ -53,23 +62,29 @@ class ModelVisualRandomizer(AbstractRandomizer):
         self.model_randomizer_type = model_randomizer_type
         self.num_selection = num_selection
 
-        self.color_range = {Color.R.value: {RANGE_MIN: 0.0, RANGE_MAX: 1.0},
-                            Color.G.value: {RANGE_MIN: 0.0, RANGE_MAX: 1.0},
-                            Color.B.value: {RANGE_MIN: 0.0, RANGE_MAX: 1.0}}
+        self.color_range = {
+            Color.R.value: {RANGE_MIN: 0.0, RANGE_MAX: 1.0},
+            Color.G.value: {RANGE_MIN: 0.0, RANGE_MAX: 1.0},
+            Color.B.value: {RANGE_MIN: 0.0, RANGE_MAX: 1.0},
+        }
         if color_range:
             self.color_range.update(color_range)
 
         # ROS Services Setup
         rospy.wait_for_service(GazeboServiceName.GET_MODEL_PROPERTIES.value)
         rospy.wait_for_service(GazeboServiceName.GET_VISUAL_NAMES.value)
-        rospy.wait_for_service(GazeboServiceName.SET_VISUAL_COLORS.value)
 
-        get_model_prop = ServiceProxyWrapper(GazeboServiceName.GET_MODEL_PROPERTIES.value, GetModelProperties)
-        get_visual_names = ServiceProxyWrapper(GazeboServiceName.GET_VISUAL_NAMES.value, GetVisualNames)
-        self.set_visual_colors = ServiceProxyWrapper(GazeboServiceName.SET_VISUAL_COLORS.value, SetVisualColors)
+        get_model_prop = ServiceProxyWrapper(
+            GazeboServiceName.GET_MODEL_PROPERTIES.value, GetModelProperties
+        )
+        get_visual_names = ServiceProxyWrapper(
+            GazeboServiceName.GET_VISUAL_NAMES.value, GetVisualNames
+        )
 
         # Get all model's link names
-        body_names = get_model_prop(GetModelPropertiesRequest(model_name=self.model_name)).body_names
+        body_names = get_model_prop(
+            GetModelPropertiesRequest(model_name=self.model_name)
+        ).body_names
         link_names = ["%s::%s" % (model_name, b) for b in body_names]
 
         # Convert filters to sets
@@ -89,33 +104,44 @@ class ModelVisualRandomizer(AbstractRandomizer):
             if link_name not in self.link_visuals_map:
                 self.link_visuals_map[link_name] = []
             self.link_visuals_map[link_name].append(visual_name)
-        #logger.info('link_visuals_map: {}'.format({"model_name:": self.model_name, "links": self.link_visuals_map}))
+        # logger.info('link_visuals_map: {}'.format({"model_name:": self.model_name, "links": self.link_visuals_map}))
 
     def _get_random_color(self):
-        return ColorRGBA(*[np.random.uniform(self.color_range[Color.R.value][RANGE_MIN],
-                                             self.color_range[Color.R.value][RANGE_MAX]),
-                           np.random.uniform(self.color_range[Color.G.value][RANGE_MIN],
-                                             self.color_range[Color.G.value][RANGE_MAX]),
-                           np.random.uniform(self.color_range[Color.B.value][RANGE_MIN],
-                                             self.color_range[Color.B.value][RANGE_MAX]),
-                           1.0])
+        return ColorRGBA(
+            *[
+                np.random.uniform(
+                    self.color_range[Color.R.value][RANGE_MIN],
+                    self.color_range[Color.R.value][RANGE_MAX],
+                ),
+                np.random.uniform(
+                    self.color_range[Color.G.value][RANGE_MIN],
+                    self.color_range[Color.G.value][RANGE_MAX],
+                ),
+                np.random.uniform(
+                    self.color_range[Color.B.value][RANGE_MIN],
+                    self.color_range[Color.B.value][RANGE_MAX],
+                ),
+                1.0,
+            ]
+        )
 
     def _randomize(self):
         link_names = self.link_visuals_map.keys()
         # Unroll all visual names
-        visual_names = [visual_name for visual_names in self.link_visuals_map.values()
-                        for visual_name in visual_names]
+        visual_names = [
+            visual_name
+            for visual_names in self.link_visuals_map.values()
+            for visual_name in visual_names
+        ]
 
         if self.model_randomizer_type == ModelRandomizerType.LINK and self.num_selection > 0:
             # Select links to randomize if model_randomizer_type is ModelRandomizerType.LINK
-            link_names = np.random.choice(self.link_visuals_map.keys(),
-                                          size=self.num_selection,
-                                          replace=False)
+            link_names = np.random.choice(
+                self.link_visuals_map.keys(), size=self.num_selection, replace=False
+            )
         elif self.model_randomizer_type == ModelRandomizerType.VISUAL and self.num_selection > 0:
             # Select visuals to randomize if model_randomizer_type is ModelRandomizerType.VISUAL
-            visual_names = np.random.choice(visual_names,
-                                            size=self.num_selection,
-                                            replace=False)
+            visual_names = np.random.choice(visual_names, size=self.num_selection, replace=False)
         # Convert to set
         visual_names = set(visual_names)
         # Model-level random color
@@ -125,26 +151,18 @@ class ModelVisualRandomizer(AbstractRandomizer):
         specular = ColorRGBA(0.0, 0.0, 0.0, 1.0)
         emissive = ColorRGBA(0.0, 0.0, 0.0, 1.0)
 
-        req = SetVisualColorsRequest()
-        req.visual_names = []
-        req.link_names = []
-
-        req.ambients = []
-        req.diffuses = []
-        req.speculars = []
-        req.emissives = []
-
         for link_name in link_names:
             for idx, visual_name in enumerate(self.link_visuals_map[link_name]):
                 if visual_name not in visual_names:
                     continue
-
-                req.visual_names.append(visual_name)
-                req.link_names.append(link_name)
-                req.ambients.append(ambient)
-                req.diffuses.append(diffuse)
-                req.speculars.append(specular)
-                req.emissives.append(emissive)
+                SetVisualColorTracker.get_instance().set_visual_color(
+                    visual_name=visual_name,
+                    link_name=link_name,
+                    ambient=ambient,
+                    diffuse=diffuse,
+                    specular=specular,
+                    emissive=emissive,
+                )
 
                 if self.model_randomizer_type == ModelRandomizerType.VISUAL:
                     # Visual-level random color
@@ -157,4 +175,3 @@ class ModelVisualRandomizer(AbstractRandomizer):
                 color = self._get_random_color()
                 ambient = color
                 diffuse = color
-        self.set_visual_colors(req)

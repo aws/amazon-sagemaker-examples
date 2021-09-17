@@ -8,3 +8,7 @@
 # @See https://help.github.com/articles/about-codeowners/
 
 /sagemaker-experiments/* @aws/sagemakerexperimentsadmin
+/sagemaker-lineage/* @aws/sagemakerexperimentsadmin
+
+# Community contributed
+/contrib/ @aws/sagemaker-notebook-sas

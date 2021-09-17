@@ -5,6 +5,7 @@ class RandomizerManager(object):
     """
     Randomizer Manager class that manages multiple randomizer
     """
+
     _instance_ = None
 
     @staticmethod

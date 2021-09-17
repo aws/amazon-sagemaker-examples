@@ -1,0 +1,5 @@
+train_instance_count,instance_type,local_mode
+1,ml.m4.xlarge,False
+2,ml.m4.xlarge,False
+1,ml.p3.2xlarge,False
+2,ml.p3.2xlarge,False

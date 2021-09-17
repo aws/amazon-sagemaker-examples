@@ -12,6 +12,7 @@ These examples that showcase unique functionality available in Amazon SageMaker.
 - [Bring Your Own k-means Model](kmeans_bring_your_own_model) shows how to take a model that's been fit elsewhere and use Amazon SageMaker Algorithms containers to host it.
 - [Installing the R Kernel](install_r_kernel) shows how to install the R kernel into an Amazon SageMaker Notebook Instance.
 - [Bring Your Own R Algorithm](r_bring_your_own) shows how to bring your own algorithm container to Amazon SageMaker using the R language.
+- [Bring Your Own JAX Algorithm](jax_bring_your_own) shows how to bring your own algorithm container to Amazon SageMaker using the JAX framework.
 - [Bring Your Own scikit Algorithm](scikit_bring_your_own) provides a detailed walkthrough on how to package a scikit learn algorithm for training and production-ready hosting.
 - [Bring Your Own MXNet Model](mxnet_mnist_byom) shows how to bring a model trained anywhere using MXNet into Amazon SageMaker
 - [Bring Your Own TensorFlow Model](tensorflow_iris_byom) shows how to bring a model trained anywhere using TensorFlow into Amazon SageMaker

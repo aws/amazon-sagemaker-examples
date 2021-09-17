@@ -1,6 +1,4 @@
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
 
 import gym
 import numpy as np
@@ -22,8 +20,7 @@ Order up to level i
 
 
 class NewsVendorGymEnvironment(gym.Env):
-
-    def render(self, mode='human'):
+    def render(self, mode="human"):
         pass
 
     def __init__(self, config={}):
@@ -34,23 +31,32 @@ class NewsVendorGymEnvironment(gym.Env):
         self.step_count = 0
         self.max_steps = 40
 
-        self.max_value = 100.
-        self.max_holding_cost = 5.
-        self.max_loss_goodwill = 10.
+        self.max_value = 100.0
+        self.max_holding_cost = 5.0
+        self.max_loss_goodwill = 10.0
         self.max_mean = 200
 
         self.inv_dim = max(self.l, 1)
         space_low = self.inv_dim * [0]
         space_high = self.inv_dim * [self.max_level]
         space_low += 5 * [0]
-        space_high += [self.max_value, self.max_value, self.max_holding_cost, self.max_loss_goodwill, self.max_mean]
+        space_high += [
+            self.max_value,
+            self.max_value,
+            self.max_holding_cost,
+            self.max_loss_goodwill,
+            self.max_mean,
+        ]
 
-        self.observation_space = spaces.Box(low=np.array(space_low),
-                                            high=np.array(space_high), dtype=np.float32)
+        self.observation_space = spaces.Box(
+            low=np.array(space_low), high=np.array(space_high), dtype=np.float32
+        )
 
         # Create action space
         # action[0]: Order up to level
-        self.action_space = spaces.Box(low=np.array([0]), high=np.array([self.max_action]), dtype=np.float32)
+        self.action_space = spaces.Box(
+            low=np.array([0]), high=np.array([self.max_action]), dtype=np.float32
+        )
         self.state = None
         self.reset()
 
@@ -73,7 +79,7 @@ class NewsVendorGymEnvironment(gym.Env):
         return self.state
 
     def break_state(self):
-        inv_state = self.state[:self.inv_dim]
+        inv_state = self.state[: self.inv_dim]
         p = self.state[self.inv_dim]
         c = self.state[self.inv_dim + 1]
         h = self.state[self.inv_dim + 2]
@@ -105,7 +111,7 @@ class NewsVendorGymEnvironment(gym.Env):
         new_state = np.copy(self.state)
         buys = max(0, min(self.max_level - on_hand, buys))
         if self.l > 1:
-            new_state[:self.inv_dim - 1] = np.copy(self.state[1:self.inv_dim])
+            new_state[: self.inv_dim - 1] = np.copy(self.state[1 : self.inv_dim])
             new_state[self.l - 1] = buys
             new_state[0] += overage
         elif self.l == 1:
@@ -119,7 +125,12 @@ class NewsVendorGymEnvironment(gym.Env):
 
         # reward = reward/100.0 #reduce rewards to smaller values
         self.state = np.copy(new_state)
-        info = {'demand realization': demand_realization, 'sales': sales, 'underage': underage, 'overage': overage}
+        info = {
+            "demand realization": demand_realization,
+            "sales": sales,
+            "underage": underage,
+            "overage": overage,
+        }
         return new_state, reward, done, info
 
 

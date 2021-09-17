@@ -6,7 +6,6 @@
 
 These examples focus on the Amazon SageMaker Python SDK which allows you to write idiomatic TensorFlow or MXNet and then train or host in pre-built containers.
 
-- [cifar 10 with MXNet Gluon](mxnet_gluon_cifar10)
 - [MNIST with MXNet Gluon](mxnet_gluon_mnist)
 - [MNIST with MXNet](mxnet_mnist)
 - [CIFAR-10 with Chainer and ChainerMN](chainer_cifar10)
@@ -14,11 +13,7 @@ These examples focus on the Amazon SageMaker Python SDK which allows you to writ
 - [MNIST with Chainer](chainer_mnist)
 - [Sentiment Analysis with MXNet Gluon](mxnet_gluon_sentiment)
 - [IRIS with Scikit-learn](scikit_learn_iris)
-- [TensorFlow Neural Networks with Layers](tensorflow_abalone_age_predictor_using_layers)
-- [TensorFlow Networks with Keras](tensorflow_abalone_age_predictor_using_keras)
-- [Introduction to Estimators in TensorFlow](tensorflow_iris_dnn_classifier_using_estimators)
-- [TensorFlow and TensorBoard](tensorflow_resnet_cifar10_with_tensorboard)
-- [Distributed TensorFlow](tensorflow_distributed_mnist)
+- [Visualize Amazon SageMaker Training Jobs with TensorBoard (CIFAR-10, TensorFlow 2.2)](tensorboard_keras)
 - [Managed Spot Training on MXNet](managed_spot_training_mxnet)
 - [Managed Spot Training on TensorFlow](managed_spot_training_tensorflow_estimator)
 

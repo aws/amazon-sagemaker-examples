@@ -1,21 +1,17 @@
 #!/opt/conda/bin/python
 from __future__ import print_function
 
-import sys
-
-import os
+import copy
 import json
+import os
 import pickle
+import shutil
 import sys
 import traceback
-import copy
-import shutil
 from glob import glob
 
 from fairseq import distributed_utils, options
-
 from train_driver import main
-
 
 # These are the paths to where SageMaker mounts interesting things in your container.
 

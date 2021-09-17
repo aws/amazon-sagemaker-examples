@@ -1,8 +1,16 @@
 import json
 
-class TrainingChannels:
 
-    def __init__(self, name, description, supported_content_types = [], is_required=True, supported_compression_types = ["None"], supported_input_modes = ["File"]):
+class TrainingChannels:
+    def __init__(
+        self,
+        name,
+        description,
+        supported_content_types=[],
+        is_required=True,
+        supported_compression_types=["None"],
+        supported_input_modes=["File"],
+    ):
         self.Name = name
         self.Description = description
         self.IsRequired = is_required

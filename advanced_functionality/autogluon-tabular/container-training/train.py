@@ -1,34 +1,51 @@
-import ast
 import argparse
-import logging
-import warnings
-import os
-import json
+import ast
 import glob
+import json
+import logging
+import os
+import pickle
+import shutil
 import subprocess
 import sys
-import boto3
-import pickle
-import pandas as pd
+import warnings
 from collections import Counter
 from timeit import default_timer as timer
 
-sys.path.insert(0, 'package')
+import boto3
+import matplotlib.pyplot as plt
+import networkx as nx
+import numpy as np
+import pandas as pd
+import seaborn as sns
+
+logging.basicConfig(level=logging.DEBUG)
+logging.info(subprocess.call("ls -lR /opt/ml/input".split()))
+
+
+import shap
+import smdebug.mxnet as smd
+from smdebug.core.writer import FileWriter
+
 with warnings.catch_warnings():
-    warnings.filterwarnings("ignore",category=DeprecationWarning)
-    from prettytable import PrettyTable
+    warnings.filterwarnings("ignore", category=DeprecationWarning)
     import autogluon as ag
-    from autogluon import TabularPrediction as task
-    from autogluon.task.tabular_prediction import TabularDataset
-    
+    from autogluon.core.constants import BINARY, MULTICLASS, REGRESSION, SOFTCLASS
+    from autogluon.tabular import TabularDataset, TabularPredictor
+    from prettytable import PrettyTable
+
+    # print(f'DEBUG AutoGluon version : {ag.__version__}')
+
 
 # ------------------------------------------------------------ #
 # Training methods                                             #
 # ------------------------------------------------------------ #
 
+
 def du(path):
     """disk usage in human readable format (e.g. '2,1GB')"""
-    return subprocess.check_output(['du','-sh', path]).split()[0].decode('utf-8')
+    return subprocess.check_output(["du", "-sh", path]).split()[0].decode("utf-8")
+
 
 def __load_input_data(path: str) -> TabularDataset:
     """
@@ -37,200 +54,228 @@ def __load_input_data(path: str) -> TabularDataset:
     :return: DataFrame
     """
     input_data_files = os.listdir(path)
+
     try:
-        input_dfs = [pd.read_csv(f'{path}/{data_file}') for data_file in input_data_files]
-        return task.Dataset(df=pd.concat(input_dfs))
+        input_dfs = [pd.read_csv(f"{path}/{data_file}") for data_file in input_data_files]
+
+        return TabularDataset(data=pd.concat(input_dfs))
     except:
-        print(f'No csv data in {path}!')
+        print(f"No csv data in {path}!")
         return None
 
+
+def format_for_print(df):
+    table = PrettyTable(list(df.columns))
+    for row in df.itertuples():
+        table.add_row(row[1:])
+    return str(table)
+
+
+def get_roc_auc(y_test_true, y_test_pred, labels, class_labels_internal, model_output_dir):
+    from itertools import cycle
+
+    from sklearn.metrics import auc, roc_curve
+    from sklearn.preprocessing import label_binarize
+
+    y_test_true_binalized = label_binarize(y_test_true, classes=labels)
+
+    if len(labels) == 2:
+        # binary classification
+
+        true_label_index = class_labels_internal.index(1)
+
+        y_test_pred = y_test_pred.values[:, true_label_index]
+        y_test_pred = np.reshape(y_test_pred, (-1, 1))
+        labels = labels[true_label_index : true_label_index + 1]
+        n_classes = 1
+    else:
+        # multiclass classification
+        n_classes = len(labels)
+
+    # Compute ROC curve and ROC area for each class
+    fpr = dict()
+    tpr = dict()
+    roc_auc = dict()
+
+    for i in range(n_classes):
+        fpr[i], tpr[i], _ = roc_curve(y_test_true_binalized[:, i], y_test_pred[:, i])
+        roc_auc[i] = auc(fpr[i], tpr[i])
+
+    # Compute micro-average ROC curve and ROC area
+    fpr["micro"], tpr["micro"], _ = roc_curve(y_test_true_binalized.ravel(), y_test_pred.ravel())
+    roc_auc["micro"] = auc(fpr["micro"], tpr["micro"])
+
+    sns.set(font_scale=1)
+    plt.figure()
+    lw = 2
+    colors = cycle(["aqua", "darkorange", "cornflowerblue"])
+
+    for i, color in zip(range(n_classes), colors):
+        plt.plot(
+            fpr[i],
+            tpr[i],
+            color=color,
+            lw=lw,
+            label=f"ROC curve for {labels[i]} (area = %0.2f)" % roc_auc[i],
+        )
+    plt.plot([0, 1], [0, 1], color="navy", lw=lw, linestyle="--")
+    plt.xlim([0.0, 1.0])
+    plt.ylim([0.0, 1.05])
+    plt.xlabel("False Positive Rate")
+    plt.ylabel("True Positive Rate")
+    plt.title("Receiver operating characteristic example")
+    plt.legend(loc="lower right")
+    plt.show()
+    plt.savefig(f"{model_output_dir}/roc_auc_curve.png")
+
+
 def train(args):
+    model_output_dir = f"{args.output_dir}/data"
 
     is_distributed = len(args.hosts) > 1
-    host_rank = args.hosts.index(args.current_host)    
+    host_rank = args.hosts.index(args.current_host)
     dist_ip_addrs = args.hosts
     dist_ip_addrs.pop(host_rank)
-    ngpus_per_trial = 1 if args.num_gpus > 0 else 0
 
-    # load training and validation data
-    print(f'Train files: {os.listdir(args.train)}')
+    # Load training and validation data
+    print(f"Train files: {os.listdir(args.train)}")
     train_data = __load_input_data(args.train)
-    print(f'Label counts: {dict(Counter(train_data[args.label]))}')
-    print(f'hp: {args.hyperparameters}')
-    predictor = task.fit(
-        train_data=train_data,
-        label=args.label,            
-        output_directory=args.model_dir,
-        problem_type=args.problem_type,
-        eval_metric=args.eval_metric,
-        stopping_metric=args.stopping_metric,
-        auto_stack=args.auto_stack, # default: False
-        hyperparameter_tune=args.hyperparameter_tune, # default: False
-        feature_prune=args.feature_prune, # default: False
-        holdout_frac=args.holdout_frac, # default: None
-        num_bagging_folds=args.num_bagging_folds, # default: 0
-        num_bagging_sets=args.num_bagging_sets, # default: None
-        stack_ensemble_levels=args.stack_ensemble_levels, # default: 0
-        hyperparameters=args.hyperparameters,
-        cache_data=args.cache_data,
-        time_limits=args.time_limits,
-        num_trials=args.num_trials, # default: None
-        search_strategy=args.search_strategy, # default: 'random'
-        search_options=args.search_options,
-        visualizer=args.visualizer,
-        verbosity=args.verbosity
-    )
-    
-    # Results summary
-    predictor.fit_summary(verbosity=1)
 
-    # Leaderboard on optional test data
+    # Extract column info
+    target = args.init_args["label"]
+    columns = train_data.columns.tolist()
+    column_dict = {"columns": columns}
+    with open("columns.pkl", "wb") as f:
+        pickle.dump(column_dict, f)
+
+    # Train models
+
+    args.init_args["path"] = args.model_dir
+    # args.fit_args.pop('label', None)
+    predictor = TabularPredictor(**args.init_args).fit(train_data, **args.fit_args)
+
+    # Results summary
+    predictor.fit_summary(verbosity=3)
+    # model_summary_fname_src = os.path.join(predictor.output_directory, 'SummaryOfModels.html')
+    model_summary_fname_src = os.path.join(args.model_dir, "SummaryOfModels.html")
+    model_summary_fname_tgt = os.path.join(model_output_dir, "SummaryOfModels.html")
+
+    if os.path.exists(model_summary_fname_src):
+        shutil.copy(model_summary_fname_src, model_summary_fname_tgt)
+
+    # ensemble visualization
+    G = predictor._trainer.model_graph
+    remove = [node for node, degree in dict(G.degree()).items() if degree < 1]
+    G.remove_nodes_from(remove)
+    A = nx.nx_agraph.to_agraph(G)
+    A.graph_attr.update(rankdir="BT")
+    A.node_attr.update(fontsize=10)
+    for node in A.iternodes():
+        node.attr["shape"] = "rectagle"
+    A.draw(os.path.join(model_output_dir, "ensemble-model.png"), format="png", prog="dot")
+
+    # Optional test data
     if args.test:
-        print(f'Test files: {os.listdir(args.test)}')
-        test_data = __load_input_data(args.test)    
-        print('Running model on test data and getting Leaderboard...')
-        leaderboard = predictor.leaderboard(dataset=test_data, silent=True)
-        def format_for_print(df):
-            table = PrettyTable(list(df.columns))
-            for row in df.itertuples():
-                table.add_row(row[1:])
-            return str(table)
-        print(format_for_print(leaderboard), end='\n\n')
+        print(f"Test files: {os.listdir(args.test)}")
+        test_data = __load_input_data(args.test)
+        # Test data must be labeled for scoring
+        if target in test_data:
+            # Leaderboard on test data
+            print("Running model on test data and getting Leaderboard...")
+            leaderboard = predictor.leaderboard(test_data, silent=True)
+            print(format_for_print(leaderboard), end="\n\n")
+            leaderboard.to_csv(f"{model_output_dir}/leaderboard.csv", index=False)
+
+            # Feature importance on test data
+            # Note: Feature importance must be calculated on held-out (test) data.
+            # If calculated on training data it will be biased due to overfitting.
+            if args.feature_importance:
+                print("Feature importance:")
+                # Increase rows to print feature importance
+                pd.set_option("display.max_rows", 500)
+                feature_importance_df = predictor.feature_importance(test_data)
+
+                print(feature_importance_df)
+                feature_importance_df.to_csv(
+                    f"{model_output_dir}/feature_importance.csv", index=True
+                )
+
+            # Classification report and confusion matrix for classification model
+            if predictor.problem_type in [BINARY, MULTICLASS]:
+                from sklearn.metrics import classification_report, confusion_matrix
+
+                X_test = test_data.drop(target, axis=1)
+                y_test_true = test_data[target]
+                y_test_pred = predictor.predict(X_test)
+                y_test_pred_prob = predictor.predict_proba(X_test, as_multiclass=True)
+
+                report_dict = classification_report(
+                    y_test_true, y_test_pred, output_dict=True, labels=predictor.class_labels
+                )
+                report_dict_df = pd.DataFrame(report_dict).T
+                report_dict_df.to_csv(f"{model_output_dir}/classification_report.csv", index=True)
+
+                cm = confusion_matrix(y_test_true, y_test_pred, labels=predictor.class_labels)
+                cm_df = pd.DataFrame(cm, predictor.class_labels, predictor.class_labels)
+                sns.set(font_scale=1)
+                cmap = "coolwarm"
+                sns.heatmap(cm_df, annot=True, fmt="d", cmap=cmap)
+                plt.title("Confusion Matrix")
+                plt.ylabel("true label")
+                plt.xlabel("predicted label")
+                plt.show()
+                plt.savefig(f"{model_output_dir}/confusion_matrix.png")
+
+                get_roc_auc(
+                    y_test_true,
+                    y_test_pred_prob,
+                    predictor.class_labels,
+                    predictor.class_labels_internal,
+                    model_output_dir,
+                )
+        else:
+            warnings.warn("Skipping eval on test data since label column is not included.")
 
     # Files summary
-    print(f'Model export summary:')
+    print(f"Model export summary:")
     print(f"/opt/ml/model/: {os.listdir('/opt/ml/model/')}")
-    models_contents = os.listdir('/opt/ml/model/models')
+    models_contents = os.listdir("/opt/ml/model/models")
     print(f"/opt/ml/model/models: {models_contents}")
     print(f"/opt/ml/model directory size: {du('/opt/ml/model/')}\n")
+
 
 # ------------------------------------------------------------ #
 # Training execution                                           #
 # ------------------------------------------------------------ #
 
+
 def parse_args():
+    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.register("type", "bool", lambda v: v.lower() in ("yes", "true", "t", "1"))
 
-    parser = argparse.ArgumentParser(
-             formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    def str2bool(v):
-        return v.lower() in ('yes', 'true', 't', '1')
-    parser.register('type','bool',str2bool) # add type keyword to registries
-
-    parser.add_argument('--hosts', type=list, default=json.loads(os.environ['SM_HOSTS']))    
-    parser.add_argument('--current-host', type=str, default=os.environ['SM_CURRENT_HOST'])
-    parser.add_argument('--num-gpus', type=int, default=os.environ['SM_NUM_GPUS'])
-    parser.add_argument('--model-dir', type=str, default=os.environ['SM_MODEL_DIR']) # /opt/ml/model
-    parser.add_argument('--train', type=str, default=os.environ['SM_CHANNEL_TRAINING'])
-    parser.add_argument('--test', type=str, default='') # /opt/ml/input/data/test
-    parser.add_argument('--label', type=str, default='label',
-                        help="Name of the column that contains the target variable to predict.")
-    
-    parser.add_argument('--problem_type', type=str, default=None,
-                        help=("Type of prediction problem, i.e. is this a binary/multiclass classification or "
-                              "regression problem options: 'binary', 'multiclass', 'regression'). "
-                              "If `problem_type = None`, the prediction problem type is inferred based "
-                              "on the label-values in provided dataset."))
-    parser.add_argument('--eval_metric', type=str, default=None,
-                        help=("Metric by which predictions will be ultimately evaluated on test data."
-                              "AutoGluon tunes factors such as hyperparameters, early-stopping, ensemble-weights, etc. "
-                              "in order to improve this metric on validation data. "
-                              "If `eval_metric = None`, it is automatically chosen based on `problem_type`. "
-                              "Defaults to 'accuracy' for binary and multiclass classification and "
-                              "'root_mean_squared_error' for regression. "
-                              "Otherwise, options for classification: [ "
-                              "    'accuracy', 'balanced_accuracy', 'f1', 'f1_macro', 'f1_micro', 'f1_weighted', "
-                              "    'roc_auc', 'average_precision', 'precision', 'precision_macro', 'precision_micro', 'precision_weighted', "
-                              "    'recall', 'recall_macro', 'recall_micro', 'recall_weighted', 'log_loss', 'pac_score']. "
-                              "Options for regression: ['root_mean_squared_error', 'mean_squared_error', "
-                              "'mean_absolute_error', 'median_absolute_error', 'r2']. "
-                              "For more information on these options, see `sklearn.metrics`: "
-                              "https://scikit-learn.org/stable/modules/classes.html#sklearn-metrics-metrics "
-                              "You can also pass your own evaluation function here as long as it follows formatting of the functions "
-                              "defined in `autogluon/utils/tabular/metrics/`. "))
-    parser.add_argument('--stopping_metric', type=str, default=None,
-                        help=("Metric which models use to early stop to avoid overfitting. "
-                              "`stopping_metric` is not used by weighted ensembles, instead weighted ensembles maximize `eval_metric`. "
-                              "Defaults to `eval_metric` value except when `eval_metric='roc_auc'`, where it defaults to `log_loss`."))      
-    parser.add_argument('--auto_stack', type='bool', default=False,
-                        help=("Whether to have AutoGluon automatically attempt to select optimal "
-                              "num_bagging_folds and stack_ensemble_levels based on data properties. "
-                              "Note: Overrides num_bagging_folds and stack_ensemble_levels values. "
-                              "Note: This can increase training time by up to 20x, but can produce much better results. "
-                              "Note: This can increase inference time by up to 20x."))
-    parser.add_argument('--hyperparameter_tune', type='bool', default=False,
-                        help=("Whether to tune hyperparameters or just use fixed hyperparameter values "
-                              "for each model. Setting as True will increase `fit()` runtimes."))
-    parser.add_argument('--feature_prune', type='bool', default=False,
-                        help="Whether or not to perform feature selection.")
-    parser.add_argument('--holdout_frac', type=float, default=None, 
-                        help=("Fraction of train_data to holdout as tuning data for optimizing hyperparameters "
-                              "(ignored unless `tuning_data = None`, ignored if `num_bagging_folds != 0`). "
-                              "Default value is selected based on the number of rows in the training data. "
-                              "Default values range from 0.2 at 2,500 rows to 0.01 at 250,000 rows. "
-                              "Default value is doubled if `hyperparameter_tune = True`, up to a maximum of 0.2. "
-                              "Disabled if `num_bagging_folds >= 2`."))    
-    parser.add_argument('--num_bagging_folds', type=int, default=0, 
-                        help=("Number of folds used for bagging of models. When `num_bagging_folds = k`, "
-                              "training time is roughly increased by a factor of `k` (set = 0 to disable bagging). "
-                              "Disabled by default, but we recommend values between 5-10 to maximize predictive performance. "
-                              "Increasing num_bagging_folds will result in models with lower bias but that are more prone to overfitting. "
-                              "Values > 10 may produce diminishing returns, and can even harm overall results due to overfitting. "
-                              "To further improve predictions, avoid increasing num_bagging_folds much beyond 10 "
-                              "and instead increase num_bagging_sets. "))    
-    parser.add_argument('--num_bagging_sets', type=int, default=None,
-                        help=("Number of repeats of kfold bagging to perform (values must be >= 1). "
-                              "Total number of models trained during bagging = num_bagging_folds * num_bagging_sets. "
-                              "Defaults to 1 if time_limits is not specified, otherwise 20 "
-                              "(always disabled if num_bagging_folds is not specified). "
-                              "Values greater than 1 will result in superior predictive performance, "
-                              "especially on smaller problems and with stacking enabled. "
-                              "Increasing num_bagged_sets reduces the bagged aggregated variance without "
-                              "increasing the amount each model is overfit."))
-    parser.add_argument('--stack_ensemble_levels', type=int, default=0, 
-                        help=("Number of stacking levels to use in stack ensemble. "
-                              "Roughly increases model training time by factor of `stack_ensemble_levels+1` " 
-                              "(set = 0 to disable stack ensembling).  "
-                              "Disabled by default, but we recommend values between 1-3 to maximize predictive performance. "
-                              "To prevent overfitting, this argument is ignored unless you have also set `num_bagging_folds >= 2`."))
-    parser.add_argument('--hyperparameters', type=lambda s: ast.literal_eval(s), default=None,
-                        help="Refer to docs: https://autogluon.mxnet.io/api/autogluon.task.html")
-    parser.add_argument('--cache_data', type='bool', default=True,
-                       help=("Whether the predictor returned by this `fit()` call should be able to be further trained "
-                             "via another future `fit()` call. "
-                             "When enabled, the training and validation data are saved to disk for future reuse."))
-    parser.add_argument('--time_limits', type=int, default=None, 
-                        help=("Approximately how long `fit()` should run for (wallclock time in seconds)."
-                              "If not specified, `fit()` will run until all models have completed training, "
-                              "but will not repeatedly bag models unless `num_bagging_sets` is specified."))
-    parser.add_argument('--num_trials', type=int, default=None, 
-                        help=("Maximal number of different hyperparameter settings of each "
-                              "model type to evaluate during HPO. (only matters if "
-                              "hyperparameter_tune = True). If both `time_limits` and "
-                              "`num_trials` are specified, `time_limits` takes precedent."))    
-    parser.add_argument('--search_strategy', type=str, default='random',
-                        help=("Which hyperparameter search algorithm to use. "
-                              "Options include: 'random' (random search), 'skopt' "
-                              "(SKopt Bayesian optimization), 'grid' (grid search), "
-                              "'hyperband' (Hyperband), 'rl' (reinforcement learner)"))      
-    parser.add_argument('--search_options', type=lambda s: ast.literal_eval(s), default=None,
-                        help="Auxiliary keyword arguments to pass to the searcher that performs hyperparameter optimization.")
-    parser.add_argument('--nthreads_per_trial', type=int, default=None,
-                        help="How many CPUs to use in each training run of an individual model. This is automatically determined by AutoGluon when left as None (based on available compute).")
-    parser.add_argument('--ngpus_per_trial', type=int, default=None,
-                        help="How many GPUs to use in each trial (ie. single training run of a model). This is automatically determined by AutoGluon when left as None.")
-    parser.add_argument('--dist_ip_addrs', type=list, default=None,
-                        help="List of IP addresses corresponding to remote workers, in order to leverage distributed computation.") 
-    parser.add_argument('--visualizer', type=str, default='none',
-                        help=("How to visualize the neural network training progress during `fit()`. "
-                              "Options: ['mxboard', 'tensorboard', 'none']."))          
-    parser.add_argument('--verbosity', type=int, default=2, 
-                        help=("Verbosity levels range from 0 to 4 and control how much information is printed during fit(). "
-                              "Higher levels correspond to more detailed print statements (you can set verbosity = 0 to suppress warnings). "
-                              "If using logging, you can alternatively control amount of information printed via `logger.setLevel(L)`, "
-                              "where `L` ranges from 0 to 50 (Note: higher values of `L` correspond to fewer print statements, "
-                              "opposite of verbosity levels"))
-    parser.add_argument('--debug', type='bool', default=False,
-                       help=("Whether to set logging level to DEBUG"))                         
+    # Environment parameters
+    parser.add_argument("--hosts", type=list, default=json.loads(os.environ["SM_HOSTS"]))
+    parser.add_argument("--current-host", type=str, default=os.environ["SM_CURRENT_HOST"])
+    parser.add_argument("--num-gpus", type=int, default=os.environ["SM_NUM_GPUS"])
+    parser.add_argument("--model-dir", type=str, default=os.environ["SM_MODEL_DIR"])
+    parser.add_argument("--output-dir", type=str, default=os.environ["SM_OUTPUT_DIR"])
+    parser.add_argument("--train", type=str, default=os.environ["SM_CHANNEL_TRAINING"])
+    # Arguments to be passed to TabularPredictor()
+    parser.add_argument(
+        "--init_args",
+        type=lambda s: ast.literal_eval(s),
+        default="{'label': 'y'}",
+        help="https://auto.gluon.ai/stable/_modules/autogluon/tabular/predictor/predictor.html#TabularPredictor",
+    )
+    # Arguments to be passed to task.fit()
+    parser.add_argument(
+        "--fit_args",
+        type=lambda s: ast.literal_eval(s),
+        default="{'presets': ['optimize_for_deployment']}",
+        help="https://auto.gluon.ai/stable/_modules/autogluon/tabular/predictor/predictor.html#TabularPredictor",
+    )
+    # Additional options
+    parser.add_argument("--feature_importance", type="bool", default=True)
 
     return parser.parse_args()
 
@@ -238,27 +283,35 @@ def parse_args():
 if __name__ == "__main__":
     start = timer()
     args = parse_args()
-    
-    # Print SageMaker args
-    print('\n====== args ======')
-    for k,v in vars(args).items():
-        print(f'{k},  type: {type(v)},  value: {v}')
-    print()
-    
-    # Convert AutoGluon hyperparameters from strings
-    if args.hyperparameters:
-        for model_type,options in args.hyperparameters.items():
+
+    # Verify label is included
+    if "label" not in args.init_args:
+        raise ValueError('"label" is a required parameter of "init_args"!')
+
+    # Convert optional fit call hyperparameters from strings
+    if "hyperparameters" in args.fit_args:
+        for model_type, options in args.fit_args["hyperparameters"].items():
             assert isinstance(options, dict)
-            for k,v in options.items():
-                args.hyperparameters[model_type][k] = eval(v)
-        print(f'AutoGluon Hyperparameters: {args.hyperparameters}', end='\n\n')
-    
+            for k, v in options.items():
+                args.fit_args["hyperparameters"][model_type][k] = eval(v)
+
+    # Print SageMaker args
+    print("fit_args:")
+    for k, v in args.fit_args.items():
+        print(f"{k},  type: {type(v)},  value: {v}")
+
+    # Make test data optional
+    if os.environ.get("SM_CHANNEL_TESTING"):
+        args.test = os.environ["SM_CHANNEL_TESTING"]
+    else:
+        args.test = None
+
     train(args)
 
     # Package inference code with model export
-    subprocess.call('mkdir /opt/ml/model/code'.split())
-    subprocess.call('cp /opt/ml/code/inference.py /opt/ml/model/code/'.split())
-    
-    elapsed_time = round(timer()-start,3)
-    print(f'Elapsed time: {elapsed_time} seconds')  
-    print('===== Training Completed =====')
+    subprocess.call("mkdir /opt/ml/model/code".split())
+    subprocess.call("cp /opt/ml/code/inference.py /opt/ml/model/code/".split())
+    subprocess.call("cp columns.pkl /opt/ml/model/code/".split())
+
+    elapsed_time = round(timer() - start, 3)
+    print(f"Elapsed time: {elapsed_time} seconds. Training Completed!")
