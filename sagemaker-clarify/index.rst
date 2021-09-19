@@ -21,3 +21,12 @@ SageMaker Clarify Model Monitoring
    :maxdepth: 1
 
    ../sagemaker_model_monitor/fairness_and_explainability/SageMaker-Model-Monitor-Fairness-and-Explainability
+
+SageMaker Clarify Bias and Explainability
+----------------------------------
+
+.. toctree::
+   :maxdepth: 1
+
+   bias-and-explainability/student_performance_clarify
+
