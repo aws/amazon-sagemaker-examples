@@ -1,0 +1,49 @@
+Breast Cancer data analysis
+========================================================
+author: Michael Hsieh
+date: 09/07/2021
+autosize: true
+
+Dataset
+========================================================
+
+This is an exploratory analysis on [UCI Breast Cancer Wisconsin (Diagnostic) dataset](https://archive.ics.uci.edu/ml/datasets/Breast+Cancer+Wisconsin+(Diagnostic)) from [mlbench](https://cran.r-project.org/web/packages/mlbench/index.html) library. 
+
+The data is collected from 699 people who were eligible of the study. 9 features are computed from a digitized image of a fine needle aspirate (FNA) of a breast mass, describing the characteristics of the cell nuclei present in the image. 
+
+Descriptive Statistics
+========================================================
+
+We could see class imbalance between the *Benign* and *Malignant* cases. Summary statistics shown below.
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(mlbench)
+library(ggplot2)
+```
+
+```{r breastcancer, echo=FALSE}
+data(BreastCancer)
+df <- BreastCancer
+# convert input values to numeric
+for(i in 2:10) {
+  df[,i] <- as.numeric(as.character(df[,i]))
+}
+summary(df)
+```
+
+Thicker clumps in malignant cases
+========================================================
+
+It turns out that *benign* cases tend to have smaller clumps as oppose to *malignant* cases who tend to have thicker clumps in the breasts.
+
+```{r cl_thickness, dpi=100, fig.width = 10, echo=FALSE}
+theme_set(theme_gray(base_size = 20))
+ggplot(df, aes(x=Cl.thickness))+
+       geom_histogram(color="black", fill="white", binwidth = 1)+
+       facet_grid(Class ~ .)
+```
+
+Questions?
+========================================================
+
+Please contact us if you have any questions. Thank you!

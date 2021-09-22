@@ -1,0 +1,80 @@
+---
+title: "Breast Cancer data analysis"
+author: "Michael Hsieh"
+date: "9/7/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(mlbench)
+library(ggplot2)
+library(caret)
+```
+
+## Breast Cancer data summary
+
+This is an exploratory analysis on [UCI Breast Cancer Wisconsin (Diagnostic) dataset](https://archive.ics.uci.edu/ml/datasets/Breast+Cancer+Wisconsin+(Diagnostic)) from [mlbench](https://cran.r-project.org/web/packages/mlbench/index.html) library. The data is collected from 699 people who were eligible of the study. 9 features are computed from a digitized image of a fine needle aspirate (FNA) of a breast mass, describing the characteristics of the cell nuclei present in the image. Let's look at the descriptive statistics of the dataset that are in numeric format.
+
+```{r breastcancer}
+data(BreastCancer)
+df <- BreastCancer
+# convert input values to numeric
+for(i in 2:10) {
+  df[,i] <- as.numeric(as.character(df[,i]))
+}
+summary(df)
+```
+
+## Histogram of clump thickness by class
+
+We are interested to see the distribution of the clump thickness between the two classes: *Benign* and *Malignant*. 
+
+```{r cl_thickness, echo=FALSE}
+ggplot(df, aes(x=Cl.thickness))+
+       geom_histogram(color="black", fill="white", binwidth = 1)+
+       facet_grid(Class ~ .)
+```
+
+It turns out that *benign* cases tend to have smaller clumps as oppose to *malignant* cases who tend to have thicker clumps in the breasts.
+
+## Training a machine learning model
+Let's split the data, standardize accordingly and train a ML model. The training process includes a 10-fold cross validation using gradient boosting model, optimized with area under ROC curve.
+```{r modeling}
+# split the data into train and test and perform preprocessing
+trainIndex <- createDataPartition(df$Class, p = .8, 
+                                  list = FALSE, 
+                                  times = 1)
+df_train <- df[ trainIndex,]
+df_test  <- df[-trainIndex,]
+preProcValues <- preProcess(df_train, method = c("center", "scale", "medianImpute"))
+df_train_transformed <- predict(preProcValues, df_train)
+
+# train a model on df_train
+fitControl <- trainControl(## 10-fold CV
+  method = "repeatedcv",
+  number = 10,
+  ## repeated ten times
+  repeats = 10,
+  ## Estimate class probabilities
+  classProbs = TRUE,
+  ## Evaluate performance using 
+  ## the following function
+  summaryFunction = twoClassSummary)
+
+set.seed(825)
+gbmFit <- train(Class ~ ., data = df_train_transformed[,2:11], 
+                method = "gbm", 
+                trControl = fitControl,
+                ## This last option is actually one
+                ## for gbm() that passes through
+                verbose = FALSE,
+                metric = "ROC")
+```
+
+We can see the feature importance based on the algorithm.
+```{r featureimportance, echo=FALSE}
+summary(gbmFit)
+```
+
+This is the end of a simple analysis and plotting in a R Markdown file. We develop it in RStudio Workbench in Amazon SageMaker and will publish it to a RStudio Connect server.

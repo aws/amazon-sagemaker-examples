@@ -137,6 +137,14 @@ These examples provide an introduction to SageMaker Clarify which provides machi
 * [Fairness and Explainability with SageMaker Clarify](sagemaker_processing/fairness_and_explainability) shows how to use SageMaker Clarify Processor API to measure the pre-training bias of a dataset and post-training bias of a model, and explain the importance of the input features on the model's decision.
 * [Amazon SageMaker Clarify Model Monitors](sagemaker_model_monitor/fairness_and_explainability) shows how to use SageMaker Clarify Model Monitor API to schedule bias monitor to monitor predictions for bias drift on a regular basis, and schedule explainability monitor to monitor predictions for feature attribution drift on a regular basis.
 
+### Publishing content from RStudio Workbench on Amazon SageMaker to RStudio Connect
+
+These examples show you how to run R examples, and publish applications in RStudio Workbench on Amazon SageMaker to RStudio Connect. 
+
+- [Publishing R Markdown](r_examples/rsconnect_rmarkdown/) shows how you can author an R Markdown document (.Rmd, .Rpres) within RStudio Workbench on Amazon SageMaker and publish to RStudio Connect for wide consumption.
+- [Publishing R Shiny Apps](r_examples/rsconnect_shiny/) shows how you can author an R Shiny application within RStudio Workbench on Amazon SageMaker and publish to RStudio Connect for wide consumption.
+- [Publishing Streamlit Apps](r_examples/rsconnect_streamlit/) shows how you can author a streamlit application withing Amazon SageMaker Studio and publish to RStudio Connect for wide consumption.
+
 ### Advanced Amazon SageMaker Functionality
 
 These examples that showcase unique functionality available in Amazon SageMaker. They cover a broad range of topics and will utilize a variety of methods, but aim to provide the user with sufficient insight or inspiration to develop within Amazon SageMaker.
