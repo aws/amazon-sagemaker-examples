@@ -1,6 +1,6 @@
 # Publishing Streamlit apps from Amazon SageMaker Studio to RStudio Connect
 
-[Streamlit](https://docs.streamlit.io/en/latest/index.html) is an open source project in Python that makes it easy to create web applications for machine learning and data science developers. In this example, we develope a simple streamlit application in `app.py` to allow interactive data exploration and visualization on the [UCI breast cancer dataset](https://archive.ics.uci.edu/ml/datasets/breast+cancer+wisconsin+%28original%29). Let’s see how we can deploy this app to RStudio Connect from SageMaker Studio. 
+[Streamlit](https://docs.streamlit.io/en/latest/index.html) is an open source project in Python that makes it easy to create web applications for machine learning and data science developers. In this example, we develope a simple Streamlit application in `app.py` to allow interactive data exploration and visualization on the [UCI breast cancer dataset](https://archive.ics.uci.edu/ml/datasets/breast+cancer+wisconsin+%28original%29). Let’s see how we can deploy this app to RStudio Connect from SageMaker Studio. 
 
 1. Before we proceed, we first need to create an API key from your RStudio Connect account. Please follow the instruction (https://docs.rstudio.com/connect/user/api-keys/#api-keys-creating) to create one, and save it for record as the publication process requires the API key.
 1. Open a system terminal in SageMaker Studio in **File**->**New**->**Terminal**.
@@ -19,7 +19,7 @@
         /path/to/breast-cancer-streamlit-app/
     ```
 
-At the end of the execution, you should see URLs for the app in RStudio Connect. You can open the URL to see the published streamlit app.
+At the end of the execution, you should see URLs for the app in RStudio Connect. You can open the URL to see the published Streamlit app.
 
 ![streamlit-app-in-action.gif](./images/streamlit-app-in-action.gif)
 

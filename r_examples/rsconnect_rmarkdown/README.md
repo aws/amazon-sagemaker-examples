@@ -4,7 +4,7 @@ You can easily and programmatically create an analysis within RStudio Workbench 
 
 ## R Markdown
 
-R Markdown is a great tool to run your analyses in R as part of a markdown file and share in RStudio Connect. In the rmarkdown example in [breast_cancer_eda.Rmd](./breast_cancer_eda.Rmd) in the github repo, we perform two simple analyses and plotting on the dataset along with the texts in markdown. 
+R Markdown is a great tool to run your analyses in R as part of a markdown file and share in RStudio Connect. In the rmarkdown example in [breast_cancer_eda.Rmd](./breast_cancer_eda.Rmd) in the GitHub repo, we perform two simple analyses and plotting on the dataset along with the texts in markdown. 
 
 ```{r}
     ```{r breastcancer}
@@ -30,7 +30,7 @@ We can preview the file by clicking on the **Knit** button (1) and publish it to
 ## R Presentation
 
 We could also run the similar analysis inline to create a R Presentation deck that can be published to your collaborators. 
-In the example in [breast_cancer_eda.Rpres](./breast_cancer_eda.Rpres) in the github repo, we combine the presentation, markdown and the R commands together to create a slide deck. You can preview the slides while writing codes with the **Preview** button (1). Once you complete, you can publish it with the **Publish** button (2) in the **Presentation** tab on the right. 
+In the example in [breast_cancer_eda.Rpres](./breast_cancer_eda.Rpres) in the GitHub repo, we combine the presentation, markdown and the R commands together to create a slide deck. You can preview the slides while writing codes with the **Preview** button (1). Once you complete, you can publish it with the **Publish** button (2) in the **Presentation** tab on the right. 
 
 ![publish-rpres](./images/publish-rpres.png)
 

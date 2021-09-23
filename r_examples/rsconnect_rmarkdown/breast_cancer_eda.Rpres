@@ -1,6 +1,6 @@
 Breast Cancer data analysis
 ========================================================
-author: Michael Hsieh
+author: Amazon Web Services
 date: 09/07/2021
 autosize: true
 
@@ -24,7 +24,7 @@ library(ggplot2)
 ```{r breastcancer, echo=FALSE}
 data(BreastCancer)
 df <- BreastCancer
-# convert input values to numeric
+# convert input columns 2 to 10 from factor to numeric
 for(i in 2:10) {
   df[,i] <- as.numeric(as.character(df[,i]))
 }
@@ -43,7 +43,7 @@ ggplot(df, aes(x=Cl.thickness))+
        facet_grid(Class ~ .)
 ```
 
-Questions?
+Thank you
 ========================================================
 
-Please contact us if you have any questions. Thank you!
+This is the end of the presentation.

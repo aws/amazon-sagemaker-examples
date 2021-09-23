@@ -4,7 +4,7 @@ import numpy as np
 import streamlit as st
 
 st.title("Breast Cancer Analysis")
-data_url = "https://archive.ics.uci.edu/ml/machine-learning-databases/breast-cancer-wisconsin/breast-cancer-wisconsin.data"
+data_url = "s3://sagemaker-sample-files/datasets/tabular/breast_cancer/breast-cancer-wisconsin.csv"
 columns = [
     "Id",
     "Cl.thickness",
@@ -21,14 +21,14 @@ columns = [
 
 
 @st.cache
-def load_data(nrows):
-    df = pd.read_csv(data_url, names=columns, nrows=nrows)
+def load_data():
+    df = pd.read_csv(data_url, names=columns)
     df["Class"] = df["Class"].replace(to_replace=[2, 4], value=["benign", "malignant"])
     return df
 
 
 data_load_state = st.text("Loading data...")
-data = load_data(699)
+data = load_data()
 data_load_state.text("")
 
 column = st.selectbox("Features", columns[1:-1])
@@ -48,5 +48,5 @@ if st.checkbox("Show raw data"):
     st.write(data[[column, columns[-1]]])
 
 st.markdown(
-    "Source: <https://archive.ics.uci.edu/ml/datasets/breast+cancer+wisconsin+%28original%29>"
+    "Source: <s3://sagemaker-sample-files/datasets/tabular/breast_cancer/breast-cancer-wisconsin.csv>"
 )
