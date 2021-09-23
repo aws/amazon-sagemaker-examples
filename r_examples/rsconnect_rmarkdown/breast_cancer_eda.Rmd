@@ -19,7 +19,7 @@ This is an exploratory analysis on [UCI Breast Cancer Wisconsin (Diagnostic) dat
 ```{r breastcancer}
 data(BreastCancer)
 df <- BreastCancer
-# convert input values to numeric
+# convert input columns 2 to 10 from factor to numeric
 for(i in 2:10) {
   df[,i] <- as.numeric(as.character(df[,i]))
 }
