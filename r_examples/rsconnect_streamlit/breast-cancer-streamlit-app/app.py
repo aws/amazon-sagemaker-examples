@@ -4,7 +4,7 @@ import numpy as np
 import streamlit as st
 
 st.title("Breast Cancer Analysis")
-data_url = "s3://sagemaker-sample-files/datasets/tabular/breast_cancer/breast-cancer-wisconsin.csv"
+data_url = "https://sagemaker-sample-files.s3.amazonaws.com/datasets/tabular/breast_cancer/breast-cancer-wisconsin.csv"
 columns = [
     "Id",
     "Cl.thickness",
@@ -47,6 +47,4 @@ if st.checkbox("Show raw data"):
     st.subheader("Raw data")
     st.write(data[[column, columns[-1]]])
 
-st.markdown(
-    "Source: <s3://sagemaker-sample-files/datasets/tabular/breast_cancer/breast-cancer-wisconsin.csv>"
-)
+st.markdown(f"Source: <{data_url}>")
