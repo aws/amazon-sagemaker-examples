@@ -11,10 +11,10 @@ Parameters:
     AllowedPattern: '(sg\-)([a-z0-9]+)'
     Type: String
   StorageCapacityGiB:
-    Description: Storage capacity in multiples of 3600 GiB
+    Description: Storage capacity in multiples of 2400 GiB
     Type: Number
-    MinValue: 3600
-    Default: 3600
+    MinValue: 2400
+    Default: 2400
   S3ImportPath:
     Description: S3 import path for importing data
     Type: String
@@ -25,6 +25,7 @@ Resources:
     Properties: 
       FileSystemType: 'LUSTRE'
       LustreConfiguration: 
+        DeploymentType: "SCRATCH_2"
         ImportPath: !Ref S3ImportPath
       SecurityGroupIds: 
         - !Ref SecurityGroupId
