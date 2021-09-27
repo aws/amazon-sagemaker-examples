@@ -42,3 +42,12 @@ Computer Vision for Medical Imaging
     computer_vision/2-metastases-detection-lineage-registry
     computer_vision/3-metastases-detection-deploy-predict
     computer_vision/4-metastases-detection-pipeline
+
+
+Healthcare
+--------------------------
+
+.. toctree::
+    :maxdepth: 2
+
+    healthcare/breast_cancer/xgboost_breast_cancer
