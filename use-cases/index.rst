@@ -51,3 +51,12 @@ Pipelines with NLP for Product Rating Prediction
    :maxdepth: 1
 
    product_ratings_with_pipelines/pipelines_product_ratings
+
+
+Healthcare
+--------------------------
+
+.. toctree::
+    :maxdepth: 2
+
+    healthcare/breast_cancer/xgboost_breast_cancer
