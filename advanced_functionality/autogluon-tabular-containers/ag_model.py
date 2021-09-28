@@ -7,35 +7,53 @@ from sagemaker.serializers import CSVSerializer
 from sagemaker.deserializers import StringDeserializer
 
 
-ACCOUNT=763104351884
-REGION='us-west-2'
+ACCOUNT = 763104351884
+REGION = "us-west-2"
 ECR_TRAINING_REPO = "autogluon-training"
 ECR_INFERENCE_REPO = "autogluon-inference"
-AG_VERSION = '0.3.1'
-TRAINING_IMAGE_CPU = f'{AG_VERSION}-cpu-py37-ubuntu18.04-v1.0'
-TRAINING_IMAGE_GPU = f'{AG_VERSION}-gpu-py37-cu102-ubuntu18.04-v1.0'
-INFERENCE_IMAGE_CPU = f'{AG_VERSION}-cpu-py37-ubuntu16.04-v1.0'
+AG_VERSION = "0.3.1"
+TRAINING_IMAGE_CPU = f"{AG_VERSION}-cpu-py37-ubuntu18.04-v1.0"
+TRAINING_IMAGE_GPU = f"{AG_VERSION}-gpu-py37-cu102-ubuntu18.04-v1.0"
+INFERENCE_IMAGE_CPU = f"{AG_VERSION}-cpu-py37-ubuntu16.04-v1.0"
 
 
 class AutoGluonTraining(Framework):
-    def __init__(self, entry_point, image_type='cpu', source_dir=None, hyperparameters=None, **kwargs):
-        image = TRAINING_IMAGE_GPU if image_type == 'gpu' else TRAINING_IMAGE_CPU
+    def __init__(
+        self, entry_point, image_type="cpu", source_dir=None, hyperparameters=None, **kwargs
+    ):
+        image = TRAINING_IMAGE_GPU if image_type == "gpu" else TRAINING_IMAGE_CPU
         image_uri = f"{ACCOUNT}.dkr.ecr.{REGION}.amazonaws.com/{ECR_TRAINING_REPO}:{image}"
         super().__init__(entry_point, source_dir, hyperparameters, image_uri=image_uri, **kwargs)
-    
+
     def _configure_distribution(self, distributions):
         return
-    
-    def create_model(self, model_server_workers=None, role=None, vpc_config_override=None, entry_point=None, source_dir=None, dependencies=None, image_name=None, **kwargs):
+
+    def create_model(
+        self,
+        model_server_workers=None,
+        role=None,
+        vpc_config_override=None,
+        entry_point=None,
+        source_dir=None,
+        dependencies=None,
+        image_name=None,
+        **kwargs,
+    ):
         return None
 
-    
+
 class AutoGluonTabularPredictor(Predictor):
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, serializer=CSVSerializer(), deserializer=StringDeserializer(), **kwargs)    
+        super().__init__(
+            *args, serializer=CSVSerializer(), deserializer=StringDeserializer(), **kwargs
+        )
 
-        
+
 class AutoGluonInferenceModel(MXNetModel):
     def __init__(self, model_data, role, entry_point, **kwargs):
-        image_uri = f"{ACCOUNT}.dkr.ecr.{REGION}.amazonaws.com/{ECR_INFERENCE_REPO}:{INFERENCE_IMAGE_CPU}"
-        super().__init__(model_data, role, entry_point, image_uri=image_uri, framework_version='1.8.0', **kwargs)
+        image_uri = (
+            f"{ACCOUNT}.dkr.ecr.{REGION}.amazonaws.com/{ECR_INFERENCE_REPO}:{INFERENCE_IMAGE_CPU}"
+        )
+        super().__init__(
+            model_data, role, entry_point, image_uri=image_uri, framework_version="1.8.0", **kwargs
+        )
