@@ -26,7 +26,7 @@ RUN apt-get -y update && apt-get install -y --no-install-recommends \
 # linking them together. Likewise, pip leaves the install caches populated which uses
 # a significant amount of space. These optimizations save a fair amount of space in the
 # image, which reduces start up time.
-RUN wget https://bootstrap.pypa.io/3.3/get-pip.py && python3.6 get-pip.py && \
+RUN wget https://bootstrap.pypa.io/get-pip.py && python3.6 get-pip.py && \
     pip install --upgrade pip && \
     pip install smdebug numpy==1.16.2 scipy==1.2.1 scikit-learn==0.19.1 xgboost==0.90 pandas==0.22.0 flask gevent gunicorn && \
         (cd /usr/local/lib/python3.6/dist-packages/scipy/.libs; rm *; ln ../../numpy/.libs/* .) && \
