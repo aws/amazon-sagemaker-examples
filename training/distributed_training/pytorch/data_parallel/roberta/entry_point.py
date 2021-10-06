@@ -18,7 +18,7 @@ exe = 'fairseq-train'
 
 # os.environ['SM_CHANNEL_TRAIN'] is the root directory of the fsx mount, we will attach
 # the actual training dataset directory to it and pass to fairseq-train
-data_dir = os.environ['SM_CHANNEL_TRAIN'] + '/dataset/roberta/pytorch/bookwiki_CC-NEWS_openwebtext_stories-mmap2-bin-small/'
+data_dir = os.environ['SM_CHANNEL_TRAIN'] + '<dataset_dir>'
 
 # Generate the full command
 cmd_list = [exe] + [data_dir] + sys.argv[1:]
