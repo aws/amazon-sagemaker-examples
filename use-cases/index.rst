@@ -33,7 +33,7 @@ E-Commerce Personalization
 
 
 Computer Vision for Medical Imaging
---------------------------
+-----------------------------------
 
 .. toctree::
     :maxdepth: 1
@@ -42,3 +42,12 @@ Computer Vision for Medical Imaging
     computer_vision/2-metastases-detection-lineage-registry
     computer_vision/3-metastases-detection-deploy-predict
     computer_vision/4-metastases-detection-pipeline
+
+
+Pipelines with NLP for Product Rating Prediction
+------------------------------------------------
+
+.. toctree::
+   :maxdepth: 1
+
+   product_ratings_with_pipelines/pipelines_product_ratings
