@@ -1,0 +1,4 @@
+Attribution
+
+This example uses pre-trained model from https://github.com/dmlc/gluon-cv licensed under the Apache License 2.0,
+Wei Liu, Dragomir Anguelov, Dumitru Erhan, Christian Szegedy, Scott Reed, Cheng-Yang Fu, Alexander C. Berg. SSD: Single Shot MultiBox Detector. ECCV 2016.
