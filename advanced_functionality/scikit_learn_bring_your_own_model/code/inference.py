@@ -2,9 +2,9 @@ import os
 import joblib
 
 def predict_fn(input_object, model):
-    #########################################
-    # Do your custom preprocessing logic here
-    #########################################
+    ###########################################
+    # Do your custom preprocessing logic here #
+    ###########################################
 
     print("calling model")
     predictions = model.predict(input_object)
