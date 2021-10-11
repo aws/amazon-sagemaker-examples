@@ -53,7 +53,7 @@ def predict_image(model_name, image_path):
     # Neo compiled model requires the array to be of shape (3, 244, 244)
     img = img.transpose(2,0,1)
     # normalization according to https://github.com/tensorflow/tensorflow/blob/a4dfb8d1a71385bd6d122e4f27f86dcebb96712d/tensorflow/python/keras/applications/imagenet_utils.py#L259
-    img = (x/127.5).astype(np.float32)
+    img = (img/127.5).astype(np.float32)
     img -= 1.
     image_tensor.byte_data = img.tobytes()
     image_tensor_metadata = list_model_tensors(list_models())[model_name]['inputs'][0]
