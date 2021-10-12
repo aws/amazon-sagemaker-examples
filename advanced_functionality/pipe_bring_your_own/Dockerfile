@@ -1,5 +1,7 @@
+ARG region
+
 # SageMaker PyTorch image
-FROM 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:1.5.1-cpu-py36-ubuntu16.04
+FROM 763104351884.dkr.ecr.${region}.amazonaws.com/pytorch-training:1.5.1-cpu-py36-ubuntu16.04
 
 ENV PATH="/opt/ml/code:${PATH}"
 
