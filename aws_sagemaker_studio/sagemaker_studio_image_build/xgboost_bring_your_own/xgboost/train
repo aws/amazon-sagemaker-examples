@@ -13,7 +13,6 @@ import sys
 import traceback
 
 import pandas as pd
-import smdebug.xgboost as smd
 import xgboost as xgb
 
 print("Libraries imported")
