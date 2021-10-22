@@ -397,7 +397,7 @@ class BinPackingActionMaskGymEnvironment(BinPackingNearActionGymEnvironment):
                     valid_actions.append(x)
         valid_actions.append(0)  # open new bag
         return valid_actions
-    
+
 
 if __name__ == "__main__":
     env_config = {

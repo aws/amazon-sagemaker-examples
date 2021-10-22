@@ -127,7 +127,7 @@ class HVACSageMakerRayLauncher(SageMakerRayLauncher):
             "_memory": args.ray_memory,
             "_redis_max_memory": args.ray_redis_max_memory,
             "num_cpus": args.ray_num_cpus,
-            "num_gpus": args.ray_num_gpus
+            "num_gpus": args.ray_num_gpus,
         }
         all_workers_host_names = self.get_all_host_names()[1:]
         # Overwrite redis address for single instance job

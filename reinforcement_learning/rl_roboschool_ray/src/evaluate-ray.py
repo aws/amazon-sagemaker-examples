@@ -63,7 +63,7 @@ def run(args, parser):
         args.env = args.config.get("env")
 
     ray.init()
-    
+
     register_env(args.env, create_environment)
 
     if ray.__version__ >= "0.6.5":
@@ -82,8 +82,8 @@ def run(args, parser):
 
     env = RoboschoolReacher()
     all_rewards = []
-    max_steps = 100 # set a max_steps as stopping condition as this env does not return done=True
-    
+    max_steps = 100  # set a max_steps as stopping condition as this env does not return done=True
+
     for episode in range(num_episodes):
         steps = 0
         state = env.reset()

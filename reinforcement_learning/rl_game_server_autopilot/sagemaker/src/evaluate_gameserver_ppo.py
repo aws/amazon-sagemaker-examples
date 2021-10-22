@@ -18,7 +18,8 @@ from ray.tune.registry import register_env
 import time
 import boto3
 import requests
-cloudwatch_cli = boto3.client('cloudwatch',region_name='us-west-2')
+
+cloudwatch_cli = boto3.client("cloudwatch", region_name="us-west-2")
 
 OUTPUT_DIR = "/opt/ml/output/intermediate"
 
@@ -29,25 +30,26 @@ def create_parser(parser_creator=None):
         "--checkpoint",
         default="/opt/ml/input/data/model/checkpoint",
         type=str,
-        help="Checkpoint from which to roll out.")
+        help="Checkpoint from which to roll out.",
+    )
     parser.add_argument(
         "--algorithm",
         type=str,
         required=True,
         help="The algorithm or model to train. This may refer to the name "
-             "of a built-on algorithm (e.g. RLLib's DQN or PPO), or a "
-             "user-defined trainable function or class registered in the "
-             "tune registry.")
-    parser.add_argument(
-        "--env", type=str, help="The gym environment to use.")
-    parser.add_argument(
-        "--evaluate_episodes", default=None, help="Number of episodes to roll out.")
+        "of a built-on algorithm (e.g. RLLib's DQN or PPO), or a "
+        "user-defined trainable function or class registered in the "
+        "tune registry.",
+    )
+    parser.add_argument("--env", type=str, help="The gym environment to use.")
+    parser.add_argument("--evaluate_episodes", default=None, help="Number of episodes to roll out.")
     parser.add_argument(
         "--config",
         default="{}",
         type=json.loads,
         help="Algorithm-specific configuration (e.g. env, hyperparams). "
-             "Surpresses loading of configuration from checkpoint.")
+        "Surpresses loading of configuration from checkpoint.",
+    )
     return parser
 
 
@@ -72,9 +74,10 @@ def run(args, parser, env_config={}):
     config["monitor"] = False
     config["num_workers"] = 1
     config["num_gpus"] = 0
-    env_config = config['env_config']
-    
+    env_config = config["env_config"]
+
     from gameserver_env import GameServerEnv
+
     env = GameServerEnv(env_config)
 
     if ray.__version__ >= "0.6.5":

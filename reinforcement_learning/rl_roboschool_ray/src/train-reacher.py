@@ -23,30 +23,29 @@ class MyLauncher(SageMakerRayLauncher):
 
     def get_experiment_config(self):
         return {
-          "training": {
-            "env": "RoboschoolReacher-v1",
-            "run": "PPO",
-            "stop": {
-              "episode_reward_mean": 18,
-            },
-            "config": {
-              "framework": "tf",
-              "gamma": 0.995,
-              "kl_coeff": 1.0,
-              "num_sgd_iter": 20,
-              "lr": 0.0001,
-              "sgd_minibatch_size": 1000,
-              "train_batch_size": 25000,
-              "monitor": True,  # Record videos.
-              "model": {
-                "free_log_std": True
-              },
-              "num_workers": (self.num_cpus-1),
-              "num_gpus": self.num_gpus,
-              "batch_mode": "complete_episodes"
+            "training": {
+                "env": "RoboschoolReacher-v1",
+                "run": "PPO",
+                "stop": {
+                    "episode_reward_mean": 18,
+                },
+                "config": {
+                    "framework": "tf",
+                    "gamma": 0.995,
+                    "kl_coeff": 1.0,
+                    "num_sgd_iter": 20,
+                    "lr": 0.0001,
+                    "sgd_minibatch_size": 1000,
+                    "train_batch_size": 25000,
+                    "monitor": True,  # Record videos.
+                    "model": {"free_log_std": True},
+                    "num_workers": (self.num_cpus - 1),
+                    "num_gpus": self.num_gpus,
+                    "batch_mode": "complete_episodes",
+                },
             }
-          }
         }
+
 
 if __name__ == "__main__":
     MyLauncher().train_main()

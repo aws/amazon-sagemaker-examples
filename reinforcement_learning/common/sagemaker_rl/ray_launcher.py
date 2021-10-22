@@ -171,11 +171,11 @@ class SageMakerRayLauncher(object):
         return config
 
     def start_ray_cluster(self, master_ip):
-        if ray.__version__ >= "1.0.0": # port starts to be used after ray 1.0.0
+        if ray.__version__ >= "1.0.0":  # port starts to be used after ray 1.0.0
             p = subprocess.Popen(
                 "ray start --head --port=6379 --node-ip-address=%s" % master_ip,
                 shell=True,
-                stderr=subprocess.STDOUT
+                stderr=subprocess.STDOUT,
             )
         elif ray.__version__ >= "0.6.5":
             p = subprocess.Popen(
@@ -375,19 +375,25 @@ class SageMakerRayLauncher(object):
             "experiment is actually restored successfully. If restoration is expected, please check",
             '"training_iteration" in the experiment info to confirm.',
         )
-        
+
         # Before and equal to Ray 0.8.5, "use_pytorch" was used to specify framework. After Ray 0.8.5, "framework" is used.
-        if experiment_config["training"]["config"].get("framework", False): # if "framework" is used
-            use_pytorch = True if experiment_config["training"]["config"]["framework"] == "torch" else False
+        if experiment_config["training"]["config"].get(
+            "framework", False
+        ):  # if "framework" is used
+            use_pytorch = (
+                True if experiment_config["training"]["config"]["framework"] == "torch" else False
+            )
             if ray.__version__ <= "0.8.5":
                 experiment_config["training"]["config"]["use_pytorch"] = use_pytorch
-                del(experiment_config["training"]["config"]["framework"])
-        else: # if "use_pytorch" is used or no framework specified
+                del experiment_config["training"]["config"]["framework"]
+        else:  # if "use_pytorch" is used or no framework specified
             use_pytorch = experiment_config["training"]["config"].get("use_pytorch", False)
             if ray.__version__ > "0.8.5":
-                experiment_config["training"]["config"]["framework"] = "torch" if use_pytorch else "tf"
+                experiment_config["training"]["config"]["framework"] = (
+                    "torch" if use_pytorch else "tf"
+                )
                 experiment_config["training"]["config"].pop("use_pytorch", None)
-        
+
         run_experiments(experiment_config)
         all_workers_host_names = self.get_all_host_names()[1:]
         # If distributed job, send TERMINATION_SIGNAL to all workers.

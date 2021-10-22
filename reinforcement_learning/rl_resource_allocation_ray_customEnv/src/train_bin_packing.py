@@ -1,5 +1,6 @@
 import sys
 import json
+
 # from model import register_actor_mask_model
 from modelv2 import register_actor_mask_model
 from ray.tune.registry import register_env
@@ -21,31 +22,31 @@ class MyLauncher(SageMakerRayLauncher):
         )
 
     def get_experiment_config(self):
-        print('~~~~~~~~~~~~~~~~~~~~~~~~~ get_experiment_config ~~~~~~~~~~~~~~~~~~~~~~~~')
+        print("~~~~~~~~~~~~~~~~~~~~~~~~~ get_experiment_config ~~~~~~~~~~~~~~~~~~~~~~~~")
         print(config)
-        
-        bag_capacity = int(config['bag_capacity'])
-        item_sizes = json.loads(config['item_sizes'])
-        item_probabilities = json.loads(config['item_probabilities'])
-        time_horizon = int(config['time_horizon'])
-                
+
+        bag_capacity = int(config["bag_capacity"])
+        item_sizes = json.loads(config["item_sizes"])
+        item_probabilities = json.loads(config["item_probabilities"])
+        time_horizon = int(config["time_horizon"])
+
         env_config = {
-                        "bag_capacity": bag_capacity,
-                        "item_sizes": item_sizes,
-                        "item_probabilities": item_probabilities,  # perfect pack -> SS: -20 to -100
-                        "time_horizon": time_horizon,
-                    }
-        
+            "bag_capacity": bag_capacity,
+            "item_sizes": item_sizes,
+            "item_probabilities": item_probabilities,  # perfect pack -> SS: -20 to -100
+            "time_horizon": time_horizon,
+        }
+
         env = BinPackingActionMaskGymEnvironment(env_config)
-        obs_space_low = env.observation_space.spaces['real_obs'].low
-        obs_space_high = env.observation_space.spaces['real_obs'].high
-        
+        obs_space_low = env.observation_space.spaces["real_obs"].low
+        obs_space_high = env.observation_space.spaces["real_obs"].high
+
         return {
             "training": {
                 "env": "BinPackingActionMaskGymEnvironment-v1",
                 "run": "PPO",
                 "config": {
-                    "framework": "tf", 
+                    "framework": "tf",
                     "gamma": 0.995,
                     "kl_coeff": 1.0,
                     "num_sgd_iter": 10,
@@ -60,8 +61,10 @@ class MyLauncher(SageMakerRayLauncher):
                     "model": {
                         "custom_model": "action_mask",
                         "fcnet_hiddens": [256, 256],
-                        "custom_model_config": {'obs_space_low': obs_space_low,
-                                                'obs_space_high': obs_space_high},
+                        "custom_model_config": {
+                            "obs_space_low": obs_space_low,
+                            "obs_space_high": obs_space_high,
+                        },
                     },
                     "ignore_worker_failures": True,
                     "entropy_coeff": 0.01,
@@ -76,5 +79,5 @@ if __name__ == "__main__":
         if i == 0:
             continue
         if i % 2 > 0:
-            config[sys.argv[i].split('--', 1)[1]] = sys.argv[i+1]
+            config[sys.argv[i].split("--", 1)[1]] = sys.argv[i + 1]
     MyLauncher().train_main()
