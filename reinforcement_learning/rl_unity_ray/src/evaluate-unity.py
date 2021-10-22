@@ -1,20 +1,25 @@
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 import argparse
 import json
 import os
 import subprocess
 
-import gym
 import numpy as np
-import ray
+import os
+
+import gym
 from gym import wrappers
-from gym_unity.envs import UnityToGymWrapper
+import ray
+from ray.rllib.models import ModelCatalog
+from ray.tune.registry import register_env
 from mlagents_envs.environment import UnityEnvironment
 from mlagents_envs.exception import UnityWorkerInUseException
 from mlagents_envs.registry import default_registry
-from ray.rllib.models import ModelCatalog
-from ray.tune.registry import register_env
+from gym_unity.envs import UnityToGymWrapper
+
 
 OUTPUT_DIR = "/opt/ml/output/intermediate"
 
@@ -23,38 +28,36 @@ class UnityEnvWrapper(gym.Env):
     def __init__(self, env_config):
         self.worker_index = 0
 
-        if "SM_CHANNEL_TRAIN" in os.environ:
-            env_name = os.environ["SM_CHANNEL_TRAIN"] + "/" + env_config["env_name"]
+        if 'SM_CHANNEL_TRAIN' in os.environ:
+            env_name = os.environ['SM_CHANNEL_TRAIN'] +'/'+ env_config['env_name']
             os.chmod(env_name, 0o755)
             print("Changed environment binary into executable mode.")
             # Try connecting to the Unity3D game instance.
             while True:
                 try:
                     unity_env = UnityEnvironment(
-                        env_name,
-                        no_graphics=True,
-                        worker_id=self.worker_index,
-                        additional_args=["-logFile", "unity.log"],
-                    )
+                                    env_name, 
+                                    no_graphics=True, 
+                                    worker_id=self.worker_index, 
+                                    additional_args=['-logFile', 'unity.log'])
                 except UnityWorkerInUseException:
                     self.worker_index += 1
                 else:
                     break
         else:
-            env_name = env_config["env_name"]
+            env_name = env_config['env_name']
             while True:
                 try:
                     unity_env = default_registry[env_name].make(
                         no_graphics=True,
                         worker_id=self.worker_index,
-                        additional_args=["-logFile", "unity.log"],
-                    )
+                        additional_args=['-logFile', 'unity.log'])
                 except UnityWorkerInUseException:
                     self.worker_index += 1
                 else:
                     break
-
-        self.env = UnityToGymWrapper(unity_env)
+            
+        self.env = UnityToGymWrapper(unity_env) 
         self.action_space = self.env.action_space
         self.observation_space = self.env.observation_space
 
@@ -71,26 +74,25 @@ def create_parser(parser_creator=None):
         "--checkpoint",
         default="/opt/ml/input/data/model/checkpoint",
         type=str,
-        help="Checkpoint from which to roll out.",
-    )
+        help="Checkpoint from which to roll out.")
     parser.add_argument(
         "--algorithm",
         type=str,
         required=True,
         help="The algorithm or model to train. This may refer to the name "
-        "of a built-on algorithm (e.g. RLLib's DQN or PPO), or a "
-        "user-defined trainable function or class registered in the "
-        "tune registry.",
-    )
-    parser.add_argument("--env", type=str, help="The Unity environment to use.")
-    parser.add_argument("--evaluate_episodes", default=None, help="Number of episodes to roll out.")
+             "of a built-on algorithm (e.g. RLLib's DQN or PPO), or a "
+             "user-defined trainable function or class registered in the "
+             "tune registry.")
+    parser.add_argument(
+        "--env", type=str, help="The Unity environment to use.")
+    parser.add_argument(
+        "--evaluate_episodes", default=None, help="Number of episodes to roll out.")
     parser.add_argument(
         "--config",
         default="{}",
         type=json.loads,
         help="Algorithm-specific configuration (e.g. env, hyperparams). "
-        "Surpresses loading of configuration from checkpoint.",
-    )
+             "Surpresses loading of configuration from checkpoint.")
     return parser
 
 
@@ -108,8 +110,11 @@ def run(args, parser):
         if not args.config.get("env"):
             parser.error("the following arguments are required: --env")
         args.env = args.config.get("env")
-
-    ray.init(webui_host="127.0.0.1")
+    
+    if ray.__version__ > "0.8.5":
+        ray.init()
+    else:
+        ray.init(webui_host="127.0.0.1")
 
     agent_env_config = {"env_name": args.env}
 
@@ -136,7 +141,6 @@ def run(args, parser):
         env = UnityEnvWrapper(env_config)
     else:
         from ray.rllib.agents.dqn.common.wrappers import wrap_dqn
-
         if args.algorithm == "DQN":
             env = UnityEnvWrapper(env_config)
             env = wrap_dqn(env, args.config.get("model", {}))
@@ -169,5 +173,4 @@ if __name__ == "__main__":
     args = parser.parse_args()
     run(args, parser)
     import time
-
     time.sleep(10)

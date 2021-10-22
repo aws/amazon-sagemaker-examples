@@ -34,8 +34,8 @@ We have used threads, queues, and callbacks from EnergyPlus to orchestrate distr
 
 ### Container Versions:
 
-Python: 3.6.4
-Ray: 0.8.5
+Python: 3.7 (TensorFlow) or 3.6 (PyTorch)
+Ray: 1.6.0
 EnergyPlus: 9.3.0 (https://github.com/NREL/EnergyPlus/releases/tag/v9.3.0)
 
 ## References

@@ -22,8 +22,6 @@ class BinPackingGymEnvironment(gym.Env):
             "bag_capacity": 9,
             "item_sizes": [2, 3],
             "item_probabilities": [0.8, 0.2],  # linear waste -> SS: -150 to -340
-            # 'item_probabilities': [0.75, 0.25], # perfect pack -> SS: -20 to -100
-            # 'item_probabilities': [0.5, 0.5], #bounded waste ->  SS: -11 to -20
             "time_horizon": 1000,
         }
 
@@ -317,6 +315,48 @@ class BinPackingContinuousActionEnv(BinPackingNearActionGymEnvironment):
         return super().step(action)
 
 
+# class BinPackingActionMaskGymEnvironment(BinPackingNearActionGymEnvironment):
+#     def __init__(self, env_config={}):
+#         super().__init__(env_config)
+#         self.observation_space = spaces.Dict(
+#             {
+#                 # a mask of valid actions (e.g., [0, 0, 1, 0, 0, 1] for 6 max avail)
+#                 "action_mask": spaces.Box(0, 1, shape=(self.action_space.n,), dtype=np.float32),
+#                 "real_obs": self.observation_space,
+#             }
+#         )
+
+#     def reset(self):
+#         state = super().reset()
+#         valid_actions = self.__get_valid_actions()
+#         self.action_mask = [1 if x in valid_actions else 0 for x in range(self.action_space.n)]
+#         obs = {
+#             "action_mask": np.array(self.action_mask),
+#             "real_obs": np.array(state),
+#         }
+#         return obs
+
+#     def step(self, action):
+#         state, rew, done, info = super().step(action)
+#         valid_actions = self.__get_valid_actions()
+#         self.action_mask = [1 if x in valid_actions else 0 for x in range(self.action_space.n)]
+#         obs = {
+#             "action_mask": np.array(self.action_mask),
+#             "real_obs": np.array(state),
+#         }
+#         return obs, rew, done, info
+
+#     def __get_valid_actions(self):
+#         valid_actions = list()
+#         # get bin levels for which bins exist and item will fit
+#         for x in range(1, self.action_space.n):
+#             if self.num_bins_levels[x] > 0:
+#                 if x <= (self.bag_capacity - self.item_size):
+#                     valid_actions.append(x)
+#         valid_actions.append(0)  # open new bag
+#         return valid_actions
+
+
 class BinPackingActionMaskGymEnvironment(BinPackingNearActionGymEnvironment):
     def __init__(self, env_config={}):
         super().__init__(env_config)
@@ -331,20 +371,20 @@ class BinPackingActionMaskGymEnvironment(BinPackingNearActionGymEnvironment):
     def reset(self):
         state = super().reset()
         valid_actions = self.__get_valid_actions()
-        self.action_mask = [1 if x in valid_actions else 0 for x in range(self.action_space.n)]
+        self.action_mask = [1.0 if x in valid_actions else 0.0 for x in range(self.action_space.n)]
         obs = {
-            "action_mask": np.array(self.action_mask),
-            "real_obs": np.array(state),
+            "action_mask": np.array(self.action_mask, dtype=np.float32),
+            "real_obs": np.array(state, dtype=np.uint32),
         }
         return obs
 
     def step(self, action):
         state, rew, done, info = super().step(action)
         valid_actions = self.__get_valid_actions()
-        self.action_mask = [1 if x in valid_actions else 0 for x in range(self.action_space.n)]
+        self.action_mask = [1.0 if x in valid_actions else 0.0 for x in range(self.action_space.n)]
         obs = {
-            "action_mask": np.array(self.action_mask),
-            "real_obs": np.array(state),
+            "action_mask": np.array(self.action_mask, dtype=np.float32),
+            "real_obs": np.array(state, dtype=np.uint32),
         }
         return obs, rew, done, info
 
@@ -357,7 +397,7 @@ class BinPackingActionMaskGymEnvironment(BinPackingNearActionGymEnvironment):
                     valid_actions.append(x)
         valid_actions.append(0)  # open new bag
         return valid_actions
-
+    
 
 if __name__ == "__main__":
     env_config = {
