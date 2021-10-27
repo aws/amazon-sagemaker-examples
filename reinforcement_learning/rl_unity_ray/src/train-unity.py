@@ -77,9 +77,6 @@ class MyLauncher(SageMakerRayLauncher):
                     "sgd_minibatch_size": 100,
                     "train_batch_size": 500,
                     "monitor": True,  # Record videos.
-                    #               "model": {
-                    #                 "free_log_std": True
-                    #               },
                     "env_config": {"env_name": "Basic"},
                     "num_workers": (self.num_cpus - 1),
                     "num_gpus": self.num_gpus,

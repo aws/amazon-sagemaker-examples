@@ -19,7 +19,7 @@ import time
 import boto3
 import requests
 
-cloudwatch_cli = boto3.client("cloudwatch", region_name="us-west-2")
+cloudwatch_cli = boto3.client("cloudwatch", region_name=boto3.Session().region_name)
 
 OUTPUT_DIR = "/opt/ml/output/intermediate"
 

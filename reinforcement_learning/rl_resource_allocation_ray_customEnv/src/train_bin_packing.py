@@ -1,7 +1,6 @@
 import sys
 import json
 
-# from model import register_actor_mask_model
 from modelv2 import register_actor_mask_model
 from ray.tune.registry import register_env
 from sagemaker_rl.ray_launcher import SageMakerRayLauncher
