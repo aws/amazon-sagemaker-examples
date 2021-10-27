@@ -89,8 +89,8 @@ def generate_help_for_robomaker_all_permissions(role):
     text += (
         "3. Go to JSON tab, add the following JSON blob to the `Statement` list and save policy:\n"
     )
-    text += """```json
-        {
+    text += f"""```json
+        {{
             "Effect": "Allow",
             "Action": [
                 "robomaker:CreateSimulationApplication",
@@ -104,31 +104,29 @@ def generate_help_for_robomaker_all_permissions(role):
             "Resource": [
                 "*"
             ]
-        },
-        {
+        }},
+        {{
             "Effect": "Allow",
             "Action": "iam:CreateServiceLinkedRole",
             "Resource": "*",
-            "Condition": {
-                "StringEquals": {
+            "Condition": {{
+                "StringEquals": {{
                     "iam:AWSServiceName": "robomaker.amazonaws.com"
-                }
-            }
-        },
-        {
+                }}
+            }}
+        }},
+        {{
             "Effect": "Allow",
-            "Action": [
-                "iam:PassRole"
-            ],
-            "Resource": "*",
-            "Condition": {
-                "StringEquals": {
+            "Action": "iam:PassRole",
+            "Resource": \"{role}\",
+            "Condition": {{
+                "StringEquals": {{
                     "iam:PassedToService": [
                         "robomaker.amazonaws.com"
                     ]
-                }
-            }
-        },```\n"""
+                }}
+            }}
+        }},```\n"""
     text += (
         "4. Next, go to the `Trust relationships tab` and click on `Edit Trust Relationship.` \n"
     )
@@ -212,8 +210,8 @@ def generate_help_for_experiment_manager_permissions(role):
     text += (
         "3. Go to JSON tab, add the following JSON blob to the `Statement` list and save policy:\n"
     )
-    text += """```json
-        {
+    text += f"""```json
+        {{
             "Effect": "Allow",
             "Action": [
                 "cloudformation:DescribeStacks",
@@ -232,7 +230,6 @@ def generate_help_for_experiment_manager_permissions(role):
                 "iam:PutRolePolicy",
                 "iam:DeleteRolePolicy",
                 "iam:DeleteRole",
-                "iam:PassRole",
                 "cloudwatch:PutDashboard",
                 "firehose:ListDeliveryStreams",
                 "firehose:DeleteDeliveryStream",
@@ -250,6 +247,11 @@ def generate_help_for_experiment_manager_permissions(role):
             "Resource": [
                 "*"
             ]
-        },```\n"""
+        }},
+        {{
+            "Effect": "Allow",
+            "Action": "iam:PassRole",
+            "Resource": \"{role}\"
+        }}```\n"""
     text += "4. Now wait for a few minutes before executing this cell again!"
     return text
