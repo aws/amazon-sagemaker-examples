@@ -13,3 +13,4 @@ These examples provide quick walkthroughs to get you up and running with the lab
 - [Ground Truth Conversion Scripts](ground_truth_conversion_scripts) provides a conversion script for the output of Ground Truth semantic segmentation manifest to Common Objects in Context (COCO) format
 - [3D Point Cloud Demo](3d_point_cloud_demo) demonstrates the Amazon SageMaker Ground Truth's annotation workflow for 3D point cloud data types.
 - [3D Point Cloud Input Data Processing](3d_point_cloud_input_data_processing) demonstrates how you can pre-process your 3D point cloud input data to create an object tracking job labeling job.
+- [Labeling Adjustment Job Adaptation](labeling_adjustment_job_adaptation) is a utility script to help you remove individual unnecessary labels from manifest files so that you can successfully launch label adjustment jobs with SageMaker Ground Truth.
