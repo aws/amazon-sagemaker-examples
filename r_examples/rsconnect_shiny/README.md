@@ -1,4 +1,4 @@
-# Publishing R Shiny apps from RStudio Workbench in Amazon SageMaker to RStudio Connect
+# Publishing R Shiny apps from RStudio on Amazon SageMaker to RStudio Connect
 
 [Shiny](https://shiny.rstudio.com/) is an R package that makes it easy to create interactive web applications programmatically. It is popular among data scientists to share their analyses and models through a Shiny application to their stakeholders. In this example [breast-cancer-app](./breast-cancer-app), we develop a machine learning model using a [UCI breast cancer dataset](https://archive.ics.uci.edu/ml/datasets/breast+cancer+wisconsin+%28original%29) in `breast_cancer_modeling.r` and create a web application to allow users to interact with the data and ML model. 
 

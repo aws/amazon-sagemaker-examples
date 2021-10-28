@@ -1,6 +1,6 @@
-# Publishing R Markdown documents from RStudio Workbench in Amazon SageMaker to RStudio Connect
+# Publishing R Markdown documents from RStudio on Amazon SageMaker to RStudio Connect
 
-You can easily and programmatically create an analysis within RStudio Workbench on Amazon SageMaker and publish it to RStudio Connect so that your collaborators can easily consume your analysis. In this example, we use a [UCI breast cancer dataset](https://archive.ics.uci.edu/ml/datasets/breast+cancer+wisconsin+%28original%29) from [mlbench](https://cran.r-project.org/web/packages/mlbench/index.html) to walkthrough some of the common use case of publication: R Markdown, R Presentation documents.
+You can easily and programmatically create an analysis within RStudio on Amazon SageMaker and publish it to RStudio Connect so that your collaborators can easily consume your analysis. In this example, we use a [UCI breast cancer dataset](https://archive.ics.uci.edu/ml/datasets/breast+cancer+wisconsin+%28original%29) from [mlbench](https://cran.r-project.org/web/packages/mlbench/index.html) to walkthrough some of the common use case of publication: R Markdown, R Presentation documents.
 
 ## R Markdown
 
@@ -34,4 +34,4 @@ In the example in [breast_cancer_eda.Rpres](./breast_cancer_eda.Rpres) in the Gi
 
 ![publish-rpres](./images/publish-rpres.png)
 
-We showed you the static work that can be published and shared on RStudio Connect from RStudio Workbench on Amazon SageMaker. More often than not, you are building an interactive application or dashboard with Shiny.  Let’s take a look how we can publish Shiny apps from RStudio Workbench in Amazon SageMaker to RStudio Connect in [Publishing R Shiny Apps](../rsconnect_shiny).
+We showed you the static work that can be published and shared on RStudio Connect from RStudio on Amazon SageMaker. More often than not, you are building an interactive application or dashboard with Shiny.  Let’s take a look how we can publish Shiny apps from RStudio on Amazon SageMaker to RStudio Connect in [Publishing R Shiny Apps](../rsconnect_shiny).
