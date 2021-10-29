@@ -1,6 +1,6 @@
 ![SageMaker](https://github.com/aws/amazon-sagemaker-examples/raw/master/_static/sagemaker-banner.png)
 
-# Amazon SageMaker Examples Repo
+# Amazon SageMaker Examples
 
 Example Jupyter notebooks that demonstrate how to build, train, and deploy machine learning models using Amazon SageMaker.
 
