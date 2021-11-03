@@ -1,0 +1,9 @@
+# AutoGluon Predictor constructor arguments
+# - see https://github.com/awslabs/autogluon/blob/master/tabular/src/autogluon/tabular/predictor/predictor.py#L51-L159
+ag_predictor_args:
+  label: industry_code
+
+# AutoGluon Predictor.fit arguments
+# - see https://github.com/awslabs/autogluon/blob/master/tabular/src/autogluon/tabular/predictor/predictor.py#L250-L590
+ag_fit_args:
+  hyperparameters: "multimodal"
