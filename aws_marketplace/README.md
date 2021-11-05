@@ -8,11 +8,13 @@ To know more about algorithms and model packages from AWS Marketplace, see [docu
 
 #### Create algorithms/model packages for listing in AWS Marketplace for machine learning.
 
-This example notebook shows you how to package a model-package/algorithm for listing in AWS Marketplace for machine learning.
+These example notebooks show you how to package a model or algorithm for listing in AWS Marketplace for machine learning.
 
-- [Creating Algorithm and Model Package - Listing on AWS Marketplace](creating_marketplace_products) provides a detailed walkthrough on how to package a scikit learn algorithm to create SageMaker Algorithm and SageMaker Model Package entities that can be used with the enhanced SageMaker Train/Transform/Hosting/Tuning APIs and listed on AWS Marketplace.
+- [Creating Marketplace Products](creating_marketplace_products)
+        - [Creating a Model Package - Listing on AWS Marketplace](creating_marketplace_products/models) provides a detailed walkthrough on how to package a pre-trained model as a SageMaker Model Package that can be listed on AWS Marketplace.
+	- [Creating Algorithm and Model Package - Listing on AWS Marketplace](creating_marketplace_products/algorithms) provides a detailed walkthrough on how to package a scikit learn algorithm to create SageMaker Algorithm and SageMaker Model Package entities that can be used with the enhanced SageMaker Train/Transform/Hosting/Tuning APIs and listed on AWS Marketplace.
 
-Once you have created an algorithm or a model package to be listed in the AWS Marketplace, the next step is to list it in AWS Marketplace, and provide a sample notebook that users can use to try your algorithm or model package. 
+Once you have created an algorithm or a model package to be listed in the AWS Marketplace, the next step is to list it in AWS Marketplace, and provide a sample notebook that users can use to try your algorithm or model package.
 
 * [Curate your AWS Marketplace Model Package listing and sample notebook](curating_aws_marketplace_listing_and_sample_notebook/ModelPackage) provides instructions on how to craft a sample notebook to be associated with your Model Package listing and how to curate a good AWS Marketplace listing that makes it easy for your customers to consume your Model Package.
 

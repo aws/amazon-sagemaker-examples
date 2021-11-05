@@ -224,9 +224,12 @@ These examples show how to use Amazon SageMaker for model training, hosting, and
 
 #### Create algorithms/model packages for listing in AWS Marketplace for machine learning.
 
-This example shows you how to package a model-package/algorithm for listing in AWS Marketplace for machine learning.
+These example notebooks show you how to package a model or algorithm for listing in AWS Marketplace for machine learning.
 
-- [Creating Algorithm and Model Package - Listing on AWS Marketplace](aws_marketplace/creating_marketplace_products) provides a detailed walkthrough on how to package a scikit learn algorithm to create SageMaker Algorithm and SageMaker Model Package entities that can be used with the enhanced SageMaker Train/Transform/Hosting/Tuning APIs and listed on AWS Marketplace.
+- [Creating Marketplace Products](aws_marketplace/creating_marketplace_products)
+
+  - [Creating a Model Package - Listing on AWS Marketplace](aws_marketplace/creating_marketplace_products/models) provides a detailed walkthrough on how to package a pre-trained model as a SageMaker Model Package that can be listed on AWS Marketplace.
+  - [Creating Algorithm and Model Package - Listing on AWS Marketplace](aws_marketplace/creating_marketplace_products/algorithms) provides a detailed walkthrough on how to package a scikit learn algorithm to create SageMaker Algorithm and SageMaker Model Package entities that can be used with the enhanced SageMaker Train/Transform/Hosting/Tuning APIs and listed on AWS Marketplace.
 
 Once you have created an algorithm or a model package to be listed in the AWS Marketplace, the next step is to list it in AWS Marketplace, and provide a sample notebook that customers can use to try your algorithm or model package.
 
