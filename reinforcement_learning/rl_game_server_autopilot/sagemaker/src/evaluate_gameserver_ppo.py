@@ -1,17 +1,25 @@
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 import argparse
 import json
 import os
 
-import gym
 import numpy as np
-import ray
-from gym import wrappers
 
+import gym
+from gym import wrappers
+from gym.spaces import Discrete, Box
+import ray
+from ray.rllib.models import ModelCatalog
 from ray.tune.registry import register_env
 
-from roboschool import RoboschoolReacher
+import time
+import boto3
+import requests
+
+cloudwatch_cli = boto3.client("cloudwatch", region_name=boto3.Session().region_name)
 
 OUTPUT_DIR = "/opt/ml/output/intermediate"
 
@@ -45,9 +53,7 @@ def create_parser(parser_creator=None):
     return parser
 
 
-def run(args, parser):
-    def create_environment(env_config={}):
-        return RoboschoolReacher()
+def run(args, parser, env_config={}):
 
     if not args.config:
         # Load configuration from file
@@ -64,7 +70,15 @@ def run(args, parser):
 
     ray.init()
 
-    register_env(args.env, create_environment)
+    config = args.config
+    config["monitor"] = False
+    config["num_workers"] = 1
+    config["num_gpus"] = 0
+    env_config = config["env_config"]
+
+    from gameserver_env import GameServerEnv
+
+    env = GameServerEnv(env_config)
 
     if ray.__version__ >= "0.6.5":
         from ray.rllib.agents.registry import get_agent_class
@@ -72,24 +86,18 @@ def run(args, parser):
         from ray.rllib.agents.agent import get_agent_class
 
     cls = get_agent_class(args.algorithm)
-    config = args.config
-    config["monitor"] = False
-    config["num_workers"] = 1
-    config["num_gpus"] = 0
-    agent = cls(env=args.env, config=config)
+    agent = cls(env=GameServerEnv, config=config)
     agent.restore(args.checkpoint)
     num_episodes = int(args.evaluate_episodes)
 
-    env = RoboschoolReacher()
+    env = wrappers.Monitor(env, OUTPUT_DIR, force=True, video_callable=lambda episode_id: True)
     all_rewards = []
-    max_steps = 100  # set a max_steps as stopping condition as this env does not return done=True
-
     for episode in range(num_episodes):
         steps = 0
         state = env.reset()
         done = False
         reward_total = 0.0
-        while steps < max_steps:
+        while not done:
             action = agent.compute_action(state)
             next_state, reward, done, _ = env.step(action)
             reward_total += reward
