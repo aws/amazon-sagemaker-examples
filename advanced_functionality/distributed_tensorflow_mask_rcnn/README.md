@@ -70,12 +70,6 @@ The three SageMaker Script Mode notebooks for training Mask R-CNN are listed bel
 - Mask R-CNN notebook that uses EFS file-system as data source: [```mask-rcnn-scriptmode-efs.ipynb```](mask-rcnn-scriptmode-efs.ipynb)
 - Mask R-CNN notebook that uses FSx Lustre file-system as data source: [```mask-rcnn-scriptmode-fsx.ipynb```](mask-rcnn-scriptmode-fsx.ipynb)
 
-Following notebooks use [SageMaker Estimator](https://sagemaker.readthedocs.io/en/stable/api/training/estimators.html), and are **deprecated** in favor of the notebooks listed above:
-
-- [```mask-rcnn-s3.ipynb```](mask-rcnn-s3.ipynb)
-- [```mask-rcnn-efs.ipynb```](mask-rcnn-efs.ipynb)
-- [```mask-rcnn-fsx.ipynb```](mask-rcnn-fsx.ipynb)
-
 
 Below, we compare the three options, [Amazon S3](https://aws.amazon.com/s3/), [Amazon EFS](https://aws.amazon.com/efs/) and [Amazon FSx Lustre](https://aws.amazon.com/fsx/):
 
