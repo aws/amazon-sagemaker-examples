@@ -237,7 +237,7 @@ def get_pipeline(
     # Condition step for evaluating model quality and branching execution
     cond_lte = ConditionGreaterThanOrEqualTo(  # You can change the condition here
         left=JsonGet(
-            step=step_eval,
+            step_name=step_eval,
             property_file=evaluation_report,
             json_path="binary_classification_metrics.accuracy.value",  # This should follow the structure of your report_dict defined in the evaluate.py file.
         ),
