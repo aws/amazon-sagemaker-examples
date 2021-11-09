@@ -175,6 +175,7 @@ MaskRCNNService.get_predictor()
 
 import base64
 import json
+import tempfile
 
 from flask import Flask, Response, request
 
@@ -199,19 +200,18 @@ def inference():
         print(result)
         return Response(response=result, status=415, mimetype="application/json")
 
-    path = None
 
     try:
         content = request.get_json()
         img_id = content["img_id"]
-        path = os.path.join("/tmp", img_id)
-        with open(path, "wb") as fh:
+        with tempfile.NamedTemporaryFile() as fh:
             img_data_string = content["img_data"]
             img_data_bytes = bytearray(img_data_string, encoding="utf-8")
             fh.write(base64.decodebytes(img_data_bytes))
+            fh.seek(0)
+            img = cv2.imread(fh.name, cv2.IMREAD_COLOR)
             fh.close()
-            img = cv2.imread(path, cv2.IMREAD_COLOR)
-
+            
             rpn = False
             try:
                 rpn = content["rpn"]
@@ -243,6 +243,3 @@ def inference():
         print(str(e))
         result = {"error": "Internal server error"}
         return Response(response=result, status=500, mimetype="application/json")
-    finally:
-        if path:
-            os.remove(path)

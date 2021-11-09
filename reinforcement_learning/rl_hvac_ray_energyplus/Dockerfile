@@ -1,8 +1,9 @@
 ARG CPU_OR_GPU
 ARG AWS_REGION
 ARG FRAMEWORK
+ARG SUFFIX
 
-FROM 462105765813.dkr.ecr.${AWS_REGION}.amazonaws.com/sagemaker-rl-ray-container:ray-0.8.5-${FRAMEWORK}-${CPU_OR_GPU}-py36
+FROM 462105765813.dkr.ecr.${AWS_REGION}.amazonaws.com/sagemaker-rl-ray-container:ray-1.6.0-${FRAMEWORK}-${CPU_OR_GPU}-${SUFFIX}
 
 ############################################
 # EnergyPlus

@@ -11,8 +11,8 @@ Here we describe a reinforcement learning-based system that learns to allocate r
   * `rl_gamerserver_ray.ipynb`: notebook used for training predictive game server auto-scaling policy.
   * `src/`
      * `gameserver_env.py`: custom game server environments and simulator defined here.
-     * `train-gameserver_ppo.py`: launcher for ppo training.
-     * `evaluate-gameserver.py`: launcher for coach evaluation.
+     * `train_gameserver_ppo.py`: Ray launcher for ppo training.
+     * `evaluate_gameserver_ppo.py`: Ray launcher for ppo evaluation.
 
 ### Game Environment (EKS, DynamoDB)
 
