@@ -42,6 +42,7 @@ On SageMaker Studio, you will need to open a terminal, go to your home folder, t
 
    end_to_end/fraud_detection/index
    end_to_end/music_recommendation/index
+   end_to_end/nlp_mlops_company_sentiment/index
 
 .. toctree::
     :maxdepth: 1
