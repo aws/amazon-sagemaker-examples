@@ -101,12 +101,8 @@ def endpoint_invocations():
         elif response_mimetype == "application/jsonlines":
             response = "\n".join([json.dumps({"class": pred}) for pred in predictions])
         elif response_mimetype == "application/json":
-            response = json.dumps(
-                {"predictions": [{"class": pred} for pred in predictions]}
-            )
+            response = json.dumps({"predictions": [{"class": pred} for pred in predictions]})
 
         return response
     except Exception as e:
-        return (
-            f"Error during model invocation: {str(e)} for input: {request.get_data()}"
-        )
+        return f"Error during model invocation: {str(e)} for input: {request.get_data()}"
