@@ -1,0 +1,9 @@
+# AutoGluon Predictor constructor arguments
+# - see TabularPredictor class https://github.com/awslabs/autogluon/blob/master/tabular/src/autogluon/tabular/predictor/predictor.py
+ag_predictor_args:
+  label: returned
+
+# AutoGluon Predictor.fit arguments
+# - see fit method https://github.com/awslabs/autogluon/blob/master/tabular/src/autogluon/tabular/predictor/predictor.py
+ag_fit_args:
+  hyperparameters: "multimodal"
