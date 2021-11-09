@@ -18,3 +18,6 @@ A clear and concise description of the use case for this example.
 
 **Describe what other services (other than SageMaker) are involved***
 
+
+**Describe which dataset could be used. Provide its location in s3://sagemaker-sample-files or another source.**
+
