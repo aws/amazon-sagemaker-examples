@@ -57,15 +57,16 @@ If your PR does not pass CI, you can view the logs to understand how to fix your
 
 #### Environment Setup
 
-1. Setup your environment. You can use the same Conda environment for multiple related projects. This means you can add a few dependencies and update the environment as needed.
-    1. You can do this by using an environment file to update the environment.
-    2. Or just use conda or pip to install the new deps
-    3. Update the name (the -n arg) to whatever makes sense for you for your project
-    4. Keep an eye out for updates to the dependencies. This project’s dependencies are here: https://github.com/aws/amazon-sagemaker-examples/blob/master/environment.yml
-    5. Fork the repo: https://github.com/aws/amazon-sagemaker-examples.git
-    6. Clone your fork.
-    7. Cd into the fork directory.
-    8. Create and activate your environment. You can likely use a higher version of Python, but RTD is currently building with 3.6 on production.
+You can use the same Conda environment for multiple related projects. This means you can add a few dependencies and update the environment as needed.
+
+1. You can do this by using an environment file to update the environment
+2. Or just use conda or pip to install the new deps
+3. Update the name (the -n arg) to whatever makes sense for you for your project
+4. Keep an eye out for updates to the dependencies. This project’s dependencies are here: https://github.com/aws/amazon-sagemaker-examples/blob/master/environment.yml
+5. Fork the repo: https://github.com/aws/amazon-sagemaker-examples.git
+6. Clone your fork
+7. Cd into the fork directory
+8. Create and activate your environment. You can likely use a higher version of Python, but RTD is currently building with 3.6 on production
 
 ```
 # Create the env
@@ -116,22 +117,22 @@ You would modify this file: https://github.com/aws/amazon-sagemaker-examples/blo
 
 1. Look for the table of contents directive, `toctree` :
 
-```
+   ```
 
-.. toctree::
-   :maxdepth: 1
+   .. toctree::
+      :maxdepth: 1
 
-```
+   ```
 
 1. Add an entry for the new notebook:
 
-```
+   ```
 
-.. toctree::
-   :maxdepth: 1
+   .. toctree::
+      :maxdepth: 1
 
-   creating_marketplace_products/Bring_Your_Own-Creating_Algorithm_and_Model_Package
-```
+      creating_marketplace_products/Bring_Your_Own-Creating_Algorithm_and_Model_Package
+   ```
 
 #### Adjusting navigation
 
@@ -187,7 +188,7 @@ Then you’ll get a two bullets (the extra “Some other section” when there s
 
 > /Users/markhama/Development/amazon-sagemaker-examples/r_examples/r_batch_transform/r_xgboost_batch_transform.ipynb:6: WARNING: Each notebook should have at least one section title
 
-This means the author doesn’t have a title in the notebook. The first markdown block should have a title like `# Some fancy title`. In some cases the author used html tags like <h1>. These render fine on GitHub, but will error in the website build causing the notebook to be skipped.
+This means the author doesn’t have a title in the notebook. The first markdown block should have a title like `# Some fancy title`. In some cases the author used html tags like `<h1>`. These render fine on GitHub, but will error in the website build causing the notebook to be skipped.
 
 * toctree contains reference to nonexisting document
 
