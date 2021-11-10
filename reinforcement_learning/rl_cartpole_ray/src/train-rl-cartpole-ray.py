@@ -23,14 +23,13 @@ class MyLauncher(SageMakerRayLauncher):
                 "run": "PPO",
                 "stop": {"training_iteration": 40},
                 "config": {
-                    "use_pytorch": False,
+                    "framework": "tf",
                     "gamma": 0.99,
                     "kl_coeff": 1.0,
                     "num_sgd_iter": 20,
                     "lr": 0.0001,
                     "sgd_minibatch_size": 1000,
                     "train_batch_size": 25000,
-                    "monitor": True,  # Record videos.
                     "model": {"free_log_std": True},
                     "num_workers": (self.num_cpus - 1),
                     "num_gpus": self.num_gpus,
