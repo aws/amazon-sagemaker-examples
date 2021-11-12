@@ -87,3 +87,12 @@ Multi-Model Deployment
 
    ../advanced_functionality/multi_model_sklearn_no_cache
 
+
+Nvidia Triton Inference
+=======================
+
+.. toctree::
+   :maxdepth: 1
+
+   ../sagemaker-triton/resnet50/triton_resnet50
+   ../sagemaker-triton/nlp_bert/triton_nlp_bert
