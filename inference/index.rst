@@ -78,14 +78,15 @@ Model monitor
    :maxdepth: 1
 
    ../sagemaker_model_monitor/index
-   
+
+
 Multi-Model Deployment
 ======================
 
 .. toctree::
    :maxdepth: 1
 
-   ../advanced_functionality/multi_model_sklearn_no_cache
+   ../advanced_functionality/multi_model_sklearn_home_value/sklearn_multi_model_endpoint_home_value
 
 
 Nvidia Triton Inference
