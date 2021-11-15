@@ -26,6 +26,8 @@ def lambda_handler(event, context):
         .strip()
     )
 
-    endpoint_response = comprehend.classify_document(Text=text, EndpointArn=endpoint_arn)
+    endpoint_response = comprehend.classify_document(
+        Text=text, EndpointArn=endpoint_arn
+    )
 
     return {"statusCode": 200, "body": json.dumps(endpoint_response)}

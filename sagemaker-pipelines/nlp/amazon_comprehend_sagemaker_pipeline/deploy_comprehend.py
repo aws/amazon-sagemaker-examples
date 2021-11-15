@@ -17,7 +17,8 @@ def deploy(args):
     s3 = boto3.client("s3")
     arn = (
         s3.get_object(
-            Bucket=urlparse(args.arn_path).netloc, Key=urlparse(f"{args.arn_path}/arn.txt").path[1:]
+            Bucket=urlparse(args.arn_path).netloc,
+            Key=urlparse(f"{args.arn_path}/arn.txt").path[1:],
         )["Body"]
         .read()
         .decode()

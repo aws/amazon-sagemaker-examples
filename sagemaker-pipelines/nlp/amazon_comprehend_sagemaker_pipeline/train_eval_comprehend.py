@@ -12,10 +12,6 @@ import boto3
 os.system("du -a /opt/ml")
 print(os.environ)
 
-# boto3.client("sts").get_caller_identity()
-
-# print(boto3.client("sts", region_name=os.environ["AWS_REGION"]).get_caller_identity())
-
 
 def train(args):
     print(args)
@@ -24,9 +20,7 @@ def train(args):
     s3_train_data = args.train_input_file
     s3_train_output = args.train_output_path
 
-    role_arn = (
-        args.iam_role_arn
-    )  # boto3.client("sts", region_name=os.environ["AWS_REGION"]).get_caller_identity()["Arn"] #args.iam_role_arn
+    role_arn = args.iam_role_arn
 
     id_ = str(datetime.datetime.now().strftime("%s"))
     create_custom_classify_response = comprehend.create_document_classifier(
@@ -42,8 +36,7 @@ def train(args):
     max_time = time.time() + 3 * 60 * 60  # 3 hours
     while time.time() < max_time:
         describe_custom_classifier = comprehend.describe_document_classifier(
-            #             DocumentClassifierArn = jobArn
-            DocumentClassifierArn="arn:aws:comprehend:eu-central-1:070724013446:document-classifier/custom-classifier1624958267"
+            DocumentClassifierArn=jobArn
         )
         status = describe_custom_classifier["DocumentClassifierProperties"]["Status"]
         print("Custom classifier: {}".format(status))
@@ -52,9 +45,9 @@ def train(args):
             sys.exit(1)
 
         if status == "TRAINED":
-            evaluation_metrics = describe_custom_classifier["DocumentClassifierProperties"][
-                "ClassifierMetadata"
-            ]["EvaluationMetrics"]
+            evaluation_metrics = describe_custom_classifier[
+                "DocumentClassifierProperties"
+            ]["ClassifierMetadata"]["EvaluationMetrics"]
 
             acc = evaluation_metrics.get("Accuracy")
             arn = describe_custom_classifier["DocumentClassifierProperties"][
@@ -84,10 +77,14 @@ def train(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--train-input-file", type=str, help="Path of input training file")
+    parser.add_argument(
+        "--train-input-file", type=str, help="Path of input training file"
+    )
     parser.add_argument("--train-output-path", type=str, help="s3 output folder")
     parser.add_argument(
-        "--iam-role-arn", type=str, help="ARN of role allowing SageMaker to trigger Comprehend"
+        "--iam-role-arn",
+        type=str,
+        help="ARN of role allowing SageMaker to trigger Comprehend",
     )
     args = parser.parse_args()
     print(args)
