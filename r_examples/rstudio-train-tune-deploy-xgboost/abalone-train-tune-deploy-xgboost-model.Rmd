@@ -1,0 +1,270 @@
+---
+title: "Use RStudio on SageMaker and train, tune and deploy a SageMaker model"
+output: html_notebook
+---
+
+<br>
+
+This is a notebook showcasing how to use RStudio on SageMaker to interact and use other SageMaker services.
+To get started with RStudio, you can bring your existing license for Rstudio Workbench or if you don't have any, you'll need to get one from [RStudio PBC](https://www.rstudio.com/). 
+
+To get started check out [this blog](https://aws.amazon.com/blogs/machine-learning/get-started-with-rstudio-on-amazon-sagemaker/) 
+
+Once you have setup your license and created your SageMaker RStudio domain, you can follow the rest of this notebook.
+
+Interacting with the rest of the SageMaker features and services from R & RStudio is achieved through the SageMaker Python SDK which can be loaded in our environment using [Reticulate](https://rstudio.github.io/reticulate/). Reticulate creates an interface between our R environment and the Python packages we install. 
+<br><br><br>
+
+## Setup
+
+When running this notebook for the first time, you may need to install some necessary packages. The following cell will install all that is needed.
+```{r warning=FALSE, include=FALSE}
+if (!'Metrics' %in% installed.packages()) {install.packages("Metrics")}
+library(reticulate)
+if (!py_module_available("sagemaker")){py_install("sagemaker", pip=TRUE)}
+
+```
+Once this is done, we can load all the libraries we will be needing for this example.
+<br><br>
+Load libraries and initialise some variables that we will need later.
+
+```{r warning=FALSE}
+library(reticulate)
+library(readr)
+library(ggplot2)
+library(dplyr)
+library(stringr)
+library(Metrics)
+
+sagemaker <- import('sagemaker')
+
+session <- sagemaker$Session()
+bucket <- session$default_bucket()
+role_arn <- sagemaker$get_execution_role()
+
+
+```
+
+<br><br>
+
+## Download Data
+
+For this example we will be using the famous abalone dataset as can be found on the [UCI dataset archive](https://archive.ics.uci.edu/ml/datasets/Abalone) where we will create a model to predict the age of an abalone shell based on physical measurements. 
+
+
+
+```{r}
+data_file <- 'http://archive.ics.uci.edu/ml/machine-learning-databases/abalone/abalone.data'
+abalone <- read_csv(file = data_file, col_names = FALSE, show_col_types = FALSE)
+names(abalone) <- c('sex', 'length', 'diameter', 'height', 'whole_weight', 'shucked_weight', 'viscera_weight', 'shell_weight', 'rings')
+head(abalone)
+```
+
+<br><br>
+
+## Explore data & preprocess 
+As with any Machine Learning project, the first step we take is to explore data, plot and try to better understand the data. You can use your favourite R libraries to explore, plot and process your data the same way you would do if running RStudio on a local or self-managed instance. 
+
+
+```{r}
+abalone$sex <- as.factor(abalone$sex)
+summary(abalone)
+
+options(repr.plot.width = 5, repr.plot.height = 4) 
+ggplot(abalone, aes(x = height, y = rings, color = sex)) + geom_point() + geom_jitter() +ggtitle("Height vs Rings") 
+
+ggplot(data=abalone,aes(x=shell_weight,y=rings,color=sex))+geom_point()+geom_smooth(method="lm")+ggtitle("Weight vs rings") 
+
+
+abalone <- abalone %>% filter(height != 0)
+abalone <- abalone %>% filter(height < 0.4)
+```
+
+<br><br>
+
+## Prepare data for training 
+
+Once happy with the above step, it is time to prepare the data for training.
+We split the data and upload them to an s3 bucket. 
+
+```{r}
+abalone <- abalone %>%
+  mutate(female = as.integer(ifelse(sex == 'F', 1, 0)),
+         male = as.integer(ifelse(sex == 'M', 1, 0)),
+         infant = as.integer(ifelse(sex == 'I', 1, 0))) %>%
+  select(-sex)
+abalone <- abalone %>% select(rings:infant, length:shell_weight)
+
+#head(abalone)
+
+abalone_train <- abalone %>%
+  sample_frac(size = 0.7)
+abalone <- anti_join(abalone, abalone_train)
+abalone_test <- abalone %>%
+  sample_frac(size = 0.5)
+abalone_valid <- anti_join(abalone, abalone_test)
+
+num_predict_rows <- 500
+abalone_test <- abalone_test[1:num_predict_rows, ]
+
+
+write_csv(abalone_train, 'abalone_train.csv', col_names = FALSE)
+write_csv(abalone_valid, 'abalone_valid.csv', col_names = FALSE)
+
+# Remove target from test
+write_csv(abalone_test[-1], 'abalone_test.csv', col_names = FALSE)
+
+s3_train <- session$upload_data(path = 'abalone_train.csv', 
+                                bucket = bucket, 
+                                key_prefix = 'r_example/data')
+s3_valid <- session$upload_data(path = 'abalone_valid.csv', 
+                                bucket = bucket, 
+                                key_prefix = 'r_example/data')
+
+s3_test <- session$upload_data(path = 'abalone_test.csv', 
+                               bucket = bucket, 
+                               key_prefix = 'r_example/data')
+```
+
+<br><br>
+
+## Train model using SageMaker Training Jobs
+
+We are now ready to train an ML model. We will train an XGBoost using the XGBoost [built-in](https://docs.aws.amazon.com/sagemaker/latest/dg/xgboost.html) algorithm of SageMaker.
+
+```{r}
+s3_train_input <- sagemaker$inputs$TrainingInput(s3_data = s3_train,
+                                                 content_type = 'csv')
+s3_valid_input <- sagemaker$inputs$TrainingInput(s3_data = s3_valid,
+                                                 content_type = 'csv')
+
+input_data <- list('train' = s3_train_input,
+                   'validation' = s3_valid_input)
+
+container <- sagemaker$image_uris$retrieve(framework='xgboost', region= session$boto_region_name, version='latest')
+cat('XGBoost Container Image URL: ', container)
+
+
+s3_output <- paste0('s3://', bucket, '/r_example/output')
+estimator <- sagemaker$estimator$Estimator(image_uri = container,
+                                           role = role_arn,
+                                           instance_count = 1L,
+                                           instance_type = 'ml.m5.xlarge',
+                                           input_mode = 'File',
+                                           output_path = s3_output)
+estimator$set_hyperparameters(eval_metric='rmse',
+                              objective='reg:linear',
+                              num_round=100L)
+
+estimator$fit(inputs = input_data)
+```
+
+<br><br> 
+
+## Deploy Model
+We are now deploying the trained model into a real-time endpoint
+
+```{r}
+model_endpoint <- estimator$deploy(initial_instance_count=1L,
+                                   instance_type='ml.m4.xlarge')
+
+model_endpoint$serializer <- sagemaker$serializers$CSVSerializer(content_type='text/csv')
+```
+
+
+## Test Model
+Using the test data we can now test the deployed model endpoint and plotting the error
+
+```{r}
+test_sample <- as.matrix(abalone_test[-1])
+dimnames(test_sample)[[2]] <- NULL
+
+predictions_ep <- model_endpoint$predict(test_sample)
+predictions_ep <- str_split(predictions_ep, pattern = ',', simplify = TRUE)
+predictions_ep <- as.integer(unlist(predictions_ep))
+
+# Convert predictions to Integer
+abalone_predictions_ep <- cbind(predicted_rings = predictions_ep, 
+                                abalone_test)
+# abalone_predictions = as.integer(abalone_predictions)
+head(abalone_predictions_ep)
+
+abalone_rmse_ep <- rmse(abalone_predictions_ep$rings, abalone_predictions_ep$predicted_rings)
+cat('RMSE for Endpoint 500-Row Prediction: ', round(abalone_rmse_ep, digits = 2))
+ggplot(abalone_predictions_ep, aes(x=c(predicted_rings - rings))) + geom_histogram(color="blue", fill='blue', bins=20) + ggtitle("Residuals Plot. RMSE for a 500-Row Prediction: ", round(abalone_rmse_ep, digits = 2))
+```
+
+
+
+
+## Delete endpoint
+Once done testing, make sure to delete the endpoint so you are not being charged for an endpoint that you are not using.
+```{r}
+model_endpoint$delete_endpoint(delete_endpoint_config=TRUE)
+```
+
+
+# HPO (Optional)
+Optionally, let's use SageMaker [Automatic Model Tuning](https://docs.aws.amazon.com/sagemaker/latest/dg/automatic-model-tuning.html) to perform hyperparametre optimisation. 
+Then, taking similar steps as before we will be deploying and testing the best model found. 
+
+```{r}
+hyperparameter_ranges <- list('eta'= sagemaker$tuner$ContinuousParameter(0, 1),
+                            'min_child_weight'= sagemaker$tuner$ContinuousParameter(1, 10),
+                            'alpha'= sagemaker$tuner$ContinuousParameter(0, 2),
+                            'max_depth'= sagemaker$tuner$IntegerParameter(1L, 10L)
+                            )
+
+objective_metric_name <- 'validation:rmse'
+
+tuner <- sagemaker$tuner$HyperparameterTuner(estimator,
+                                            objective_metric_name,
+                                            hyperparameter_ranges,
+                                            objective_type="Minimize",
+                                            max_jobs=10L,
+                                            max_parallel_jobs=3L)
+tuner$fit(inputs = input_data)
+
+
+```
+
+
+
+```{r}
+tuner$best_training_job()
+
+```
+
+Deploying the model, is similar to how we deployed it before.
+
+```{r}
+model_endpoint <- tuner$deploy(initial_instance_count=1L,
+                                   instance_type='ml.m4.xlarge')
+
+model_endpoint$serializer <- sagemaker$serializers$CSVSerializer(content_type='text/csv')
+```
+
+Similarly, we test the endpoint using the test data and we plot the residuals plot
+```{r}
+test_sample <- as.matrix(abalone_test[-1])
+dimnames(test_sample)[[2]] <- NULL
+
+predictions_ep <- model_endpoint$predict(test_sample)
+predictions_ep <- str_split(predictions_ep, pattern = ',', simplify = TRUE)
+predictions_ep <- as.integer(unlist(predictions_ep))
+
+# Convert predictions to Integer
+abalone_predictions_ep <- cbind(predicted_rings = predictions_ep, 
+                                abalone_test)
+# abalone_predictions = as.integer(abalone_predictions)
+head(abalone_predictions_ep)
+
+abalone_rmse_ep <- rmse(abalone_predictions_ep$rings, abalone_predictions_ep$predicted_rings)
+cat('RMSE for Endpoint 500-Row Prediction: ', round(abalone_rmse_ep, digits = 2))
+ggplot(abalone_predictions_ep, aes(x=c(predicted_rings - rings))) + geom_histogram(color="blue", fill='blue', bins=20) + ggtitle("Residuals Plot. RMSE for a 500-Row Prediction: ", round(abalone_rmse_ep, digits = 2))
+```
+
+# Delete endpoint 
+```{r}
+model_endpoint$delete_endpoint(delete_endpoint_config=TRUE)
+```
