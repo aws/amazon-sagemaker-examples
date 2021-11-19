@@ -1,8 +1,3 @@
-# Copyright (c) Facebook, Inc. and its affiliates.
-#
-# This source code is licensed under the MIT license found in the
-# LICENSE file in the root directory of this source tree.
-
 FROM nvidia/cuda:10.2-cudnn7-runtime-ubuntu18.04
 
 ENV PYTHONUNBUFFERED TRUE
@@ -33,7 +28,7 @@ RUN cd /tmp \
 
 
 RUN python -m pip install --no-cache-dir torchserve
-RUN python -m pip install --no-cache-dir torch==1.7.1
+RUN python -m pip install --no-cache-dir torch==1.10.0
 
 COPY dockerd-entrypoint.sh /usr/local/bin/dockerd-entrypoint.sh
 RUN chmod +x /usr/local/bin/dockerd-entrypoint.sh
