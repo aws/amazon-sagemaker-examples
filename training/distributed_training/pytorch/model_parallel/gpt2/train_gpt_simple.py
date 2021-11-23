@@ -16,10 +16,6 @@ import torch.utils.data
 import transformers
 from data_pipeline import create_pretraining_dataloader
 from fp16 import FP16_Module, FP16_Optimizer, load_fp16_optimizer, save_fp16_optimizer
-from fp16.megatron.fp16 import Float16OptimizerWithFloat16Params
-from fp16.megatron.fp16 import load_fp16_optimizer as load_fp16_optimizer_megatron
-from fp16.megatron.fp16 import save_fp16_optimizer as save_fp16_optimizer_megatron
-from fp16.megatron.grad_scaler import DynamicGradScaler
 from learning_rates import AnnealingLR
 from smdistributed.modelparallel.torch.nn import FusedLayerNorm as LayerNorm
 from smdistributed.modelparallel.torch.nn.huggingface.gpt2 import (
@@ -101,11 +97,7 @@ def train_step(model, optimizer, input_ids, attention_mask, args):
     else:
         loss = model(input_ids=input_ids, attention_mask=attention_mask, labels=input_ids)["loss"]
     if args.fp16:
-        if args.megatron:
-            scaled_loss = optimizer.scale_loss(loss)
-            model.backward(scaled_loss)
-        else:
-            optimizer.backward(loss, update_master_grads=False)
+        optimizer.backward(loss, update_master_grads=False)
     else:
         model.backward(loss)
     if args.logits_output:
@@ -218,7 +210,7 @@ def save(
     seq_length=1024,
     batch_idx=0,
 ):
-    save_fn = save_fp16_optimizer_megatron if args.megatron else save_fp16_optimizer
+    save_fn = save_fp16_optimizer
     save_dict = {
         "cli_args": args.__dict__,
         "num_params": num_params,
@@ -318,15 +310,14 @@ def load_model_and_optimizer(
 
     if load_optimizer:
         # Loading loss scale eagerly
-        if not args.megatron:
-            optimizer.loss_scaler = opt_state_dict["loss_scaler"]
-            optimizer.loss_scaler.model = model
-            optimizer.dynamic_loss_scale = opt_state_dict["dynamic_loss_scale"]
-            optimizer.overflow = opt_state_dict["overflow"]
-            optimizer.first_closure_call_this_step = opt_state_dict["first_closure_call_this_step"]
+        optimizer.loss_scaler = opt_state_dict["loss_scaler"]
+        optimizer.loss_scaler.model = model
+        optimizer.dynamic_loss_scale = opt_state_dict["dynamic_loss_scale"]
+        optimizer.overflow = opt_state_dict["overflow"]
+        optimizer.first_closure_call_this_step = opt_state_dict["first_closure_call_this_step"]
 
         def opt_load_hook(mod, opt):
-            load_fn = load_fp16_optimizer_megatron if args.megatron else load_fp16_optimizer
+            load_fn = load_fp16_optimizer
             if args.fp16:
                 if not partial and args.skip_full_optimizer:
                     print(
@@ -378,14 +369,14 @@ def delete_oldest_ckpt(args):
     return None
 
 
-def eval_model(model, dataloader, num_batches, use_bert_data):
+def eval_model(model, dataloader, num_batches, use_wiki_data):
     model = model.eval()
     n_batches = 0
     loss = 0.0
 
     with torch.no_grad():
         for batch_idx, input_data in enumerate(dataloader):
-            if use_bert_data:
+            if use_wiki_data:
                 input_ids, _, attention_mask, _, _ = input_data
             else:
                 input_ids, attention_mask = input_data
@@ -425,9 +416,9 @@ def train(
 
     dp_rank = smp.dp_rank() if not args.prescaled_batch else smp.rdp_rank()
     dp_size = smp.dp_size() if not args.prescaled_batch else smp.rdp_size()
-    data_type = "BERT" if args.use_bert_data else "GPT"
+    data_type = "wiki" if args.use_wiki_data else "openwebtext"
 
-    if args.use_bert_data:
+    if args.use_wiki_data:
         train_paths = sorted([
             os.path.join(args.training_dir, p)
             for p in os.listdir(args.training_dir)
@@ -463,7 +454,7 @@ def train(
         # load all validation examples
         if smp.rank() == 0:
             print("Creating val dataloader")
-        if args.use_bert_data:
+        if args.use_wiki_data:
             val_paths = sorted([
                 os.path.join(args.test_dir, p)
                 for p in os.listdir(args.test_dir)
@@ -536,7 +527,7 @@ def train(
             )
 
         if smp.rank() == 0:
-            if args.use_bert_data:
+            if args.use_wiki_data:
                 print(f"Reading data from training path {train_dataloader.dataset.input_file}")
             else:
                 print(f"Reading data from training path {train_dataloader.dataset.input_paths}")
@@ -549,7 +540,7 @@ def train(
             else:
                 start_batch_index = 0
 
-            if args.use_bert_data:
+            if args.use_wiki_data:
                 input_ids, _, attention_mask, _, _ = input_data
             else:
                 input_ids, attention_mask = input_data
@@ -579,14 +570,10 @@ def train(
                 loss_metric = loss.item()
 
             if args.fp16:
-                if args.megatron:
-                    success, _, _ = optimizer.step()
-                    overflow = not success
-                else:
-                    optimizer.update_master_grads()
-                    optimizer.clip_master_grads(args.grad_clip)
-                    optimizer.step()
-                    overflow = optimizer.overflow
+                optimizer.update_master_grads()
+                optimizer.clip_master_grads(args.grad_clip)
+                optimizer.step()
+                overflow = optimizer.overflow
             if not (args.fp16 and overflow):
                 lr_scheduler.step()
 
@@ -605,7 +592,7 @@ def train(
                 cur_state = np.random.get_state()
                 model = model.eval()
                 val_loss, val_ppl = eval_model(
-                    model, val_dataloader, args.validation_batches, args.use_bert_data
+                    model, val_dataloader, args.validation_batches, args.use_wiki_data
                 )
                 if is_main_process(smp.rank()):
                     print(
@@ -716,7 +703,6 @@ def parse_args():
     opt_grp.add_argument(
         "--fp32_grad_accumulation", default=0, type=int, help="Enable FP32 Grad accumulation"
     )
-    opt_grp.add_argument("--megatron", default=0, type=int, help="use megatron fp16 optimizer")
     opt_grp.add_argument("--grad_clip", default=1.0, type=float, help="gradient clipping")
     opt_grp.add_argument("--weight_decay", default=0.01, type=float, help="weight decay")
     opt_grp.add_argument(
@@ -737,7 +723,7 @@ def parse_args():
 
     # I/O
     io_grp = parser.add_argument_group(title="io", description="location for input and output")
-    io_grp.add_argument("--use_bert_data", type=int, default=0, help="use bert data for training")
+    io_grp.add_argument("--use_wiki_data", type=int, default=0, help="use wiki corpus data for training")
     io_grp.add_argument("--zipped_data", type=int, default=1, help="input data is zipped files")
     io_grp.add_argument("--epochs", type=int, default=3, help="times of iterating over the training dataset")
     io_grp.add_argument("--output-data-dir", type=str, default=os.environ["SM_OUTPUT_DATA_DIR"])
@@ -1062,37 +1048,16 @@ def main():
         smp.set_activation_checkpointing(transformer_layers, **kwargs)
 
     if args.fp16:
-        if args.megatron:
-            grad_scaler = DynamicGradScaler(
-                initial_scale=2 ** 32,
-                min_scale=1,
-                growth_interval=1000,
-                growth_factor=2.0,
-                backoff_factor=0.5,
-                hysteresis=2,
-            )
-            optimizer = Float16OptimizerWithFloat16Params(
-                model,
-                optimizer,
-                clip_grad=1.0,
-                log_num_zeros_in_grad=False,
-                params_have_main_grad=args.fp32_grad_accumulation > 0,
-                bf16=False,
-                grad_scaler=grad_scaler,
-                use_smp=True,
-                shard_optimizer_state=args.shard_optimizer_state > 0,
-            )
-        else:
-            optimizer = FP16_Optimizer(
-                model,
-                optimizer,
-                static_loss_scale=None,
-                dynamic_loss_scale=True,
-                use_smp=True,
-                dynamic_loss_args={"scale_window": 1000, "min_scale": 1, "delayed_shift": 2},
-                params_have_main_grad=args.fp32_grad_accumulation > 0,
-                shard_optimizer_state=args.shard_optimizer_state > 0,
-            )
+        optimizer = FP16_Optimizer(
+            model,
+            optimizer,
+            static_loss_scale=None,
+            dynamic_loss_scale=True,
+            use_smp=True,
+            dynamic_loss_args={"scale_window": 1000, "min_scale": 1, "delayed_shift": 2},
+            params_have_main_grad=args.fp32_grad_accumulation > 0,
+            shard_optimizer_state=args.shard_optimizer_state > 0,
+        )
 
     optimizer = smp.DistributedOptimizer(optimizer)
     lr_scheduler = get_learning_rate_scheduler(optimizer, args)

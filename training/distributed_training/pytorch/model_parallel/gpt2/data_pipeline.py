@@ -10,7 +10,7 @@ import smdistributed.modelparallel.torch as smp
 import torch
 
 
-class BertPretrainingDataset(torch.utils.data.Dataset):
+class WikiPretrainingDataset(torch.utils.data.Dataset):
     def __init__(self, input_file, max_pred_length):
         self.input_file = input_file
         self.max_pred_length = max_pred_length
@@ -56,8 +56,8 @@ class BertPretrainingDataset(torch.utils.data.Dataset):
         return [input_ids, segment_ids, input_mask, masked_lm_labels, next_sentence_labels]
 
 
-###### Load GPT pretraining data ######
-class GPTPretrainingDataset(torch.utils.data.Dataset):
+###### Load Openwebtext pretraining data ######
+class OpenwebtextPretrainingDataset(torch.utils.data.Dataset):
     def __init__(self, input_paths: List[str], max_sequence_length=None, zipped=True, use_last_file_only=False):
         self.input_paths = input_paths
         self.max_sequence_length = max_sequence_length
@@ -127,17 +127,17 @@ def create_pretraining_dataloader(
     shuffle: bool = False,
     zipped: bool = True,
     use_last_file_only: bool = False,
-    data_type: str = "GPT",
+    data_type: str = "openwebtext",
 ):
     if smp.pp_rank() == 0:
-        if data_type == "GPT":
-            data = GPTPretrainingDataset(
+        if data_type == "openwebtext":
+            data = OpenwebtextPretrainingDataset(
                 input_paths=input_paths, max_sequence_length=max_sequence_length, zipped=zipped, use_last_file_only=use_last_file_only
             )
-        elif data_type == "BERT":
+        elif data_type == "wiki":
             if len(input_paths) > 1:
-                print(f"BERT data only support single file when calling create_pretraining_dataloader, reading the first file instead..")
-            data = BertPretrainingDataset(input_file=input_paths[0], max_pred_length=max_sequence_length)
+                print(f"Wiki data only support single file when calling create_pretraining_dataloader, reading the first file instead..")
+            data = WikiPretrainingDataset(input_file=input_paths[0], max_pred_length=max_sequence_length)
         else:
             raise ValueError(f"Unsupported data type {data_type}")
         # TODO: set sampler.epoch to correctly shuffle across epochs, else same order will be used for all epochs
