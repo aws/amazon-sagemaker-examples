@@ -3,13 +3,14 @@ import os
 
 import gym
 import ray
-from gym_unity.envs import UnityToGymWrapper
+from ray.tune import run_experiments
+from ray.tune.registry import register_env
+
+from sagemaker_rl.ray_launcher import SageMakerRayLauncher
 from mlagents_envs.environment import UnityEnvironment
 from mlagents_envs.exception import UnityWorkerInUseException
 from mlagents_envs.registry import default_registry
-from ray.tune import run_experiments
-from ray.tune.registry import register_env
-from sagemaker_rl.ray_launcher import SageMakerRayLauncher
+from gym_unity.envs import UnityToGymWrapper
 
 
 class UnityEnvWrapper(gym.Env):
@@ -65,10 +66,9 @@ class MyLauncher(SageMakerRayLauncher):
         return {
             "training": {
                 "run": "PPO",
-                "stop": {
-                    "timesteps_total": 10000,
-                },
+                "stop": {"training_iteration": 20},
                 "config": {
+                    "framework": "tf",
                     "env": "unity_env",
                     "gamma": 0.995,
                     "kl_coeff": 1.0,
@@ -77,9 +77,9 @@ class MyLauncher(SageMakerRayLauncher):
                     "sgd_minibatch_size": 100,
                     "train_batch_size": 500,
                     "monitor": True,  # Record videos.
-                    "model": {"free_log_std": True},
                     "env_config": {"env_name": "Basic"},
                     "num_workers": (self.num_cpus - 1),
+                    "num_gpus": self.num_gpus,
                     "ignore_worker_failures": True,
                 },
             }
