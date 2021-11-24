@@ -106,8 +106,11 @@ class OpenwebtextPretrainingDataset(torch.utils.data.Dataset):
 
 
 class DummyDataset(torch.utils.data.dataset.Dataset):
-    def __init__(self, length):
-        self.batch = (torch.Tensor(0), torch.Tensor(0))
+    def __init__(self, length, data_type="openwebtext"):
+        if data_type == "openwebtext":
+            self.batch = (torch.Tensor(0), torch.Tensor(0))
+        elif data_type == "wiki":
+            self.batch = (torch.Tensor(0), torch.Tensor(0), torch.Tensor(0), torch.Tensor(0), torch.Tensor(0))
         self.length = length
 
     def __getitem__(self, index):
@@ -161,7 +164,7 @@ def create_pretraining_dataloader(
         smp.broadcast(len(dataloader), smp.PP_GROUP)
     else:
         data_len = smp.recv_from(0, smp.RankType.PP_RANK)
-        dataset = DummyDataset(data_len * batch_size)
+        dataset = DummyDataset(data_len * batch_size, data_type=data_type)
         dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, drop_last=True)
 
     return dataloader

@@ -87,6 +87,19 @@ def get_param_groups_by_weight_decay(module):
                     param_ids.add(id(p))
     return weight_decay_params, no_weight_decay_params
 
+def print_num_parameters(model):
+    seen = set()
+    num_params = 0 
+    for p in model.parameters():
+        if p not in seen:
+            seen.add(p)
+            num_params += np.prod(p.size())
+
+    if smp.rank() == 0:
+        print(f"# total parameters: {num_params}")
+
+    return num_params
+
 
 # smdistributed: Define smp.step. Return any tensors needed outside.
 @smp.step
@@ -901,14 +914,14 @@ def main():
         # if activation_checkpointing true checkpoints transformer layers below
         "checkpoint_attentions": False if args.activation_checkpointing else True,
         "shard_optimizer_state": args.shard_optimizer_state > 0,
-        "_prescaled_batch": args.prescaled_batch > 0,
+        "prescaled_batch": args.prescaled_batch > 0,
         "_match_weights": args.match_weights > 0,
         "fp16_params": args.fp16 > 0,
         "offload_activations": args.offload_activations > 0,
         "optimize": args.optimize,
         "auto_partition": False if args.manual_partition else True,
         "default_partition": 0,
-        "_fp32_grad_accumulation": args.fp32_grad_accumulation,
+        "_fp32_grad_accumulation": args.fp32_grad_accumulation > 0,
         "static_mode": args.static_mode > 0,
         "fast_mode": args.fast_mode > 0,
     }
@@ -981,9 +994,7 @@ def main():
     if args.fp16:
         model = FP16_Module(model)
 
-    num_params = sum([np.prod(p.size()) for p in model.parameters()])
-    if smp.rank() == 0:
-        print(f"# total parameters: {num_params}")
+    num_params = print_num_parameters(model)
 
     # smdistributed: Set the device to the GPU ID used by the current process.
     # Input tensors should be transferred to this device.
