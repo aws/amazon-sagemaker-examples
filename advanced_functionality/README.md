@@ -8,6 +8,7 @@ These examples that showcase unique functionality available in Amazon SageMaker.
 - [Encrypting Your Data](handling_kms_encrypted_data) shows how to use Server Side KMS encrypted data with Amazon SageMaker training. The IAM role used for S3 access needs to have permissions to encrypt and decrypt data with the KMS key.
 - [Using Parquet Data](parquet_to_recordio_protobuf) shows how to bring [Parquet](https://parquet.apache.org/) data sitting in S3 into an Amazon SageMaker Notebook and convert it into the recordIO-protobuf format that many SageMaker algorithms consume. 
 - [Connecting to Redshift](working_with_redshift_data) demonstrates how to copy data from Redshift to S3 and vice-versa without leaving Amazon SageMaker Notebooks.
+- [Bring Your Own scikit-learn Model](scikit_learn_bring_your_own_model) shows how to use Amazon SageMaker scikit-learn container to bring a pre-trained model to a realtime hosted endpoint without ever needing to think about REST APIs.
 - [Bring Your Own XGBoost Model](xgboost_bring_your_own_model) shows how to use Amazon SageMaker Algorithms containers to bring a pre-trained model to a realtime hosted endpoint without ever needing to think about REST APIs.
 - [Bring Your Own k-means Model](kmeans_bring_your_own_model) shows how to take a model that's been fit elsewhere and use Amazon SageMaker Algorithms containers to host it.
 - [Installing the R Kernel](install_r_kernel) shows how to install the R kernel into an Amazon SageMaker Notebook Instance.

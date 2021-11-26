@@ -163,7 +163,6 @@ Horovod
    :maxdepth: 1
 
    /sagemaker-python-sdk/keras_script_mode_pipe_mode_horovod/tensorflow_keras_CIFAR10
-   /advanced_functionality/distributed_tensorflow_mask_rcnn/mask-rcnn-s3
 
 
 .. _mxnet-distributed:
