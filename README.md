@@ -169,6 +169,7 @@ These examples that showcase unique functionality available in Amazon SageMaker.
 - [Host Multiple Models with XGBoost](advanced_functionality/multi_model_xgboost_home_value) shows how to deploy multiple models to a realtime hosted endpoint using a multi-model enabled XGBoost container.
 - [Host Multiple Models with SKLearn](advanced_functionality/multi_model_sklearn_home_value) shows how to deploy multiple models to a realtime hosted endpoint using a multi-model enabled SKLearn container.
 - [SageMaker Training and Inference with Script Mode](sagemaker-script-mode) shows how to use custom training and inference scripts, similar to those you would use outside of SageMaker, with SageMaker's prebuilt containers for various frameworks like Scikit-learn, PyTorch, and XGBoost.
+- [Host Models with NVidia Triton Server](sagemaker-triton) shows how to deploy models to a realtime hosted endpoint using [Triton](https://developer.nvidia.com/nvidia-triton-inference-server) as the model inference server.
 
 ### Amazon SageMaker Neo Compilation Jobs
 
