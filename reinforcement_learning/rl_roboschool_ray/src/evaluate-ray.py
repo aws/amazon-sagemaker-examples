@@ -8,8 +8,10 @@ import gym
 import numpy as np
 import ray
 from gym import wrappers
-from ray.rllib.models import ModelCatalog
+
 from ray.tune.registry import register_env
+
+from roboschool import RoboschoolReacher
 
 OUTPUT_DIR = "/opt/ml/output/intermediate"
 
@@ -44,11 +46,8 @@ def create_parser(parser_creator=None):
 
 
 def run(args, parser):
-    def create_environment(env_config):
-        # This import must happen inside the method so that worker processes import this code
-        import roboschool
-
-        return gym.make(args.env)
+    def create_environment(env_config={}):
+        return RoboschoolReacher()
 
     if not args.config:
         # Load configuration from file
@@ -81,25 +80,16 @@ def run(args, parser):
     agent.restore(args.checkpoint)
     num_episodes = int(args.evaluate_episodes)
 
-    if ray.__version__ >= "0.6.5":
-        env = gym.make(args.env)
-    else:
-        from ray.rllib.agents.dqn.common.wrappers import wrap_dqn
-
-        if args.algorithm == "DQN":
-            env = gym.make(args.env)
-            env = wrap_dqn(env, args.config.get("model", {}))
-        else:
-            env = ModelCatalog.get_preprocessor_as_wrapper(gym.make(args.env))
-
-    env = wrappers.Monitor(env, OUTPUT_DIR, force=True, video_callable=lambda episode_id: True)
+    env = RoboschoolReacher()
     all_rewards = []
+    max_steps = 100  # set a max_steps as stopping condition as this env does not return done=True
+
     for episode in range(num_episodes):
         steps = 0
         state = env.reset()
         done = False
         reward_total = 0.0
-        while not done:
+        while steps < max_steps:
             action = agent.compute_action(state)
             next_state, reward, done, _ = env.step(action)
             reward_total += reward

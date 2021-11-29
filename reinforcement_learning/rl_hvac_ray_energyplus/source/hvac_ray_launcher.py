@@ -16,7 +16,7 @@ import os
 import subprocess
 
 import ray
-from ray.tune.tune import _make_scheduler, run, run_experiments
+from ray.tune.tune import run_experiments, run
 from sagemaker_rl.ray_launcher import SageMakerRayLauncher
 from sagemaker_rl.tf_serving_utils import export_tf_serving, natural_keys
 
@@ -124,8 +124,8 @@ class HVACSageMakerRayLauncher(SageMakerRayLauncher):
             return
         ray_custom_cluster_config = {
             "object_store_memory": args.ray_object_store_memory,
-            "memory": args.ray_memory,
-            "redis_max_memory": args.ray_redis_max_memory,
+            "_memory": args.ray_memory,
+            "_redis_max_memory": args.ray_redis_max_memory,
             "num_cpus": args.ray_num_cpus,
             "num_gpus": args.ray_num_gpus,
         }
@@ -151,7 +151,6 @@ class HVACSageMakerRayLauncher(SageMakerRayLauncher):
 
         run_experiments(
             experiment_config,
-            scheduler=_make_scheduler(args),
             queue_trials=args.queue_trials,
             resume=args.resume,
             verbose=verbose,

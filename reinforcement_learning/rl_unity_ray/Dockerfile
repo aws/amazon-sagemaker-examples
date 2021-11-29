@@ -1,6 +1,8 @@
 ARG CPU_OR_GPU
 ARG AWS_REGION
-FROM 462105765813.dkr.ecr.${AWS_REGION}.amazonaws.com/sagemaker-rl-ray-container:ray-0.8.5-tf-${CPU_OR_GPU}-py36
+ARG RAY_VERSION
+ARG SUFFIX
+FROM 462105765813.dkr.ecr.${AWS_REGION}.amazonaws.com/sagemaker-rl-ray-container:ray-${RAY_VERSION}-tf-${CPU_OR_GPU}-${SUFFIX}
 
 WORKDIR /opt/ml
 
