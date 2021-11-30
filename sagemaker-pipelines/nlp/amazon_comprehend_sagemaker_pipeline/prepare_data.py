@@ -19,13 +19,13 @@ DSTTESTFILE = "/opt/ml/processing/test/test.csv"
 trainFrame = pd.read_csv(SRCTRAINFILE, header=None)
 testFrame = pd.read_csv(SRCTESTFILE, header=None)
 
-# Amazon Comprehend recommend[s] that you train the model with at least 50 training documents for
-# each class. https://docs.aws.amazon.com/comprehend/latest/dg/how-document-classification-training-data.html
+# AWS recommends that you train an Amazon Comprehend model with at least 50 training documents for
+# each class. See: https://docs.aws.amazon.com/comprehend/latest/dg/how-document-classification-training-data.html
 #
 # The dataset we use has 100,000 documents per class. To limit the costs and training times of this demo,
 # we will limit it to 1000 documents per class
 #
-# If you want to test Amazon Comprehend on the full dataset, set MAXITEM to 100,000
+# If you want to test Amazon Comprehend on the full dataset, set MAXITEM to 100000
 
 MAXITEM = 1000
 # Keeping MAXITEM for each label
@@ -35,7 +35,7 @@ for i in trainFrame[0].unique():
     indextodrop = trainFrame[trainFrame[0] == i].sample(n=dropnum).index
     trainFrame.drop(indextodrop, inplace=True)
 
-# Escaping ','
+# Escaping commas in preparation to write the data to a CSV file
 trainFrame[1] = trainFrame[1].str.replace(",", "&#44;")
 # Writing csv file
 trainFrame.to_csv(
@@ -47,7 +47,7 @@ trainFrame.to_csv(
     quotechar='"',
 )
 
-# Escaping ','
+# Escaping commas in preparation to write the data to a CSV file
 testFrame[0] = testFrame[0].str.replace(",", "&#44;")
 # Writing csv file
 testFrame.to_csv(
