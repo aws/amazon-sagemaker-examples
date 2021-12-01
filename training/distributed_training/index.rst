@@ -82,24 +82,10 @@ library.
       - `SageMaker model parallel developer guide <https://docs.aws.amazon.com/sagemaker/latest/dg/model-parallel.html>`_
       - `SageMaker Python SDK - model parallel APIs <https://sagemaker.readthedocs.io/en/stable/api/training/smd_model_parallel.html>`_
 
----
 
-.. _mpi
-
-MPI
-===
-
-Use MPI on SageMaker
---------------------
-
-.. toctree::
-    :maxdepth: 1
-
-    mpi_on_sagemaker/intro/mpi_demo
+----
 
 .. _pytorch-distributed:
-
----
 
 PyTorch
 =======
@@ -134,10 +120,9 @@ Horovod
 
    /sagemaker-python-sdk/pytorch_horovod_mnist/pytorch_mnist_horovod
 
+----
 
 .. _tensorflow-distributed:
-
----
 
 TensorFlow
 ==========
@@ -170,7 +155,16 @@ Horovod
 
    /sagemaker-python-sdk/keras_script_mode_pipe_mode_horovod/tensorflow_keras_CIFAR10
 
----
+
+Use MPI on SageMaker
+--------------------
+
+.. toctree::
+   :maxdepth: 1
+
+   mpi_on_sagemaker/intro/mpi_demo
+
+----
 
 .. _mxnet-distributed:
 
@@ -189,5 +183,5 @@ Horovod
    /sagemaker-python-sdk/mxnet_horovod_mnist/mxnet_mnist_horovod
 
 
-In addition to the notebook, this topic is covered in this workshop topic:
+In addition to the notebook, this topic is covered in the following workshop topic:
 `Parallelized data distribution (sharding) <https://sagemaker-workshop.com/builtin/parallelized.html>`_
