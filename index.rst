@@ -105,10 +105,13 @@ On SageMaker Studio, you will need to open a terminal, go to your home folder, t
    :caption: Training
 
    training/algorithms
+   reinforcement_learning/index
+   sagemaker-experiments/index
    sagemaker-debugger/index
    training/tuning
    training/distributed_training/index
    sagemaker-training-compiler/index
+   sagemaker-script-mode/index
    training/bring_your_own_container
    training/management
 
