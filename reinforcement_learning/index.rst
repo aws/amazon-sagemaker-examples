@@ -199,3 +199,14 @@ Use SageMaker RL to solve this classic problem with a twist: a restaurant delive
    :maxdepth: 0
 
    rl_traveling_salesman_vehicle_routing_coach/rl_traveling_salesman_vehicle_routing_coach
+
+
+Offline Training Cartpole
+--------------------------
+
+Use SageMaker RL and Ray RLlib to train a Cartpole agent with offline data.
+
+.. toctree::
+   :maxdepth: 0
+
+   rl_cartpole_offline_training/rl_cartpole_balancing_using_offline_RL
