@@ -1,5 +1,7 @@
 
-# End-to-end NLP MLOps: Orchestrating company earnings trend analysis, using SEC filings and news sentiment with HuggingFace Transformers, using Amazon Sagemaker Pipelines
+#Understanding Company Valuation through Sentiment Analysis of Earnings and News 
+
+## End-to-end NLP MLOps: Orchestrating company earnings trend analysis, using SEC filings and news sentiment with HuggingFace Transformers, using Amazon Sagemaker Pipelines
 
 We are going to demonstrate how to summarize and derive sentiments out of Security and Exchange Commission reports filed by a publicly traded organization. We are also going to derive the overall market sentiments about the said organization through financial news articles within the same financial period to present a fair view of the organization vs. market sentiments and outlook about the company's overall valuation and performance. In addition to this we will also identify the most popular keywords and entities within the news articles about that organization.
 
