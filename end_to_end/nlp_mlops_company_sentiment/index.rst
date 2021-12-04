@@ -1,13 +1,11 @@
 Understanding Trends in Company Valuation with NLP
 ==================================================
 
-Build and Manage end-to-end MLOps Pipeline for NLP with SageMaker Pipelines
----------------------------------------------------------------------------
-
-Processing, LambdaSteps, and Asynchronous Inference using
-pre-trained HuggingFace transformers for News and SEC earnings summarization
-
-and Sentiment Analysis
+Build and manage end-to-end MLOps pipelines
+for using pre-trained HuggingFace transformer models, News and SEC earnings summarization,
+and sentiment analysis. The following notebooks walk you through
+how to use the following SageMaker features: Pipelines,
+JumpStart Industry SDK, Processing, LambdaSteps, and Asynchronous Inference.
 
 
 .. toctree::
