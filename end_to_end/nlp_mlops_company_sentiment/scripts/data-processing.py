@@ -11,7 +11,13 @@ from smjsindustry.finance import DataLoader
 from smjsindustry.finance.processor_config import EDGARDataSetConfig
 
 
+
+
 if __name__=='__main__':
+    
+    # register to get a newscatcher api key : https://newsapi.org/register
+    
+    X_API_KEY ='INSERT YOUR NEWSCATCHER API KEY HERE' # Copy your newscatcher API Key HERE
     
     parser = argparse.ArgumentParser()
 
@@ -73,7 +79,7 @@ if __name__=='__main__':
     from_article_date = date.today() + relativedelta(months=-1)
     to_article_date = date.today()
     
-    headers = {'X-Api-Key': '630a6130847544c3aaa73a538ee36579'}
+    headers = {'X-Api-Key': X_API_KEY}
     query = {"q": f'"{args.ticker_cik}"',
              "sources":'bloomberg,fortune,the-wall-street-journal',
              "domains": "bloomberg.com,fortune.com,wsj.com", 
