@@ -13,7 +13,7 @@ RUN apt-get update \
 # Install flask server
 RUN pip install -U flask gunicorn joblib sklearn;
 
-#Copy scoring logic and model artifacts into the docker image
+# Copy scoring logic and model artifacts into the docker image
 COPY scoring_logic.py /scoring_logic.py
 COPY wsgi.py /wsgi.py
 COPY model-artifacts.joblib /opt/ml/model/model-artifacts.joblib
