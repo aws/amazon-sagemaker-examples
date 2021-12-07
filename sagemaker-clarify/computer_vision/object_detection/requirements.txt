@@ -1,0 +1,4 @@
+boto3
+gluoncv==0.10.4.post4
+mxnet==1.8.0.post0
+sagemaker
