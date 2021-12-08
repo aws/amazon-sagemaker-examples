@@ -143,7 +143,7 @@ Person Counting use case
 --------------------------------------------------------
  
 .. toctree::
-   :maxdepth: 0
+   :maxdepth: 1
  
    using_model_packages/preprocessing-audio-data-using-a-machine-learning-model/preprocessing-audio-data-using-a-machine-learning-model
 
