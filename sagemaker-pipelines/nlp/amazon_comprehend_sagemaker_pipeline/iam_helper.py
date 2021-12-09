@@ -26,13 +26,16 @@ def create_lambda_role(role_name):
         role_arn = response["Role"]["Arn"]
 
         response = iam.attach_role_policy(
-            RoleName=role_name,
-            PolicyArn="arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+            RoleName=role_name, PolicyArn="arn:aws:iam::aws:policy/AWSLambda_FullAccess"
         )
 
         response = iam.attach_role_policy(
-            PolicyArn="arn:aws:iam::aws:policy/AmazonSageMakerFullAccess",
             RoleName=role_name,
+            PolicyArn="arn:aws:iam::aws:policy/AmazonSageMakerFullAccess",
+        )
+
+        response = iam.attach_role_policy(
+            RoleName=role_name, PolicyArn="arn:aws:iam::aws:policy/ComprehendFullAccess"
         )
 
         return role_arn

@@ -24,7 +24,7 @@ def train(args):
 
     id_ = str(datetime.datetime.now().strftime("%s"))
     create_custom_classify_response = comprehend.create_document_classifier(
-        DocumentClassifierName="custom-classifier" + id_,
+        DocumentClassifierName="DEMO-custom-classifier-" + id_,
         DataAccessRoleArn=role_arn,
         InputDataConfig={"DataFormat": "COMPREHEND_CSV", "S3Uri": s3_train_data},
         OutputDataConfig={"S3Uri": s3_train_output},
