@@ -98,14 +98,15 @@ Although this workaround required add the following to conf.py and pinning promp
 make html
 ```
 
-1. It is usual to see a lot of warnings. It’s a good idea to try to address them. Some projects treat warnings as errors and will fail the build.
-2. Serve the content locally:
-3. cd _build/html
-    python -m http.server 8000
+2. It is usual to see a lot of warnings. It’s a good idea to try to address them. Some projects treat warnings as errors and will fail the build.
+3. Serve the content locally:
 
-1. Open the html file (index.html) in the `_build/html` folder.
+```
+cd _build/html
+python -m http.server 8000
+```
 
-1. open index.html
+4. Either open the index.html file in the `_build/html` directory, or navigate in the browser to: `http://0.0.0.0:8000/`
 
 
 #### Add a notebook to the website
