@@ -1,5 +1,4 @@
 import json
-from transformers import pipeline
 from transformers import (
     AutoModelForSequenceClassification,
     AutoTokenizer,
