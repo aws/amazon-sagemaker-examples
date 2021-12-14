@@ -2,11 +2,7 @@
 Distributed Training
 ####################
 
-The SageMaker built-in libraries of algorithms consists of 18 popular machine
-learning algorithms.
-Many of them were rewritten from scratch to be scalable and distributed out of
-the box.
-If you want to use distributed deep learning training code,
+If you want to run a distributed training job of a deep learning model,
 we recommend Amazon SageMaker’s distributed training libraries.
 SageMaker’s distributed training libraries make it easier for you to write
 highly scalable and cost-effective custom data parallel and model parallel deep
@@ -18,17 +14,20 @@ technologies to improve inter-GPU and inter-node communications.
 It extends SageMaker’s training capabilities with built-in options that require
 only small code changes to your training scripts.
 
+You can also use other distributed training libraries and frameworks
+such as Horovod.
+
 To learn how, try one of the notebooks in the following framework sections.
 
 .. admonition:: Frameworks
 
-   - :ref:`mxnet-distributed`
    - :ref:`pytorch-distributed`
    - :ref:`tensorflow-distributed`
+   - :ref:`mxnet-distributed`
 
 
 SageMaker distributed data parallel
-====================================
+===================================
 
 SageMaker distributed data parallel (SDP) extends SageMaker’s training
 capabilities on deep learning models with near-linear scaling efficiency,
@@ -83,23 +82,13 @@ library.
       - `SageMaker model parallel developer guide <https://docs.aws.amazon.com/sagemaker/latest/dg/model-parallel.html>`_
       - `SageMaker Python SDK - model parallel APIs <https://sagemaker.readthedocs.io/en/stable/api/training/smd_model_parallel.html>`_
 
-.. _mpi
 
-MPI 
-===================================
-
-Use MPI on SageMaker
---------------------
-
-.. toctree::
-    :maxdepth: 1
-
-    mpi_on_sagemaker/intro
+----
 
 .. _pytorch-distributed:
 
 PyTorch
-====================================
+=======
 
 SageMaker distributed data parallel (SDP)
 -----------------------------------------
@@ -110,10 +99,11 @@ SageMaker distributed data parallel (SDP)
    pytorch/data_parallel/bert/pytorch_smdataparallel_bert_demo
    pytorch/data_parallel/maskrcnn/pytorch_smdataparallel_maskrcnn_demo
    pytorch/data_parallel/mnist/pytorch_smdataparallel_mnist_demo
+   pytorch/data_parallel/rnnt/RNNT_notebook
 
 
 SageMaker distributed model parallel (SMP)
------------------------------------------
+------------------------------------------
 
 .. toctree::
    :maxdepth: 1
@@ -130,11 +120,12 @@ Horovod
 
    /sagemaker-python-sdk/pytorch_horovod_mnist/pytorch_mnist_horovod
 
+----
 
 .. _tensorflow-distributed:
 
-TensorFlow2
-====================================
+TensorFlow
+==========
 
 SageMaker distributed data parallel (SDP)
 -----------------------------------------
@@ -148,7 +139,7 @@ SageMaker distributed data parallel (SDP)
 
 
 SageMaker distributed model parallel (SMP)
------------------------------------------
+------------------------------------------
 
 .. toctree::
    :maxdepth: 1
@@ -165,10 +156,20 @@ Horovod
    /sagemaker-python-sdk/keras_script_mode_pipe_mode_horovod/tensorflow_keras_CIFAR10
 
 
+Use MPI on SageMaker
+--------------------
+
+.. toctree::
+   :maxdepth: 1
+
+   mpi_on_sagemaker/intro/mpi_demo
+
+----
+
 .. _mxnet-distributed:
 
 Apache MXNet
-====================================
+============
 
 Horovod
 -------
@@ -182,5 +183,5 @@ Horovod
    /sagemaker-python-sdk/mxnet_horovod_mnist/mxnet_mnist_horovod
 
 
-In addition to the notebook, this topic is covered in this workshop topic:
+In addition to the notebook, this topic is covered in the following workshop topic:
 `Parallelized data distribution (sharding) <https://sagemaker-workshop.com/builtin/parallelized.html>`_
