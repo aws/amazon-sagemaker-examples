@@ -1,3 +1,6 @@
+######################
+Reinforcement Learning
+######################
 
 .. image:: rl_mountain_car_coach_gymEnv/successful_policy.gif
   :width: 600

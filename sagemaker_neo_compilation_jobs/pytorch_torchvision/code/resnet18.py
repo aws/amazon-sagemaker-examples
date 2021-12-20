@@ -54,25 +54,8 @@ def transform_fn(model, payload, request_content_type, response_content_type):
     return response_body, content_type
 
 
-def model_fn(model_dir):
-
-    logger.info("model_fn")
-    neopytorch.config(model_dir=model_dir, neo_runtime=True)
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    # The compiled model is saved as "compiled.pt"
-    model = torch.jit.load(os.path.join(model_dir, "compiled.pt"), map_location=device)
-
-    # It is recommended to run warm-up inference during model load
-    sample_input_path = os.path.join(model_dir, "sample_input.pkl")
-    with open(sample_input_path, "rb") as input_file:
-        model_input = pickle.load(input_file)
-    if torch.is_tensor(model_input):
-        model_input = model_input.to(device)
-        model(model_input)
-    elif isinstance(model_input, tuple):
-        model_input = (inp.to(device) for inp in model_input if torch.is_tensor(inp))
-        model(*model_input)
-    else:
-        print("Only supports a torch tensor or a tuple of torch tensors")
-
-    return model
+# Defining a model_fn is unnecessary here, because the model can be loaded by default.
+# If you must load your model with a custom function, you can define a model_fn to
+# load the model as follows:
+# def model_fn(model_dir):
+#     ...
