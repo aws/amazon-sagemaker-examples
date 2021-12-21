@@ -87,19 +87,6 @@ def get_param_groups_by_weight_decay(module):
                     param_ids.add(id(p))
     return weight_decay_params, no_weight_decay_params
 
-def print_num_parameters(model):
-    seen = set()
-    num_params = 0 
-    for p in model.parameters():
-        if p not in seen:
-            seen.add(p)
-            num_params += np.prod(p.size())
-
-    if smp.rank() == 0:
-        print(f"# total parameters: {num_params}")
-
-    return num_params
-
 
 # smdistributed: Define smp.step. Return any tensors needed outside.
 @smp.step
@@ -253,7 +240,9 @@ def save(
             if args.shard_optimizer_state == 0 or partial:
                 save_dict["optimizer"] = save_fn(args, model, optimizer, partial=partial)
             else:
-                print("Saving the full optimizer state does not work with shard_optimizer_state > 0! Skipping...")
+                print(
+                    "Saving the full optimizer state does not work with shard_optimizer_state > 0! Skipping..."
+                )
     else:
         # fp32
         if partial:
@@ -355,7 +344,13 @@ def load_model_and_optimizer(
     if "batch_idx" in checkpoint:
         batch_idx = checkpoint["batch_idx"]
 
-    return model, optimizer, checkpoint["total_steps"], checkpoint["curr_train_path_index"], batch_idx
+    return (
+        model,
+        optimizer,
+        checkpoint["total_steps"],
+        checkpoint["curr_train_path_index"],
+        batch_idx,
+    )
 
 
 def delete_oldest_ckpt(args):
@@ -433,11 +428,13 @@ def train(
     data_type = "wiki" if args.use_wiki_data else "openwebtext"
 
     if args.use_wiki_data:
-        train_paths = sorted([
-            os.path.join(args.training_dir, p)
-            for p in os.listdir(args.training_dir)
-            if os.path.isfile(os.path.join(args.training_dir, p)) and "training" in p
-        ])
+        train_paths = sorted(
+            [
+                os.path.join(args.training_dir, p)
+                for p in os.listdir(args.training_dir)
+                if os.path.isfile(os.path.join(args.training_dir, p)) and "training" in p
+            ]
+        )
     else:
         if args.zipped_data > 0:
             file_extension = ".json.gz"
@@ -469,11 +466,13 @@ def train(
         if smp.rank() == 0:
             print("Creating val dataloader")
         if args.use_wiki_data:
-            val_paths = sorted([
-                os.path.join(args.test_dir, p)
-                for p in os.listdir(args.test_dir)
-                if os.path.isfile(os.path.join(args.test_dir, p)) and "testing" in p
-            ])
+            val_paths = sorted(
+                [
+                    os.path.join(args.test_dir, p)
+                    for p in os.listdir(args.test_dir)
+                    if os.path.isfile(os.path.join(args.test_dir, p)) and "testing" in p
+                ]
+            )
 
         else:
             if args.zipped_data > 0:
@@ -504,7 +503,7 @@ def train(
 
     start = time.time()
     throughput = None
-    to_save = {"loss": []}
+    to_save = {"loss": [], "val_loss": []}
     loss_metric = 0
 
     def should_record():
@@ -518,7 +517,7 @@ def train(
     # Set the same seed for computation
     set_seed(args.seed)
 
-    for index in range(start_train_path_index, args.epochs*len(train_paths)):
+    for index in range(start_train_path_index, args.epochs * len(train_paths)):
         next_train_path_index = (index + 1) % len(train_paths)
         curr_train_path_index = index % len(train_paths)
 
@@ -549,7 +548,9 @@ def train(
         for batch_idx, input_data in enumerate(train_dataloader):
             if batch_idx < start_batch_index:
                 if smp.rank() == 0:
-                    print(f"Resuming from saved batch index {start_batch_index}, skipping batch {batch_idx}...")
+                    print(
+                        f"Resuming from saved batch index {start_batch_index}, skipping batch {batch_idx}..."
+                    )
                 continue
             else:
                 start_batch_index = 0
@@ -564,7 +565,10 @@ def train(
 
             step_start = time.time()
 
-            optimizer.zero_grad(set_grads_to_None=True)
+            if args.fp16:
+                optimizer.zero_grad(set_grads_to_None=True)
+            else:
+                optimizer.zero_grad()
 
             if args.logits_output:
                 train_output = train_step(model, optimizer, input_ids, attention_mask, args)
@@ -588,6 +592,8 @@ def train(
                 optimizer.clip_master_grads(args.grad_clip)
                 optimizer.step()
                 overflow = optimizer.overflow
+            else:
+                optimizer.step()
             if not (args.fp16 and overflow):
                 lr_scheduler.step()
 
@@ -616,6 +622,8 @@ def train(
                         f"({int(time.time()-start)}s) Batch {total_steps - 1} Validation perplexity: {val_ppl}"
                     )
                 loss_metric = val_loss
+                if args.logits_output:
+                    to_save["val_loss"].append(val_loss)
                 model = model.train()
                 if args.preserve_np_state > 0:
                     np.random.set_state(cur_state)
@@ -649,7 +657,7 @@ def train(
                     curr_train_path_index,
                     args,
                     partial=True,
-                    batch_idx=batch_idx,
+                    batch_idx=batch_idx + 1,
                 )
 
                 if smp.local_rank() == 0:
@@ -739,7 +747,9 @@ def parse_args():
     io_grp = parser.add_argument_group(title="io", description="location for input and output")
     io_grp.add_argument("--use_wiki_data", type=int, default=0, help="use wiki corpus data for training")
     io_grp.add_argument("--zipped_data", type=int, default=1, help="input data is zipped files")
-    io_grp.add_argument("--epochs", type=int, default=3, help="times of iterating over the training dataset")
+    io_grp.add_argument(
+        "--epochs", type=int, default=3, help="times of iterating over the training dataset"
+    )
     io_grp.add_argument("--output-data-dir", type=str, default=os.environ["SM_OUTPUT_DATA_DIR"])
     io_grp.add_argument(
         "--checkpoint-dir",
@@ -775,7 +785,9 @@ def parse_args():
     )
     io_grp.add_argument("--load_partial", type=int, default=0, help="Load from partial checkpoints")
     io_grp.add_argument("--load_full", type=int, default=0, help="Load from full checkpoints")
-    io_grp.add_argument("--logits_output", type=str, default="", help="Path to save logits")
+    io_grp.add_argument(
+        "--logits_output", type=str, default="", help="Path to save logits and loss"
+    )
     io_grp.add_argument("--prescaled_batch", type=int, default=1, help="use prescaled batch")
 
     # configure model size
@@ -841,10 +853,16 @@ def parse_args():
         "--match_weights", type=int, default=0, help="Get weights from the original model"
     )
     parser.add_argument(
-        "--preserve_np_state", type=int, default=0, help="Perserve the numpy random state between validation"
+        "--preserve_np_state",
+        type=int,
+        default=0,
+        help="Perserve the numpy random state between validation",
     )
     parser.add_argument(
-        "--fast_validation", type=int, default=1, help="Running validation only with the last data file for faster speed"
+        "--fast_validation",
+        type=int,
+        default=1,
+        help="Running validation only with the last data file for faster speed",
     )
 
     # learning rate
@@ -985,7 +1003,9 @@ def main():
 
     if args.fp16:
         torch.set_default_dtype(torch.float16)
-    with smp.tensor_parallelism(enabled=smp.tp_size() > 1, attention_in_fp32=args.attention_in_fp32 > 0):
+    with smp.tensor_parallelism(
+        enabled=smp.tp_size() > 1, attention_in_fp32=args.attention_in_fp32 > 0
+    ):
         with smp.delay_param_initialization(
             enabled=(smp.tp_size() > 1 and args.match_weights < 1 and args.delayed_param > 0)
         ):
@@ -995,7 +1015,9 @@ def main():
     if args.fp16:
         model = FP16_Module(model)
 
-    num_params = print_num_parameters(model)
+    num_params = sum([np.prod(p.size()) for p in model.parameters()])
+    if smp.rank() == 0:
+        print(f"# total parameters: {num_params}")
 
     # smdistributed: Set the device to the GPU ID used by the current process.
     # Input tensors should be transferred to this device.
@@ -1012,14 +1034,17 @@ def main():
     # the model provided for DistributedModel class instantiation.
     if args.fp16:
         torch.set_default_dtype(torch.float16)
-    model = smp.DistributedModel(
-        model, trace_device="gpu", gradient_as_bucket_view=True
-    )  # , trace_memory_usage=True)
+    model = smp.DistributedModel(model, trace_device="gpu")
+
+    if args.fp16:
+        m = model.module
+    else:
+        m = model
 
     if smp.tp_size() > 1:
-        transformer_layers = model.module.module.module.transformer.seq_layers
+        transformer_layers = m.module.module.transformer.seq_layers
     else:
-        transformer_layers = model.module.module.module.transformer.h
+        transformer_layers = m.module.module.transformer.h
 
     if args.manual_partition:
         print(f"Manual partition enabled")
