@@ -143,8 +143,6 @@ def create_pretraining_dataloader(
             data = WikiPretrainingDataset(input_file=input_paths[0], max_pred_length=max_sequence_length)
         else:
             raise ValueError(f"Unsupported data type {data_type}")
-        # TODO: set sampler.epoch to correctly shuffle across epochs, else same order will be used for all epochs
-        # not relevant now as we have no epochs
         sampler = torch.utils.data.DistributedSampler(
             data,
             shuffle=shuffle,

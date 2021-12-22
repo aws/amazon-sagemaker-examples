@@ -681,7 +681,6 @@ def train(
             train_dataloader = dataset_future.result(timeout=None)
             wait_time = time.time() - s
             if wait_time > 1:
-                # TODO if this happens, we should try num_workers>1 in dataloader
                 print(
                     f"[{smp.rank()}] Waited {wait_time} for data loader to be ready. Please check if dataloader performance can be improved to avoid these waits."
                 )
