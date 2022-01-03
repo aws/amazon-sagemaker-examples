@@ -17,11 +17,13 @@ exe = 'python'
 
 trainer = '/workspace/efficientnet/main.py'
 
+# Add the hyperparameters
 cmd_list = [exe] + [trainer] + sys.argv[1:]
 cmd = ' '.join(cmd_list)
 
+# Add the training data path. This is a data channel assigned to SM as the inputs parameter when calling estimator.fit()
 cmd += ' '
-cmd += os.environ['SM_CHANNEL_TRAIN']
+cmd += os.environ['SM_CHANNEL_TRAIN'] 
 
 print('Final command is: ', cmd)
 
