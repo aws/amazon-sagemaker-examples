@@ -85,7 +85,7 @@ library.
 
 .. _mpi
 
-MPI 
+MPI
 ===================================
 
 Use MPI on SageMaker
@@ -119,7 +119,7 @@ SageMaker distributed model parallel (SMP)
    :maxdepth: 1
 
    pytorch/model_parallel/bert/smp_bert_tutorial
-   pytorch/model_parallel/mnist/pytorch_smmodelparallel_mnist
+   pytorch/model_parallel/gpt2/smp-train-gpt-simple
 
 
 Horovod
