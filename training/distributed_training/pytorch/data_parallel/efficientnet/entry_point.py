@@ -15,10 +15,10 @@ import os
 
 exe = 'python'
 
-trainer = '/workspace/efficientnet/main.py'
+launcher = '/workspace/efficientnet/launch.py'
 
 # Add the hyperparameters
-cmd_list = [exe] + [trainer] + sys.argv[1:]
+cmd_list = [exe] + [launcher] + sys.argv[1:]
 cmd = ' '.join(cmd_list)
 
 # Add the training data path. This is a data channel assigned to SM as the inputs parameter when calling estimator.fit()
