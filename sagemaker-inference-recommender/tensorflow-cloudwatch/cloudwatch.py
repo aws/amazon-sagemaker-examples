@@ -1,5 +1,4 @@
 import pandas as pd
-import boto3
 from decimal import Decimal
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
@@ -86,14 +85,12 @@ def get_job_results_as_dataframe(client, job_name):
             "EndpointName": endpoint_names,
             "VariantName": variant_names,
             "InitialCount": initial_count,
-#             "isCompiled": is_compiled,
             "EnvParameters": env_parameters,
             "StartTime": start_time,
             "EndTime": end_time
         }
         df = pd.DataFrame(data)
 
-        # print(f'Result in dataframe {df}')
         return df
     else:
         print(f"Job {job_name} is in {job_details['Status']} status, we can plot only completed jobs")
@@ -149,8 +146,7 @@ def get_cw_metrics(cw_client, endpoint_name, variant_name, metrics_name, start_t
         print(f'Both ExtendedStatistics & Statistics are None')
         exit(0)
 
-    # print(f'Result of get_cw_metrics {cw_data}')
-    return cw_data
+     return cw_data
 
 
 def get_x_from_datapoints(datapoints):
@@ -201,7 +197,6 @@ def get_endpoint_metrics(sm_client, cw_client, region, job_name, include_plots=F
     for record in df.to_dict('records'):
         if include_plots:
             fig = plt.figure(figsize=(20, 16), constrained_layout=True)
-#             fig.supxlabel('Benchmarking time period')
             fig.suptitle(f"Benchmarking result on Instance type {record['InstanceType']} Endpoint {record['EndpointName']}",
                          fontsize=16)
             spec = gridspec.GridSpec(ncols=3, nrows=3, figure=fig)
