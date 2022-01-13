@@ -26,7 +26,7 @@ def deploy(args):
     )
 
     endpoint_response = comprehend.create_endpoint(
-        EndpointName=f'custom-classifier-{time.strftime("%Y-%m-%d-%H-%M-%S")}',
+        EndpointName=f'DEMO-classifier-{time.strftime("%Y-%m-%d-%H-%M-%S")}',
         ModelArn=arn,
         DesiredInferenceUnits=10,
     )
