@@ -70,7 +70,7 @@ These examples introduce SageMaker's hyperparameter tuning functionality which h
 
 ### SageMaker Autopilot
 
-These examples introduce SageMaker Autopilot service. Autopilot automatically performs feature engineering, model selection, model tuning (hyperparameter optimization) and allows you to directly deploy the best model to an endpoint to serve inference requests. 
+These examples introduce SageMaker Autopilot. Autopilot automatically performs feature engineering, model selection, model tuning (hyperparameter optimization) and allows you to directly deploy the best model to an endpoint to serve inference requests. 
 
 - [Customer Churn AutoML](autopilot/) shows how to use SageMaker Autopilot to automatically train a model for the [Predicting Customer Churn](introduction_to_applying_machine_learning/xgboost_customer_churn) task.
 - [Targeted Direct Marketing AutoML](autopilot/) shows how to use SageMaker Autopilot to automatically train a model for the [Targeted Direct Marketing](introduction_to_applying_machine_learning/xgboost_direct_marketing) task.
