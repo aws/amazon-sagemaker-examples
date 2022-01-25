@@ -1,5 +1,6 @@
 awscli==1.22.42
 boto3==1.20.42
+horovod==0.20.3
 numpy==1.18.5
 pandas==1.1.0
 s3transfer==0.5.0
