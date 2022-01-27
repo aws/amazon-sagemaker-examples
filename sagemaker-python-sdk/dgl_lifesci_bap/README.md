@@ -45,7 +45,7 @@ Use `main.py` with arguments
 * `--num_workers`, number of workers for loading PDBBind molecules and Dataloader, default to the number of CPUs.
 * `-t`, int, number of trials to run, default to 1.
 
-### For access to more hyperparameters, see `./configure.py`.
+### For access to more hyperparameters, see `./code/configure.py`.
 
 #### PotentialNet Model Parameters
 
