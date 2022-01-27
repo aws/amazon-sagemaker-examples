@@ -1,0 +1,3 @@
+dgl-cu101 -f https://data.dgl.ai/wheels/repo.html
+dgllife
+rdkit-pypi
