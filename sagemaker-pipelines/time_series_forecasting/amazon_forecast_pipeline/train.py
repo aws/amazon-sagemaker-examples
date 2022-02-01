@@ -1,5 +1,5 @@
-# I do not like scripts to start with a Docstring, comments are fine.
-"""Evaluation script for measure customizable metrics"""
+# Evaluation script for measure customizable metrics
+
 import json
 from datetime import datetime
 import boto3
@@ -37,10 +37,13 @@ meta_schema = None
 
 
 def create_dataset_group_and_datasets(
-    region, dataset_group_name, frequency, target_schema, related_schema=None, meta_schema=None
+    region,
+    dataset_group_name,
+    frequency,
+    target_schema,
+    related_schema=None,
+    meta_schema=None,
 ):
-    # PLEASE ONLY USE ONE NAMING_CONVENTION. I PLEAD FOR ONLY snake_case, NO MIX OF camelCase and snake_case.
-    # and please rewrite all docstrings to be formatted consistenly like the one below.
     """Create a dataset group and datasets within the group.
 
     Parameters:
@@ -110,7 +113,9 @@ def create_dataset_group_and_datasets(
         datasets_arns.append(related_dataset_arn)
     if meta_dataset_arn:
         datasets_arns.append(meta_dataset_arn)
-    forecast.update_dataset_group(DatasetGroupArn=dataset_group_arn, DatasetArns=datasets_arns)
+    forecast.update_dataset_group(
+        DatasetGroupArn=dataset_group_arn, DatasetArns=datasets_arns
+    )
 
     return (
         forecast,
@@ -129,9 +134,9 @@ def check_import_status(forecast, import_job_arn):
        import_job_arn (str): the ARN of the Dataset Import Job
     """
     for i in range(100):
-        dataImportStatus = forecast.describe_dataset_import_job(DatasetImportJobArn=import_job_arn)[
-            "Status"
-        ]
+        dataImportStatus = forecast.describe_dataset_import_job(
+            DatasetImportJobArn=import_job_arn
+        )["Status"]
         print(dataImportStatus)
         if dataImportStatus != "ACTIVE" and dataImportStatus != "CREATE_FAILED":
             sleep(30)
@@ -147,9 +152,9 @@ def check_training_status(forecast, forecast_arn_predictor):
        forecast_arn_predictor (str): the ARN of the Amazon Forecast predictor
     """
     for i in range(300):
-        data_import_status = forecast.describe_predictor(PredictorArn=forecast_arn_predictor)[
-            "Status"
-        ]
+        data_import_status = forecast.describe_predictor(
+            PredictorArn=forecast_arn_predictor
+        )["Status"]
         print(data_import_status)
         if data_import_status != "ACTIVE" and data_import_status != "CREATE_FAILED":
             sleep(60)
@@ -230,7 +235,12 @@ if __name__ == "__main__":
         related_dataset_arn,
         meta_dataset_arn,
     ) = create_dataset_group_and_datasets(
-        region, dataset_group_name, dataset_frequency, target_schema, related_schema, meta_schema
+        region,
+        dataset_group_name,
+        dataset_frequency,
+        target_schema,
+        related_schema,
+        meta_schema,
     )
 
     print("Import Target and Related TimeSeries from S3 to Forecast")
@@ -295,9 +305,9 @@ if __name__ == "__main__":
 
     print("Model Evaluation")
     response = forecast.get_accuracy_metrics(PredictorArn=forecast_arn_predictor)
-    evaluation_metrics = response["PredictorEvaluationResults"][0]["TestWindows"][0]["Metrics"][
-        "ErrorMetrics"
-    ][0]
+    evaluation_metrics = response["PredictorEvaluationResults"][0]["TestWindows"][0][
+        "Metrics"
+    ]["ErrorMetrics"][0]
 
     # Print metrics so that they are picked up by SageMaker
     print("WAPE={};".format(evaluation_metrics["WAPE"]))

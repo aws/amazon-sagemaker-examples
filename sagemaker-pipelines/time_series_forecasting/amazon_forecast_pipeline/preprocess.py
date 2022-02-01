@@ -42,9 +42,6 @@ def create_dataframes(forecast_horizon, source_train_ts):
 
 
 if __name__ == "__main__":
-    print(boto3.__version__)
-    print(botocore.__version__)
-
     parser = argparse.ArgumentParser()
     parser.add_argument("--forecast_horizon", type=str)
     args = parser.parse_args()
@@ -59,7 +56,11 @@ if __name__ == "__main__":
 
     # Assert that the related timeseries is not missing entries. If it is, a predictor cannot be created.
     assert len(rts_df) == len(
-        pd.date_range(start=list(rts_df["datetime"])[0], end=list(rts_df["datetime"])[-1], freq="H")
+        pd.date_range(
+            start=list(rts_df["datetime"])[0],
+            end=list(rts_df["datetime"])[-1],
+            freq="H",
+        )
     ), "missing entries in the related time series"
 
     # Writing both dataframes to a csv file.
