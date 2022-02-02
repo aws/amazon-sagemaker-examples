@@ -3,7 +3,7 @@ FROM daskdev/dask
 ENV PYTHONHASHSEED 0
 ENV PYTHONIOENCODING UTF-8
 
-RUN pip install boto3
+RUN pip install boto3==1.20.46
 
 RUN conda install --yes -c conda-forge \
     dask-ml \
