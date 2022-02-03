@@ -46,7 +46,9 @@ class ScoringService(object):
             input (a list of dictionaries): The data on which to do the predictions. There will be
                 one prediction per row in the result dataframe"""
         bn = cls.get_model()
-        result = bn.predict(pd.DataFrame.from_dict(input, orient="columns"), target_node)
+        result = bn.predict(
+            pd.DataFrame.from_dict(input, orient="columns"), target_node
+        )
 
         return result
 
@@ -90,7 +92,9 @@ app = flask.Flask(__name__)
 def ping():
     """Determine if the container is working and healthy. In this sample container, we declare
     it healthy if we can load the model successfully."""
-    health = ScoringService.get_model() is not None  # You can insert a health check here
+    health = (
+        ScoringService.get_model() is not None
+    )  # You can insert a health check here
 
     status = 200 if health else 404
     return flask.Response(response="\n", status=status, mimetype="application/json")
@@ -114,7 +118,9 @@ def transformation():
 
     else:
         return flask.Response(
-            response="This predictor only supports JSON data", status=415, mimetype="text/plain"
+            response="This predictor only supports JSON data",
+            status=415,
+            mimetype="text/plain",
         )
 
     print("Invoked with {} records".format(len(data)))
