@@ -146,7 +146,7 @@ def get_cw_metrics(cw_client, endpoint_name, variant_name, metrics_name, start_t
         print(f'Both ExtendedStatistics & Statistics are None')
         exit(0)
 
-     return cw_data
+    return cw_data
 
 
 def get_x_from_datapoints(datapoints):
@@ -197,7 +197,7 @@ def get_endpoint_metrics(sm_client, cw_client, region, job_name, include_plots=F
     for record in df.to_dict('records'):
         if include_plots:
             fig = plt.figure(figsize=(20, 16), constrained_layout=True)
-            fig.suptitle(f"Benchmarking result on Instance type {record['InstanceType']} Endpoint {record['EndpointName']}",
+            fig.suptitle(f"Instance type {record['InstanceType']} Endpoint {record['EndpointName']}",
                          fontsize=16)
             spec = gridspec.GridSpec(ncols=3, nrows=3, figure=fig)
             f_ax1 = fig.add_subplot(spec[0, 0])
