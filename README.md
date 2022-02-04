@@ -26,6 +26,8 @@ They can be accessed by clicking on the `SageMaker Examples` tab in Jupyter or t
 
 Although most examples utilize key Amazon SageMaker functionality like distributed, managed training or real-time hosted endpoints, these notebooks can be run outside of Amazon SageMaker Notebook Instances with minimal modification (updating IAM role definition and installing the necessary libraries).
 
+As of February 7, 2022, the default branch is named "main". See our announcement for details and how to update your existing clone: https://github.com/aws/amazon-sagemaker-examples/discussions/3131
+
 ## :notebook: Examples
 
 ### Introduction to Ground Truth Labeling Jobs
