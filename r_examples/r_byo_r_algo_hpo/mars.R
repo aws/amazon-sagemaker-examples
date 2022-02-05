@@ -38,7 +38,7 @@ train <- function() {
     # Read in hyperparameters
     training_params <- read_json(param_path)
 
-    # Setting the tarhet
+    # Setting the target
     target <- 'Sepal.Length'
 
     if (!is.null(training_params$degree)) {
