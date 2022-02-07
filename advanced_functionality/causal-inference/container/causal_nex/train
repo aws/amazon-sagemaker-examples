@@ -21,7 +21,8 @@ from causalnex.network import BayesianNetwork
 from causalnex.evaluation import classification_report
 from causalnex.evaluation import roc_auc
 
-# These are the paths to where SageMaker mounts interesting things in your container.
+# These are the paths where SageMaker will take data from, save model to and 
+# store outputs in your container.
 prefix = '/opt/ml/'
 
 input_path = prefix + 'input/data'
@@ -52,7 +53,8 @@ def train():
                 raw_data.append(pd.read_csv(file, encoding='utf8', engine='python'))
         train_data = pd.concat(raw_data)
 
-        # Discretize the data with causalnex functions
+        # Discretize the data with causalnex functions. For example, you can use a statistical distibution 
+        # data for this e.g. quartiles. For more details, please refer to the notebook.
         train_data["age"] = Discretiser(method="fixed", numeric_split_points=[60]).transform(train_data["age"].values)
         train_data["serum_sodium"] = Discretiser(method="fixed", numeric_split_points=[136]).transform(train_data["serum_sodium"].values)
         train_data["serum_creatinine"] = Discretiser(method="fixed", numeric_split_points=[1.1,1.4]).transform(train_data["serum_sodium"].values)

@@ -23,7 +23,8 @@ prefix = "/opt/ml/"
 model_path = os.path.join(prefix, "model")
 
 # A singleton for holding the model. This simply loads the model and holds it.
-# It has a predict and an intervention functions that does a prediction (or intervention) based on the model and the input data.
+# It has a predict and an intervention functions that does a prediction 
+# (or intervention) based on the model and the input data.
 
 
 class ScoringService(object):
@@ -43,8 +44,8 @@ class ScoringService(object):
         """For the input, do the predictions and return them.
 
         Args:
-            input (a list of dictionaries): The data on which to do the predictions. There will be
-                one prediction per row in the result dataframe"""
+            input (a list of dictionaries): The data on which to do the predictions. 
+            There will be one prediction per row in the result dataframe"""
         bn = cls.get_model()
         result = bn.predict(
             pd.DataFrame.from_dict(input, orient="columns"), target_node
@@ -54,8 +55,9 @@ class ScoringService(object):
 
     @classmethod
     def intervention(cls, input):
-
-        """Users can apply an intervention to any node in the data, updating its distribution using a do operator, examining the effect of that intervention by querying marginals and resetting any interventions
+        """Users can apply an intervention to any node in the data, updating its distribution
+         using a do operator, examining the effect of that intervention by querying marginals 
+         and resetting any interventions
 
         Args:
            input (a list of dictionaries): The data on which to do the interventions.

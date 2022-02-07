@@ -47,7 +47,7 @@ To locally debug the container, without creating the endpoint, open one terminal
 bash container/local_test/serve_local.sh causal-nex-container
 
 With open terminal, open second terminal and run:
-bash container/local_test/predict.sh *your_test_file.json*
+bash container/local_test/predict.sh  `your_test_file`.json
 
 ## Environment variables
 
@@ -61,7 +61,7 @@ can be supplied as part of the CreateModel API call.
 
 ## Dataset
 Davide Chicco, Giuseppe Jurman: “Machine learning can predict survival of patients with heart failure from serum creatinine and ejection fraction alone”. BMC Medical Informatics and Decision Making 20, 16 (2020). 
-[Web Link]: https://bmcmedinformdecismak.biomedcentral.com/articles/10.1186/s12911-020-1023-5 
+[Web Link](https://bmcmedinformdecismak.biomedcentral.com/articles/10.1186/s12911-020-1023-5)
 
 [skl]: http://scikit-learn.org "scikit-learn Home Page"
 [dockerfile]: https://docs.docker.com/engine/reference/builder/ "The official Dockerfile reference guide"
