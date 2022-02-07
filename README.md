@@ -1,4 +1,4 @@
-![SageMaker](https://github.com/aws/amazon-sagemaker-examples/raw/master/_static/sagemaker-banner.png)
+![SageMaker](https://github.com/aws/amazon-sagemaker-examples/raw/main/_static/sagemaker-banner.png)
 
 # Amazon SageMaker Examples
 
