@@ -97,7 +97,7 @@ def predict():
                 "score": prediction}) for prediction in predictions]
     # For batch request, Clarify job expects the same number of result lines as the number of samples in the request.
     output = "\n".join(predictions)
-    return Response(response=output, status=200)
+    return Response(response=output, status=200, headers=[("Content-Type", accept_type)])
 
 
 def main():
