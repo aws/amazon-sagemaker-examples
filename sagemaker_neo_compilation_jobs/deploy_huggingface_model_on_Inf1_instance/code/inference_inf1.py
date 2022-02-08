@@ -12,7 +12,7 @@ def model_fn(model_dir):
     dir_contents = os.listdir(model_dir)
     model_path = next(filter(lambda item: 'model' in item, dir_contents), None)
     
-    tokenizer_init = AutoTokenizer.from_pretrained("distilbert-base-uncased")
+    tokenizer_init = AutoTokenizer.from_pretrained('distilbert-base-uncased')
     model = torch.jit.load(os.path.join(model_dir, model_path))
 
     
@@ -40,7 +40,7 @@ def predict_fn(input_data, models):
                                                     max_length=max_length,
                                                     padding='max_length',
                                                     truncation=True,
-                                                    return_tensors="pt")
+                                                    return_tensors='pt')
     
     # Convert example inputs to a format that is compatible with TorchScript tracing
     example_inputs = tokenized_sequence_pair['input_ids'], tokenized_sequence_pair['attention_mask']

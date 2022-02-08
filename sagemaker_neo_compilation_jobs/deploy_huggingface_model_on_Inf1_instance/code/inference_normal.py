@@ -8,7 +8,7 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 def model_fn(model_dir):
 
-    tokenizer_init = AutoTokenizer.from_pretrained("distilbert-base-uncased")
+    tokenizer_init = AutoTokenizer.from_pretrained('distilbert-base-uncased')
     model = AutoModelForSequenceClassification.from_pretrained('distilbert-base-uncased').eval().to(device)
     
     return (model, tokenizer_init)
@@ -35,7 +35,7 @@ def predict_fn(input_data, models):
                                                     max_length=max_length,
                                                     padding='max_length',
                                                     truncation=True,
-                                                    return_tensors="pt").to(device)
+                                                    return_tensors='pt').to(device)
     
     # Convert example inputs to a format that is compatible with TorchScript tracing
     example_inputs = tokenized_sequence_pair['input_ids'], tokenized_sequence_pair['attention_mask']
