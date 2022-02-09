@@ -171,5 +171,5 @@ class SMPTrainer(Trainer):
                 print(
                     f"({int(time_elapsed)}s), Batch {total_steps - 1} Loss: {loss.item()}, Speed: {''} samples/sec"
                 )
-            if total_steps == 100:
+            if total_steps == args.max_steps:
                 break

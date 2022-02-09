@@ -284,7 +284,3 @@ class SMPArguments:
         default=0,
         metadata={"help": "Get weights from the original model"},
     )
-    fp32_grad_accumulation: Optional[int] = field(
-        default=0,
-        metadata={"help": "Enable FP32 Grad accumulation"},
-    )

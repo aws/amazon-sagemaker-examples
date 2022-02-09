@@ -185,7 +185,6 @@ def initialize_smp(smp_args, training_args):
         "ddp": smp_args.ddp,
         "pipeline_parallel_degree": smp_args.pipeline_parallel_degree,
         "microbatches": smp_args.microbatches,
-        "checkpoint_attentions": False if smp_args.activation_checkpointing else True,
         "shard_optimizer_state": smp_args.shard_optimizer_state > 0,
         "prescaled_batch": smp_args.prescaled_batch > 0,
         "_match_weights": smp_args.match_weights > 0,
@@ -193,7 +192,6 @@ def initialize_smp(smp_args, training_args):
         "optimize": smp_args.optimize,
         "auto_partition": True,
         "default_partition": 0,
-        "_fp32_grad_accumulation": smp_args.fp32_grad_accumulation > 0,
         "static_mode": smp_args.static_mode > 0,
         "fast_mode": smp_args.fast_mode > 0,
     }
