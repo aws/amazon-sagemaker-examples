@@ -10,6 +10,36 @@ import torch.optim as optim
 from torchvision import datasets, transforms
 from torch.optim.lr_scheduler import StepLR
 
+import torchvision
+from packaging.version import Version
+
+# =======================================#
+# 0. Set data source for MNIST dataset. #
+# =======================================#
+
+TORCHVISION_VERSION = "0.9.1"
+if Version(torchvision.__version__) < Version(TORCHVISION_VERSION):
+    datasets.MNIST.resources = [
+        (
+            "https://sagemaker-sample-files.s3.amazonaws.com/datasets/image/MNIST/train-images-idx3-ubyte.gz",
+            "f68b3c2dcbeaaa9fbdd348bbdeb94873",
+        ),
+        (
+            "https://sagemaker-sample-files.s3.amazonaws.com/datasets/image/MNIST/train-labels-idx1-ubyte.gz",
+            "d53e105ee54ea40749a09fcbcd1e9432",
+        ),
+        (
+            "https://sagemaker-sample-files.s3.amazonaws.com/datasets/image/MNIST/t10k-images-idx3-ubyte.gz",
+            "9fb629c4189551a2d022fa330f9573f3",
+        ),
+        (
+            "https://sagemaker-sample-files.s3.amazonaws.com/datasets/image/MNIST/t10k-labels-idx1-ubyte.gz",
+            "ec29112dd5afa0611ce80d1b7f02629c",
+        ),
+    ]
+else:
+    datasets.MNIST.mirrors = ["https://sagemaker-sample-files.s3.amazonaws.com/datasets/image/MNIST/"]
+
 # ====================================#
 # 1. Import SMDebug framework class. #
 # ====================================#
