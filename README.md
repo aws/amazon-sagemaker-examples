@@ -34,7 +34,7 @@ As of February 7, 2022, the default branch is named "main". See our [announcemen
 
 These examples provide quick walkthroughs to get you up and running with the labeling job workflow for Amazon SageMaker Ground Truth.
 
-- [Bring your own model for sagemaker labeling workflows with active learning](ground_truth_labeling_jobs/bring_your_own_model_for_sagemaker_labeling_workflows_with_active_learning) is an end-to-end example that shows how to bring your custom training, inference logic and active learning to the Amazon SageMaker ecosystem.
+- [Bring your own model for SageMaker labeling workflows with active learning](ground_truth_labeling_jobs/bring_your_own_model_for_sagemaker_labeling_workflows_with_active_learning) is an end-to-end example that shows how to bring your custom training, inference logic and active learning to the Amazon SageMaker ecosystem.
 - [From Unlabeled Data to a Deployed Machine Learning Model: A SageMaker Ground Truth Demonstration for Image Classification](ground_truth_labeling_jobs/from_unlabeled_data_to_deployed_machine_learning_model_ground_truth_demo_image_classification) is an end-to-end example that starts with an unlabeled dataset, labels it using the Ground Truth API, analyzes the results, trains an image classification neural net using the annotated dataset, and finally uses the trained model to perform batch and online inference.
 - [Ground Truth Object Detection Tutorial](ground_truth_labeling_jobs/ground_truth_object_detection_tutorial) is a similar end-to-end example but for an object detection task.
 - [Basic Data Analysis of an Image Classification Output Manifest](ground_truth_labeling_jobs/data_analysis_of_ground_truth_image_classification_output) presents charts to visualize the number of annotations for each class, differentiating between human annotations and automatic labels (if your job used auto-labeling). It also displays sample images in each class, and creates a pdf which concisely displays the full results.
@@ -159,7 +159,7 @@ These examples show you how to run R examples, and publish applications in RStud
 
 ### Advanced Amazon SageMaker Functionality
 
-These examples that showcase unique functionality available in Amazon SageMaker. They cover a broad range of topics and will utilize a variety of methods, but aim to provide the user with sufficient insight or inspiration to develop within Amazon SageMaker.
+These examples showcase unique functionality available in Amazon SageMaker. They cover a broad range of topics and utilize a variety of methods, but aim to provide the user with sufficient insight or inspiration to develop within Amazon SageMaker.
 
 - [Data Distribution Types](advanced_functionality/data_distribution_types) showcases the difference between two methods for sending data from S3 to Amazon SageMaker Training instances. This has particular implication for scalability and accuracy of distributed training.
 - [Encrypting Your Data](advanced_functionality/handling_kms_encrypted_data) shows how to use Server Side KMS encrypted data with Amazon SageMaker training. The IAM role used for S3 access needs to have permissions to encrypt and decrypt data with the KMS key.
@@ -181,14 +181,14 @@ These examples that showcase unique functionality available in Amazon SageMaker.
 
 ### Amazon SageMaker Neo Compilation Jobs
 
-These examples provide you an introduction to how to use Neo to optimizes deep learning model
+These examples provide an introduction to how to use Neo to compile and optimize deep learning models.
 
-- [GluonCV SSD Mobilenet](sagemaker_neo_compilation_jobs/gluoncv_ssd_mobilenet) shows how to train gluoncv ssd mobilenet and use Amazon Sagemaker Neo to compile and optimize the trained model.
-- [Image Classification](sagemaker_neo_compilation_jobs/imageclassification_caltech) Adapts form [image classification](introduction_to_amazon_algorithms/imageclassification_caltech) including Neo API and comparsion between the baseline
-- [MNIST with MXNet](sagemaker_neo_compilation_jobs/mxnet_mnist) Adapts form [mxnet mnist](sagemaker-python-sdk/mxnet_mnist) including Neo API and comparsion between the baseline
+- [GluonCV SSD Mobilenet](sagemaker_neo_compilation_jobs/gluoncv_ssd_mobilenet) shows how to train GluonCV SSD MobileNet and use Amazon SageMaker Neo to compile and optimize the trained model.
+- [Image Classification](sagemaker_neo_compilation_jobs/imageclassification_caltech) Adapts from [image classification](introduction_to_amazon_algorithms/imageclassification_caltech) including Neo API and comparison against the uncompiled baseline.
+- [MNIST with MXNet](sagemaker_neo_compilation_jobs/mxnet_mnist) Adapts from [MXNet MNIST](sagemaker-python-sdk/mxnet_mnist) including Neo API and comparison against the uncompiled baseline.
 - [Deploying pre-trained PyTorch vision models](sagemaker_neo_compilation_jobs/pytorch_torchvision) shows how to use Amazon SageMaker Neo to compile and optimize pre-trained PyTorch models from TorchVision.
-- [Distributed TensorFlow](sagemaker_neo_compilation_jobs/tensorflow_distributed_mnist) Adapts form [tensorflow mnist](sagemaker-python-sdk/tensorflow_distributed_mnist) including Neo API and comparsion between the baseline
-- [Predicting Customer Churn](sagemaker_neo_compilation_jobs/xgboost_customer_churn) Adapts form [xgboost customer churn](introduction_to_applying_machine_learning/xgboost_customer_churn) including Neo API and comparsion between the baseline
+- [Distributed TensorFlow](sagemaker_neo_compilation_jobs/tensorflow_distributed_mnist) includes Neo API and comparison against the uncompiled baseline.
+- [Predicting Customer Churn](sagemaker_neo_compilation_jobs/xgboost_customer_churn) Adapts from [XGBoost customer churn](introduction_to_applying_machine_learning/xgboost_customer_churn) including Neo API and comparison against the uncompiled baseline.
 
 ### Amazon SageMaker Processing
 
