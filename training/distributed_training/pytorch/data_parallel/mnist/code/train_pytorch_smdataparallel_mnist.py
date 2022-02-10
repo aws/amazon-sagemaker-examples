@@ -38,6 +38,7 @@ from torchvision import datasets, transforms
 # Reference PR: https://github.com/pytorch/vision/pull/3559
 TORCHVISION_VERSION = "0.9.1"
 if Version(torchvision.__version__) < Version(TORCHVISION_VERSION):
+    # Set path to data source and include checksum key to make sure data isn't corrupted
     datasets.MNIST.resources = [
         (
             "https://sagemaker-sample-files.s3.amazonaws.com/datasets/image/MNIST/train-images-idx3-ubyte.gz",
@@ -57,6 +58,7 @@ if Version(torchvision.__version__) < Version(TORCHVISION_VERSION):
         ),
     ]
 else:
+    # Set path to data source
     datasets.MNIST.mirrors = ["https://sagemaker-sample-files.s3.amazonaws.com/datasets/image/MNIST/"]
 
 
