@@ -77,6 +77,7 @@ These examples introduce SageMaker Autopilot. Autopilot automatically performs f
 - [Customer Churn AutoML](autopilot/) shows how to use SageMaker Autopilot to automatically train a model for the [Predicting Customer Churn](introduction_to_applying_machine_learning/xgboost_customer_churn) task.
 - [Targeted Direct Marketing AutoML](autopilot/) shows how to use SageMaker Autopilot to automatically train a model for the [Targeted Direct Marketing](introduction_to_applying_machine_learning/xgboost_direct_marketing) task.
 - [Housing Prices AutoML](sagemaker-autopilot/housing_prices) shows how to use SageMaker Autopilot for a linear regression problem (predict housing prices).
+- [Bikes and Scooters AutoML](autopilot/autopilot_bike_and_scooter.ipynb)  shows how to use SageMaker Autopilot to automatically train a classification model.
 
 ### Introduction to Amazon Algorithms
 
