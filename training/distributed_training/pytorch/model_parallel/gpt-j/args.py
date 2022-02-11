@@ -59,8 +59,8 @@ class CustomTrainingArguments(TrainingArguments):
     min_lr: float = field(
         default=0.0,
         metadata={
-            "help": "Minumum value for learning rate. The scheduler"
-            "clip values below this threshold."
+            "help": "Minimum value for learning rate. The scheduler "
+            "clips values below this threshold."
         },
     )
     warmup: float = field(
@@ -92,7 +92,7 @@ class ModelArguments:
     model_name_or_path: Optional[str] = field(
         default=None,
         metadata={
-            "help": "The model checkpoint for weights initialization."
+            "help": "The model checkpoint for weights initialization. "
             "Don't set if you want to train a model from scratch."
         },
     )
@@ -270,7 +270,7 @@ class SMPArguments:
     prescaled_batch: Optional[int] = field(
         default=0,
         metadata={
-            "help": "The model checkpoint for weights initialization."
+            "help": "The model checkpoint for weights initialization. "
             "Don't set if you want to train a model from scratch."
         },
     )

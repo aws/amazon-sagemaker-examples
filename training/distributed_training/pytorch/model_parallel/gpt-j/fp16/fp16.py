@@ -1,6 +1,6 @@
 # coding=utf-8
-# Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
-# Modifications Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# Copyright (c) 2022, NVIDIA CORPORATION.  All rights reserved.
+# Modifications Copyright 2022 Amazon.com, Inc. or its affiliates. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -144,7 +144,7 @@ def save_fp16_optimizer(args, model, optimizer, partial=True):
             optimizer_state_dict["fp32_from_fp16"] = cpu_fp32_from_fp16_groups
         if smp.pp_size() > 1:
             print(
-                "WARNING: Ensure that partition decision doesnt change between runs (you can ensure this by setting use_times=False in smp config)."
+                "WARNING: Ensure that partition decision doesnt change between runs (you can ensure this by setting use_times=False in smp config). "
                 "If you want to save and load with partition decision changing between runs, use full save and load instead."
             )
     else:
