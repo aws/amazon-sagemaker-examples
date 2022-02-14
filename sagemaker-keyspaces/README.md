@@ -13,13 +13,38 @@ In this lab we will provide step-by-step instruction to use SageMaker to ingest 
 3. Next, we will read the ingested data into Sagemaker and do feature engineering.
 3. Next, we will train the data for clustering.
 3. After the training is complete, we can view the mapping between customer and their associated cluster.
-3. And finally, Cleanup step to drop Keyspaces table to avoid future charges. 
+3. And finally, Cleanup Step to drop Keyspaces table to avoid future charges. 
 
 Created by 
 - Vadim Lyakhovich (AWS)
 - Ram Pathangi (AWS)
 - Parth Patel (AWS)
 
+
+### Note
+The Notebook execution role must include permissions to access Amazon Keyspaces and Assume the role.
+
+*  To access Amazon Keyspaces database - use AmazonKeyspacesReadOnlyAccess or AmazonKeyspacesFullAccess managed policies. Use the _least privileged approach_ for your production application.  
+See more at
+[AWS Identity and Access Management for Amazon Keyspaces](https://docs.aws.amazon.com/keyspaces/latest/devguide/security-iam.html).
+
+* To assume the role, you need to have [sts:AssumeRole action](https://docs.aws.amazon.com/STS/latest/APIReference/API_AssumeRole.html) permissions.
+    ```
+    {
+      "Version": "2012-10-17",  
+      "Statement": [  
+        {  
+           "Action": [  
+           "sts:AssumeRole"  
+          ],  
+          "Effect": "Allow",  
+          "Resource": "*"  
+        }
+      ]
+    }
+    ```
+
+This notebook was tested with conda_python3 kernel and should work with Python 3.x.
 
 
 *Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved*  

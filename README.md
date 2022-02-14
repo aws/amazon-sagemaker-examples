@@ -72,7 +72,7 @@ These examples introduce SageMaker's hyperparameter tuning functionality which h
 
 ### SageMaker Autopilot
 
-These examples introduce SageMaker Autopilot. Autopilot automatically performs feature engineering, model selection, model tuning (hyperparameter optimization) and allows you to directly deploy the best model to an endpoint to serve inference requests. 
+These examples introduce SageMaker Autopilot. Autopilot automatically performs feature engineering, model selection, model tuning (hyperparameter optimization) and allows you to directly deploy the best model to an endpoint to serve inference requests.
 
 - [Customer Churn AutoML](autopilot/) shows how to use SageMaker Autopilot to automatically train a model for the [Predicting Customer Churn](introduction_to_applying_machine_learning/xgboost_customer_churn) task.
 - [Targeted Direct Marketing AutoML](autopilot/) shows how to use SageMaker Autopilot to automatically train a model for the [Targeted Direct Marketing](introduction_to_applying_machine_learning/xgboost_direct_marketing) task.
@@ -151,7 +151,7 @@ These examples provide an introduction to SageMaker Clarify which provides machi
 
 ### Publishing content from RStudio on Amazon SageMaker to RStudio Connect
 
-These examples show you how to run R examples, and publish applications in RStudio on Amazon SageMaker to RStudio Connect. 
+These examples show you how to run R examples, and publish applications in RStudio on Amazon SageMaker to RStudio Connect.
 
 - [Publishing R Markdown](r_examples/rsconnect_rmarkdown/) shows how you can author an R Markdown document (.Rmd, .Rpres) within RStudio on Amazon SageMaker and publish to RStudio Connect for wide consumption.
 - [Publishing R Shiny Apps](r_examples/rsconnect_shiny/) shows how you can author an R Shiny application within RStudio on Amazon SageMaker and publish to RStudio Connect for wide consumption.
@@ -235,6 +235,12 @@ These examples show you how to build Machine Learning models with frameworks lik
 These examples show how to use Amazon SageMaker for model training, hosting, and inference through Apache Spark using [SageMaker Spark](https://github.com/aws/sagemaker-spark). SageMaker Spark allows you to interleave Spark Pipeline stages with Pipeline stages that interact with Amazon SageMaker.
 
 - [MNIST with SageMaker PySpark](sagemaker-spark/pyspark_mnist)
+
+### Using Amazon SageMaker with Amazon Keyspaces (for Apache Cassandra)
+
+These examples show how to use Amazon SageMaker to read data from [Amazon Keyspaces](https://docs.aws.amazon.com/keyspaces/).
+- [Train Machine Learning Models using Amazon Keyspaces as a Data Source](sagemaker-kesypaces/SageMaker_Keyspaces_ml_example)
+
 
 ### AWS Marketplace
 
