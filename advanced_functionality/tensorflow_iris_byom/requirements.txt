@@ -1,12 +1,6 @@
-awscli==1.22.42
-boto3==1.20.42
-horovod==0.20.3
-numpy==1.18.5
-pandas==1.1.0
+boto3>=1.20.22
+numpy>=1.19.5
+pandas>=1.2.5
 s3transfer==0.5.0
-sagemaker==2.39.0
-sagemaker-tensorflow==2.3.0.1.7.0
-sagemaker-tensorflow-training==20.3.0
-sagemaker-training==3.9.2
-tensorflow-estimator @ https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/estimator/r2.3_aws/20201113-213326/tensorflow_estimator-2.3.0-py2.py3-none-any.whl
-tensorflow-gpu @ https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/tensorflow/r2.3_aws/20210219-083152/gpu/cu110/py37/tensorflow_gpu-2.3.2-cp37-cp37m-manylinux2010_x86_64.whl
+sagemaker>=2.70.0
+sagemaker.tensorflow>=2.6.0.1.11.0
