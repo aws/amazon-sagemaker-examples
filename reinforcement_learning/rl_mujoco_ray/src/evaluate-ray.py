@@ -23,25 +23,26 @@ def create_parser(parser_creator=None):
         "--checkpoint",
         default="/opt/ml/input/data/model/checkpoint",
         type=str,
-        help="Checkpoint from which to roll out.")
+        help="Checkpoint from which to roll out.",
+    )
     parser.add_argument(
         "--algorithm",
         type=str,
         required=True,
         help="The algorithm or model to train. This may refer to the name "
-             "of a built-on algorithm (e.g. RLLib's DQN or PPO), or a "
-             "user-defined trainable function or class registered in the "
-             "tune registry.")
-    parser.add_argument(
-        "--env", type=str, help="The gym environment to use.")
-    parser.add_argument(
-        "--evaluate_episodes", default=None, help="Number of episodes to roll out.")
+        "of a built-on algorithm (e.g. RLLib's DQN or PPO), or a "
+        "user-defined trainable function or class registered in the "
+        "tune registry.",
+    )
+    parser.add_argument("--env", type=str, help="The gym environment to use.")
+    parser.add_argument("--evaluate_episodes", default=None, help="Number of episodes to roll out.")
     parser.add_argument(
         "--config",
         default="{}",
         type=json.loads,
         help="Algorithm-specific configuration (e.g. env, hyperparams). "
-             "Surpresses loading of configuration from checkpoint.")
+        "Surpresses loading of configuration from checkpoint.",
+    )
     return parser
 
 
@@ -84,6 +85,7 @@ def run(args, parser):
         env = gym.make(args.env)
     else:
         from ray.rllib.agents.dqn.common.wrappers import wrap_dqn
+
         if args.algorithm == "DQN":
             env = gym.make(args.env)
             env = wrap_dqn(env, args.config.get("model", {}))
