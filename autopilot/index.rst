@@ -7,6 +7,7 @@ Get started with Autopilot
    :maxdepth: 0
 
    sagemaker_autopilot_direct_marketing
+   sagemaker_autopilot_abalone_parquet_input
 
 
 Feature selection
