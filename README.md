@@ -239,7 +239,7 @@ These examples show how to use Amazon SageMaker for model training, hosting, and
 ### Using Amazon SageMaker with Amazon Keyspaces (for Apache Cassandra)
 
 These examples show how to use Amazon SageMaker to read data from [Amazon Keyspaces](https://docs.aws.amazon.com/keyspaces/).
-- [Train Machine Learning Models using Amazon Keyspaces as a Data Source](sagemaker-keyspaces)
+- [Train Machine Learning Models using Amazon Keyspaces as a Data Source](ingest_data/sagemaker-keyspaces)
 
 
 ### AWS Marketplace
