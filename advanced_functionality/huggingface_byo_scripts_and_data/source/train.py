@@ -36,7 +36,9 @@ def tokenize(batch, text_column, target_column, max_source, max_target):
     return tokenized_input
 
 
-def load_and_tokenize_dataset(data_dir, split, text_column, target_column, max_source, max_target):
+def load_and_tokenize_dataset(
+    data_dir, split, text_column, target_column, max_source, max_target
+):
 
     dataset = load_from_disk(os.path.join(data_dir, split))
     tokenized_dataset = dataset.map(
@@ -44,7 +46,9 @@ def load_and_tokenize_dataset(data_dir, split, text_column, target_column, max_s
         batched=True,
         batch_size=512,
     )
-    tokenized_dataset.set_format("numpy", columns=["input_ids", "attention_mask", "labels"])
+    tokenized_dataset.set_format(
+        "numpy", columns=["input_ids", "attention_mask", "labels"]
+    )
 
     return tokenized_dataset
 
@@ -58,12 +62,18 @@ def compute_metrics(eval_pred):
     decoded_labels = tokenizer.batch_decode(labels, skip_special_tokens=True)
     # Rouge expects a newline after each sentence
     decoded_preds = ["\n".join(sent_tokenize(pred.strip())) for pred in decoded_preds]
-    decoded_labels = ["\n".join(sent_tokenize(label.strip())) for label in decoded_labels]
-    result = metric.compute(predictions=decoded_preds, references=decoded_labels, use_stemmer=True)
+    decoded_labels = [
+        "\n".join(sent_tokenize(label.strip())) for label in decoded_labels
+    ]
+    result = metric.compute(
+        predictions=decoded_preds, references=decoded_labels, use_stemmer=True
+    )
     # Extract a few results
     result = {key: value.mid.fmeasure * 100 for key, value in result.items()}
     # Add mean generated length
-    prediction_lens = [np.count_nonzero(pred != tokenizer.pad_token_id) for pred in predictions]
+    prediction_lens = [
+        np.count_nonzero(pred != tokenizer.pad_token_id) for pred in predictions
+    ]
     result["gen_len"] = np.mean(prediction_lens)
     return {k: round(v, 4) for k, v in result.items()}
 
@@ -159,7 +169,9 @@ def train(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--model-name", type=str, default="google/pegasus-xsum")
-    parser.add_argument("--train-data-dir", type=str, default=os.environ["SM_CHANNEL_TRAIN"])
+    parser.add_argument(
+        "--train-data-dir", type=str, default=os.environ["SM_CHANNEL_TRAIN"]
+    )
     # parser.add_argument("--val-data-dir", type=str,
     #                   default=os.environ["SM_CHANNEL_VALIDATION"])
     # parser.add_argument("--test-data-dir", type=str,
