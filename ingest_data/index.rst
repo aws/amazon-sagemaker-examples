@@ -8,7 +8,7 @@ Get started with data ingestion
 
 You have several different options for how can access your data from SageMaker.
 The most commonly used data source in the examples uses S3 buckets.
-You can also use Athena, EMR, Redshiftm, and Amazon Keyspaces DB as data sources.
+You can also use Athena, EMR, Redshift, and Amazon Keyspaces DB as data sources.
 
 
 Basic S3 examples by data type
