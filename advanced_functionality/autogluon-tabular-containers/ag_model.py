@@ -26,7 +26,7 @@ class AutoGluonTraining(Framework):
             "autogluon",
             region=region,
             version=framework_version,
-            py_version="py37",
+            py_version=py_version,
             image_scope="training",
             instance_type=instance_type,
         )
