@@ -8,7 +8,7 @@ Get started with data ingestion
 
 You have several different options for how can access your data from SageMaker.
 The most commonly used data source in the examples uses S3 buckets.
-You can also use Athena, EMR, and Redshift as data sources.
+You can also use Athena, EMR, Redshift, and Amazon Keyspaces DB as data sources.
 
 
 Basic S3 examples by data type
@@ -63,3 +63,19 @@ This example runs the California housing dataset and uses `awswrangler`, a Panda
    :maxdepth: 1
 
    03_Ingest_data_with_Redshift_v3
+
+
+Amazon Keyspaces (for Apache Cassandra)
+==================
+   In this notebook we will provide step-by-step instruction to use SageMaker to ingest customer data from Amazon Keyspaces
+   and train a ML Model
+
+   Amazon Keyspaces (for Apache Cassandra) is a scalable, highly available, and managed Apache Cassandra–compatible database service.
+   With Amazon Keyspaces, you can run your Cassandra workloads on AWS using the same Cassandra application code and developer tools that you use today.
+   You don’t have to provision, patch, or manage servers, and you don’t have to install, maintain, or operate software.
+   Amazon Keyspaces is serverless, so you pay for only the resources you use and the service can automatically scale tables up and down in response to application traffic.
+
+   .. toctree::
+      :maxdepth: 1
+
+      sagemaker-keyspaces
