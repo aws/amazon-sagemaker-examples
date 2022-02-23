@@ -4,8 +4,6 @@ import os
 import pandas as pd
 from glob import glob
 import argparse
-import boto3
-import botocore
 
 os.system("du -a /opt/ml")
 
@@ -27,16 +25,18 @@ def create_dataframes(forecast_horizon, source_train_ts):
         target_df (pd.DataFrame): target dataframe in Forecast format
         rts_df (pd.DataFrame): related dataframe in Forecast format
     """
-    bike_df = pd.read_csv(source_train_ts, dtype=object)
+    df = pd.read_csv(source_train_ts, index_col=0, parse_dates=True)
+    df = df.resample("H").sum() / 4
+    df.reset_index(inplace=True)
+    df = df.rename(columns={"index": "datetime", "MT_001": "kw"})
 
     # Use 2.5 weeks of hourly data to train Amazon Forecast. This is to save costs in generating the forecast.
-    bike_df = bike_df[-2 * 7 * 24 - 24 * 3 :].copy()
-    bike_df["count"] = bike_df["count"].astype("float")
-    bike_df["workingday"] = bike_df["workingday"].astype("float")
-    bike_df["item_id"] = "bike_12"
-
-    target_df = bike_df[["item_id", "datetime", "count"]][:-forecast_horizon]
-    rts_df = bike_df[["item_id", "datetime", "workingday"]]
+    df = df[-2 * 7 * 24 - 24 * 3 :].copy()
+    df["kw"] = df["kw"].astype("float")
+    df["workingday"] = df["datetime"].dt.weekday.apply(lambda x: 1 if x < 5 else 0).astype("float")
+    df["item_id"] = "client_1"
+    target_df = df[["item_id", "datetime", "kw"]][:-forecast_horizon]
+    rts_df = df[["item_id", "datetime", "workingday"]]
 
     return target_df, rts_df
 

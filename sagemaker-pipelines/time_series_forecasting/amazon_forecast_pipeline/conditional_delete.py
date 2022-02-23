@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import os
-from glob import glob
 import argparse
 import tarfile
 import botocore.exceptions
@@ -47,30 +46,22 @@ def delete_forecast_attributes(forecast, model_params):
     """
     if model_params["forecast_arn_predictor"] != None:
         wait_till_delete(
-            lambda: forecast.delete_predictor(
-                PredictorArn=model_params["forecast_arn_predictor"]
-            )
+            lambda: forecast.delete_predictor(PredictorArn=model_params["forecast_arn_predictor"])
         )
 
     for arn in ["target_import_job_arn", "related_import_job_arn"]:
         if model_params[arn] != None:
             wait_till_delete(
-                lambda: forecast.delete_dataset_import_job(
-                    DatasetImportJobArn=model_params[arn]
-                )
+                lambda: forecast.delete_dataset_import_job(DatasetImportJobArn=model_params[arn])
             )
 
     for arn in ["target_dataset_arn", "related_dataset_arn"]:
         if model_params[arn] != None:
-            wait_till_delete(
-                lambda: forecast.delete_dataset(DatasetArn=model_params[arn])
-            )
+            wait_till_delete(lambda: forecast.delete_dataset(DatasetArn=model_params[arn]))
 
     if model_params["dataset_group_arn"] != None:
         wait_till_delete(
-            lambda: forecast.delete_dataset_group(
-                DatasetGroupArn=model_params["dataset_group_arn"]
-            )
+            lambda: forecast.delete_dataset_group(DatasetGroupArn=model_params["dataset_group_arn"])
         )
 
     print("All attributes successfully deleted.")
