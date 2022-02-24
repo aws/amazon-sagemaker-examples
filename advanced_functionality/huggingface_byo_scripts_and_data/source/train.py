@@ -12,7 +12,7 @@ try:
 except FileExistsError as e:
     print(e)
     pass
-    
+
 from nltk import sent_tokenize
 
 from datasets import load_metric, load_from_disk
