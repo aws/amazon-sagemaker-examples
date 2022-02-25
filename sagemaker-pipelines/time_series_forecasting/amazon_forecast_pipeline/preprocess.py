@@ -28,15 +28,15 @@ def create_dataframes(forecast_horizon, source_train_ts):
     df = pd.read_csv(source_train_ts, index_col=0, parse_dates=True)
     df = df.resample("H").sum() / 4
     df.reset_index(inplace=True)
-    df = df.rename(columns={"index": "datetime", "MT_001": "kw"})
+    df = df.rename(columns={"index": "timestamp", "MT_001": "target_value"})
 
     # Use 2.5 weeks of hourly data to train Amazon Forecast. This is to save costs in generating the forecast.
     df = df[-2 * 7 * 24 - 24 * 3 :].copy()
-    df["kw"] = df["kw"].astype("float")
-    df["workingday"] = df["datetime"].dt.weekday.apply(lambda x: 1 if x < 5 else 0).astype("float")
+    df["target_value"] = df["target_value"].astype("float")
+    df["workingday"] = df["timestamp"].dt.weekday.apply(lambda x: 1 if x < 5 else 0).astype("float")
     df["item_id"] = "client_1"
-    target_df = df[["item_id", "datetime", "kw"]][:-forecast_horizon]
-    rts_df = df[["item_id", "datetime", "workingday"]]
+    target_df = df[["item_id", "timestamp", "target_value"]][:-forecast_horizon]
+    rts_df = df[["item_id", "timestamp", "workingday"]]
 
     return target_df, rts_df
 
@@ -57,8 +57,8 @@ if __name__ == "__main__":
     # Assert that the related timeseries is not missing entries. If it is, a predictor cannot be created.
     assert len(rts_df) == len(
         pd.date_range(
-            start=list(rts_df["datetime"])[0],
-            end=list(rts_df["datetime"])[-1],
+            start=list(rts_df["timestamp"])[0],
+            end=list(rts_df["timestamp"])[-1],
             freq="H",
         )
     ), "missing entries in the related time series"
