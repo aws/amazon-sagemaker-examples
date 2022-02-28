@@ -1,4 +1,4 @@
-![SageMaker](https://github.com/aws/amazon-sagemaker-examples/raw/master/_static/sagemaker-banner.png)
+![SageMaker](https://github.com/aws/amazon-sagemaker-examples/raw/main/_static/sagemaker-banner.png)
 
 # Amazon SageMaker Examples
 
@@ -25,6 +25,8 @@ These example notebooks are automatically loaded into SageMaker Notebook Instanc
 They can be accessed by clicking on the `SageMaker Examples` tab in Jupyter or the SageMaker logo in JupyterLab.
 
 Although most examples utilize key Amazon SageMaker functionality like distributed, managed training or real-time hosted endpoints, these notebooks can be run outside of Amazon SageMaker Notebook Instances with minimal modification (updating IAM role definition and installing the necessary libraries).
+
+As of February 7, 2022, the default branch is named "main". See our [announcement](https://github.com/aws/amazon-sagemaker-examples/discussions/3131) for details and how to update your existing clone.
 
 ## :notebook: Examples
 
@@ -67,6 +69,14 @@ These examples introduce SageMaker's hyperparameter tuning functionality which h
 - [Keras BYO Tuning](hyperparameter_tuning/keras_bring_your_own) shows how to use SageMaker hyperparameter tuning with a custom container running a Keras convolutional network on CIFAR-10 data.
 - [R BYO Tuning](hyperparameter_tuning/r_bring_your_own) shows how to use SageMaker hyperparameter tuning with the custom container from the [Bring Your Own R Algorithm](advanced_functionality/r_bring_your_own) example.
 - [Analyzing Results](hyperparameter_tuning/analyze_results) is a shared notebook that can be used after each of the above notebooks to provide analysis on how training jobs with different hyperparameters performed.
+
+### SageMaker Autopilot
+
+These examples introduce SageMaker Autopilot. Autopilot automatically performs feature engineering, model selection, model tuning (hyperparameter optimization) and allows you to directly deploy the best model to an endpoint to serve inference requests.
+
+- [Customer Churn AutoML](autopilot/) shows how to use SageMaker Autopilot to automatically train a model for the [Predicting Customer Churn](introduction_to_applying_machine_learning/xgboost_customer_churn) task.
+- [Targeted Direct Marketing AutoML](autopilot/) shows how to use SageMaker Autopilot to automatically train a model for the [Targeted Direct Marketing](introduction_to_applying_machine_learning/xgboost_direct_marketing) task.
+- [Housing Prices AutoML](sagemaker-autopilot/housing_prices) shows how to use SageMaker Autopilot for a linear regression problem (predict housing prices).
 
 ### Introduction to Amazon Algorithms
 
@@ -141,7 +151,7 @@ These examples provide an introduction to SageMaker Clarify which provides machi
 
 ### Publishing content from RStudio on Amazon SageMaker to RStudio Connect
 
-These examples show you how to run R examples, and publish applications in RStudio on Amazon SageMaker to RStudio Connect. 
+These examples show you how to run R examples, and publish applications in RStudio on Amazon SageMaker to RStudio Connect.
 
 - [Publishing R Markdown](r_examples/rsconnect_rmarkdown/) shows how you can author an R Markdown document (.Rmd, .Rpres) within RStudio on Amazon SageMaker and publish to RStudio Connect for wide consumption.
 - [Publishing R Shiny Apps](r_examples/rsconnect_shiny/) shows how you can author an R Shiny application within RStudio on Amazon SageMaker and publish to RStudio Connect for wide consumption.
@@ -162,7 +172,6 @@ These examples that showcase unique functionality available in Amazon SageMaker.
 - [Bring Your Own scikit Algorithm](advanced_functionality/scikit_bring_your_own) provides a detailed walkthrough on how to package a scikit learn algorithm for training and production-ready hosting.
 - [Bring Your Own MXNet Model](advanced_functionality/mxnet_mnist_byom) shows how to bring a model trained anywhere using MXNet into Amazon SageMaker.
 - [Bring Your Own TensorFlow Model](advanced_functionality/tensorflow_iris_byom) shows how to bring a model trained anywhere using TensorFlow into Amazon SageMaker.
-- [Inference Pipeline with SparkML and XGBoost](advanced_functionality/inference_pipeline_sparkml_xgboost_abalone) shows how to deploy an Inference Pipeline with SparkML for data pre-processing and XGBoost for training on the Abalone dataset. The pre-processing code is written once and used between training and inference.
 - [Experiment Management Capabilities with Search](advanced_functionality/search) shows how to organize Training Jobs into projects, and track relationships between Models, Endpoints, and Training Jobs.
 - [Host Multiple Models with Your Own Algorithm](advanced_functionality/multi_model_bring_your_own) shows how to deploy multiple models to a realtime hosted endpoint with your own custom algorithm.
 - [Host Multiple Models with XGBoost](advanced_functionality/multi_model_xgboost_home_value) shows how to deploy multiple models to a realtime hosted endpoint using a multi-model enabled XGBoost container.
@@ -226,6 +235,12 @@ These examples show you how to build Machine Learning models with frameworks lik
 These examples show how to use Amazon SageMaker for model training, hosting, and inference through Apache Spark using [SageMaker Spark](https://github.com/aws/sagemaker-spark). SageMaker Spark allows you to interleave Spark Pipeline stages with Pipeline stages that interact with Amazon SageMaker.
 
 - [MNIST with SageMaker PySpark](sagemaker-spark/pyspark_mnist)
+
+### Using Amazon SageMaker with Amazon Keyspaces (for Apache Cassandra)
+
+These examples show how to use Amazon SageMaker to read data from [Amazon Keyspaces](https://docs.aws.amazon.com/keyspaces/).
+- [Train Machine Learning Models using Amazon Keyspaces as a Data Source](ingest_data/sagemaker-keyspaces)
+
 
 ### AWS Marketplace
 
