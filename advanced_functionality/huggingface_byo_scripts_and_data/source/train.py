@@ -8,10 +8,14 @@ import numpy as np
 import nltk
 
 try:
-    nltk.download("punkt")
-except FileExistsError as e:
+    nltk.data.find("tokenizers/punkt")
+except LookupError as e:
     print(e)
-    pass
+    try:
+        nltk.download("punkt")
+    except FileExistsError as e:
+        print(e)
+        pass
 
 from nltk import sent_tokenize
 
