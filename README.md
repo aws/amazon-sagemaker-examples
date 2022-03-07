@@ -101,6 +101,12 @@ These examples provide quick walkthroughs to get you up and running with Amazon 
 - [IP Insights for suspicious logins](introduction_to_amazon_algorithms/ipinsights_login) shows how to train IP Insights on a login events for a web server to identify suspicious login attempts.
 - [Semantic Segmentation](introduction_to_amazon_algorithms/semantic_segmentation_pascalvoc) shows how to train a semantic segmentation algorithm using the Amazon SageMaker Semantic Segmentation algorithm. It also demonstrates how to host the model and produce segmentation masks and probability of segmentation.
 
+### Introduction to JumpStart
+
+These examples provide quick walkthroughs to get you up and running with Amazon Jumpstart.
+
+- [Object Detection](sagemaker-jumpstart/object_detection) demonstrates how to use pre-trained model for inference and transfer learning algorithm to train a Object Detection model on a custom dataset using Jumpstart.
+
 ### Amazon SageMaker RL
 
 The following provide examples demonstrating different capabilities of Amazon SageMaker RL.
