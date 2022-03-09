@@ -7,7 +7,7 @@
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-cd ${DIR}/SMDDP-Examples/pytorch/efficientnet
+cd ${DIR}/SMDDP-Examples/pytorch/image_classification
 
 if [ "$#" -eq 3 ]; then
     region=$1
