@@ -13,18 +13,18 @@ import subprocess
 import sys
 import os
 
-exe = 'python'
+exe = "python"
 
-launcher = '/workspace/efficientnet/launch.py'
+launcher = "/workspace/efficientnet/launch.py"
 
 # Add the hyperparameters
 cmd_list = [exe] + [launcher] + sys.argv[1:]
-cmd = ' '.join(cmd_list)
+cmd = " ".join(cmd_list)
 
 # Add the training data path. This is a data channel assigned to SM as the inputs parameter when calling estimator.fit()
-cmd += ' '
-cmd += '--data' + os.environ['SM_CHANNEL_TRAIN'] 
+cmd += " "
+cmd += "--data" + os.environ["SM_CHANNEL_TRAIN"]
 
-print('Final command is: ', cmd)
+print("Final command is: ", cmd)
 
 subprocess.run(cmd, shell=True)
