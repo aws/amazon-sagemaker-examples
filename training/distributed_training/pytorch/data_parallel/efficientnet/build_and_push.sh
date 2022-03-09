@@ -7,6 +7,7 @@
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
+# Change the active directory to the one that contains the training script
 cd ${DIR}/SMDDP-Examples/pytorch/image_classification
 
 if [ "$#" -eq 3 ]; then
