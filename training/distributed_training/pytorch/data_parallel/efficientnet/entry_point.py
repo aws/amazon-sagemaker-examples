@@ -23,7 +23,7 @@ cmd = " ".join(cmd_list)
 
 # Add the training data path. This is a data channel assigned to SM as the inputs parameter when calling estimator.fit()
 cmd += " "
-cmd += "--data" + os.environ["SM_CHANNEL_TRAIN"]
+cmd += "--data " + os.environ["SM_CHANNEL_TRAIN"]
 
 print("Final command is: ", cmd)
 
