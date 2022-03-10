@@ -144,6 +144,13 @@ On SageMaker Studio, you will need to open a terminal, go to your home folder, t
 
 .. toctree::
    :maxdepth: 1
+   :caption: Examples with outputs
+
+   introduction_to_amazon_algorithms/deepar_synthetic/deepar_synthetic_outputs
+
+
+.. toctree::
+   :maxdepth: 1
    :caption: Community examples
 
    contrib/index
