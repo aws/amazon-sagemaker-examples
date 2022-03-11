@@ -1,0 +1,3 @@
+### SageMaker JumpStart Tabular Regression
+- The notebook `Amazon_JumpStart_Tabular_Regression_LightGBM_CatBoost.ipynb` demonstrates how to use the JumpStart API for tabular data regression using two popular algorithms: LightGBM and CatBoost. Tabular regression is the task of analyzing the relationship between predictor variables and a response variable in a structured or relational data.
+- The notebook `Amazon_JumpStart_Tabular_Regression_XGBoost_LinearLearner.ipynb` demonstrates how to use the JumpStart API for tabular data regression using two popular algorithms: XGBoost and Linear Learner. Tabular regression is the task of analyzing the relationship between predictor variables and a response variable in a structured or relational data.
