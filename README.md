@@ -100,6 +100,8 @@ These examples provide quick walkthroughs to get you up and running with Amazon 
 - [Object2Vec for sentence similarity](introduction_to_amazon_algorithms/object2vec_sentence_similarity) explains how to train Object2Vec using sequence pairs as input using sentence similarity analysis as the application.
 - [IP Insights for suspicious logins](introduction_to_amazon_algorithms/ipinsights_login) shows how to train IP Insights on a login events for a web server to identify suspicious login attempts.
 - [Semantic Segmentation](introduction_to_amazon_algorithms/semantic_segmentation_pascalvoc) shows how to train a semantic segmentation algorithm using the Amazon SageMaker Semantic Segmentation algorithm. It also demonstrates how to host the model and produce segmentation masks and probability of segmentation.
+- [JumpStart Image Embedding](introduction_to_amazon_algorithms/jumpstart_image_embedding) demonstrates how to use a pre-trained model available in JumpStart for image embedding.
+- [JumpStart Text Embedding](introduction_to_amazon_algorithms/jumpstart_text_embedding) demonstrates how to use a pre-trained model available in JumpStart for text embedding.
 
 ### Amazon SageMaker RL
 
