@@ -66,6 +66,7 @@ Scikit-learn
    :maxdepth: 1
 
    ../sagemaker-python-sdk/scikit_learn_randomforest/Sklearn_on_SageMaker_end2end
+   ../sagemaker-python-sdk/scikit_learn_model_registry_batch_transform/scikit_learn_model_registry_batch_transform
 
 ..
    needs to be renamed (remove spaces)
