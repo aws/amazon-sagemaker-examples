@@ -102,6 +102,8 @@ These examples provide quick walkthroughs to get you up and running with Amazon 
 - [Semantic Segmentation](introduction_to_amazon_algorithms/semantic_segmentation_pascalvoc) shows how to train a semantic segmentation algorithm using the Amazon SageMaker Semantic Segmentation algorithm. It also demonstrates how to host the model and produce segmentation masks and probability of segmentation.
 - [JumpStart Instance Segmentation](introduction_to_amazon_algorithms/jumpstart_instance_segmentation) demonstrates how to use a pre-trained Instance Segmentation model available in JumpStart for inference.
 - [JumpStart Semantic Segmentation](introduction_to_amazon_algorithms/jumpstart_semantic_segmentation) demonstrates how to use a pre-trained Semantic Segmentation model available in JumpStart for inference, how to finetune the pre-trained model on a custom dataset using JumpStart transfer learning algorithm, and how to use fine-tuned model for inference.
+- [JumpStart Text Generation](introduction_to_amazon_algorithms/jumpstart_text_generation) shows how to use JumpStart to generate text that appears indistinguishable from the hand-written text.
+- [JumpStart Text Summarization](introduction_to_amazon_algorithms/jumpstart_text_summarization) shows how to use JumpStart to summarize the text to contain only the important information.
 
 ### Amazon SageMaker RL
 
