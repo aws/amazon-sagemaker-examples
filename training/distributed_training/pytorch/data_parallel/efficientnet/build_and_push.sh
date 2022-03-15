@@ -10,12 +10,13 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 # Change the active directory to the one that contains the training script
 cd ${DIR}/SMDDP-Examples/pytorch/image_classification
 
-if [ "$#" -eq 3 ]; then
-    region=$1
-    image=$2
-    tag=$3
+if [ "$#" -eq 4 ]; then
+    dlc_account_id=$1
+    region=$2
+    image=$3
+    tag=$4
 else
-    echo "usage: $0 <aws-region> $1 <image-repo> $2 <image-tag>"
+    echo "usage: $0 <dlc-account-id> $1 <aws-region> $2 <image-repo> $3 <image-tag>"
     exit 1
 fi
 
@@ -39,7 +40,7 @@ fi
 
 aws ecr get-login-password --region ${region} \
 | docker login --username AWS --password-stdin ${account}.dkr.ecr.${region}.amazonaws.com
-docker build . -t ${image} -f ${DIR}/Dockerfile  --build-arg region=${region}
+docker build . -t ${image} -f ${DIR}/Dockerfile  --build-arg dlc_account_id=${dlc_account_id} --build-arg region=${region}
 docker tag ${image} ${fullname}
 
 aws ecr get-login-password --region ${region} \
