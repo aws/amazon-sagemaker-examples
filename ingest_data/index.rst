@@ -78,4 +78,4 @@ Amazon Keyspaces (for Apache Cassandra)
    .. toctree::
       :maxdepth: 1
 
-      sagemaker-keyspaces
+      sagemaker-keyspaces/SageMaker_Keyspaces_ml_example
