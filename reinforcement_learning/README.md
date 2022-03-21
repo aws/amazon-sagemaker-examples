@@ -12,7 +12,6 @@ If you are using PyTorch rather than TensorFlow, please set `debugger_hook_confi
 -  [Cartpole](rl_cartpole_coach) uses SageMaker RL base [docker image](https://github.com/aws/sagemaker-rl-container) to balance a broom upright.
 -  [Cartpole Batch](rl_cartpole_batch_coach) uses batch RL techniques to train Cartpole with offline data.
 -  [Cartpole Spot Training](rl_managed_spot_cartpole_coach) uses SageMaker Managed Spot instances at a lower cost.
--  [DeepRacer](rl_deepracer_robomaker_coach_gazebo) gives a glimse of architecture used to get the DeepRacer working with AWS RoboMaker.
 -  [HVAC](rl_hvac_coach_energyplus) optimizes energy use based on the [EnergyPlus](https://energyplus.net/) simulator.
 -  [Knapsack](rl_knapsack_coach_custom) is an example of using RL to address operations research problem.
 -  [Mountain Car](rl_mountain_car_coach_gymEnv) is a classic control RL problem, in which an under-powered car is tasked with climbing a steep mountain, and is only successful when it reaches the top.
