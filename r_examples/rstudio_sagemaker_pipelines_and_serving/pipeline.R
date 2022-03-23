@@ -125,11 +125,11 @@ get_pipeline <- function(input_data_uri){
     inference_instances=list("ml.t2.medium", "ml.m5.xlarge"),
     transform_instances=list("ml.m5.xlarge"),
     model_package_group_name="AbaloneRModelPackageGroup",
-    approval_status="PendingManualApproval",
+    approval_status="Approved",  # we are automatically registering the model as approved but in more general case you'd want to set this to "PendingManualApproval",
     model_metrics=model_metrics
   )
   
-  # Conditional Step
+  # Condition Step
   
   cond_lte <- sagemaker$workflow$conditions$ConditionLessThanOrEqualTo(
     left=sagemaker$workflow$functions$JsonGet(

@@ -1,4 +1,4 @@
-# --------- Make sure you have all the necessary packages installed ------------------
+# Make sure you have all the necessary packages installed ------------------
 library(dplyr)
 library(reticulate)
 if (!py_module_available("sagemaker-studio-image-build")){py_install("sagemaker-studio-image-build", pip=TRUE)}
@@ -19,11 +19,12 @@ region <- boto3$session$Session()$region_name
 local_path <- dirname(rstudioapi::getSourceEditorContext()$path)
 system(paste0("cd ", local_path, " ; sm-docker build . --file ./docker/Dockerfile-processing --repository sagemaker-r-processing:1.0"))
 
-system(paste0("cd ", local_path, " ; sm-docker build . --file ./docker/Dockerfile-train-n-deploy --repository sagemaker-r-train-and-deploy:1.0"))
+system(paste0("cd ", local_path, " ; sm-docker build . --file ./docker/Dockerfile-train-and-deploy --repository sagemaker-r-train-and-deploy:1.0"))
 
 # --------- Get data ---------
-data_file <- 'http://archive.ics.uci.edu/ml/machine-learning-databases/abalone/abalone.data'
-abalone <- read_csv(file = data_file, col_names = FALSE)
+data_file <- 's3://sagemaker-sample-files/datasets/tabular/uci_abalone/abalone.csv'
+data_string <- sagemaker$s3$S3Downloader$read_file(data_file)
+abalone <- read_csv(file = data_string, col_names = FALSE)
 names(abalone) <- c('sex', 'length', 'diameter', 'height', 'whole_weight', 'shucked_weight', 'viscera_weight', 'shell_weight', 'rings')
 head(abalone)
 
@@ -35,7 +36,7 @@ s3_raw_data <- session$upload_data(path = paste0(local_path,"/data/abalone_data.
                                    bucket = bucket,
                                    key_prefix = 'pipeline-example/data')
 
-# this dataset will be used for testing
+# this will be used for testing
 abalone_t <- abalone %>%
   mutate(female = as.integer(ifelse(sex == 'F', 1, 0)),
          male = as.integer(ifelse(sex == 'M', 1, 0)),
@@ -58,11 +59,13 @@ execution <- my_pipeline$start()
 
 # --------- Deploy to serverless endpoint.  ------------
 
-# ! approve model in model registry and insert the ARN of the model below !
-model_package_arn <- 'INSERT_MODEL_ARN_HERE'
-if(model_package_arn == 'INSERT_MODEL_ARN_HERE'){
-  stop("Please update the model package arn with a valid model ARN of an approved model")
-  }
+# From the approved models in the model registry we select the one most recently created
+approved_models <- boto3$client("sagemaker")$list_model_packages(ModelApprovalStatus='Approved', 
+                                                                 ModelPackageGroupName='AbaloneRModelPackageGroup',
+                                                                 SortBy='CreationTime',
+                                                                 SortOrder='Ascending')
+model_package_arn <- approved_models[["ModelPackageSummaryList"]][[1]][["ModelPackageArn"]]
+
 model <- sagemaker$ModelPackage(role=role_arn, 
                                 model_package_arn=model_package_arn, 
                                 sagemaker_session=session)
