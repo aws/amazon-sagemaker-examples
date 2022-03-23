@@ -147,3 +147,25 @@ On SageMaker Studio, you will need to open a terminal, go to your home folder, t
    :caption: Community examples
 
    contrib/index
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Outputs
+
+   introduction_to_applying_machine_learning/xgboost_customer_churn/xgboost_customer_churn_outputs
+   sagemaker_processing/basic_sagemaker_data_processing/basic_sagemaker_processing_outputs
+   hyperparameter_tuning/tensorflow2_mnist/hpo_tensorflow2_mnist_outputs
+   sagemaker-script-mode/sklearn/sklearn_byom_outputs
+   sagemaker-experiments/mnist-handwritten-digits-classification-experiment/mnist-handwritten-digits-classification-experiment_outputs
+   sagemaker-script-mode/pytorch_bert/deploy_bert_outputs
+   sagemaker_neo_compilation_jobs/pytorch_torchvision/pytorch_torchvision_neo_outputs
+   sagemaker_batch_transform/pytorch_mnist_batch_transform/pytorch-mnist-batch-transform_outputs
+   sagemaker-lineage/sagemaker-lineage-multihop-queries_outputs
+   sagemaker_model_monitor/introduction/SageMaker-ModelMonitoring_outputs
+   sagemaker_processing/fairness_and_explainability/fairness_and_explainability_outputs
+   sagemaker-pipelines/tabular/abalone_build_train_deploy/sagemaker-pipelines-preprocess-train-evaluate-batch-transform_outputs
+   introduction_to_amazon_algorithms/xgboost_abalone/xgboost_abalone_dist_script_mode_outputs
+   sagemaker-python-sdk/scikit_learn_iris/scikit_learn_estimator_example_with_batch_transform_outputs
+   sagemaker-python-sdk/mxnet_gluon_mnist/mxnet_mnist_with_gluon_outputs
+   advanced_functionality/tensorflow_iris_byom/tensorflow_BYOM_iris_outputs
+   frameworks/pytorch/get_started_mnist_train_outputs
