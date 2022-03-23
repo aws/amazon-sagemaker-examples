@@ -44,3 +44,22 @@ def create_lambda_role(role_name):
         print(f"Using ARN from existing role: {role_name}")
         response = iam.get_role(RoleName=role_name)
         return response["Role"]["Arn"]
+
+
+def delete_lambda_role(role_name):
+    response = iam.detach_role_policy(
+        RoleName=role_name, PolicyArn="arn:aws:iam::aws:policy/AWSLambda_FullAccess"
+    )
+
+    response = iam.detach_role_policy(
+        RoleName=role_name,
+        PolicyArn="arn:aws:iam::aws:policy/AmazonSageMakerFullAccess",
+    )
+
+    response = iam.detach_role_policy(
+        RoleName=role_name, PolicyArn="arn:aws:iam::aws:policy/ComprehendFullAccess"
+    )
+
+    response = iam.delete_role(RoleName=role_name)
+
+    return response
