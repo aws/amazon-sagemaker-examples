@@ -17,4 +17,3 @@ These examples that showcase unique functionality available in Amazon SageMaker.
 - [Bring Your Own scikit Algorithm](scikit_bring_your_own) provides a detailed walkthrough on how to package a scikit learn algorithm for training and production-ready hosting.
 - [Bring Your Own MXNet Model](mxnet_mnist_byom) shows how to bring a model trained anywhere using MXNet into Amazon SageMaker
 - [Bring Your Own TensorFlow Model](tensorflow_iris_byom) shows how to bring a model trained anywhere using TensorFlow into Amazon SageMaker
-- [Inference Pipeline with SparkML and XGBoost](inference_pipeline_sparkml_xgboost_abalone) shows how to deploy an Inference Pipeline with SparkML for data pre-processing and XGBoost for training on the Abalone dataset. The pre-processing code is written once and used between training and inference.
