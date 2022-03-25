@@ -11,9 +11,9 @@ import scipy.sparse as sp
 from dgl.data.utils import download, extract_archive, get_download_dir
 
 _urls = {
-    "ml-100k": "http://files.grouplens.org/datasets/movielens/ml-100k.zip",
-    "ml-1m": "http://files.grouplens.org/datasets/movielens/ml-1m.zip",
-    "ml-10m": "http://files.grouplens.org/datasets/movielens/ml-10m.zip",
+    "ml-100k": "https://files.grouplens.org/datasets/movielens/ml-100k.zip",
+    "ml-1m": "https://files.grouplens.org/datasets/movielens/ml-1m.zip",
+    "ml-10m": "https://files.grouplens.org/datasets/movielens/ml-10m.zip",
 }
 
 READ_DATASET_PATH = get_download_dir()
