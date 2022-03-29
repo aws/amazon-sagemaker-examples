@@ -1,32 +1,31 @@
 ---
 title: "Use RStudio on SageMaker and train, tune and deploy a SageMaker model"
-output: html_notebook
+author: Georgios Schinas
+output: md_document
 ---
 
 <br>
 
-This is a notebook showcasing how to use RStudio on SageMaker to interact and use other SageMaker services.
-To get started with RStudio, you can bring your existing license for Rstudio Workbench or if you don't have any, you'll need to get one from [RStudio PBC](https://www.rstudio.com/). 
+This is a notebook showcasing how to use RStudio on SageMaker to interact and use other SageMaker services. To get started with RStudio, you can bring your existing license for RStudio Workbench or if you don't have any, you'll need to get one from [RStudio PBC](https://www.rstudio.com/).
 
-To get started check out [this blog](https://aws.amazon.com/blogs/machine-learning/get-started-with-rstudio-on-amazon-sagemaker/) 
+To get started check out [Get started with RStudio on Amazon SageMaker](https://aws.amazon.com/blogs/machine-learning/get-started-with-rstudio-on-amazon-sagemaker/)
 
 Once you have setup your license and created your SageMaker RStudio domain, you can follow the rest of this notebook.
 
-Interacting with the rest of the SageMaker features and services from R & RStudio is achieved through the SageMaker Python SDK which can be loaded in our environment using [Reticulate](https://rstudio.github.io/reticulate/). Reticulate creates an interface between our R environment and the Python packages we install. 
-<br><br><br>
+Interacting with the rest of the SageMaker features and services from R & RStudio is achieved through the SageMaker Python SDK which can be loaded in our environment using [Reticulate](https://rstudio.github.io/reticulate/). Reticulate creates an interface between our R environment and the Python packages we install. <br><br><br>
 
 ## Setup
 
 When running this notebook for the first time, you may need to install some necessary packages. The following cell will install all that is needed.
+
 ```{r warning=FALSE, include=FALSE}
 if (!'Metrics' %in% installed.packages()) {install.packages("Metrics")}
 library(reticulate)
 if (!py_module_available("sagemaker")){py_install("sagemaker", pip=TRUE)}
 
 ```
-Once this is done, we can load all the libraries we will be needing for this example.
-<br><br>
-Load libraries and initialise some variables that we will need later.
+
+Once this is done, we can load all the libraries we will be needing for this example. <br><br> Load libraries and initialise some variables that we will need later.
 
 ```{r warning=FALSE}
 library(reticulate)
@@ -49,22 +48,23 @@ role_arn <- sagemaker$get_execution_role()
 
 ## Download Data
 
-For this example we will be using the famous abalone dataset as can be found on the [UCI dataset archive](https://archive.ics.uci.edu/ml/datasets/Abalone) where we will create a model to predict the age of an abalone shell based on physical measurements. 
+For this example we will be using the famous abalone dataset as can be found on the [UCI dataset archive](https://archive.ics.uci.edu/ml/datasets/Abalone) where we will create a model to predict the age of an abalone shell based on physical measurements.
 
-
+Dua, D. and Graff, C. (2019). UCI Machine Learning Repository [<http://archive.ics.uci.edu/ml>]. Irvine, CA: University of California, School of Information and Computer Science.
 
 ```{r}
-data_file <- 'http://archive.ics.uci.edu/ml/machine-learning-databases/abalone/abalone.data'
-abalone <- read_csv(file = data_file, col_names = FALSE, show_col_types = FALSE)
+data_file <- 's3://sagemaker-sample-files/datasets/tabular/uci_abalone/abalone.csv'
+data_string <- sagemaker$s3$S3Downloader$read_file(data_file)
+abalone <- read_csv(file = data_string, col_names = FALSE, show_col_types = FALSE)
 names(abalone) <- c('sex', 'length', 'diameter', 'height', 'whole_weight', 'shucked_weight', 'viscera_weight', 'shell_weight', 'rings')
 head(abalone)
 ```
 
 <br><br>
 
-## Explore data & preprocess 
-As with any Machine Learning project, the first step we take is to explore data, plot and try to better understand the data. You can use your favourite R libraries to explore, plot and process your data the same way you would do if running RStudio on a local or self-managed instance. 
+## Explore data & preprocess
 
+As with any Machine Learning project, the first step we take is to explore data, plot and try to better understand the data. You can use your favourite R libraries to explore, plot and process your data the same way you would do if running RStudio on a local or self-managed instance.
 
 ```{r}
 abalone$sex <- as.factor(abalone$sex)
@@ -82,10 +82,9 @@ abalone <- abalone %>% filter(height < 0.4)
 
 <br><br>
 
-## Prepare data for training 
+## Prepare data for training
 
-Once happy with the above step, it is time to prepare the data for training.
-We split the data and upload them to an s3 bucket. 
+Once happy with the above step, it is time to prepare the data for training. We split the data and upload them to an s3 bucket.
 
 ```{r}
 abalone <- abalone %>%
@@ -94,8 +93,6 @@ abalone <- abalone %>%
          infant = as.integer(ifelse(sex == 'I', 1, 0))) %>%
   select(-sex)
 abalone <- abalone %>% select(rings:infant, length:shell_weight)
-
-#head(abalone)
 
 abalone_train <- abalone %>%
   sample_frac(size = 0.7)
@@ -159,9 +156,10 @@ estimator$set_hyperparameters(eval_metric='rmse',
 estimator$fit(inputs = input_data)
 ```
 
-<br><br> 
+<br><br>
 
 ## Deploy Model
+
 We are now deploying the trained model into a real-time endpoint
 
 ```{r}
@@ -171,9 +169,9 @@ model_endpoint <- estimator$deploy(initial_instance_count=1L,
 model_endpoint$serializer <- sagemaker$serializers$CSVSerializer(content_type='text/csv')
 ```
 
-
 ## Test Model
-Using the test data we can now test the deployed model endpoint and plotting the error
+
+Using the test data we can now test the deployed model endpoint and plot the error
 
 ```{r}
 test_sample <- as.matrix(abalone_test[-1])
@@ -186,7 +184,7 @@ predictions_ep <- as.integer(unlist(predictions_ep))
 # Convert predictions to Integer
 abalone_predictions_ep <- cbind(predicted_rings = predictions_ep, 
                                 abalone_test)
-# abalone_predictions = as.integer(abalone_predictions)
+
 head(abalone_predictions_ep)
 
 abalone_rmse_ep <- rmse(abalone_predictions_ep$rings, abalone_predictions_ep$predicted_rings)
@@ -194,19 +192,17 @@ cat('RMSE for Endpoint 500-Row Prediction: ', round(abalone_rmse_ep, digits = 2)
 ggplot(abalone_predictions_ep, aes(x=c(predicted_rings - rings))) + geom_histogram(color="blue", fill='blue', bins=20) + ggtitle("Residuals Plot. RMSE for a 500-Row Prediction: ", round(abalone_rmse_ep, digits = 2))
 ```
 
-
-
-
 ## Delete endpoint
+
 Once done testing, make sure to delete the endpoint so you are not being charged for an endpoint that you are not using.
+
 ```{r}
 model_endpoint$delete_endpoint(delete_endpoint_config=TRUE)
 ```
 
-
 # HPO (Optional)
-Optionally, let's use SageMaker [Automatic Model Tuning](https://docs.aws.amazon.com/sagemaker/latest/dg/automatic-model-tuning.html) to perform hyperparametre optimisation. 
-Then, taking similar steps as before we will be deploying and testing the best model found. 
+
+Optionally, let's use SageMaker [Automatic Model Tuning](https://docs.aws.amazon.com/sagemaker/latest/dg/automatic-model-tuning.html) to perform hyperparametre optimisation. Then, taking similar steps as before we will be deploying and testing the best model found.
 
 ```{r}
 hyperparameter_ranges <- list('eta'= sagemaker$tuner$ContinuousParameter(0, 1),
@@ -228,8 +224,6 @@ tuner$fit(inputs = input_data)
 
 ```
 
-
-
 ```{r}
 tuner$best_training_job()
 
@@ -245,6 +239,7 @@ model_endpoint$serializer <- sagemaker$serializers$CSVSerializer(content_type='t
 ```
 
 Similarly, we test the endpoint using the test data and we plot the residuals plot
+
 ```{r}
 test_sample <- as.matrix(abalone_test[-1])
 dimnames(test_sample)[[2]] <- NULL
@@ -256,7 +251,7 @@ predictions_ep <- as.integer(unlist(predictions_ep))
 # Convert predictions to Integer
 abalone_predictions_ep <- cbind(predicted_rings = predictions_ep, 
                                 abalone_test)
-# abalone_predictions = as.integer(abalone_predictions)
+
 head(abalone_predictions_ep)
 
 abalone_rmse_ep <- rmse(abalone_predictions_ep$rings, abalone_predictions_ep$predicted_rings)
@@ -264,7 +259,8 @@ cat('RMSE for Endpoint 500-Row Prediction: ', round(abalone_rmse_ep, digits = 2)
 ggplot(abalone_predictions_ep, aes(x=c(predicted_rings - rings))) + geom_histogram(color="blue", fill='blue', bins=20) + ggtitle("Residuals Plot. RMSE for a 500-Row Prediction: ", round(abalone_rmse_ep, digits = 2))
 ```
 
-# Delete endpoint 
+# Delete endpoint
+
 ```{r}
 model_endpoint$delete_endpoint(delete_endpoint_config=TRUE)
 ```
