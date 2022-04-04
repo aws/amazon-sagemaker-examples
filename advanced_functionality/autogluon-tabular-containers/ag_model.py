@@ -66,13 +66,21 @@ class AutoGluonTabularPredictor(Predictor):
 
 class AutoGluonInferenceModel(MXNetModel):
     def __init__(
-        self, model_data, role, entry_point, region, framework_version, instance_type, **kwargs
+        self,
+        model_data,
+        role,
+        entry_point,
+        region,
+        framework_version,
+        py_version,
+        instance_type,
+        **kwargs,
     ):
         image_uri = image_uris.retrieve(
             "autogluon",
             region=region,
             version=framework_version,
-            py_version="py37",
+            py_version=py_version,
             image_scope="inference",
             instance_type=instance_type,
         )
