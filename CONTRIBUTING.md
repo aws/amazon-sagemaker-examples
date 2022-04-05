@@ -23,7 +23,7 @@ reported the issue. Please try to include as much information as you can. Detail
 
 Before sending us a pull request, please ensure that:
 
-* You are working against the latest source on the *master* branch.
+* You are working against the latest source on the *main* branch.
 * You check the existing open and recently merged pull requests to make sure someone else hasn't already addressed the problem.
 * You open an issue to discuss any significant work - we would hate for your time to be wasted.
 
@@ -62,7 +62,7 @@ You can use the same Conda environment for multiple related projects. This means
 1. You can do this by using an environment file to update the environment
 2. Or just use conda or pip to install the new deps
 3. Update the name (the -n arg) to whatever makes sense for you for your project
-4. Keep an eye out for updates to the dependencies. This project’s dependencies are here: https://github.com/aws/amazon-sagemaker-examples/blob/master/environment.yml
+4. Keep an eye out for updates to the dependencies. This project’s dependencies are here: https://github.com/aws/amazon-sagemaker-examples/blob/main/environment.yml
 5. Fork the repo: https://github.com/aws/amazon-sagemaker-examples.git
 6. Clone your fork
 7. Cd into the fork directory
@@ -112,8 +112,8 @@ python -m http.server 8000
 #### Add a notebook to the website
 
 You will typically modify an index.rst file and add the notebook by name, minus the extension. For example, if the new notebook is in a subfolder in the `aws_marketplace` folder:
-https://github.com/aws/amazon-sagemaker-examples/blob/master/aws_marketplace/creating_marketplace_products/Bring_Your_Own-Creating_Algorithm_and_Model_Package.ipynb
-You would modify this file: https://github.com/aws/amazon-sagemaker-examples/blob/master/aws_marketplace/index.rst
+https://github.com/aws/amazon-sagemaker-examples/blob/main/aws_marketplace/creating_marketplace_products/algorithms/Bring_Your_Own-Creating_Algorithm_and_Model_Package.ipynb
+You would modify this file: https://github.com/aws/amazon-sagemaker-examples/blob/main/aws_marketplace/index.rst
 
 
 1. Look for the table of contents directive, `toctree` :
@@ -132,7 +132,7 @@ You would modify this file: https://github.com/aws/amazon-sagemaker-examples/blo
    .. toctree::
       :maxdepth: 1
 
-      creating_marketplace_products/Bring_Your_Own-Creating_Algorithm_and_Model_Package
+      creating_marketplace_products/algorithms/Bring_Your_Own-Creating_Algorithm_and_Model_Package
    ```
 
 #### Adjusting navigation
@@ -153,10 +153,10 @@ Create your algorithm and model package
 .. toctree::
    :maxdepth: 1
 
-   creating_marketplace_products/Bring_Your_Own-Creating_Algorithm_and_Model_Package
+   creating_marketplace_products/algorithms/Bring_Your_Own-Creating_Algorithm_and_Model_Package
 ```
 
-You can create further depth by using tilda (~~~~~), asterisk (********), and carrot (^^^^^).
+You can create further depth by using tilde (~~~~~), asterisk (********), and caret (^^^^^).
 
 Important: the underline must be at least as long as the title you’re underlining.
 
@@ -171,13 +171,13 @@ Sometimes you include topics from other folders on one index page. If you includ
 If more than one entry is displayed for the same notebook, this is because the author of the notebook mistakenly used multiple H1’s. You can see this in the notebooks where they do this:
 
 ```
-# Main title
+# Main title [CORRECT]
 Some content
 
 ## Subtitle
 Some content
 
-# Some other section
+# Some other section [INCORRECT]
 Some content
 ```
 
@@ -271,6 +271,6 @@ If you discover a potential security issue in this project we ask that you notif
 
 ## Licensing
 
-See the [LICENSE](https://github.com/aws/amazon-sagemaker-examples/blob/master/LICENSE) file for our project's licensing. We will ask you to confirm the licensing of your contribution.
+See the [LICENSE](https://github.com/aws/amazon-sagemaker-examples/blob/main/LICENSE.txt) file for our project's licensing. We will ask you to confirm the licensing of your contribution.
 
 We may ask you to sign a [Contributor License Agreement (CLA)](http://en.wikipedia.org/wiki/Contributor_License_Agreement) for larger changes.
