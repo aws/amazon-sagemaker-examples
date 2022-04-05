@@ -1,4 +1,4 @@
-![SageMaker](https://github.com/aws/amazon-sagemaker-examples/raw/master/_static/sagemaker-banner.png)
+![SageMaker](https://github.com/aws/amazon-sagemaker-examples/raw/main/_static/sagemaker-banner.png)
 
 # Amazon SageMaker Examples
 
@@ -26,13 +26,15 @@ They can be accessed by clicking on the `SageMaker Examples` tab in Jupyter or t
 
 Although most examples utilize key Amazon SageMaker functionality like distributed, managed training or real-time hosted endpoints, these notebooks can be run outside of Amazon SageMaker Notebook Instances with minimal modification (updating IAM role definition and installing the necessary libraries).
 
+As of February 7, 2022, the default branch is named "main". See our [announcement](https://github.com/aws/amazon-sagemaker-examples/discussions/3131) for details and how to update your existing clone.
+
 ## :notebook: Examples
 
 ### Introduction to Ground Truth Labeling Jobs
 
 These examples provide quick walkthroughs to get you up and running with the labeling job workflow for Amazon SageMaker Ground Truth.
 
-- [Bring your own model for sagemaker labeling workflows with active learning](ground_truth_labeling_jobs/bring_your_own_model_for_sagemaker_labeling_workflows_with_active_learning) is an end-to-end example that shows how to bring your custom training, inference logic and active learning to the Amazon SageMaker ecosystem.
+- [Bring your own model for SageMaker labeling workflows with active learning](ground_truth_labeling_jobs/bring_your_own_model_for_sagemaker_labeling_workflows_with_active_learning) is an end-to-end example that shows how to bring your custom training, inference logic and active learning to the Amazon SageMaker ecosystem.
 - [From Unlabeled Data to a Deployed Machine Learning Model: A SageMaker Ground Truth Demonstration for Image Classification](ground_truth_labeling_jobs/from_unlabeled_data_to_deployed_machine_learning_model_ground_truth_demo_image_classification) is an end-to-end example that starts with an unlabeled dataset, labels it using the Ground Truth API, analyzes the results, trains an image classification neural net using the annotated dataset, and finally uses the trained model to perform batch and online inference.
 - [Ground Truth Object Detection Tutorial](ground_truth_labeling_jobs/ground_truth_object_detection_tutorial) is a similar end-to-end example but for an object detection task.
 - [Basic Data Analysis of an Image Classification Output Manifest](ground_truth_labeling_jobs/data_analysis_of_ground_truth_image_classification_output) presents charts to visualize the number of annotations for each class, differentiating between human annotations and automatic labels (if your job used auto-labeling). It also displays sample images in each class, and creates a pdf which concisely displays the full results.
@@ -68,6 +70,14 @@ These examples introduce SageMaker's hyperparameter tuning functionality which h
 - [R BYO Tuning](hyperparameter_tuning/r_bring_your_own) shows how to use SageMaker hyperparameter tuning with the custom container from the [Bring Your Own R Algorithm](advanced_functionality/r_bring_your_own) example.
 - [Analyzing Results](hyperparameter_tuning/analyze_results) is a shared notebook that can be used after each of the above notebooks to provide analysis on how training jobs with different hyperparameters performed.
 
+### SageMaker Autopilot
+
+These examples introduce SageMaker Autopilot. Autopilot automatically performs feature engineering, model selection, model tuning (hyperparameter optimization) and allows you to directly deploy the best model to an endpoint to serve inference requests.
+
+- [Customer Churn AutoML](autopilot/) shows how to use SageMaker Autopilot to automatically train a model for the [Predicting Customer Churn](introduction_to_applying_machine_learning/xgboost_customer_churn) task.
+- [Targeted Direct Marketing AutoML](autopilot/) shows how to use SageMaker Autopilot to automatically train a model for the [Targeted Direct Marketing](introduction_to_applying_machine_learning/xgboost_direct_marketing) task.
+- [Housing Prices AutoML](sagemaker-autopilot/housing_prices) shows how to use SageMaker Autopilot for a linear regression problem (predict housing prices).
+
 ### Introduction to Amazon Algorithms
 
 These examples provide quick walkthroughs to get you up and running with Amazon SageMaker's custom developed algorithms. Most of these algorithms can train on distributed hardware, scale incredibly well, and are faster and cheaper than popular alternatives.
@@ -90,6 +100,15 @@ These examples provide quick walkthroughs to get you up and running with Amazon 
 - [Object2Vec for sentence similarity](introduction_to_amazon_algorithms/object2vec_sentence_similarity) explains how to train Object2Vec using sequence pairs as input using sentence similarity analysis as the application.
 - [IP Insights for suspicious logins](introduction_to_amazon_algorithms/ipinsights_login) shows how to train IP Insights on a login events for a web server to identify suspicious login attempts.
 - [Semantic Segmentation](introduction_to_amazon_algorithms/semantic_segmentation_pascalvoc) shows how to train a semantic segmentation algorithm using the Amazon SageMaker Semantic Segmentation algorithm. It also demonstrates how to host the model and produce segmentation masks and probability of segmentation.
+- [JumpStart Instance Segmentation](introduction_to_amazon_algorithms/jumpstart_instance_segmentation) demonstrates how to use a pre-trained Instance Segmentation model available in JumpStart for inference.
+- [JumpStart Semantic Segmentation](introduction_to_amazon_algorithms/jumpstart_semantic_segmentation) demonstrates how to use a pre-trained Semantic Segmentation model available in JumpStart for inference, how to finetune the pre-trained model on a custom dataset using JumpStart transfer learning algorithm, and how to use fine-tuned model for inference.
+- [JumpStart Text Generation](introduction_to_amazon_algorithms/jumpstart_text_generation) shows how to use JumpStart to generate text that appears indistinguishable from the hand-written text.
+- [JumpStart Text Summarization](introduction_to_amazon_algorithms/jumpstart_text_summarization) shows how to use JumpStart to summarize the text to contain only the important information.
+- [JumpStart Image Embedding](introduction_to_amazon_algorithms/jumpstart_image_embedding) demonstrates how to use a pre-trained model available in JumpStart for image embedding.
+- [JumpStart Text Embedding](introduction_to_amazon_algorithms/jumpstart_text_embedding) demonstrates how to use a pre-trained model available in JumpStart for text embedding.
+- [JumpStart Object Detection](introduction_to_amazon_algorithms/jumpstart_object_detection) demonstrates how to use a pre-trained Object Detection model available in JumpStart for inference, how to finetune the pre-trained model on a custom dataset using JumpStart transfer learning algorithm, and how to use fine-tuned model for inference.
+- [JumpStart Machine Translation](introduction_to_amazon_algorithms/jumpstart_machine_translation) demonstrates how to translate text from one language to another language in JumpStart.
+- [JumpStart Named Entity Recognition](introduction_to_amazon_algorithms/jumpstart_named_entity_recognition) demonstrates how to identify named entities such as names, locations etc. in the text in JumpStart.
 
 ### Amazon SageMaker RL
 
@@ -141,7 +160,7 @@ These examples provide an introduction to SageMaker Clarify which provides machi
 
 ### Publishing content from RStudio on Amazon SageMaker to RStudio Connect
 
-These examples show you how to run R examples, and publish applications in RStudio on Amazon SageMaker to RStudio Connect. 
+These examples show you how to run R examples, and publish applications in RStudio on Amazon SageMaker to RStudio Connect.
 
 - [Publishing R Markdown](r_examples/rsconnect_rmarkdown/) shows how you can author an R Markdown document (.Rmd, .Rpres) within RStudio on Amazon SageMaker and publish to RStudio Connect for wide consumption.
 - [Publishing R Shiny Apps](r_examples/rsconnect_shiny/) shows how you can author an R Shiny application within RStudio on Amazon SageMaker and publish to RStudio Connect for wide consumption.
@@ -149,7 +168,7 @@ These examples show you how to run R examples, and publish applications in RStud
 
 ### Advanced Amazon SageMaker Functionality
 
-These examples that showcase unique functionality available in Amazon SageMaker. They cover a broad range of topics and will utilize a variety of methods, but aim to provide the user with sufficient insight or inspiration to develop within Amazon SageMaker.
+These examples showcase unique functionality available in Amazon SageMaker. They cover a broad range of topics and utilize a variety of methods, but aim to provide the user with sufficient insight or inspiration to develop within Amazon SageMaker.
 
 - [Data Distribution Types](advanced_functionality/data_distribution_types) showcases the difference between two methods for sending data from S3 to Amazon SageMaker Training instances. This has particular implication for scalability and accuracy of distributed training.
 - [Encrypting Your Data](advanced_functionality/handling_kms_encrypted_data) shows how to use Server Side KMS encrypted data with Amazon SageMaker training. The IAM role used for S3 access needs to have permissions to encrypt and decrypt data with the KMS key.
@@ -162,8 +181,6 @@ These examples that showcase unique functionality available in Amazon SageMaker.
 - [Bring Your Own scikit Algorithm](advanced_functionality/scikit_bring_your_own) provides a detailed walkthrough on how to package a scikit learn algorithm for training and production-ready hosting.
 - [Bring Your Own MXNet Model](advanced_functionality/mxnet_mnist_byom) shows how to bring a model trained anywhere using MXNet into Amazon SageMaker.
 - [Bring Your Own TensorFlow Model](advanced_functionality/tensorflow_iris_byom) shows how to bring a model trained anywhere using TensorFlow into Amazon SageMaker.
-- [Inference Pipeline with SparkML and XGBoost](advanced_functionality/inference_pipeline_sparkml_xgboost_abalone) shows how to deploy an Inference Pipeline with SparkML for data pre-processing and XGBoost for training on the Abalone dataset. The pre-processing code is written once and used between training and inference.
-- [Inference Pipeline with SparkML and BlazingText](advanced_functionality/inference_pipeline_sparkml_blazingtext_dbpedia) shows how to deploy an Inference Pipeline with SparkML for data pre-processing and BlazingText for training on the DBPedia dataset. The pre-processing code is written once and used between training and inference.
 - [Experiment Management Capabilities with Search](advanced_functionality/search) shows how to organize Training Jobs into projects, and track relationships between Models, Endpoints, and Training Jobs.
 - [Host Multiple Models with Your Own Algorithm](advanced_functionality/multi_model_bring_your_own) shows how to deploy multiple models to a realtime hosted endpoint with your own custom algorithm.
 - [Host Multiple Models with XGBoost](advanced_functionality/multi_model_xgboost_home_value) shows how to deploy multiple models to a realtime hosted endpoint using a multi-model enabled XGBoost container.
@@ -173,14 +190,14 @@ These examples that showcase unique functionality available in Amazon SageMaker.
 
 ### Amazon SageMaker Neo Compilation Jobs
 
-These examples provide you an introduction to how to use Neo to optimizes deep learning model
+These examples provide an introduction to how to use Neo to compile and optimize deep learning models.
 
-- [GluonCV SSD Mobilenet](sagemaker_neo_compilation_jobs/gluoncv_ssd_mobilenet) shows how to train gluoncv ssd mobilenet and use Amazon Sagemaker Neo to compile and optimize the trained model.
-- [Image Classification](sagemaker_neo_compilation_jobs/imageclassification_caltech) Adapts form [image classification](introduction_to_amazon_algorithms/imageclassification_caltech) including Neo API and comparsion between the baseline
-- [MNIST with MXNet](sagemaker_neo_compilation_jobs/mxnet_mnist) Adapts form [mxnet mnist](sagemaker-python-sdk/mxnet_mnist) including Neo API and comparsion between the baseline
+- [GluonCV SSD Mobilenet](sagemaker_neo_compilation_jobs/gluoncv_ssd_mobilenet) shows how to train GluonCV SSD MobileNet and use Amazon SageMaker Neo to compile and optimize the trained model.
+- [Image Classification](sagemaker_neo_compilation_jobs/imageclassification_caltech) Adapts from [image classification](introduction_to_amazon_algorithms/imageclassification_caltech) including Neo API and comparison against the uncompiled baseline.
+- [MNIST with MXNet](sagemaker_neo_compilation_jobs/mxnet_mnist) Adapts from [MXNet MNIST](sagemaker-python-sdk/mxnet_mnist) including Neo API and comparison against the uncompiled baseline.
 - [Deploying pre-trained PyTorch vision models](sagemaker_neo_compilation_jobs/pytorch_torchvision) shows how to use Amazon SageMaker Neo to compile and optimize pre-trained PyTorch models from TorchVision.
-- [Distributed TensorFlow](sagemaker_neo_compilation_jobs/tensorflow_distributed_mnist) Adapts form [tensorflow mnist](sagemaker-python-sdk/tensorflow_distributed_mnist) including Neo API and comparsion between the baseline
-- [Predicting Customer Churn](sagemaker_neo_compilation_jobs/xgboost_customer_churn) Adapts form [xgboost customer churn](introduction_to_applying_machine_learning/xgboost_customer_churn) including Neo API and comparsion between the baseline
+- [Distributed TensorFlow](sagemaker_neo_compilation_jobs/tensorflow_distributed_mnist) includes Neo API and comparison against the uncompiled baseline.
+- [Predicting Customer Churn](sagemaker_neo_compilation_jobs/xgboost_customer_churn) Adapts from [XGBoost customer churn](introduction_to_applying_machine_learning/xgboost_customer_churn) including Neo API and comparison against the uncompiled baseline.
 
 ### Amazon SageMaker Processing
 
@@ -190,6 +207,13 @@ These examples show you how to use SageMaker Processing jobs to run data process
 - [Feature transformation with Amazon SageMaker Processing and SparkML](sagemaker_processing/feature_transformation_with_sagemaker_processing) shows how to use SageMaker Processing to run data processing workloads using SparkML prior to training.
 - [Feature transformation with Amazon SageMaker Processing and Dask](sagemaker_processing/feature_transformation_with_sagemaker_processing_dask) shows how to use SageMaker Processing to transform data using Dask distributed clusters
 - [Distributed Data Processing using Apache Spark and SageMaker Processing](sagemaker_processing/spark_distributed_data_processing) shows how to use the built-in Spark container on SageMaker Processing using the SageMaker Python SDK.
+
+### Amazon SageMaker Pipelines
+
+These examples show you how to use [SageMaker Pipelines](https://aws.amazon.com/sagemaker/pipelines) to create, automate and manage end-to-end Machine Learning workflows.
+
+- [Amazon Comprehend with SageMaker Pipelines](sagemaker-pipelines/nlp/amazon_comprehend_sagemaker_pipeline) shows how to deploy a custom text classification using Amazon Comprehend and SageMaker Pipelines.
+- [Amazon Forecast with SageMaker Pipelines](sagemaker-pipelines/time_series_forecasting/amazon_forecast_pipeline) shows how you can create a dataset, dataset group and predictor with Amazon Forecast and SageMaker Pipelines.
 
 ### Amazon SageMaker Pre-Built Framework Containers and the Python SDK
 
@@ -201,6 +225,7 @@ These examples show you how to train and host in pre-built deep learning framewo
 - [Chainer MNIST](sagemaker-python-sdk/chainer_mnist) trains a basic neural network on MNIST using Chainer (shows how to use local mode)
 - [Chainer sentiment analysis](sagemaker-python-sdk/chainer_sentiment_analysis) trains a LSTM network with embeddings to predict text sentiment using Chainer
 - [IRIS with Scikit-learn](sagemaker-python-sdk/scikit_learn_iris) trains a Scikit-learn classifier on IRIS data
+- [Model Registry and Batch Transform with Scikit-learn](sagemaker-python-sdk/scikit_learn_model_registry_batch_transform) trains a Scikit-learn Random Forest model, registers it in Model Registry, and runs a Batch Transform Job.
 - [MNIST with MXNet Gluon](sagemaker-python-sdk/mxnet_gluon_mnist) trains a basic neural network on the MNIST handwritten digit dataset using MXNet Gluon
 - [MNIST with MXNet](sagemaker-python-sdk/mxnet_mnist) trains a basic neural network on the MNIST handwritten digit data using MXNet's symbolic syntax
 - [Sentiment Analysis with MXNet Gluon](sagemaker-python-sdk/mxnet_gluon_sentiment) trains a text classifier using embeddings with MXNet Gluon
@@ -221,18 +246,25 @@ These examples show how to use Amazon SageMaker for model training, hosting, and
 
 - [MNIST with SageMaker PySpark](sagemaker-spark/pyspark_mnist)
 
+### Using Amazon SageMaker with Amazon Keyspaces (for Apache Cassandra)
+
+These examples show how to use Amazon SageMaker to read data from [Amazon Keyspaces](https://docs.aws.amazon.com/keyspaces/).
+- [Train Machine Learning Models using Amazon Keyspaces as a Data Source](ingest_data/sagemaker-keyspaces)
+
+
 ### AWS Marketplace
 
 #### Create algorithms/model packages for listing in AWS Marketplace for machine learning.
 
-This example shows you how to package a model-package/algorithm for listing in AWS Marketplace for machine learning.
+These example notebooks show you how to package a model or algorithm for listing in AWS Marketplace for machine learning.
 
-- [Creating Algorithm and Model Package - Listing on AWS Marketplace](aws_marketplace/creating_marketplace_products) provides a detailed walkthrough on how to package a scikit learn algorithm to create SageMaker Algorithm and SageMaker Model Package entities that can be used with the enhanced SageMaker Train/Transform/Hosting/Tuning APIs and listed on AWS Marketplace.
+- [Creating Marketplace Products](aws_marketplace/creating_marketplace_products)
+  - [Creating a Model Package - Listing on AWS Marketplace](aws_marketplace/creating_marketplace_products/models) provides a detailed walkthrough on how to package a pre-trained model as a SageMaker Model Package that can be listed on AWS Marketplace.
+  - [Creating Algorithm and Model Package - Listing on AWS Marketplace](aws_marketplace/creating_marketplace_products/algorithms) provides a detailed walkthrough on how to package a scikit learn algorithm to create SageMaker Algorithm and SageMaker Model Package entities that can be used with the enhanced SageMaker Train/Transform/Hosting/Tuning APIs and listed on AWS Marketplace.
 
 Once you have created an algorithm or a model package to be listed in the AWS Marketplace, the next step is to list it in AWS Marketplace, and provide a sample notebook that customers can use to try your algorithm or model package.
 
 - [Curate your AWS Marketplace model package listing and sample notebook](aws_marketplace/curating_aws_marketplace_listing_and_sample_notebook/ModelPackage) provides instructions on how to craft a sample notebook to be associated with your listing and how to curate a good AWS Marketplace listing that makes it easy for AWS customers to consume your model package.
-
 - [Curate your AWS Marketplace algorithm listing and sample notebook](aws_marketplace/curating_aws_marketplace_listing_and_sample_notebook/Algorithm) provides instructions on how to craft a sample notebook to be associated with your listing and how to curate a good AWS Marketplace listing that makes it easy for your customers to consume your algorithm.
 
 #### Use algorithms, data, and model packages from AWS Marketplace.
@@ -240,10 +272,8 @@ Once you have created an algorithm or a model package to be listed in the AWS Ma
 These examples show you how to use model-packages and algorithms from AWS Marketplace and dataset products from AWS Data Exchange, for machine learning.
 
 - [Using Algorithms](aws_marketplace/using_algorithms)
-
   - [Using Algorithm From AWS Marketplace](aws_marketplace/using_algorithms/amazon_demo_product) provides a detailed walkthrough on how to use Algorithm with the enhanced SageMaker Train/Transform/Hosting/Tuning APIs by choosing a canonical product listed on AWS Marketplace.
   - [Using AutoML algorithm](aws_marketplace/using_algorithms/automl) provides a detailed walkthrough on how to use AutoML algorithm from AWS Marketplace.
-
 - [Using Model Packages](aws_marketplace/using_model_packages)
   - [Using Model Packages From AWS Marketplace](aws_marketplace/using_model_packages/generic_sample_notebook) is a generic notebook which provides sample code snippets you can modify and use for performing inference on Model Packages from AWS Marketplace, using Amazon SageMaker.
   - [Using Amazon Demo product From AWS Marketplace](aws_marketplace/using_model_packages/amazon_demo_product) provides a detailed walkthrough on how to use Model Package entities with the enhanced SageMaker Transform/Hosting APIs by choosing a canonical product listed on AWS Marketplace.
@@ -253,6 +283,7 @@ These examples show you how to use model-packages and algorithms from AWS Market
   - [Amazon Augmented AI with AWS Marketplace ML models](aws_marketplace/using_model_packages/amazon_augmented_ai_with_aws_marketplace_ml_models) will show you how to use AWS Marketplace pre-trained ML models with Amazon Augmented AI to implement human-in-loop workflow reviews with your ML model predictions.
   - [Monitoring data quality in third-party models from AWS Marketplace](aws_marketplace/using_model_packages/data_quality_monitoring) will show you how to perform Data Quality monitoring on a pre-trained third-party model from AWS Marketplace.
   - [Evaluating ML models from AWS Marketplace for person counting use case](aws_marketplace/using_model_packages/evaluating_aws_marketplace_models_for_person_counting_use_case) will show you how to use two AWS Marketplace GluonCV pre-trained ML models for person counting use case and evaluate each model for performance in different types of crowd images.
+  - [Preprocessing audio data using a pre-trained machine learning model](using_model_packages/preprocessing-audio-data-using-a-machine-learning-model) demonstrates the usage of a pre-trained audio track separation model to create synthetic features and improve an acoustic classification model.
 - [Using Dataset Products](aws_marketplace/using_data)
   - [Using Dataset Product from AWS Data Exchange with ML model from AWS Marketplace](aws_marketplace/using_data/using_data_with_ml_model) is a sample notebook which shows how a dataset from AWS Data Exchange can be used with an ML Model Package from AWS Marketplace.
   - [Using Shutterstock Image Datasets to train Image Classification Models](aws_marketplace/using_data/image_classification_with_shutterstock_image_datasets) provides a detailed walkthrough on how to use the [Free Sample: Images & Metadata of “Whole Foods” Shoppers](https://aws.amazon.com/marketplace/pp/prodview-y6xuddt42fmbu?qid=1623195111604&sr=0-1&ref_=srh_res_product_title#offers) from Shutterstock's Image Datasets to train a multi-label image classification model using Shutterstock's pre-labeled image assets. You can learn more about this implementation [from this blog post](https://aws.amazon.com/blogs/awsmarketplace/using-shutterstocks-image-datasets-to-train-your-computer-vision-models/).

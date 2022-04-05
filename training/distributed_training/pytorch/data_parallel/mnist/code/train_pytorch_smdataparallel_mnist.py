@@ -38,26 +38,28 @@ from torchvision import datasets, transforms
 # Reference PR: https://github.com/pytorch/vision/pull/3559
 TORCHVISION_VERSION = "0.9.1"
 if Version(torchvision.__version__) < Version(TORCHVISION_VERSION):
+    # Set path to data source and include checksum key to make sure data isn't corrupted
     datasets.MNIST.resources = [
         (
-            "https://dlinfra-mnist-dataset.s3-us-west-2.amazonaws.com/mnist/train-images-idx3-ubyte.gz",
+            "https://sagemaker-sample-files.s3.amazonaws.com/datasets/image/MNIST/train-images-idx3-ubyte.gz",
             "f68b3c2dcbeaaa9fbdd348bbdeb94873",
         ),
         (
-            "https://dlinfra-mnist-dataset.s3-us-west-2.amazonaws.com/mnist/train-labels-idx1-ubyte.gz",
+            "https://sagemaker-sample-files.s3.amazonaws.com/datasets/image/MNIST/train-labels-idx1-ubyte.gz",
             "d53e105ee54ea40749a09fcbcd1e9432",
         ),
         (
-            "https://dlinfra-mnist-dataset.s3-us-west-2.amazonaws.com/mnist/t10k-images-idx3-ubyte.gz",
+            "https://sagemaker-sample-files.s3.amazonaws.com/datasets/image/MNIST/t10k-images-idx3-ubyte.gz",
             "9fb629c4189551a2d022fa330f9573f3",
         ),
         (
-            "https://dlinfra-mnist-dataset.s3-us-west-2.amazonaws.com/mnist/t10k-labels-idx1-ubyte.gz",
+            "https://sagemaker-sample-files.s3.amazonaws.com/datasets/image/MNIST/t10k-labels-idx1-ubyte.gz",
             "ec29112dd5afa0611ce80d1b7f02629c",
         ),
     ]
 else:
-    datasets.MNIST.mirrors = ["https://dlinfra-mnist-dataset.s3-us-west-2.amazonaws.com/mnist/"]
+    # Set path to data source
+    datasets.MNIST.mirrors = ["https://sagemaker-sample-files.s3.amazonaws.com/datasets/image/MNIST/"]
 
 
 class CUDANotFoundException(Exception):

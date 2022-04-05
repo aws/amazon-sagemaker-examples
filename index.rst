@@ -95,14 +95,23 @@ On SageMaker Studio, you will need to open a terminal, go to your home folder, t
 
 .. toctree::
    :maxdepth: 1
+   :caption: Frameworks
+
+   training/frameworks
+
+
+.. toctree::
+   :maxdepth: 1
    :caption: Training
 
-   training/index
    training/algorithms
-   training/frameworks
+   reinforcement_learning/index
+   sagemaker-experiments/index
    sagemaker-debugger/index
    training/tuning
    training/distributed_training/index
+   sagemaker-training-compiler/index
+   sagemaker-script-mode/index
    training/bring_your_own_container
    training/management
 
@@ -112,13 +121,6 @@ On SageMaker Studio, you will need to open a terminal, go to your home folder, t
    :caption: Inference
 
    inference/index
-
-
-.. toctree::
-   :maxdepth: 1
-   :caption: Frameworks
-
-   training/frameworks
 
 
 .. toctree::
