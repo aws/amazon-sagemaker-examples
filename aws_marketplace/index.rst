@@ -11,7 +11,7 @@ Create your algorithm and model package
 .. toctree::
    :maxdepth: 0
 
-   creating_marketplace_products/Bring_Your_Own-Creating_Algorithm_and_Model_Package
+   creating_marketplace_products/algorithms/Bring_Your_Own-Creating_Algorithm_and_Model_Package
 
 
 Curate your sample notebook
