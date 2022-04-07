@@ -81,7 +81,7 @@ Orchestrate workflows
    :maxdepth: 1
 
    sagemaker-pipelines/tabular/abalone_build_train_deploy/sagemaker-pipelines-preprocess-train-evaluate-batch-transform_outputs
-   sagemaker-pipelines/tabular/lambda-step/sagemaker-pipelines-lambda-step
+   sagemaker-pipelines/tabular/lambda-step/sagemaker-pipelines-lambda-step_outputs
 
 
 Popular frameworks
@@ -102,7 +102,7 @@ Hugging Face
 .. toctree::
    :maxdepth: 1
 
-   introduction_to_applying_machine_learning/huggingface_sentiment_classification/huggingface_sentiment
+   introduction_to_applying_machine_learning/huggingface_sentiment_classification/huggingface_sentiment_outputs
 
 
 Scikit-Learn
