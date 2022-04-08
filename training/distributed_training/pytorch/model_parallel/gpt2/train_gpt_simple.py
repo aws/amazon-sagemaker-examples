@@ -97,7 +97,7 @@ def train_step(model, optimizer, input_ids, attention_mask, args):
     else:
         loss = model(input_ids=input_ids, attention_mask=attention_mask, labels=input_ids)["loss"]
     if args.fp16:
-        optimizer.backward(loss, update_master_grads=False)
+            optimizer.backward(loss, update_master_grads=False)
     else:
         model.backward(loss)
     if args.logits_output:
@@ -223,7 +223,9 @@ def save(
     if lr_scheduler is not None:
         save_dict["lr_scheduler"] = lr_scheduler.state_dict()
     if partial:
-        save_dict["model"] = model.local_state_dict()
+        if args.gather_if_shard > 0 or smp.rdp_rank() == 0:
+            # if not gather the opt checkpoint, only save the model for rdp rank 0
+            save_dict["model"] = model.local_state_dict()
     else:
         model_state_dict = model.state_dict(gather_to_rank0=True)
         if smp.rank() == 0:
@@ -253,8 +255,8 @@ def save(
             else:
                 print("Skipping saving of full optimizer state")
 
-    if (smp.rdp_rank() == 0 and partial) or smp.rank() == 0:
-        smp.save(save_dict, output_save_file, partial=partial)
+    if not args.gather_if_shard or (smp.rdp_rank() == 0 and partial) or smp.rank() == 0:
+        smp.save(save_dict, output_save_file, partial=partial, v3=not args.gather_if_shard)
 
     print(f"Finished checkpointing after {total_steps} steps: {output_save_file}")
 
@@ -298,7 +300,16 @@ def load_model_and_optimizer(
         # need to pass prefix without ranks to smp
         local_ckpt_path = local_ckpt_path.split(".pt")[0] + ".pt"
 
-    checkpoint = smp.load(local_ckpt_path, partial=partial)
+    if args.gather_if_shard > 0:
+        # Should expect v2 checkpoint here
+        checkpoint = smp.load(local_ckpt_path, partial=partial)
+    else:
+        # Loading separately for model and opt
+        checkpoint = torch.load(f"{local_ckpt_path}_{smp.pp_rank()}_{smp.tp_rank()}_0")
+        if smp.rdp_rank() != 0:
+            opt_checkpoint = torch.load(
+                f"{local_ckpt_path}_{smp.pp_rank()}_{smp.tp_rank()}_{smp.rdp_rank()}"
+            )
 
     if load_model:
         checkpointed_model = (
@@ -353,28 +364,30 @@ def load_model_and_optimizer(
     )
 
 
-def delete_oldest_ckpt(args):
-    re_pattern = "trained_gpt_nparams-(?P<num_params>\d+)_steps-(?P<total_steps>\d+)\.pt"
+def delete_oldest_ckpt(args, delete_on_rank0_only=False):
+    to_delete = smp.rank() == 0 if delete_on_rank0_only else smp.local_rank() == 0
+    if to_delete:
+        re_pattern = "trained_gpt_nparams-(?P<num_params>\d+)_steps-(?P<total_steps>\d+)\.pt"
 
-    # partial
-    re_pattern += "_(?P<pp_rank>\d+)_(?P<tp_rank>\d+)"
+        # partial
+        re_pattern += "_(?P<pp_rank>\d+)_(?P<tp_rank>\d+)"
 
-    paths_per_step = collections.defaultdict(list)
+        paths_per_step = collections.defaultdict(list)
 
-    for p in os.listdir(args.checkpoint_dir):
-        if re.match(re_pattern, p):
-            step = int(re.match(re_pattern, p).group("total_steps"))
-            path = os.path.join(args.checkpoint_dir, p)
-            paths_per_step[step].append(path)
+        for p in os.listdir(args.checkpoint_dir):
+            if re.match(re_pattern, p):
+                step = int(re.match(re_pattern, p).group("total_steps"))
+                path = os.path.join(args.checkpoint_dir, p)
+                paths_per_step[step].append(path)
 
-    if paths_per_step:
-        oldest_step = sorted(paths_per_step.keys())[0]
-        num_parts = len(paths_per_step[oldest_step])
+        if paths_per_step:
+            oldest_step = sorted(paths_per_step.keys())[0]
+            num_parts = len(paths_per_step[oldest_step])
         if len(paths_per_step) > args.num_kept_checkpoints:
             # delete oldest step
-            for p in paths_per_step[oldest_step]:
-                os.remove(p)
-    # else We still haven't reached maximum number of checkpoints -- no need to delete older ones
+                for p in paths_per_step[oldest_step]:
+                    os.remove(p)
+        # else We still haven't reached maximum number of checkpoints -- no need to delete older ones
     return None
 
 
@@ -551,6 +564,10 @@ def train(
                     print(
                         f"Resuming from saved batch index {start_batch_index}, skipping batch {batch_idx}..."
                     )
+                if start_batch_index == len(train_dataloader):
+                    # If saving at the last batch of the file, read from the next file
+                    start_batch_index = 0
+                    break
                 continue
             else:
                 start_batch_index = 0
@@ -588,14 +605,18 @@ def train(
                 loss_metric = loss.item()
 
             if args.fp16:
-                optimizer.update_master_grads()
-                optimizer.clip_master_grads(args.grad_clip)
-                optimizer.step()
-                overflow = optimizer.overflow
+                    optimizer.update_master_grads()
+                    optimizer.clip_master_grads(args.grad_clip)
+                    optimizer.step()
+                    overflow = optimizer.overflow
             else:
                 optimizer.step()
+
             if not (args.fp16 and overflow):
                 lr_scheduler.step()
+
+            if args.enable_memory_profiling > 0:
+                memory_status(msg="After_opt_step")
 
             total_steps += 1
             time_elapsed = time.time() - start
@@ -634,6 +655,8 @@ def train(
                 out_path = os.path.join(args.checkpoint_dir, base_path)
                 total_ckpts = total_steps // args.checkpoint_freq
 
+                delete_oldest_ckpt(args, delete_on_rank0_only=args.use_fsx > 0)
+
                 # save_or_verify_ckptsum if this is the last checkpoint
                 if (args.save_or_verify_ckptsum and total_steps >= args.max_steps) or (
                     (total_ckpts + 1) * args.checkpoint_freq
@@ -660,9 +683,6 @@ def train(
                     batch_idx=batch_idx + 1,
                 )
 
-                if smp.local_rank() == 0:
-                    delete_oldest_ckpt(args)
-
             if args.logits_output:
                 to_save["loss"].append(loss.item())
 
@@ -681,6 +701,7 @@ def train(
             train_dataloader = dataset_future.result(timeout=None)
             wait_time = time.time() - s
             if wait_time > 1:
+                # TODO if this happens, we should try num_workers>1 in dataloader
                 print(
                     f"[{smp.rank()}] Waited {wait_time} for data loader to be ready. Please check if dataloader performance can be improved to avoid these waits."
                 )
@@ -794,6 +815,7 @@ def parse_args():
         title="model", description="arguments to describe model configuration"
     )
     model_grp.add_argument("--max_context_width", type=int, default=1024)
+    model_grp.add_argument("--vocab_size", type=int, default=50257)
     model_grp.add_argument("--hidden_width", type=int, default=768)
     model_grp.add_argument("--num_layers", type=int, default=12)
     model_grp.add_argument("--num_heads", type=int, default=12)
@@ -816,7 +838,13 @@ def parse_args():
     smp_grp.add_argument("--static_mode", type=int, default=0)
     smp_grp.add_argument("--delayed_param", type=int, default=0)
     smp_grp.add_argument("--same_partition_load", type=int, default=0)
-    smp_grp.add_argument("--attention_in_fp32", type=int, default=1)
+    smp_grp.add_argument("--attention_in_fp32", type=int, default=0)
+    smp_grp.add_argument("--placement_strategy", type=str, default="cluster")
+    smp_grp.add_argument("--activation_loading_horizon", type=int, default=4)
+    smp_grp.add_argument("--skip_tracing", type=int, default=0)
+    smp_grp.add_argument("--query_key_layer_scaling", type=int, default=1)
+    smp_grp.add_argument("--fused_softmax", type=int, default=1)
+    smp_grp.add_argument("--fused_bias_gelu", type=int, default=1)
 
     parser.add_argument(
         "--num_kept_checkpoints",
@@ -862,6 +890,22 @@ def parse_args():
         type=int,
         default=1,
         help="Running validation only with the last data file for faster speed",
+    )
+    parser.add_argument(
+        "--gather_if_shard",
+        type=int,
+        default=1,
+        help="When sharding opt states is enabled, gather the opt checkpoint to rdp rank 0 during saving",
+    )
+    parser.add_argument(
+        "--clean_cache",
+        type=int,
+        default=0,
+        help="Clean torch reserved memory at he end of every step",
+    )
+    parser.add_argument("--use_fsx", type=int, default=0, help="Using FSx for checkpointing")
+    parser.add_argument(
+        "--enable_memory_profiling", type=int, default=0, help="Enable memory profile"
     )
 
     # learning rate
@@ -937,6 +981,9 @@ def main():
         "fp16_params": args.fp16 > 0,
         "offload_activations": args.offload_activations > 0,
         "optimize": args.optimize,
+        "placement_strategy": args.placement_strategy,
+        "activation_loading_horizon": args.activation_loading_horizon,
+        "skip_tracing": args.skip_tracing > 0,
         "auto_partition": False if args.manual_partition else True,
         "default_partition": 0,
         "_fp32_grad_accumulation": args.fp32_grad_accumulation > 0,
@@ -965,9 +1012,8 @@ def main():
                 os.makedirs(path, exist_ok=True)
 
     model_config = GPT2Config(
-        vocab_size=50257,
+        vocab_size=args.vocab_size,
         n_positions=args.max_context_width,
-        n_ctx=args.max_context_width,
         n_embd=args.hidden_width,
         n_layer=args.num_layers,
         n_head=args.num_heads,
@@ -984,7 +1030,7 @@ def main():
         summary_proj_to_labels=True,
         summary_first_dropout=args.summary_first_pdrop,
         # gradient_checkpointing=args.gradient_checkpointing > 0,
-        use_cache=True,
+        use_cache=False,
         bos_token_id=50256,
         eos_token_id=50256,
         return_dict=True,
@@ -1003,12 +1049,17 @@ def main():
     if args.fp16:
         torch.set_default_dtype(torch.float16)
     with smp.tensor_parallelism(
-        enabled=smp.tp_size() > 1, attention_in_fp32=args.attention_in_fp32 > 0
+        enabled=smp.tp_size() > 1,
+        attention_in_fp32=args.attention_in_fp32 > 0,
+        query_key_layer_scaling=args.query_key_layer_scaling > 0,
+        fused_softmax=args.fused_softmax > 0,
+        fused_bias_gelu=args.fused_bias_gelu > 0,
     ):
         with smp.delay_param_initialization(
             enabled=(smp.tp_size() > 1 and args.match_weights < 1 and args.delayed_param > 0)
         ):
             model = AutoModelForCausalLM.from_config(model_config)
+            
     torch.set_default_dtype(torch.float32)
 
     if args.fp16:
@@ -1047,7 +1098,7 @@ def main():
 
     if args.manual_partition:
         print(f"Manual partition enabled")
-        # evenly distribute layers across all partitions
+            # evenly distribute layers across all partitions
         div, rem = divmod(args.num_layers, smp.pp_size())
         get_num_layers = lambda x: (div + 1 if x >= smp.pp_size() - rem else div)
         assignments = []
@@ -1081,25 +1132,33 @@ def main():
         if isinstance(transformer_layers, nn.Sequential):
             kwargs["pack_args_as_tuple"] = True
             kwargs["strategy"] = args.activation_strategy
-        smp.set_activation_checkpointing(transformer_layers, **kwargs)
+            smp.set_activation_checkpointing(transformer_layers, **kwargs)
+        else:
+            for c in transformer_layers.children():
+                smp.set_activation_checkpointing(c)
 
     if args.fp16:
-        optimizer = FP16_Optimizer(
-            model,
-            optimizer,
-            static_loss_scale=None,
-            dynamic_loss_scale=True,
-            use_smp=True,
-            dynamic_loss_args={"scale_window": 1000, "min_scale": 1, "delayed_shift": 2},
-            params_have_main_grad=args.fp32_grad_accumulation > 0,
-            shard_optimizer_state=args.shard_optimizer_state > 0,
-        )
+            optimizer = FP16_Optimizer(
+                model,
+                optimizer,
+                static_loss_scale=None,
+                dynamic_loss_scale=True,
+                use_smp=True,
+                dynamic_loss_args={"scale_window": 1000, "min_scale": 1, "delayed_shift": 2},
+                params_have_main_grad=args.fp32_grad_accumulation > 0,
+                shard_optimizer_state=args.shard_optimizer_state > 0,
+            )
 
     optimizer = smp.DistributedOptimizer(optimizer)
     lr_scheduler = get_learning_rate_scheduler(optimizer, args)
 
     if args.fp16:
         model.register_post_step_hook(lambda model, optimizer: optimizer.init_master_params())
+
+    if args.enable_memory_profiling > 0:
+        model.register_post_partition_hook(
+            lambda model, optimizer: memory_status(msg="After_partition")
+        )
 
     # load after wrapping model and optimizer with smp Distributed...
     if args.load_full or args.load_partial:
