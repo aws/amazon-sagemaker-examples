@@ -4,8 +4,7 @@ ARG SUFFIX
 ARG VERSION
 ARG FRAMEWORK
 
-# use ray 1.6.0 docker
-# TODO: this docker uses tensorflow 2.5.0, use tensorflow 2.7.0 provided by DLC when available
+# use ray 1.6.0, tensorflow 2.5.0 base docker, install Mujoco and update tensorflow to 2.7.0
 FROM 462105765813.dkr.ecr.${AWS_REGION}.amazonaws.com/sagemaker-rl-ray-container:ray-1.6.0-${FRAMEWORK}-${CPU_OR_GPU}-${SUFFIX}
 
 # build mujoco below
