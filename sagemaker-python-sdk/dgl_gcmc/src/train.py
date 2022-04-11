@@ -23,6 +23,8 @@ from utils import (
     parse_ctx,
 )
 
+os.system("python3 -m spacy download en")
+
 
 class Net(Block):
     def __init__(self, args, **kwargs):
