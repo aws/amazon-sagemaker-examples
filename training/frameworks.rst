@@ -82,7 +82,6 @@ TensorFlow
    ../frameworks/tensorflow/get_started_mnist_train
    ../frameworks/tensorflow/get_started_mnist_deploy
    ../sagemaker-python-sdk/tensorflow_moving_from_framework_mode_to_script_mode/tensorflow_moving_from_framework_mode_to_script_mode
-   ../sagemaker-python-sdk/tensorflow_moving_from_framework_mode_to_script_mode/tensorflow_moving_from_framework_mode_to_script_mode
    ../sagemaker-python-sdk/tensorflow_script_mode_horovod/tensorflow_script_mode_horovod
    ../sagemaker-python-sdk/tensorflow_script_mode_pipe_mode/tensorflow_script_mode_pipe_mode
    ../sagemaker-python-sdk/tensorflow_script_mode_quickstart/tensorflow_script_mode_quickstart
