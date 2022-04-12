@@ -17,7 +17,6 @@ Tabular
    :maxdepth: 1
 
    ../sagemaker-python-sdk/scikit_learn_iris/scikit_learn_estimator_example_with_batch_transform.ipynb
-   ../introduction_to_amazon_algorithms/linear_learner_abalone/Linear_Learner_Regression_csv_format.ipynb
 
 
 Text
