@@ -94,7 +94,7 @@ Use MPI on SageMaker
 .. toctree::
     :maxdepth: 1
 
-    mpi_on_sagemaker/intro
+    mpi_on_sagemaker/intro/mpi_demo
 
 .. _pytorch-distributed:
 
