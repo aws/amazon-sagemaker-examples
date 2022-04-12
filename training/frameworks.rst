@@ -47,7 +47,6 @@ PyTorch
    ../frameworks/pytorch/get_started_mnist_train
    ../frameworks/pytorch/get_started_mnist_deploy
    ../sagemaker-python-sdk/pytorch_lstm_word_language_model/pytorch_rnn
-   ../sagemaker-python-sdk/pytorch_lstm_word_language_model/pytorch_rnn
 
 
 R
