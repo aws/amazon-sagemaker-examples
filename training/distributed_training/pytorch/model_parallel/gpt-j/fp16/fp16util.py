@@ -1,6 +1,5 @@
 # coding=utf-8
-# Copyright (c) 2022, NVIDIA CORPORATION.  All rights reserved.
-# Modifications Copyright 2022 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -46,10 +45,7 @@ def BN_convert_float(module):
 
     Retained for legacy purposes.
     """
-    if (
-        isinstance(module, torch.nn.modules.batchnorm._BatchNorm)
-        and module.affine is True
-    ):
+    if isinstance(module, torch.nn.modules.batchnorm._BatchNorm) and module.affine is True:
         module.float()
     for child in module.children():
         BN_convert_float(child)
@@ -86,10 +82,7 @@ def convert_network(network, dtype):
     Converts a network's parameters and buffers to dtype.
     """
     for module in network.modules():
-        if (
-            isinstance(module, torch.nn.modules.batchnorm._BatchNorm)
-            and module.affine is True
-        ):
+        if isinstance(module, torch.nn.modules.batchnorm._BatchNorm) and module.affine is True:
             continue
         convert_module(module, dtype)
     return network
@@ -141,14 +134,10 @@ def prep_param_lists(model, flat_master=False):
         try:
             # flatten_dense_tensors returns a contiguous flat array.
             # http://pytorch.org/docs/master/_modules/torch/_utils.html
-            master_params = _flatten_dense_tensors(
-                [param.data for param in model_params]
-            ).float()
+            master_params = _flatten_dense_tensors([param.data for param in model_params]).float()
         except BaseException:
-            print(
-                "Error in prep_param_lists:  model may contain a mixture of parameters "
-                "of different types.  Use flat_master=False, or use F16_Optimizer."
-            )
+            print("Error in prep_param_lists:  model may contain a mixture of parameters "
+                  "of different types.  Use flat_master=False, or use F16_Optimizer.")
             raise
         master_params = torch.nn.Parameter(master_params)
         master_params.requires_grad = True
@@ -163,13 +152,7 @@ def prep_param_lists(model, flat_master=False):
         return model_params, master_params
 
 
-def model_grads_to_master_grads(
-    model_params,
-    master_params,
-    flat_master=False,
-    loss_scale=1.0,
-    params_have_main_grad=False,
-):
+def model_grads_to_master_grads(model_params, master_params, flat_master=False, loss_scale=1.0, params_have_main_grad=False):
     """
     Copy model gradients to master gradients.
 
@@ -180,8 +163,7 @@ def model_grads_to_master_grads(
     if flat_master:
         # The flattening may incur one more deep copy than is necessary.
         master_params[0].grad.data.copy_(
-            _flatten_dense_tensors([p.grad.data for p in model_params])
-        )
+            _flatten_dense_tensors([p.grad.data for p in model_params]))
     else:
         for model, master in zip(model_params, master_params):
             if model.device.type == "cpu":
@@ -200,12 +182,10 @@ def model_grads_to_master_grads(
         if len(model_grads) == 0 or len(master_grads) == 0:
             return
         _overflow_buf = torch.cuda.IntTensor([0])
-        multi_tensor_applier(
-            amp_C.multi_tensor_scale,
-            _overflow_buf,
-            [model_grads, master_grads],
-            1.0 / loss_scale,
-        )
+        multi_tensor_applier(amp_C.multi_tensor_scale,
+                             _overflow_buf,
+                             [model_grads, master_grads],
+                             1.0/loss_scale)
 
 
 def master_params_to_model_params(model_params, master_params, flat_master=False):
@@ -217,16 +197,14 @@ def master_params_to_model_params(model_params, master_params, flat_master=False
         master_params:  List of FP32 master parameters created by :func:`prep_param_lists`.  If ``master_params`` was created with ``flat_master=True``, ``flat_master=True`` should also be supplied to :func:`master_params_to_model_params`.
     """
     if flat_master:
-        for model, master in zip(
-            model_params, _unflatten_dense_tensors(master_params[0].data, model_params)
-        ):
+        for model, master in zip(model_params,
+                                 _unflatten_dense_tensors(master_params[0].data, model_params)):
             model.data.copy_(master)
     else:
         for model, master in zip(model_params, master_params):
             if model.device.type == "cpu":
                 continue
             model.data.copy_(master.data)
-
 
 def model_params_to_master_params(model_params, master_params, flat_master=False):
     """
@@ -245,14 +223,14 @@ def model_params_to_master_params(model_params, master_params, flat_master=False
 
 
 def to_python_float(t):
-    if hasattr(t, "item"):
+    if hasattr(t, 'item'):
         return t.item()
     else:
         return t[0]
 
 
-TORCH_MAJOR = int(torch.__version__.split(".")[0])
-TORCH_MINOR = int(torch.__version__.split(".")[1])
+TORCH_MAJOR = int(torch.__version__.split('.')[0])
+TORCH_MINOR = int(torch.__version__.split('.')[1])
 
 
 def get_tp_merged_fp32_from_fp16_param_groups(optimizer, cpu_fp32_from_fp16_groups):
@@ -278,14 +256,12 @@ def get_tp_merged_fp32_from_fp16_param_groups(optimizer, cpu_fp32_from_fp16_grou
                     param_id_r = param_index_to_id_tp_group[r][param_index_r]
 
                     # search param id in fp32_from_fp16_groups_param_ids and find the index.
-                    group_param_idx = fp32_from_fp16_paramid_groups_tp_group[r][
-                        group_idx
-                    ].index(param_id_r)
+                    group_param_idx = fp32_from_fp16_paramid_groups_tp_group[r][group_idx].index(
+                        param_id_r
+                    )
                     # use the param corresponding to the index from fp32_from_fp16_groups for concatenation along axis
                     tensors.append(
-                        fp32_from_fp16_param_groups_tp_group[r][group_idx][
-                            group_param_idx
-                        ]
+                        fp32_from_fp16_param_groups_tp_group[r][group_idx][group_param_idx]
                     )
                 result_fp32_from_fp16_param_group.append(torch.cat(tensors, axis))
             else:
@@ -306,9 +282,7 @@ def get_tp_merged_fp32_from_fp16_param_groups(optimizer, cpu_fp32_from_fp16_grou
     fp32_from_fp16_paramid_groups_tp_group = smp.allgather(
         fp32_from_fp16_paramid_groups, smp.TP_GROUP
     )
-    fp32_from_fp16_param_groups_tp_group = smp.allgather(
-        cpu_fp32_from_fp16_groups, smp.TP_GROUP
-    )
+    fp32_from_fp16_param_groups_tp_group = smp.allgather(cpu_fp32_from_fp16_groups, smp.TP_GROUP)
     # broadcast distribution axis from tp_rank 0 to all tp_ranks
     master_distribution_axis_tp_rank_0 = None
     if smp.tp_rank() == 0:
@@ -321,13 +295,10 @@ def get_tp_merged_fp32_from_fp16_param_groups(optimizer, cpu_fp32_from_fp16_grou
     param_name_groups = []
     rank_0 = 0
     # iterate through all the params for tp_group_fp32_from_fp16_groups[rank_0]
-    for group_idx, param_group in enumerate(
-        fp32_from_fp16_param_groups_tp_group[rank_0]
-    ):
-        (
-            result_fp32_from_fp16_param_group,
-            param_name_group,
-        ) = _merge_param_group_tp_group(group_idx, param_group)
+    for group_idx, param_group in enumerate(fp32_from_fp16_param_groups_tp_group[rank_0]):
+        result_fp32_from_fp16_param_group, param_name_group = _merge_param_group_tp_group(
+            group_idx, param_group
+        )
         result_fp32_from_fp16_param_groups.append(result_fp32_from_fp16_param_group)
         param_name_groups.append(param_name_group)
     return result_fp32_from_fp16_param_groups, param_name_groups
@@ -346,9 +317,7 @@ def get_pp_merged_fp32_from_fp16_param_groups(
                 index_to_param_name[index] = param_name
             index_to_param_name_groups.append(index_to_param_name)
         # allgather the index_to_param_name_groups across the pp_group
-        pp_index_to_param_name_groups = smp.allgather(
-            index_to_param_name_groups, smp.PP_GROUP
-        )
+        pp_index_to_param_name_groups = smp.allgather(index_to_param_name_groups, smp.PP_GROUP)
     else:
         raise ValueError("Merging is not supported when param_name_groups is None")
 
@@ -431,8 +400,6 @@ def register_optimizer_hooks(model):
         from functools import partial
 
         optimizer.param_name_to_index = partial(param_name_to_index, optimizer)
-        optimizer._param_index_to_param_local = partial(
-            _param_index_to_param_local, optimizer
-        )
+        optimizer._param_index_to_param_local = partial(_param_index_to_param_local, optimizer)
 
     model.register_post_partition_hook(hook_fn)
