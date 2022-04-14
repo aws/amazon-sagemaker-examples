@@ -22,7 +22,6 @@ On SageMaker Studio, you will need to open a terminal, go to your home folder, t
 
 .. toctree::
   :maxdepth: 1
-  :caption: Introduction to SageMaker
 
   intro.rst
 
