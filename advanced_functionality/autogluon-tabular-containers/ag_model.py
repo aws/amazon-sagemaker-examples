@@ -14,16 +14,19 @@ class AutoGluonTraining(Framework):
         entry_point,
         region,
         framework_version,
+        py_version,
         instance_type,
         source_dir=None,
         hyperparameters=None,
         **kwargs,
     ):
-        image_uri = image_uris.retrieve(
+        self.framework_version = framework_version
+        self.py_version = py_version
+        self.image_uri = image_uris.retrieve(
             "autogluon",
             region=region,
             version=framework_version,
-            py_version="py37",
+            py_version=py_version,
             image_scope="training",
             instance_type=instance_type,
         )
@@ -31,8 +34,9 @@ class AutoGluonTraining(Framework):
             entry_point,
             source_dir,
             hyperparameters,
+            framework_version=framework_version,
             instance_type=instance_type,
-            image_uri=image_uri,
+            image_uri=self.image_uri,
             **kwargs,
         )
 
@@ -62,13 +66,21 @@ class AutoGluonTabularPredictor(Predictor):
 
 class AutoGluonInferenceModel(MXNetModel):
     def __init__(
-        self, model_data, role, entry_point, region, framework_version, instance_type, **kwargs
+        self,
+        model_data,
+        role,
+        entry_point,
+        region,
+        framework_version,
+        py_version,
+        instance_type,
+        **kwargs,
     ):
         image_uri = image_uris.retrieve(
             "autogluon",
             region=region,
             version=framework_version,
-            py_version="py37",
+            py_version=py_version,
             image_scope="inference",
             instance_type=instance_type,
         )
