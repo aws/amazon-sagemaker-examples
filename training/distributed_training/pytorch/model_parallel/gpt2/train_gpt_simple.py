@@ -97,7 +97,7 @@ def train_step(model, optimizer, input_ids, attention_mask, args):
     else:
         loss = model(input_ids=input_ids, attention_mask=attention_mask, labels=input_ids)["loss"]
     if args.fp16:
-            optimizer.backward(loss, update_master_grads=False)
+        optimizer.backward(loss, update_master_grads=False)
     else:
         model.backward(loss)
     if args.logits_output:
@@ -605,10 +605,10 @@ def train(
                 loss_metric = loss.item()
 
             if args.fp16:
-                    optimizer.update_master_grads()
-                    optimizer.clip_master_grads(args.grad_clip)
-                    optimizer.step()
-                    overflow = optimizer.overflow
+                optimizer.update_master_grads()
+                optimizer.clip_master_grads(args.grad_clip)
+                optimizer.step()
+                overflow = optimizer.overflow
             else:
                 optimizer.step()
 
@@ -1098,7 +1098,7 @@ def main():
 
     if args.manual_partition:
         print(f"Manual partition enabled")
-            # evenly distribute layers across all partitions
+        # evenly distribute layers across all partitions
         div, rem = divmod(args.num_layers, smp.pp_size())
         get_num_layers = lambda x: (div + 1 if x >= smp.pp_size() - rem else div)
         assignments = []
@@ -1138,16 +1138,16 @@ def main():
                 smp.set_activation_checkpointing(c)
 
     if args.fp16:
-            optimizer = FP16_Optimizer(
-                model,
-                optimizer,
-                static_loss_scale=None,
-                dynamic_loss_scale=True,
-                use_smp=True,
-                dynamic_loss_args={"scale_window": 1000, "min_scale": 1, "delayed_shift": 2},
-                params_have_main_grad=args.fp32_grad_accumulation > 0,
-                shard_optimizer_state=args.shard_optimizer_state > 0,
-            )
+        optimizer = FP16_Optimizer(
+            model,
+            optimizer,
+            static_loss_scale=None,
+            dynamic_loss_scale=True,
+            use_smp=True,
+            dynamic_loss_args={"scale_window": 1000, "min_scale": 1, "delayed_shift": 2},
+            params_have_main_grad=args.fp32_grad_accumulation > 0,
+            shard_optimizer_state=args.shard_optimizer_state > 0,
+        )
 
     optimizer = smp.DistributedOptimizer(optimizer)
     lr_scheduler = get_learning_rate_scheduler(optimizer, args)
