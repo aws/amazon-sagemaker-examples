@@ -47,20 +47,21 @@ def model_fn(model_dir):
 
 
 def load_data(path):
-    with gzip.open(find_file(path, "labels.gz")) as flbl:
+    with gzip.open(find_file(path, ["train-labels-idx1-ubyte.gz", "t10k-labels-idx1-ubyte.gz"])) as flbl:
         struct.unpack(">II", flbl.read(8))
         labels = np.fromstring(flbl.read(), dtype=np.int8)
-    with gzip.open(find_file(path, "images.gz")) as fimg:
+    with gzip.open(find_file(path, ["train-images-idx3-ubyte.gz", "t10k-images-idx3-ubyte.gz"])) as fimg:
         _, _, rows, cols = struct.unpack(">IIII", fimg.read(16))
         images = np.fromstring(fimg.read(), dtype=np.uint8).reshape(len(labels), rows, cols)
         images = images.reshape(images.shape[0], 1, 28, 28).astype(np.float32) / 255
     return labels, images
 
 
-def find_file(root_path, file_name):
+def find_file(root_path, file_names):
     for root, dirs, files in os.walk(root_path):
-        if file_name in files:
-            return os.path.join(root, file_name)
+        for file_name in file_names:
+            if file_name in files:
+                return os.path.join(root, file_name)
 
 
 def build_graph():
