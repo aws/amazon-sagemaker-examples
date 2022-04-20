@@ -11,7 +11,6 @@ Welcome to Amazon SageMaker.
 This site highlights example Jupyter notebooks for a variety of machine learning use cases that you can run in SageMaker.
 
 This site is based on the `SageMaker Examples repository <https://github.com/aws/amazon-sagemaker-examples>`_ on GitHub.
-Browse around to see what piques your interest.
 To run these notebooks, you will need a SageMaker Notebook Instance or SageMaker Studio.
 Refer to the SageMaker developer guide's `Get Started <https://docs.aws.amazon.com/sagemaker/latest/dg/gs.html>`_ page to get one of these set up.
 
@@ -22,10 +21,9 @@ On SageMaker Studio, you will need to open a terminal, go to your home folder, t
 
 
 .. toctree::
-   :maxdepth: 1
-   :caption: Get started
+  :maxdepth: 1
 
-   get_started/index
+  intro.rst
 
 
 .. toctree::
