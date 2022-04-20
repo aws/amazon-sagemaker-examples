@@ -8,7 +8,7 @@ Get started with Autopilot
 
    sagemaker_autopilot_direct_marketing
    sagemaker_autopilot_abalone_parquet_input
-
+   autopilot_bike_and_scooter
 
 Feature selection
 ==========================
