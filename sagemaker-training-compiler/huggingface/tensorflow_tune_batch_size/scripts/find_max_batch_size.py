@@ -1,11 +1,8 @@
 import argparse
 import os, subprocess, time
-import torch
 
 if __name__ == "__main__":
 
-    os.environ["GPU_NUM_DEVICES"] = str(torch.cuda.device_count())
-    
     parser = argparse.ArgumentParser()
     # please update parameters if using a customized training script
     # model configs
