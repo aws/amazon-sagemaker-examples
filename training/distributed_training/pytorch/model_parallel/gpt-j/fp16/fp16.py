@@ -339,12 +339,16 @@ def clip_grad_norm_fp32(
 
 
 def conversion_helper(val, conversion):
-    """Apply conversion to val. Recursively apply conversion if `val` is a nested tuple/list structure."""
-    if not isinstance(val, (tuple, list)):
+    """Apply conversion to val. Recursively apply conversion if `val` is a nested tuple/list/dict structure."""
+    
+    if isinstance(val, (tuple, list)):
+        rtn = [conversion_helper(v, conversion) for v in val]
+        if isinstance(val, tuple):
+            rtn = tuple(rtn)
+    elif isinstance(val, dict):
+        rtn = {k: conversion_helper(val[k], conversion) for k in val}
+    else:
         return conversion(val)
-    rtn = [conversion_helper(v, conversion) for v in val]
-    if isinstance(val, tuple):
-        rtn = tuple(rtn)
     return rtn
 
 
@@ -382,7 +386,7 @@ class FP16_Module(nn.Module):
         self.add_module("module", module.half())
 
     def forward(self, *inputs, **kwargs):
-        return fp16_to_fp32(self.module(*(fp32_to_fp16(inputs)), **kwargs))
+        return fp16_to_fp32(self.module(*(fp32_to_fp16(inputs)), **fp32_to_fp16(kwargs)))
 
     def state_dict(self, destination=None, prefix="", keep_vars=False):
         return self.module.state_dict(destination, prefix, keep_vars)
