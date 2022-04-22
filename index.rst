@@ -21,13 +21,13 @@ On SageMaker Studio, you will need to open a terminal, go to your home folder, t
 
 ----
 
-We recommend the following 20 notebooks as a broad introduction to the capabilities that SageMaker offers. To explore in even more depth, we provide additional notebooks covering even more use cases and frameworks.
-
 .. toctree::
    :maxdepth: 1
    :caption: Introduction
 
    intro.rst
+
+We recommend the following 20 notebooks as a broad introduction to the capabilities that SageMaker offers. To explore in even more depth, we provide additional notebooks covering even more use cases and frameworks.
 
 .. toctree::
    :maxdepth: 1
