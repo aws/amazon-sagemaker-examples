@@ -19,18 +19,21 @@ On SageMaker Studio, you will need to open a terminal, go to your home folder, t
 
    git clone https://github.com/aws/amazon-sagemaker-examples.git
 
-Introduction to SageMaker
-========================
+----
+
+We recommend the following 20 notebooks as a broad introduction to the capabilities that SageMaker offers. To explore in even more depth, we provide additional notebooks covering even more use cases and frameworks.
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Introduction
+
+   intro.rst
 
 .. toctree::
    :maxdepth: 1
    :caption: Get started on SageMaker
 
    introduction_to_applying_machine_learning/xgboost_customer_churn/xgboost_customer_churn_outputs
-
-
-Try machine learning on SageMaker
-=================================
 
 .. toctree::
    :maxdepth: 1
@@ -74,11 +77,9 @@ Try machine learning on SageMaker
    sagemaker-pipelines/tabular/lambda-step/sagemaker-pipelines-lambda-step_outputs
 
 
-Popular frameworks
-==================
-
 .. toctree::
    :maxdepth: 1
+   :caption: Popular frameworks
 
    introduction_to_amazon_algorithms/xgboost_abalone/xgboost_abalone_dist_script_mode_outputs
    introduction_to_applying_machine_learning/huggingface_sentiment_classification/huggingface_sentiment_outputs
@@ -92,11 +93,6 @@ Popular frameworks
 
 More examples
 =============
-
-.. toctree::
-   :maxdepth: 1
-
-  intro.rst
 
 
 .. toctree::
