@@ -21,15 +21,19 @@ class CustomTrainingArguments(TrainingArguments):
     )
     model_dir: Optional[str] = field(
         default=os.environ["SM_MODEL_DIR"],
-        metadata={"help": "Saves full model for inference to this dir. Also used if load_full is given to load the model. Note the lack of optimizer state here."},
+        metadata={
+            "help": "Saves full model for inference to this dir. Also used if load_full is given to load the model. Note the lack of optimizer state here."
+        },
     )
     save_final_full_model: Optional[int] = field(
         default=1,
-        metadata={"help":"Enabling this will save a combined model only at the end"},
+        metadata={"help": "Enabling this will save a combined model only at the end"},
     )
     gather_if_shard: Optional[int] = field(
         default=1,
-        metadata={"help":"When sharding opt states is enabled, gather the opt checkpoint to rdp rank 0 during saving"},
+        metadata={
+            "help": "When sharding opt states is enabled, gather the opt checkpoint to rdp rank 0 during saving"
+        },
     )
     same_seed: Optional[int] = field(
         default=0,
@@ -94,19 +98,15 @@ class CustomTrainingArguments(TrainingArguments):
     )
     fp16: int = field(
         default=0,
-        metadata={
-            "help": "Automatic mixed precision training"
-        },
+        metadata={"help": "Automatic mixed precision training"},
     )
     megatron: Optional[int] = field(
         default=0,
-        metadata={"help":"use megatron fp16 optimizer"},
+        metadata={"help": "use megatron fp16 optimizer"},
     )
     plateau: float = field(
         default=0.4,
-        metadata={
-            "help": "Percentage of total iterations to keep at max if using plateau lr"
-        },
+        metadata={"help": "Percentage of total iterations to keep at max if using plateau lr"},
     )
 
 
@@ -139,15 +139,11 @@ class ModelArguments:
     )
     config_name: Optional[str] = field(
         default=None,
-        metadata={
-            "help": "Pretrained config name or path if not the same as model_name"
-        },
+        metadata={"help": "Pretrained config name or path if not the same as model_name"},
     )
     tokenizer_name: Optional[str] = field(
         default=None,
-        metadata={
-            "help": "Pretrained tokenizer name or path if not the same as model_name"
-        },
+        metadata={"help": "Pretrained tokenizer name or path if not the same as model_name"},
     )
     cache_dir: Optional[str] = field(
         default=None,
@@ -163,9 +159,7 @@ class ModelArguments:
     )
     load_from_s3: bool = field(
         default=False,
-        metadata={
-            "help": "Whether to load the model from a S3 location or from_pretrained."
-        },
+        metadata={"help": "Whether to load the model from a S3 location or from_pretrained."},
     )
     model_revision: str = field(
         default="main",
@@ -256,9 +250,7 @@ class DataTrainingArguments:
         default=True,
         metadata={"help": "Whether to keep line breaks when using TXT files or not."},
     )
-    train_file: Optional[str] = field(
-        default=None, metadata={"help": "Local path to train file."}
-    )
+    train_file: Optional[str] = field(default=None, metadata={"help": "Local path to train file."})
     validation_file: Optional[str] = field(
         default=None, metadata={"help": "Local path to validation file."}
     )
@@ -276,9 +268,7 @@ class SMPArguments:
 
     microbatches: Optional[int] = field(default=1, metadata={"help": "Microbatches"})
 
-    active_microbatches: Optional[int] = field(
-        default=None, metadata={"help": "Microbatches"}
-    )
+    active_microbatches: Optional[int] = field(default=None, metadata={"help": "Microbatches"})
 
     optimize: Optional[str] = field(
         default="speed",
@@ -309,9 +299,7 @@ class SMPArguments:
     )
     trace_device: Optional[str] = field(
         default="cpu",
-        metadata={
-            "help": "The device ('cpu' or 'gpu') that you want load model to for tracing."
-        },
+        metadata={"help": "The device ('cpu' or 'gpu') that you want load model to for tracing."},
     )
     match_weights: Optional[int] = field(
         default=0,
@@ -319,7 +307,5 @@ class SMPArguments:
     )
     tensor_parallel_degree: Optional[int] = field(
         default=1,
-        metadata={
-            "help": "Degree of tensor parallelism"
-        },
+        metadata={"help": "Degree of tensor parallelism"},
     )

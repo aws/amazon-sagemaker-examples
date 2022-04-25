@@ -55,11 +55,13 @@ def clip_grad_norm_fp32(parameters, param_is_distributed, max_norm, norm_type=2)
     for param in parameters:
         grad_not_none = param.grad is not None
         is_not_shared = not hasattr(param, "shared") or not param.shared
-        is_not_tp_duplicate = smp.tp_rank() == 0 or (param in param_is_distributed and param_is_distributed[param])
+        is_not_tp_duplicate = smp.tp_rank() == 0 or (
+            param in param_is_distributed and param_is_distributed[param]
+        )
         if grad_not_none:
             grad = param.grad.detach()
             # Make sure the grads are in fp32
-            assert param.grad.type() == 'torch.cuda.FloatTensor'
+            assert param.grad.type() == "torch.cuda.FloatTensor"
             grads.append(grad)
         if grad_not_none and is_not_shared and is_not_tp_duplicate:
             grads_for_norm.append(grad)
@@ -75,14 +77,16 @@ def clip_grad_norm_fp32(parameters, param_is_distributed, max_norm, norm_type=2)
             total_norm = max(grad.abs().max() for grad in grads_for_norm)
         total_norm_cuda = torch.cuda.FloatTensor([float(total_norm)])
         # Take max across all model-parallel GPUs.
-        torch.distributed.all_reduce(total_norm_cuda,
-                                     op=torch.distributed.ReduceOp.MAX,
-                                     group=smp.get_mp_process_group())
+        torch.distributed.all_reduce(
+            total_norm_cuda, op=torch.distributed.ReduceOp.MAX, group=smp.get_mp_process_group()
+        )
         total_norm = total_norm_cuda[0].item()
 
     else:
         if norm_type == 2.0:
-            dummy_overflow_buf = torch.cuda.IntTensor([0], device=torch.device("cuda", smp.local_rank()))
+            dummy_overflow_buf = torch.cuda.IntTensor(
+                [0], device=torch.device("cuda", smp.local_rank())
+            )
             # Use apex's multi-tensor applier for efficiency reasons.
             # Multi-tensor applier takes a function and a list of list
             # and performs the operation on that list all in one kernel.
@@ -91,31 +95,32 @@ def clip_grad_norm_fp32(parameters, param_is_distributed, max_norm, norm_type=2)
                     amp_C.multi_tensor_l2norm,
                     dummy_overflow_buf,
                     [grads_for_norm],
-                    False # no per-parameter norm
+                    False,  # no per-parameter norm
                 )
                 # Since we will be summing across data parallel groups,
                 # we need the pow(norm-type).
-                total_norm = grad_norm ** norm_type
+                total_norm = grad_norm**norm_type
         else:
             for grad in grads_for_norm:
                 grad_norm = torch.norm(grad, norm_type)
-                total_norm += grad_norm ** norm_type
+                total_norm += grad_norm**norm_type
 
         # Sum across all model-parallel GPUs.
-        torch.distributed.all_reduce(total_norm,
-                                     op=torch.distributed.ReduceOp.SUM,
-                                     group=smp.get_mp_process_group())
+        torch.distributed.all_reduce(
+            total_norm, op=torch.distributed.ReduceOp.SUM, group=smp.get_mp_process_group()
+        )
         total_norm = total_norm.item() ** (1.0 / norm_type)
 
     # Scale.
     if len(grads) > 0:
         clip_coeff = max_norm / (total_norm + 1.0e-6)
         if clip_coeff < 1.0:
-            dummy_overflow_buf = torch.cuda.IntTensor([0], device=torch.device("cuda", smp.local_rank()))
-            multi_tensor_applier(amp_C.multi_tensor_scale,
-                                 dummy_overflow_buf,
-                                 [grads, grads],
-                                 clip_coeff)
+            dummy_overflow_buf = torch.cuda.IntTensor(
+                [0], device=torch.device("cuda", smp.local_rank())
+            )
+            multi_tensor_applier(
+                amp_C.multi_tensor_scale, dummy_overflow_buf, [grads, grads], clip_coeff
+            )
 
     return total_norm
 
@@ -133,16 +138,18 @@ def count_zeros_fp32(parameters):
     for param in parameters:
         grad_not_none = param.grad is not None
         is_not_shared = not hasattr(param, "shared") or not param.shared
-        is_not_tp_duplicate = smp.tp_rank() == 0 or (param in param_is_distributed and param_is_distributed[param])
+        is_not_tp_duplicate = smp.tp_rank() == 0 or (
+            param in param_is_distributed and param_is_distributed[param]
+        )
         if grad_not_none and is_not_shared and is_not_tp_duplicate:
             grad = param.grad.detach()
             num_zeros = grad.numel() - torch.count_nonzero(grad)
             total_num_zeros = num_zeros + total_num_zeros
 
     # Sum across all model-parallel GPUs.
-    torch.distributed.all_reduce(total_num_zeros,
-                                 op=torch.distributed.ReduceOp.SUM,
-                                 group=smp.get_mp_process_group())
+    torch.distributed.all_reduce(
+        total_num_zeros, op=torch.distributed.ReduceOp.SUM, group=smp.get_mp_process_group()
+    )
     total_num_zeros = total_num_zeros.item()
 
     return total_num_zeros

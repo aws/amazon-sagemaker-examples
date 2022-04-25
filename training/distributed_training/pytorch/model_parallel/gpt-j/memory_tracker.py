@@ -1,6 +1,7 @@
 import smdistributed.modelparallel.torch as smp
 import torch
 
+
 def memory_status(msg="", reset_max=True, sync=True):
 
     rank = smp.rank()
@@ -27,10 +28,10 @@ def memory_status(msg="", reset_max=True, sync=True):
     max_cached /= 1024**3
 
     print(
-        f'[{msg}] rank {rank} tp_rank {tp_rank} pp_rank {pp_rank} TORCH {torch.__version__}',
-        f'device={local_rank} '
-        f'alloc {alloced:0.4f} max_alloced {max_alloced:0.4f} '
-        f'cache {cached:0.4f} max_cached {max_cached:0.4f}'
+        f"[{msg}] rank {rank} tp_rank {tp_rank} pp_rank {pp_rank} TORCH {torch.__version__}",
+        f"device={local_rank} "
+        f"alloc {alloced:0.4f} max_alloced {max_alloced:0.4f} "
+        f"cache {cached:0.4f} max_cached {max_cached:0.4f}",
     )
     if reset_max:
         torch.cuda.reset_max_memory_cached()

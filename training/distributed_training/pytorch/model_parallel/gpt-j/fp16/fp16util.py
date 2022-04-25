@@ -136,8 +136,10 @@ def prep_param_lists(model, flat_master=False):
             # http://pytorch.org/docs/master/_modules/torch/_utils.html
             master_params = _flatten_dense_tensors([param.data for param in model_params]).float()
         except BaseException:
-            print("Error in prep_param_lists:  model may contain a mixture of parameters "
-                  "of different types.  Use flat_master=False, or use F16_Optimizer.")
+            print(
+                "Error in prep_param_lists:  model may contain a mixture of parameters "
+                "of different types.  Use flat_master=False, or use F16_Optimizer."
+            )
             raise
         master_params = torch.nn.Parameter(master_params)
         master_params.requires_grad = True
@@ -152,7 +154,9 @@ def prep_param_lists(model, flat_master=False):
         return model_params, master_params
 
 
-def model_grads_to_master_grads(model_params, master_params, flat_master=False, loss_scale=1.0, params_have_main_grad=False):
+def model_grads_to_master_grads(
+    model_params, master_params, flat_master=False, loss_scale=1.0, params_have_main_grad=False
+):
     """
     Copy model gradients to master gradients.
 
@@ -163,7 +167,8 @@ def model_grads_to_master_grads(model_params, master_params, flat_master=False, 
     if flat_master:
         # The flattening may incur one more deep copy than is necessary.
         master_params[0].grad.data.copy_(
-            _flatten_dense_tensors([p.grad.data for p in model_params]))
+            _flatten_dense_tensors([p.grad.data for p in model_params])
+        )
     else:
         for model, master in zip(model_params, master_params):
             if model.device.type == "cpu":
@@ -182,10 +187,9 @@ def model_grads_to_master_grads(model_params, master_params, flat_master=False, 
         if len(model_grads) == 0 or len(master_grads) == 0:
             return
         _overflow_buf = torch.cuda.IntTensor([0])
-        multi_tensor_applier(amp_C.multi_tensor_scale,
-                             _overflow_buf,
-                             [model_grads, master_grads],
-                             1.0/loss_scale)
+        multi_tensor_applier(
+            amp_C.multi_tensor_scale, _overflow_buf, [model_grads, master_grads], 1.0 / loss_scale
+        )
 
 
 def master_params_to_model_params(model_params, master_params, flat_master=False):
@@ -197,14 +201,16 @@ def master_params_to_model_params(model_params, master_params, flat_master=False
         master_params:  List of FP32 master parameters created by :func:`prep_param_lists`.  If ``master_params`` was created with ``flat_master=True``, ``flat_master=True`` should also be supplied to :func:`master_params_to_model_params`.
     """
     if flat_master:
-        for model, master in zip(model_params,
-                                 _unflatten_dense_tensors(master_params[0].data, model_params)):
+        for model, master in zip(
+            model_params, _unflatten_dense_tensors(master_params[0].data, model_params)
+        ):
             model.data.copy_(master)
     else:
         for model, master in zip(model_params, master_params):
             if model.device.type == "cpu":
                 continue
             model.data.copy_(master.data)
+
 
 def model_params_to_master_params(model_params, master_params, flat_master=False):
     """
@@ -223,14 +229,14 @@ def model_params_to_master_params(model_params, master_params, flat_master=False
 
 
 def to_python_float(t):
-    if hasattr(t, 'item'):
+    if hasattr(t, "item"):
         return t.item()
     else:
         return t[0]
 
 
-TORCH_MAJOR = int(torch.__version__.split('.')[0])
-TORCH_MINOR = int(torch.__version__.split('.')[1])
+TORCH_MAJOR = int(torch.__version__.split(".")[0])
+TORCH_MINOR = int(torch.__version__.split(".")[1])
 
 
 def get_tp_merged_fp32_from_fp16_param_groups(optimizer, cpu_fp32_from_fp16_groups):

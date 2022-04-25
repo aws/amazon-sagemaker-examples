@@ -22,7 +22,7 @@ import smdistributed.modelparallel.torch as smp
 
 
 def to_python_float(t):
-    if hasattr(t, 'item'):
+    if hasattr(t, "item"):
         return t.item()
     else:
         return t[0]
@@ -64,10 +64,9 @@ class LossScaler:
     def scale_gradient(self, module, grad_in, grad_out):
         _overflow_buf = torch.cuda.IntTensor([0])
 
-        multi_tensor_applier(amp_C.multi_tensor_scale,
-                             _overflow_buf,
-                             [grad_in, grad_in],
-                             self.loss_scale)
+        multi_tensor_applier(
+            amp_C.multi_tensor_scale, _overflow_buf, [grad_in, grad_in], self.loss_scale
+        )
         return grad_in
 
     def backward(self, loss, retain_graph=False):
@@ -104,15 +103,18 @@ class DynamicLossScaler:
         scale_window (int, optional, default=1000):  Number of consecutive iterations without an overflow to wait before increasing the loss scale.
     """
 
-    def __init__(self,
-                 model,
-                 shard_optimizer_state,
-                 init_scale=2**32,
-                 scale_factor=2.,
-                 scale_window=1000,
-                 min_scale=1,
-                 delayed_shift=1,
-                 consecutive_hysteresis=False, use_smp=False):
+    def __init__(
+        self,
+        model,
+        shard_optimizer_state,
+        init_scale=2**32,
+        scale_factor=2.0,
+        scale_window=1000,
+        min_scale=1,
+        delayed_shift=1,
+        consecutive_hysteresis=False,
+        use_smp=False,
+    ):
         self.model = model
         self.shard_optimizer_state = shard_optimizer_state
         self.cur_scale = init_scale
@@ -124,7 +126,7 @@ class DynamicLossScaler:
         self.delayed_shift = delayed_shift
         self.cur_hysteresis = delayed_shift
         self.consecutive_hysteresis = consecutive_hysteresis
-        self.use_smp = use_smp 
+        self.use_smp = use_smp
 
     # `params` is a list / generator of torch.Variable
     def has_overflow_serial(self, params):
@@ -139,10 +141,12 @@ class DynamicLossScaler:
         # Since each model parallel GPU carries only part of the model,
         # make sure overflow flag is synced across all the model parallel GPUs
         overflow_gpu = torch.cuda.ByteTensor([overflow])
-        group = smp.get_world_process_group() if self.shard_optimizer_state else smp.get_mp_process_group()
-        torch.distributed.all_reduce(overflow_gpu,
-                                     op=torch.distributed.ReduceOp.MAX,
-                                     group=group)
+        group = (
+            smp.get_world_process_group()
+            if self.shard_optimizer_state
+            else smp.get_mp_process_group()
+        )
+        torch.distributed.all_reduce(overflow_gpu, op=torch.distributed.ReduceOp.MAX, group=group)
         overflow = overflow_gpu[0].item()
         return bool(overflow)
 
@@ -164,20 +168,20 @@ class DynamicLossScaler:
                 raise
             return True
         else:
-            if cpu_sum == float('inf') or cpu_sum == -float('inf') or cpu_sum != cpu_sum:
+            if cpu_sum == float("inf") or cpu_sum == -float("inf") or cpu_sum != cpu_sum:
                 return True
             return False
 
     # `overflow` is boolean indicating whether the gradient overflowed
     def update_scale(self, overflow):
 
-        if not hasattr(self, 'min_scale'):
+        if not hasattr(self, "min_scale"):
             self.min_scale = 1
-        if not hasattr(self, 'delayed_shift'):
+        if not hasattr(self, "delayed_shift"):
             self.delayed_shift = 1
-        if not hasattr(self, 'cur_hysteresis'):
+        if not hasattr(self, "cur_hysteresis"):
             self.cur_hysteresis = 1
-        if not hasattr(self, 'consecutive_hysteresis'):
+        if not hasattr(self, "consecutive_hysteresis"):
             self.consecutive_hysteresis = True
         if overflow:
             # self.cur_scale /= self.scale_factor
@@ -201,10 +205,9 @@ class DynamicLossScaler:
 
     def scale_gradient(self, module, grad_in, grad_out):
         _overflow_buf = torch.cuda.IntTensor([0])
-        multi_tensor_applier(amp_C.multi_tensor_scale,
-                             _overflow_buf,
-                             [grad_in, grad_in],
-                             self.loss_scale)
+        multi_tensor_applier(
+            amp_C.multi_tensor_scale, _overflow_buf, [grad_in, grad_in], self.loss_scale
+        )
         return grad_in
 
     def backward(self, loss, retain_graph=False):

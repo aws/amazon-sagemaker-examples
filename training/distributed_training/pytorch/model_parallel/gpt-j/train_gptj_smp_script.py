@@ -42,6 +42,7 @@ from fp16 import FP16_Module, FP16_Optimizer, load_fp16_optimizer, save_fp16_opt
 from learning_rates import AnnealingLR
 
 from smdistributed.modelparallel.torch.nn import FusedLayerNorm as LayerNorm
+
 # from smdistributed.modelparallel.torch.nn.huggingface.gptj import (
 #     translate_hf_gptj_state_dict_to_smdistributed,
 #     translate_state_dict_to_hf_gptj,
@@ -82,6 +83,7 @@ def print_num_parameters(model):
         print(f"# total parameters: {num_params}")
 
     return num_params
+
 
 def save(
     output_save_file,
@@ -147,6 +149,7 @@ def save(
         smp.save(save_dict, output_save_file, partial=partial, v3=not args.gather_if_shard)
 
     print(f"Finished checkpointing after {total_steps} steps: {output_save_file}")
+
 
 def get_param_groups_by_weight_decay(module):
     weight_decay_params = {"params": []}
@@ -226,15 +229,19 @@ def initialize_model_and_tokenizer(model_args):
     if model_args.load_from_s3:
         # calculate world size to load model
         num_of_gpus = int(os.environ["SM_NUM_GPUS"])
-        num_of_hosts = len(json.loads(os.environ['SM_HOSTS']))
+        num_of_hosts = len(json.loads(os.environ["SM_HOSTS"]))
         world_size = num_of_gpus * num_of_hosts
-        
+
         if smp.rdp_rank() == 0:
-            with smart_open(model_args.model_name_or_path, 'rb') as f:
+            with smart_open(model_args.model_name_or_path, "rb") as f:
                 buffer = io.BytesIO(f.read())
-                model = no_init(lambda: torch.load(buffer, map_location={'cuda:{}'.format(world_size-1):'cuda:0'}))
+                model = no_init(
+                    lambda: torch.load(
+                        buffer, map_location={"cuda:{}".format(world_size - 1): "cuda:0"}
+                    )
+                )
         smp.barrier()
-    
+
         # reset model_name_or_path to load tokenizer from AutoTokenizer
         model_args.model_name_or_path = "EleutherAI/gpt-j-6B"
 
@@ -258,14 +265,10 @@ def initialize_model_and_tokenizer(model_args):
     }
 
     if model_args.tokenizer_name:
-        tokenizer = AutoTokenizer.from_pretrained(
-            model_args.tokenizer_name, **tokenizer_kwargs
-        )
+        tokenizer = AutoTokenizer.from_pretrained(model_args.tokenizer_name, **tokenizer_kwargs)
 
     elif model_args.model_name_or_path:
-        tokenizer = AutoTokenizer.from_pretrained(
-            model_args.model_name_or_path, **tokenizer_kwargs
-        )
+        tokenizer = AutoTokenizer.from_pretrained(model_args.model_name_or_path, **tokenizer_kwargs)
     else:
         raise ValueError(
             "You are instantiating a new tokenizer from scratch. This is not supported by this script. "
@@ -299,9 +302,7 @@ def initialize_smp(smp_args, training_args):
     if smp.rank() == 0:
         print("Arguments:", smp_args.__dict__)
         print(f"Transformers version: {transformers.__version__}")
-        print(
-            f"smdistributed.modelparallel version: {smdistributed.modelparallel.__version__}"
-        )
+        print(f"smdistributed.modelparallel version: {smdistributed.modelparallel.__version__}")
         print(f"smdistributed config: {smp_config}")
 
     set_seed(training_args.seed)
@@ -313,9 +314,7 @@ def main():
     model, tokenizer = initialize_model_and_tokenizer(model_args)
 
     # Get datasets
-    train_dataset, eval_dataset = Preprocess.datasets(
-        model_args, data_args, training_args
-    )
+    train_dataset, eval_dataset = Preprocess.datasets(model_args, data_args, training_args)
 
     if is_sagemaker_mp_enabled():
         initialize_smp(smp_args, training_args)
@@ -378,7 +377,7 @@ def main():
             tokenizer=tokenizer,
             data_collator=default_data_collator,
         )
-        
+
         start = time.time()
 
         trainer.train_smp(
@@ -392,20 +391,20 @@ def main():
             training_args,
             prescaled_batch=smp_args.prescaled_batch,
         )
-        
+
         time_to_train = time.time() - start
         print("TIME TO TRAIN - {}".format(time_to_train))
-        
+
         if training_args.save_final_full_model:
             # saves full model at the end
 
             base_path = f"trained_gpt_nparams-{num_params}_steps-{training_args.max_steps}.pt"
             out_path = os.path.join(training_args.model_dir, base_path)
-#             if args.save_or_verify_ckptsum:
-#                 # Save optimizer and model tensor sums and scalars before saving
-#                 save_ckptsum(args, model, optimizer, filename=os.path.join(args.model_dir, "saved_sum"))
+            #             if args.save_or_verify_ckptsum:
+            #                 # Save optimizer and model tensor sums and scalars before saving
+            #                 save_ckptsum(args, model, optimizer, filename=os.path.join(args.model_dir, "saved_sum"))
             model_config = GPTJConfig()
-    
+
             if smp.rdp_rank() == 0:
                 save(
                     out_path,

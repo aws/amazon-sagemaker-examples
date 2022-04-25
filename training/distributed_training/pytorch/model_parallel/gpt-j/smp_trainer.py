@@ -85,9 +85,7 @@ class SMPTrainer(Trainer):
     @smp.step
     def train_step(model, optimizer, input_ids, attention_mask, args):
 
-        loss = model(
-            input_ids=input_ids, attention_mask=attention_mask, labels=input_ids
-        )["loss"]
+        loss = model(input_ids=input_ids, attention_mask=attention_mask, labels=input_ids)["loss"]
 
         model.backward(loss)
 

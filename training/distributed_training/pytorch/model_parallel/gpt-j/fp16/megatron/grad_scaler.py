@@ -22,7 +22,6 @@ import torch
 
 
 class MegatronGradScaler(ABC):
-
     def __init__(self, initial_scale):
         """Initialize scale value with the input initial scale."""
         assert initial_scale > 0.0
@@ -49,9 +48,7 @@ class MegatronGradScaler(ABC):
         pass
 
 
-
 class ConstantGradScaler(MegatronGradScaler):
-
     def update(self, found_inf):
         pass
 
@@ -62,13 +59,11 @@ class ConstantGradScaler(MegatronGradScaler):
         pass
 
 
-
 class DynamicGradScaler(MegatronGradScaler):
-
-    def __init__(self, initial_scale, min_scale,
-                 growth_factor, backoff_factor,
-                 growth_interval, hysteresis):
-        """"Grad scaler with dynamic scale that gets adjusted
+    def __init__(
+        self, initial_scale, min_scale, growth_factor, backoff_factor, growth_interval, hysteresis
+    ):
+        """ "Grad scaler with dynamic scale that gets adjusted
         during training."""
         super(DynamicGradScaler, self).__init__(initial_scale)
 
@@ -97,7 +92,6 @@ class DynamicGradScaler(MegatronGradScaler):
         self._growth_tracker = 0
         self._hysteresis_tracker = self.hysteresis
 
-
     def update(self, found_inf):
 
         # If we have an inf/nan, growth tracker is set to 0
@@ -107,15 +101,14 @@ class DynamicGradScaler(MegatronGradScaler):
             self._hysteresis_tracker -= 1
             # Now if we are out of hysteresis count, scale down the loss.
             if self._hysteresis_tracker <= 0:
-                self._scale = torch.max(self._scale * self.backoff_factor,
-                                        self.min_scale)
+                self._scale = torch.max(self._scale * self.backoff_factor, self.min_scale)
             self.last_overflow_iter = self.cur_iter
         else:
             # If there is no nan/inf, increment the growth tracker.
             self._growth_tracker += 1
             # If we have had enough consequitive intervals with no nan/inf:
             if self._growth_tracker == self.growth_interval:
-            #if (self.cur_iter - self.last_overflow_iter) % self.growth_interval == 0:
+                # if (self.cur_iter - self.last_overflow_iter) % self.growth_interval == 0:
                 # Reset the tracker and hysteresis trackers,
                 self._growth_tracker = 0
                 self._hysteresis_tracker = self.hysteresis
@@ -123,17 +116,14 @@ class DynamicGradScaler(MegatronGradScaler):
                 self._scale = self._scale * self.growth_factor
         self.cur_iter += 1
 
-
-
     def state_dict(self):
         state_dict = {}
-        state_dict['scale'] = self._scale
-        state_dict['growth_tracker'] = self._growth_tracker
-        state_dict['hysteresis_tracker'] = self._hysteresis_tracker
+        state_dict["scale"] = self._scale
+        state_dict["growth_tracker"] = self._growth_tracker
+        state_dict["hysteresis_tracker"] = self._hysteresis_tracker
         return state_dict
 
-
     def load_state_dict(self, state_dict):
-        self._scale = state_dict['scale'].cuda(torch.cuda.current_device())
-        self._growth_tracker = state_dict['growth_tracker']
-        self._hysteresis_tracker = state_dict['hysteresis_tracker']
+        self._scale = state_dict["scale"].cuda(torch.cuda.current_device())
+        self._growth_tracker = state_dict["growth_tracker"]
+        self._hysteresis_tracker = state_dict["hysteresis_tracker"]

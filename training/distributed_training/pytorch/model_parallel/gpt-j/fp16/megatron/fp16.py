@@ -96,10 +96,14 @@ def save_fp16_optimizer(args, model, optimizer, partial=True):
         state_dict["optimizer_state_dict"] = optimizer.local_state_dict()
         if args.shard_optimizer_state:
             if smp.rdp_rank() == 0:
-                print("With shard_optimizer_state=True, gather full fp32_from_fp16_groups for the rdp_group on rdp rank 0")
+                print(
+                    "With shard_optimizer_state=True, gather full fp32_from_fp16_groups for the rdp_group on rdp rank 0"
+                )
                 gathered_cpu_fp32_from_fp16_groups = [cpu_fp32_from_fp16_groups]
                 for src in range(1, smp.rdp_size()):
-                    gathered_cpu_fp32_from_fp16_groups.append(smp.recv_from(src, smp.RankType.RDP_RANK))
+                    gathered_cpu_fp32_from_fp16_groups.append(
+                        smp.recv_from(src, smp.RankType.RDP_RANK)
+                    )
                 state_dict["fp32_from_fp16"] = gathered_cpu_fp32_from_fp16_groups
             else:
                 smp.send(cpu_fp32_from_fp16_groups, 0, smp.RankType.RDP_RANK)
@@ -114,10 +118,14 @@ def save_fp16_optimizer(args, model, optimizer, partial=True):
     else:
         state_dict["optimizer_state_dict"] = optimizer.state_dict()
         if smp.tp_size() > 1 and not args.shard_optimizer_state:
-            tp_merged_fp32_from_fp16_groups, param_name_groups = get_tp_merged_fp32_from_fp16_param_groups(
-                optimizer, cpu_fp32_from_fp16_groups
-            )
-            pp_merged_fp32_from_fp16_groups, param_name_groups = get_pp_merged_fp32_from_fp16_param_groups(
+            (
+                tp_merged_fp32_from_fp16_groups,
+                param_name_groups,
+            ) = get_tp_merged_fp32_from_fp16_param_groups(optimizer, cpu_fp32_from_fp16_groups)
+            (
+                pp_merged_fp32_from_fp16_groups,
+                param_name_groups,
+            ) = get_pp_merged_fp32_from_fp16_param_groups(
                 optimizer, tp_merged_fp32_from_fp16_groups, param_name_groups
             )
         else:
@@ -139,7 +147,9 @@ def load_fp16_optimizer(args, model, optimizer, state_dict, partial=True):
         optimizer.load_state_dict(opt_state_dict["optimizer_state_dict"])
         if partial:
             if args.shard_optimizer_state:
-                assert isinstance(opt_state_dict["fp32_from_fp16"], list), "Loading with shard_optimizer_state=True must use the checkpoint that was trained with shard_optimizer_state=True!"
+                assert isinstance(
+                    opt_state_dict["fp32_from_fp16"], list
+                ), "Loading with shard_optimizer_state=True must use the checkpoint that was trained with shard_optimizer_state=True!"
                 optimizer.fp32_from_fp16 = opt_state_dict["fp32_from_fp16"][smp.rdp_rank()]
             else:
                 optimizer.fp32_from_fp16 = opt_state_dict["fp32_from_fp16"]
@@ -495,10 +505,12 @@ class Float16OptimizerWithFloat16Params(MegatronOptimizer):
 
     def zero_grad(self, set_grads_to_None=True):
         """We only need to zero the model related parameters, i.e.,
-                float16_groups & fp32_from_fp32_groups."""
+        float16_groups & fp32_from_fp32_groups."""
 
         if self.shard_optimizer_state and set_grads_to_None and not self.warned_set_grads_to_none:
-            print("WARNING: Will not set fp16 gradients to None since shard_optimizer_state is enabled.")
+            print(
+                "WARNING: Will not set fp16 gradients to None since shard_optimizer_state is enabled."
+            )
             self.warned_set_grads_to_none = True
 
         for group in self.float16_groups:

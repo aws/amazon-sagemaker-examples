@@ -791,7 +791,7 @@ def parse_args():
     # I/O
     io_grp = parser.add_argument_group(title="io", description="location for input and output")
     io_grp.add_argument("--use_bert_data", type=int, default=0, help="use bert data for training")
-    #change to 0 original 1
+    # change to 0 original 1
     io_grp.add_argument("--zipped_data", type=int, default=0, help="input data is zipped files")
     io_grp.add_argument(
         "--epochs", type=int, default=30, help="times of iterating over the training dataset"
@@ -1101,7 +1101,7 @@ def main():
             enabled=(smp.tp_size() > 1 and args.match_weights < 1 and args.delayed_param > 0)
         ):
             model = AutoModelForCausalLM.from_config(model_config)
-            
+
     torch.set_default_dtype(torch.float32)
 
     if args.fp16:
@@ -1189,7 +1189,7 @@ def main():
     if args.fp16:
         if args.megatron:
             grad_scaler = DynamicGradScaler(
-                initial_scale=2 ** 32,
+                initial_scale=2**32,
                 min_scale=1,
                 growth_interval=1000,
                 growth_factor=2.0,
@@ -1240,7 +1240,13 @@ def main():
         partial = not args.load_full
         path = args.checkpoint_dir if partial else args.model_dir
         translate_from_hf = not partial
-        model, optimizer, total_steps, start_train_path_index, start_batch_index = load_model_and_optimizer(
+        (
+            model,
+            optimizer,
+            total_steps,
+            start_train_path_index,
+            start_batch_index,
+        ) = load_model_and_optimizer(
             path,
             model,
             optimizer,
