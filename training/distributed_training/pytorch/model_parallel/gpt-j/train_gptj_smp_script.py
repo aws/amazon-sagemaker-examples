@@ -4,6 +4,13 @@ import numpy as np
 import torch
 from torch.nn.parallel.distributed import DistributedDataParallel
 from torch import optim
+import os
+import json
+
+from smart_open import open as smart_open
+import io
+
+import time
 
 import transformers
 
@@ -20,6 +27,8 @@ from transformers import (
     set_seed,
 )
 
+from transformers import GPTJModel, GPTJConfig
+
 from transformers.file_utils import is_sagemaker_dp_enabled, is_sagemaker_mp_enabled
 
 from transformers.modeling_utils import PreTrainedModel
@@ -31,6 +40,12 @@ from smp_trainer import SMPTrainer
 
 from fp16 import FP16_Module, FP16_Optimizer, load_fp16_optimizer, save_fp16_optimizer
 from learning_rates import AnnealingLR
+
+from smdistributed.modelparallel.torch.nn import FusedLayerNorm as LayerNorm
+# from smdistributed.modelparallel.torch.nn.huggingface.gptj import (
+#     translate_hf_gptj_state_dict_to_smdistributed,
+#     translate_state_dict_to_hf_gptj,
+# )
 
 if is_sagemaker_mp_enabled():
     import smdistributed.modelparallel
@@ -68,6 +83,70 @@ def print_num_parameters(model):
 
     return num_params
 
+def save(
+    output_save_file,
+    model,
+    optimizer,
+    lr_scheduler,
+    model_config,
+    num_params,
+    total_steps,
+    curr_train_path_index,
+    args,
+    partial=True,
+    translate_to_hf=False,
+    seq_length=1024,
+    batch_idx=0,
+):
+    save_fn = save_fp16_optimizer_megatron if args.megatron else save_fp16_optimizer
+    save_dict = {
+        "cli_args": args.__dict__,
+        "num_params": num_params,
+        "total_steps": total_steps,
+        "curr_train_path_index": curr_train_path_index,
+        "model_config": model_config,
+        "batch_idx": batch_idx,
+    }
+
+    if lr_scheduler is not None:
+        save_dict["lr_scheduler"] = lr_scheduler.state_dict()
+    if partial:
+        if args.gather_if_shard > 0 or smp.rdp_rank() == 0:
+            # if not gather the opt checkpoint, only save the model for rdp rank 0
+            save_dict["model"] = model.local_state_dict()
+    else:
+        model_state_dict = model.state_dict(gather_to_rank0=True)
+        if smp.rank() == 0:
+            save_dict["model"] = (
+                translate_state_dict_to_hf_gptj(model_state_dict, seq_length)
+                if translate_to_hf
+                else model_state_dict
+            )
+
+    if args.fp16:
+        if not partial and args.skip_full_optimizer:
+            print("Skipping saving the final optimizer state")
+        else:
+            if args.shard_optimizer_state == 0 or partial:
+                save_dict["optimizer"] = save_fn(args, model, optimizer, partial=partial)
+            else:
+                print(
+                    "Saving the full optimizer state does not work with shard_optimizer_state > 0! Skipping..."
+                )
+    else:
+        # fp32
+        if partial:
+            save_dict["optimizer"] = optimizer.local_state_dict()
+        else:
+            if not args.skip_full_optimizer:
+                save_dict["optimizer"] = optimizer.state_dict()
+            else:
+                print("Skipping saving of full optimizer state")
+
+    if not args.gather_if_shard or (smp.rdp_rank() == 0 and partial) or smp.rank() == 0:
+        smp.save(save_dict, output_save_file, partial=partial, v3=not args.gather_if_shard)
+
+    print(f"Finished checkpointing after {total_steps} steps: {output_save_file}")
 
 def get_param_groups_by_weight_decay(module):
     weight_decay_params = {"params": []}
@@ -141,17 +220,33 @@ def parse_args():
 
 
 def initialize_model_and_tokenizer(model_args):
-
+    print("model loading.........")
+    print(model_args.load_from_s3)
     # Load model
+    if model_args.load_from_s3:
+        # calculate world size to load model
+        num_of_gpus = int(os.environ["SM_NUM_GPUS"])
+        num_of_hosts = len(json.loads(os.environ['SM_HOSTS']))
+        world_size = num_of_gpus * num_of_hosts
+        
+        if smp.rdp_rank() == 0:
+            with smart_open(model_args.model_name_or_path, 'rb') as f:
+                buffer = io.BytesIO(f.read())
+                model = no_init(lambda: torch.load(buffer, map_location={'cuda:{}'.format(world_size-1):'cuda:0'}))
+        smp.barrier()
+    
+        # reset model_name_or_path to load tokenizer from AutoTokenizer
+        model_args.model_name_or_path = "EleutherAI/gpt-j-6B"
 
-    model = no_init(
-        lambda: AutoModelForCausalLM.from_pretrained(
-            model_args.model_name_or_path,
-            cache_dir=model_args.cache_dir,
-            revision=None,
-            low_cpu_mem_usage=False,
+    else:
+        model = no_init(
+            lambda: AutoModelForCausalLM.from_pretrained(
+                model_args.model_name_or_path,
+                cache_dir=model_args.cache_dir,
+                revision=None,
+                low_cpu_mem_usage=False,
+            )
         )
-    )
 
     # Load tokenizer
 
@@ -283,6 +378,8 @@ def main():
             tokenizer=tokenizer,
             data_collator=default_data_collator,
         )
+        
+        start = time.time()
 
         trainer.train_smp(
             model,
@@ -295,6 +392,39 @@ def main():
             training_args,
             prescaled_batch=smp_args.prescaled_batch,
         )
+        
+        time_to_train = time.time() - start
+        print("TIME TO TRAIN - {}".format(time_to_train))
+        
+        if training_args.save_final_full_model:
+            # saves full model at the end
+
+            base_path = f"trained_gpt_nparams-{num_params}_steps-{training_args.max_steps}.pt"
+            out_path = os.path.join(training_args.model_dir, base_path)
+#             if args.save_or_verify_ckptsum:
+#                 # Save optimizer and model tensor sums and scalars before saving
+#                 save_ckptsum(args, model, optimizer, filename=os.path.join(args.model_dir, "saved_sum"))
+            model_config = GPTJConfig()
+    
+            if smp.rdp_rank() == 0:
+                save(
+                    out_path,
+                    model,
+                    optimizer,
+                    lr_scheduler,
+                    model_config,
+                    num_params,
+                    training_args.max_steps,
+                    -1,
+                    training_args,
+                    partial=False,
+                    translate_to_hf=smp.tp_size() > 1,
+                    seq_length=1024,
+                )
+
+        smp.barrier()
+        if smp.rank() == 0:
+            print("SMP training finished successfully")
 
 
 if __name__ == "__main__":

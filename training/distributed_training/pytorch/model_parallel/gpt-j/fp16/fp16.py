@@ -1,6 +1,5 @@
 # coding=utf-8
-# Copyright (c) 2022, NVIDIA CORPORATION.  All rights reserved.
-# Modifications Copyright 2022 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -80,9 +79,7 @@ def load_fp16_optimizer_finetuning(model, optimizer, state_dict):
         from functools import partial
 
         optimizer.param_name_to_index = partial(param_name_to_index, optimizer)
-        optimizer._param_index_to_param_local = partial(
-            _param_index_to_param_local, optimizer
-        )
+        optimizer._param_index_to_param_local = partial(_param_index_to_param_local, optimizer)
         optimizer.fp32_from_fp16 = opt_state_dict["fp32_from_fp16"]
 
         for current_group, saved_group in zip(
@@ -114,29 +111,21 @@ def save_fp16_optimizer(args, model, optimizer, partial=True):
     optimizer_state_dict["loss_scaler"] = _loss_scaler
     optimizer_state_dict["dynamic_loss_scale"] = optimizer.dynamic_loss_scale
     optimizer_state_dict["overflow"] = optimizer.overflow
-    optimizer_state_dict[
-        "first_closure_call_this_step"
-    ] = optimizer.first_closure_call_this_step
+    optimizer_state_dict["first_closure_call_this_step"] = optimizer.first_closure_call_this_step
     cpu_fp32_from_fp16_groups = [
         [param.cpu() for param in group] for group in optimizer.fp32_from_fp16_groups
     ]
     if optimizer.master_params_created:
         register_optimizer_hooks(model)
     if partial:
-        optimizer_state_dict["optimizer_state_dict"] = optimizer.local_state_dict()
-        if args.shard_optimizer_state:
+        optimizer_state_dict["optimizer_state_dict"] = optimizer.local_state_dict(gather_if_shard=args.gather_if_shard > 0)
+        if args.shard_optimizer_state and args.gather_if_shard > 0:
             if smp.rdp_rank() == 0:
-                print(
-                    "With shard_optimizer_state=True, gather full fp32_from_fp16_groups for the rdp_group on rdp rank 0"
-                )
+                print("With shard_optimizer_state=True, gather full fp32_from_fp16_groups for the rdp_group on rdp rank 0")
                 gathered_cpu_fp32_from_fp16_groups = [cpu_fp32_from_fp16_groups]
                 for src in range(1, smp.rdp_size()):
-                    gathered_cpu_fp32_from_fp16_groups.append(
-                        smp.recv_from(src, smp.RankType.RDP_RANK)
-                    )
-                optimizer_state_dict[
-                    "fp32_from_fp16"
-                ] = gathered_cpu_fp32_from_fp16_groups
+                    gathered_cpu_fp32_from_fp16_groups.append(smp.recv_from(src, smp.RankType.RDP_RANK))
+                optimizer_state_dict["fp32_from_fp16"] = gathered_cpu_fp32_from_fp16_groups
             else:
                 smp.send(cpu_fp32_from_fp16_groups, 0, smp.RankType.RDP_RANK)
                 optimizer_state_dict["fp32_from_fp16"] = cpu_fp32_from_fp16_groups
@@ -144,22 +133,16 @@ def save_fp16_optimizer(args, model, optimizer, partial=True):
             optimizer_state_dict["fp32_from_fp16"] = cpu_fp32_from_fp16_groups
         if smp.pp_size() > 1:
             print(
-                "WARNING: Ensure that partition decision doesnt change between runs (you can ensure this by setting use_times=False in smp config). "
+                "WARNING: Ensure that partition decision doesnt change between runs (you can ensure this by setting use_times=False in smp config)."
                 "If you want to save and load with partition decision changing between runs, use full save and load instead."
             )
     else:
         optimizer_state_dict["optimizer_state_dict"] = optimizer.state_dict()
         if smp.tp_size() > 1 and not args.shard_optimizer_state:
-            (
-                tp_merged_fp32_from_fp16_groups,
-                param_name_groups,
-            ) = get_tp_merged_fp32_from_fp16_param_groups(
+            tp_merged_fp32_from_fp16_groups, param_name_groups = get_tp_merged_fp32_from_fp16_param_groups(
                 optimizer, cpu_fp32_from_fp16_groups
             )
-            (
-                pp_merged_fp32_from_fp16_groups,
-                param_name_groups,
-            ) = get_pp_merged_fp32_from_fp16_param_groups(
+            pp_merged_fp32_from_fp16_groups, param_name_groups = get_pp_merged_fp32_from_fp16_param_groups(
                 optimizer, tp_merged_fp32_from_fp16_groups, param_name_groups
             )
         else:
@@ -180,13 +163,8 @@ def load_fp16_optimizer(args, model, optimizer, state_dict, partial=True):
     def hook_fn(model, optimizer):
         optimizer.load_state_dict(opt_state_dict["optimizer_state_dict"])
         if partial:
-            if args.shard_optimizer_state:
-                assert isinstance(
-                    opt_state_dict["fp32_from_fp16"], list
-                ), "Loading with shard_optimizer_state=True must use the checkpoint that was trained with shard_optimizer_state=True!"
-                optimizer.fp32_from_fp16 = opt_state_dict["fp32_from_fp16"][
-                    smp.rdp_rank()
-                ]
+            if args.shard_optimizer_state and args.gather_if_shard > 0:
+                optimizer.fp32_from_fp16 = opt_state_dict["fp32_from_fp16"][smp.rdp_rank()]
             else:
                 optimizer.fp32_from_fp16 = opt_state_dict["fp32_from_fp16"]
 
@@ -224,9 +202,7 @@ def load_fp16_optimizer(args, model, optimizer, state_dict, partial=True):
     model.register_post_partition_hook(hook_fn)
 
 
-def clip_grad_norm_fp32(
-    parameters, param_is_distributed, shard_optimizer_state, max_norm, norm_type=2
-):
+def clip_grad_norm_fp32(parameters, param_is_distributed, shard_optimizer_state, max_norm, norm_type=2):
     """Clips gradient norm of an iterable of parameters whose gradients
        are in fp32.
     This is adapted from torch.nn.utils.clip_grad.clip_grad_norm_ and
@@ -279,11 +255,7 @@ def clip_grad_norm_fp32(
         # Take max across all model-parallel GPUs.
         # Reducing across all ranks since gradients may be different across data parallel ranks
         # when optimizer state sharding is enabled.
-        group = (
-            smp.get_world_process_group()
-            if shard_optimizer_state
-            else smp.get_mp_process_group()
-        )
+        group = smp.get_world_process_group() if shard_optimizer_state else smp.get_mp_process_group()
         torch.distributed.all_reduce(
             total_norm_cuda, op=torch.distributed.ReduceOp.MAX, group=group
         )
@@ -306,19 +278,15 @@ def clip_grad_norm_fp32(
                 )
                 # Since we will be summing across data parallel groups,
                 # we need the pow(norm-type).
-                total_norm = grad_norm**norm_type
+                total_norm = grad_norm ** norm_type
 
         else:
             for grad in grads_for_norm:
                 grad_norm = torch.norm(grad, norm_type)
-                total_norm += grad_norm**norm_type
+                total_norm += grad_norm ** norm_type
 
         # Sum across all model-parallel GPUs.
-        group = (
-            smp.get_world_process_group()
-            if shard_optimizer_state
-            else smp.get_mp_process_group()
-        )
+        group = smp.get_world_process_group() if shard_optimizer_state else smp.get_mp_process_group()
         torch.distributed.all_reduce(
             total_norm, op=torch.distributed.ReduceOp.SUM, group=group
         )
@@ -387,12 +355,8 @@ class FP16_Module(nn.Module):
     def state_dict(self, destination=None, prefix="", keep_vars=False):
         return self.module.state_dict(destination, prefix, keep_vars)
 
-    def state_dict_for_save_checkpoint(
-        self, destination=None, prefix="", keep_vars=False
-    ):
-        return self.module.state_dict_for_save_checkpoint(
-            destination, prefix, keep_vars
-        )
+    def state_dict_for_save_checkpoint(self, destination=None, prefix="", keep_vars=False):
+        return self.module.state_dict_for_save_checkpoint(destination, prefix, keep_vars)
 
     def load_state_dict(self, state_dict, strict=True):
         self.module.load_state_dict(state_dict, strict=strict)
@@ -536,20 +500,12 @@ class FP16_Optimizer(object):
         if self.dynamic_loss_scale:
             if self.dynamic_loss_args is not None:
                 self.dynamic_loss_args["use_smp"] = self.use_smp
-                self.loss_scaler = DynamicLossScaler(
-                    self.model, self.shard_optimizer_state, **self.dynamic_loss_args
-                )
+                self.loss_scaler = DynamicLossScaler(self.model, self.shard_optimizer_state, **self.dynamic_loss_args)
             else:
-                self.loss_scaler = DynamicLossScaler(
-                    self.model, self.shard_optimizer_state, use_smp=self.use_smp
-                )
+                self.loss_scaler = DynamicLossScaler(self.model, self.shard_optimizer_state, use_smp=self.use_smp)
         else:
-            self.loss_scaler = LossScaler(
-                self.model,
-                self.shard_optimizer_state,
-                self.static_loss_scale,
-                use_smp=self.use_smp,
-            )
+            self.loss_scaler = LossScaler(self.model, self.shard_optimizer_state, self.static_loss_scale, use_smp=self.use_smp)
+
 
     def init_master_params(self):
 
@@ -602,18 +558,16 @@ class FP16_Optimizer(object):
                         self.master_is_distributed[
                             master_param
                         ] = self.model.is_distributed_parameter(param)
-                        self.master_distribution_axis[
-                            id(master_param)
-                        ] = get_distribution_axis(param)
+                        self.master_distribution_axis[id(master_param)] = get_distribution_axis(
+                            param
+                        )
                         param_group["params"][i] = master_param
                         fp32_from_fp16_params_this_group.append(master_param)
                         fp32_from_fp16_paramids_this_group.append(id(master_param))
                         # Reset existing state dict key to the new master param.
                         # We still need to recast per-param state tensors, if any, to FP32.
                         if param in self.optimizer.state:
-                            self.optimizer.state[
-                                master_param
-                            ] = self.optimizer.state.pop(param)
+                            self.optimizer.state[master_param] = self.optimizer.state.pop(param)
                         self.fp32paramid_from_fp16paramid[id(param)] = id(master_param)
                     elif param.type() == "torch.cuda.FloatTensor":
                         self.maybe_print(
@@ -631,9 +585,7 @@ class FP16_Optimizer(object):
                         )
             self.fp16_groups.append(fp16_params_this_group)
             self.fp32_from_fp16_groups.append(fp32_from_fp16_params_this_group)
-            self.fp32_from_fp16_paramid_groups.append(
-                fp32_from_fp16_paramids_this_group
-            )
+            self.fp32_from_fp16_paramid_groups.append(fp32_from_fp16_paramids_this_group)
             self.fp32_from_fp32_groups.append(fp32_params_this_group)
 
         # Leverage state_dict() and load_state_dict() to recast preexisting per-param state tensors
@@ -643,7 +595,7 @@ class FP16_Optimizer(object):
 
         self.overflow = False
         self.first_closure_call_this_step = True
-        self.master_params_created = True
+        self.master_params_created = True 
 
     def maybe_print(self, msg):
         if self.verbose:
@@ -653,9 +605,7 @@ class FP16_Optimizer(object):
         raise RuntimeError("FP16_Optimizer should be serialized using state_dict().")
 
     def __setstate__(self, state):
-        raise RuntimeError(
-            "FP16_Optimizer should be deserialized using load_state_dict()."
-        )
+        raise RuntimeError("FP16_Optimizer should be deserialized using load_state_dict().")
 
     def zero_grad(self, set_grads_to_None=False):
         """
@@ -664,14 +614,8 @@ class FP16_Optimizer(object):
         # In principle, only the .grad attributes of the model params need to be zeroed,
         # because gradients are copied into the FP32 master params.  However, we zero
         # all gradients owned by the optimizer, just to be safe:
-        if (
-            self.shard_optimizer_state
-            and set_grads_to_None
-            and not self.warned_set_grads_to_none
-        ):
-            print(
-                "WARNING: Will not set fp16 gradients to None since shard_optimizer_state is enabled."
-            )
+        if self.shard_optimizer_state and set_grads_to_None and not self.warned_set_grads_to_none:
+            print("WARNING: Will not set fp16 gradients to None since shard_optimizer_state is enabled.")
             self.warned_set_grads_to_none = True
 
         for group in self.optimizer.param_groups:
@@ -715,24 +659,18 @@ class FP16_Optimizer(object):
         self.loss_scaler.update_scale(has_overflow)
 
     def _master_params_to_model_params(self):
-        for fp16_group, fp32_from_fp16_group in zip(
-            self.fp16_groups, self.fp32_from_fp16_groups
-        ):
+        for fp16_group, fp32_from_fp16_group in zip(self.fp16_groups, self.fp32_from_fp16_groups):
             master_params_to_model_params(fp16_group, fp32_from_fp16_group)
 
     def _model_params_to_master_params(self):
-        for fp16_group, fp32_from_fp16_group in zip(
-            self.fp16_groups, self.fp32_from_fp16_groups
-        ):
+        for fp16_group, fp32_from_fp16_group in zip(self.fp16_groups, self.fp32_from_fp16_groups):
             model_params_to_master_params(fp16_group, fp32_from_fp16_group)
 
     # To consider:  Integrate distributed with this wrapper by registering a hook on each variable
     # that does the overflow check, gradient copy + downscale, and fp32
     # allreduce in a different stream.
     def _model_grads_to_master_grads(self, loss_scale=1.0):
-        for fp16_group, fp32_from_fp16_group in zip(
-            self.fp16_groups, self.fp32_from_fp16_groups
-        ):
+        for fp16_group, fp32_from_fp16_group in zip(self.fp16_groups, self.fp32_from_fp16_groups):
             model_grads_to_master_grads(
                 fp16_group,
                 fp32_from_fp16_group,
@@ -746,10 +684,7 @@ class FP16_Optimizer(object):
                 grads = [p.grad for p in group["params"] if p.grad is not None]
                 _overflow_buf = torch.cuda.IntTensor([0])
                 multi_tensor_applier(
-                    amp_C.multi_tensor_scale,
-                    _overflow_buf,
-                    [grads, grads],
-                    1.0 / self.loss_scale,
+                    amp_C.multi_tensor_scale, _overflow_buf, [grads, grads], 1.0 / self.loss_scale
                 )
 
     def clip_master_grads(self, max_norm, norm_type=2):
@@ -772,13 +707,7 @@ class FP16_Optimizer(object):
             for param_group in self.optimizer.param_groups:
                 for param in param_group["params"]:
                     fp32_params.append(param)
-            return clip_grad_norm_fp32(
-                fp32_params,
-                self.master_is_distributed,
-                self.shard_optimizer_state,
-                max_norm,
-                norm_type,
-            )
+            return clip_grad_norm_fp32(fp32_params, self.master_is_distributed, self.shard_optimizer_state, max_norm, norm_type)
         else:
             return -1
 
@@ -799,9 +728,7 @@ class FP16_Optimizer(object):
             state_dict["loss_scaler"] = self.loss_scaler
             state_dict["dynamic_loss_scale"] = self.dynamic_loss_scale
             state_dict["overflow"] = self.overflow
-            state_dict[
-                "first_closure_call_this_step"
-            ] = self.first_closure_call_this_step
+            state_dict["first_closure_call_this_step"] = self.first_closure_call_this_step
             state_dict["optimizer_state_dict"] = self.optimizer.state_dict()
             state_dict["fp32_from_fp16"] = self.fp32_from_fp16_groups
             return state_dict
@@ -831,9 +758,7 @@ class FP16_Optimizer(object):
             self.loss_scaler = state_dict["loss_scaler"]
             self.dynamic_loss_scale = state_dict["dynamic_loss_scale"]
             self.overflow = state_dict["overflow"]
-            self.first_closure_call_this_step = state_dict[
-                "first_closure_call_this_step"
-            ]
+            self.first_closure_call_this_step = state_dict["first_closure_call_this_step"]
             self.optimizer.load_state_dict(state_dict["optimizer_state_dict"])
             # At this point, the optimizer's references to the model's fp32 parameters are up to date.
             # The optimizer's hyperparameters and internal buffers are also up to date.

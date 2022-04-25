@@ -6,6 +6,7 @@ from transformers import TrainingArguments, CONFIG_MAPPING, MODEL_FOR_CAUSAL_LM_
 
 from dataclasses import dataclass, field
 from typing import Optional
+import os
 
 MODEL_CONFIG_CLASSES = list(MODEL_FOR_CAUSAL_LM_MAPPING.keys())
 MODEL_TYPES = tuple(conf.model_type for conf in MODEL_CONFIG_CLASSES)
@@ -17,6 +18,18 @@ class CustomTrainingArguments(TrainingArguments):
     output_dir: Optional[str] = field(
         default="./temp",
         metadata={"help": "Output directory"},
+    )
+    model_dir: Optional[str] = field(
+        default=os.environ["SM_MODEL_DIR"],
+        metadata={"help": "Saves full model for inference to this dir. Also used if load_full is given to load the model. Note the lack of optimizer state here."},
+    )
+    save_final_full_model: Optional[int] = field(
+        default=1,
+        metadata={"help":"Enabling this will save a combined model only at the end"},
+    )
+    gather_if_shard: Optional[int] = field(
+        default=1,
+        metadata={"help":"When sharding opt states is enabled, gather the opt checkpoint to rdp rank 0 during saving"},
     )
     same_seed: Optional[int] = field(
         default=0,
@@ -75,6 +88,20 @@ class CustomTrainingArguments(TrainingArguments):
         #         choices=["constant", "linear", "cosine", "exponential", "plateau"],
         metadata={"help": "Learning rate decay function."},
     )
+    skip_full_optimizer: int = field(
+        default=1,
+        metadata={"help": "Disabling this will also save the full optimizer state"},
+    )
+    fp16: int = field(
+        default=0,
+        metadata={
+            "help": "Automatic mixed precision training"
+        },
+    )
+    megatron: Optional[int] = field(
+        default=0,
+        metadata={"help":"use megatron fp16 optimizer"},
+    )
     plateau: float = field(
         default=0.4,
         metadata={
@@ -132,6 +159,12 @@ class ModelArguments:
         default=True,
         metadata={
             "help": "Whether to use one of the fast tokenizer (backed by the tokenizers library) or not."
+        },
+    )
+    load_from_s3: bool = field(
+        default=False,
+        metadata={
+            "help": "Whether to load the model from a S3 location or from_pretrained."
         },
     )
     model_revision: str = field(
@@ -283,4 +316,10 @@ class SMPArguments:
     match_weights: Optional[int] = field(
         default=0,
         metadata={"help": "Get weights from the original model"},
+    )
+    tensor_parallel_degree: Optional[int] = field(
+        default=1,
+        metadata={
+            "help": "Degree of tensor parallelism"
+        },
     )

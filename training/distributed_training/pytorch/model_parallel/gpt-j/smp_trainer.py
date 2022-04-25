@@ -4,6 +4,7 @@ import smdistributed.modelparallel.torch as smp
 
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple, Union
 import time
+import os
 
 import transformers
 from transformers import (
