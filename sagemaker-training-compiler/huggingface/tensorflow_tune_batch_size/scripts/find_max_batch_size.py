@@ -29,7 +29,7 @@ if __name__ == "__main__":
     training_command += "--dataset_config_name sst2 "
     training_command += "--do_train "
     training_command += "--num_train_epochs 1 "
-    training_command += "--max_steps 10 "
+    training_command += "--max_steps 1000 "
     training_command += "--save_strategy no "
     training_command += "--logging_strategy no "
     training_command += "--output_dir /tmp/test "
