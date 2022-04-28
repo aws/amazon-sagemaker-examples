@@ -20,9 +20,9 @@ SageMaker uses a `default bucket <https://sagemaker.readthedocs.io/en/stable/api
 .. toctree::
    :maxdepth: 1
 
-   011_Ingest_tabular_data_v1
-   012_Ingest_text_data_v2
-   013_Ingest_image_data_v1
+   ingest-data-types/ingest_tabular_data
+   ingest-data-types/ingest_text_data
+   ingest-data-types/ingest_image_data
 
 
 Athena
@@ -35,7 +35,7 @@ This example runs the California housing dataset and uses PyAthena, a Python cli
 .. toctree::
    :maxdepth: 1
 
-   02_Ingest_data_with_Athena_v1
+   ingest-with-aws-services/ingest_data_with_Athena
 
 
 EMR
@@ -48,7 +48,7 @@ This example runs the California housing dataset.
 .. toctree::
    :maxdepth: 1
 
-   04_Ingest_data_with_EMR
+   ingest-with-aws-services/ingest_data_with_EMR
 
 
 Redshift
@@ -62,7 +62,7 @@ This example runs the California housing dataset and uses `awswrangler`, a Panda
 .. toctree::
    :maxdepth: 1
 
-   03_Ingest_data_with_Redshift_v3
+   ingest-with-aws-services/ingest_data_with_Redshift
 
 
 Amazon Keyspaces (for Apache Cassandra)
