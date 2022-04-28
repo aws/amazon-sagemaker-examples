@@ -223,37 +223,15 @@ def parse_args():
 
 
 def initialize_model_and_tokenizer(model_args):
-    print("model loading.........")
-    print(model_args.load_from_s3)
     # Load model
-    if model_args.load_from_s3:
-        # calculate world size to load model
-        num_of_gpus = int(os.environ["SM_NUM_GPUS"])
-        num_of_hosts = len(json.loads(os.environ["SM_HOSTS"]))
-        world_size = num_of_gpus * num_of_hosts
-
-        if smp.rdp_rank() == 0:
-            with smart_open(model_args.model_name_or_path, "rb") as f:
-                buffer = io.BytesIO(f.read())
-                model = no_init(
-                    lambda: torch.load(
-                        buffer, map_location={"cuda:{}".format(world_size - 1): "cuda:0"}
-                    )
-                )
-        smp.barrier()
-
-        # reset model_name_or_path to load tokenizer from AutoTokenizer
-        model_args.model_name_or_path = "EleutherAI/gpt-j-6B"
-
-    else:
-        model = no_init(
-            lambda: AutoModelForCausalLM.from_pretrained(
-                model_args.model_name_or_path,
-                cache_dir=model_args.cache_dir,
-                revision=None,
-                low_cpu_mem_usage=False,
-            )
+    model = no_init(
+        lambda: AutoModelForCausalLM.from_pretrained(
+            model_args.model_name_or_path,
+            cache_dir=model_args.cache_dir,
+            revision=None,
+            low_cpu_mem_usage=False,
         )
+    )
 
     # Load tokenizer
 
