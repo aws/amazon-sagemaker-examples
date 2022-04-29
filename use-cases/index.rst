@@ -15,7 +15,6 @@ Fleet Predictive Maintenance
 .. toctree::
     :maxdepth: 1
 
-    predictive_maintenance/0_usecase_and_architecture_predmaint
     predictive_maintenance/1_dataprep_dw_job_predmaint
     predictive_maintenance/2_dataprep_predmaint
     predictive_maintenance/3_train_tune_predict_predmaint
