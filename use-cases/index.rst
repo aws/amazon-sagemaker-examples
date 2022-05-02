@@ -36,10 +36,9 @@ Computer Vision for Medical Imaging
 .. toctree::
     :maxdepth: 1
 
-    computer_vision/1-metastases-detection-train-model
-    computer_vision/2-metastases-detection-lineage-registry
-    computer_vision/3-metastases-detection-deploy-predict
-    computer_vision/4-metastases-detection-pipeline
+    computer_vision/metastases-detection-pipeline.ipynb
+    use-cases/computer_vision/metastases-detection.ipynb
+
 
 
 Pipelines with NLP for Product Rating Prediction
