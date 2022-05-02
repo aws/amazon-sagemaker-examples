@@ -147,9 +147,7 @@ class DynamicLossScaler:
             if self.shard_optimizer_state
             else smp.get_mp_process_group()
         )
-        torch.distributed.all_reduce(
-            overflow_gpu, op=torch.distributed.ReduceOp.MAX, group=group
-        )
+        torch.distributed.all_reduce(overflow_gpu, op=torch.distributed.ReduceOp.MAX, group=group)
         overflow = overflow_gpu[0].item()
         return bool(overflow)
 
@@ -171,11 +169,7 @@ class DynamicLossScaler:
                 raise
             return True
         else:
-            if (
-                cpu_sum == float("inf")
-                or cpu_sum == -float("inf")
-                or cpu_sum != cpu_sum
-            ):
+            if cpu_sum == float("inf") or cpu_sum == -float("inf") or cpu_sum != cpu_sum:
                 return True
             return False
 
