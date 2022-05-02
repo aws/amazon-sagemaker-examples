@@ -4,6 +4,7 @@ import smdistributed.modelparallel.torch as smp
 
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple, Union
 import time
+import os
 
 import transformers
 from transformers import (
@@ -84,9 +85,7 @@ class SMPTrainer(Trainer):
     @smp.step
     def train_step(model, optimizer, input_ids, attention_mask, args):
 
-        loss = model(
-            input_ids=input_ids, attention_mask=attention_mask, labels=input_ids
-        )["loss"]
+        loss = model(input_ids=input_ids, attention_mask=attention_mask, labels=input_ids)["loss"]
 
         model.backward(loss)
 
