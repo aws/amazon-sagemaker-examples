@@ -27,9 +27,8 @@ E-Commerce Personalization
 .. toctree::
     :maxdepth: 1
 
-    retail_recommend/1_retail_recommend_dataprep
-    retail_recommend/2_retail_recommend_train_tune
-    retail_recommend/3_retail_recommend_pipeline
+    retail_recommend/retail_recommend
+    retail_recommend/retail_recommend_pipeline
 
 
 Computer Vision for Medical Imaging
