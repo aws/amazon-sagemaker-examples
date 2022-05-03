@@ -27,7 +27,7 @@ On SageMaker Studio, you will need to open a terminal, go to your home folder, t
 
    intro.rst
 
-We recommend the following 20 notebooks as a broad introduction to the capabilities that SageMaker offers. To explore in even more depth, we provide additional notebooks covering even more use cases and frameworks.
+We recommend the following notebooks as a broad introduction to the capabilities that SageMaker offers. To explore in even more depth, we provide additional notebooks covering even more use cases and frameworks.
 
 .. toctree::
    :maxdepth: 1
@@ -39,7 +39,9 @@ We recommend the following 20 notebooks as a broad introduction to the capabilit
    :maxdepth: 1
    :caption: Prepare data
 
+   sagemaker_processing/spark_distributed_data_processing/sagemaker-spark-processing_outputs
    sagemaker_processing/basic_sagemaker_data_processing/basic_sagemaker_processing_outputs
+
 
 
 .. toctree::
