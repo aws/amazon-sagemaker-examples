@@ -35,9 +35,9 @@ Computer Vision for Medical Imaging
 
 .. toctree::
     :maxdepth: 1
-
+    computer_vision/metastases-detection.ipynb
     computer_vision/metastases-detection-pipeline.ipynb
-    use-cases/computer_vision/metastases-detection.ipynb
+    
 
 
 
