@@ -37,7 +37,6 @@ Computer Vision for Medical Imaging
     :maxdepth: 1
     computer_vision/metastases-detection
     computer_vision/metastases-detection-pipeline
-    
 
 
 
