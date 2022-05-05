@@ -49,4 +49,4 @@ Text data guide
 .. toctree::
    :maxdepth: 1
 
-   text_data/04_preprocessing_text_data_v3
+   text_data/preprocessing_text_data
