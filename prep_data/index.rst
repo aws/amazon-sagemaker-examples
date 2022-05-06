@@ -38,9 +38,7 @@ Tabular data guide
 .. toctree::
    :maxdepth: 1
 
-   tabular_data/01_preprocessing_tabular_data
-   tabular_data/02_feature_selection_tabular_data
-   tabular_data/03_training_model_on_tabular_data
+   tabular_data/train_featurize_train_tabular_data
 
 
 Text data guide
@@ -49,4 +47,4 @@ Text data guide
 .. toctree::
    :maxdepth: 1
 
-   text_data/04_preprocessing_text_data_v3
+   text_data/preprocessing_text_data
