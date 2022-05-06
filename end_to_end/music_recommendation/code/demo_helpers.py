@@ -133,8 +133,12 @@ def delete_project_resources(sagemaker_boto_client, sagemaker_session, endpoint_
                 artfct = Artifact(artifact_arn=summary.artifact_arn, sagemaker_session=sagemaker_session)
                 artfct.delete()
                 time.sleep(1)
+                
     # Delete model lineage associations and artifacts created in demo
-    delete_lineage_data()
+    try:
+        delete_lineage_data()
+    except Expection as err:
+        print(f"Failed to delete lineage data: {err}")
     
     if endpoint_names is not None:
         try:
