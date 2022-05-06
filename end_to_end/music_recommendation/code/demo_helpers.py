@@ -35,7 +35,7 @@ def get_data(s3_client, public_s3_data, to_bucket, to_prefix, sample_data=1):
     return new_paths
 
 
-def get_model(model_path, to_bucket, to_prefix):
+def get_model(s3_client, model_path, to_bucket, to_prefix):
     # upload model to our default s3 bucket for SageMaker Studio
     filename = model_path.split('/')[-1]
     print("Uploading {} to {}\n".format(model_path, os.path.join(to_bucket,to_prefix,filename)))
