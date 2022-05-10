@@ -12,87 +12,31 @@ You also need to know the formats and "shapes" of the images that your framework
 Additionally, you can further encode images in optimized formats that will speed up your ML processes.
 The following guide covers how you can preprocess images using SageMaker's built-in image processing and for PyTorch or TensorFlow training.
 
-To get started, run the following notebooks in order. There are four phases:
-   1. Download data
-   2. Structure data
-   3. Preprocess (choose one of SageMaker built-in, PyTorch, or TensorFlow)
-   4. Train (choose one of SageMaker built-in, PyTorch, or TensorFlow)
+The following notebooks will teach you how to download, structure, and preprocess the data before using it to train a model.
+We will show you how to perform these tasks with SageMaker Built-in Algorithms, PyTorch, and TensorFlow.
 
 
-Download your image data
---------------------------------------
-First, download the data.
-
-.. toctree::
-   :maxdepth: 1
-
-   01_download_data
-
-
-Structure your image data
---------------------------------------
-Now you structure the data before the next phase which is framework-specific.
-
-.. toctree::
-   :maxdepth: 1
-
-   02_structuring_data
-
-
-Preprocessing
--------------
-For preprocessing, you have several options.
-This guide covers SageMaker's built-in option and options for PyTorch or TensorFlow.
-Choose one of the following notebooks and run it prior to going to the training step for the preprocessing option you chose.
-
-with SageMaker built-in
+SageMaker Built-in Algorithms
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. toctree::
    :maxdepth: 1
 
-   03a_builtin_preprocessing
+   builtin_preprocess_and_train
 
 
-with PyTorch
+PyTorch
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. toctree::
    :maxdepth: 1
 
-   03c_pytorch_preprocessing
+   pytorch_preprocess_and_train
 
 
-with TensorFlow
+TensorFlow
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. toctree::
    :maxdepth: 1
 
-   03b_tensorflow_preprocessing
+   tensorflow_preprocess_and_train
 
-
-Training on image data
-----------------------
-Now that you preprocessed your image data, choose the corresponding notebook to train with.
-
-with SageMaker built-in
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-.. toctree::
-   :maxdepth: 1
-
-   04a_builtin_training
-
-
-with PyTorch
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-.. toctree::
-   :maxdepth: 1
-
-   04c_pytorch_training
-
-
-with TensorFlow
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-.. toctree::
-   :maxdepth: 1
-
-   04b_tensorflow_training
