@@ -4,7 +4,6 @@ Music Streaming Service: Customer Churn Detection
 .. toctree::
     :maxdepth: 1
 
-    customer_churn/0_cust_churn_overview_dw
     customer_churn/1_cust_churn_dataprep
     customer_churn/2_cust_churn_train_deploy_infer
 
