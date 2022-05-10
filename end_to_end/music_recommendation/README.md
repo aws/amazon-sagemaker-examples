@@ -72,4 +72,4 @@ In the following notebooks we'll take 2 different approaches with the same model
 
 # Clean Up
 
-In order to prevent ongoing charges to your AWS account, clean up any resources we spun up during this tutorial. We've also included a notebook, `07_clean_up.ipynb`, to delete all resources spun up by this demo. 
+In order to prevent ongoing charges to your AWS account, clean up any resources we spun up during this tutorial at the end of notebooks [Train, Deploy, and Monitor the Music Recommender Model using SageMaker SDK](03_train_deploy_debugger_explain_monitor_registry.ipynb) and [Train, Deploy, and Monitor the Music Recommender Model using SageMaker Pipelines](end_to_end_pipeline.ipynb).
