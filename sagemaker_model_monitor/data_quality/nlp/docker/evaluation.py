@@ -113,7 +113,7 @@ def download_embeddings_file():
     from s3fs.core import S3FileSystem
     s3 = S3FileSystem()
     
-    key = 'sagemaker/nlp-model-monitor/embeddings/embeddings.npy'
+    key = "sagemaker/nlp-model-monitor/embeddings/embeddings.npy"
     bucket = env.bucket
     print("S3 bucket name is",bucket)
 
@@ -129,7 +129,7 @@ if __name__=="__main__":
     #download BERT embedding file used for fine-tuning BertForSequenceClassification
     baseline_embedding_list = download_embeddings_file()
     
-    model = SentenceTransformer('all-MiniLM-L6-v2')
+    model = SentenceTransformer("all-MiniLM-L6-v2")
     
     sent_mmd_dict = {}
     violations = []
@@ -198,16 +198,5 @@ if __name__=="__main__":
             msg = "Completed: Job completed successfully with no violations."
         outfile.write(msg)
         print(msg)
-    '''
-    if True:
-    #if env.publish_cloudwatch_metrics:
-        print("Writing CloudWatch metrics...")
-        with open("/opt/ml/output/metrics/cloudwatch/cloudwatch_metrics.jsonl", "a+") as outfile:
-            # One metric per line (JSONLines list of dictionaries)
-            # Remember these metrics are aggregated in graphs, so we report them as statistics on our dataset
-            outfile.write(json.dumps(
-            { "violations": str(len(violations)) },
-            indent=4,
-            ))
-    '''
+          
     print("Done")
