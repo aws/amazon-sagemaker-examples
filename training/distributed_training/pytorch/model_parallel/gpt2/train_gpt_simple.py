@@ -582,7 +582,6 @@ def train(
             train_dataloader = dataset_future.result(timeout=None)
             wait_time = time.time() - s
             if wait_time > 1:
-                # TODO if this happens, we should try num_workers>1 in dataloader
                 print(
                     f"[{smp.rank()}] Waited {wait_time} for data loader to be ready. Please check if dataloader performance can be improved to avoid these waits."
                 )
@@ -914,7 +913,6 @@ def main():
         summary_activation=None,
         summary_proj_to_labels=True,
         summary_first_dropout=args.summary_first_pdrop,
-        # gradient_checkpointing=args.gradient_checkpointing > 0,
         use_cache=True,
         bos_token_id=50256,
         eos_token_id=50256,
@@ -988,9 +986,6 @@ def main():
             div, rem = divmod(args.num_layers, smp.pp_size())
             get_num_layers = lambda x: (div + 1 if x >= smp.pp_size() - rem else div)
         assignments = []
-        # (TODO) This is required for 175B otherwise a hang for partition "8,17,17,18,18,18"
-        # Need further investigation
-        # for pp_rank in reversed(range(smp.pp_size())):
         for pp_rank in range(smp.pp_size()):
             nl = get_num_layers(pp_rank)
             print(f"{nl} layers assigned to partition {pp_rank}")

@@ -15,11 +15,6 @@ import torch.nn as nn
 import torch.utils.data
 import transformers
 from data_pipeline import create_pretraining_dataloader
-from fp16 import FP16_Module, FP16_Optimizer, load_fp16_optimizer, save_fp16_optimizer
-from fp16.megatron.fp16 import Float16OptimizerWithFloat16Params
-from fp16.megatron.fp16 import load_fp16_optimizer as load_fp16_optimizer_megatron
-from fp16.megatron.fp16 import save_fp16_optimizer as save_fp16_optimizer_megatron
-from fp16.megatron.grad_scaler import DynamicGradScaler
 from learning_rates import AnnealingLR
 from memory_tracker import memory_status
 from smdistributed.modelparallel.torch.nn import FusedLayerNorm as LayerNorm
@@ -101,16 +96,12 @@ def train_step(model, optimizer, input_ids, attention_mask, args):
         loss = output["loss"]
     else:
         loss = model(input_ids=input_ids, attention_mask=attention_mask, labels=input_ids)["loss"]
-    if args.fp16:
-        if args.megatron:
-            scaled_loss = optimizer.scale_loss(loss)
-            model.backward(scaled_loss)
-        else:
-            optimizer.backward(loss, update_master_grads=False)
-    else:
-        model.backward(loss)
+
+    model.backward(loss)
+
     if args.logits_output:
         return output
+
     return loss
 
 
@@ -119,89 +110,6 @@ def train_step(model, optimizer, input_ids, attention_mask, args):
 def test_step(model, input_ids, attention_mask):
     loss = model(input_ids=input_ids, attention_mask=attention_mask, labels=input_ids)["loss"]
     return loss
-
-
-def save_ckptsum(args, model, optimizer, filename):
-    results = collections.defaultdict(dict)
-    model_result = collections.defaultdict(dict)
-
-    if args.fp16:
-        from fp16.fp16util import register_optimizer_hooks
-
-        register_optimizer_hooks(model)
-
-    def _get_optimizer_result(optimizer_states):
-        _optimizer_result = collections.defaultdict(dict)
-        for param_idx, state in optimizer_states.items():
-            for key, val in state.items():
-                if isinstance(val, torch.Tensor):
-                    _optimizer_result["tensors"][f"{param_idx}_{key}"] = torch.sum(val)
-                else:
-                    _optimizer_result["scalars"][f"{param_idx}_{key}"] = val
-        return _optimizer_result
-
-    if not args.shard_optimizer_state:
-        optimizer_result = _get_optimizer_result(optimizer.local_state_dict()["state"])
-    else:
-        local_state_dict = optimizer.local_state_dict()["state"]
-        if smp.rdp_rank() == 0:
-            optimizer_result = []
-            for partial_local_state_dict in local_state_dict:
-                optimizer_result.append(_get_optimizer_result(partial_local_state_dict))
-
-    for param_name, param in model.local_state_dict().items():
-        if isinstance(param, torch.Tensor):
-            model_result["tensors"][param_name] = torch.sum(param)
-        else:
-            model_result["scalars"][param_name] = param
-
-    if smp.rdp_rank() == 0:
-        results["optimizer"] = optimizer_result
-        results["model"] = model_result
-        smp.save(results, filename)
-
-
-def load_and_verify_ckptsum(args, model, optimizer, filename):
-    results = smp.load(filename)
-    optimizer_result = (
-        results["optimizer"]
-        if not args.shard_optimizer_state
-        else results["optimizer"][smp.rdp_rank()]
-    )
-    model_result = results["model"]
-
-    def opt_check_fn(mod, opt):
-        loaded_opt_states = (
-            opt.orig_state_dict()["state"]
-            if args.shard_optimizer_state
-            else opt.local_state_dict()["state"]
-        )
-        for param_idx, state in loaded_opt_states.items():
-            for key, val in state.items():
-                if isinstance(val, torch.Tensor):
-                    assert torch.isclose(
-                        torch.sum(val), optimizer_result["tensors"][f"{param_idx}_{key}"]
-                    ), f"mismatch for param_idx: {param_idx}, key is {key}"
-                else:
-                    assert (
-                        val == optimizer_result["scalars"][f"{param_idx}_{key}"]
-                    ), f"mismatch for param_idx: {param_idx}, key is {key}"
-        print("Optimizer save/load check passed successfully")
-
-    def model_check_fn(mod, opt):
-        for param_name, param in mod.local_state_dict().items():
-            if isinstance(param, torch.Tensor):
-                assert torch.isclose(
-                    torch.sum(param), model_result["tensors"][param_name]
-                ), f"mismatch for param_name: {param_name}"
-            else:
-                assert (
-                    param == model_result["scalars"][param_name]
-                ), f"mismatch for param_name: {param_name}"
-        print("Model save/load check passed successfully")
-
-    model.register_post_partition_hook(model_check_fn)
-    model.register_post_step_hook(opt_check_fn)
 
 
 def save(
@@ -219,7 +127,6 @@ def save(
     seq_length=1024,
     batch_idx=0,
 ):
-    save_fn = save_fp16_optimizer_megatron if args.megatron else save_fp16_optimizer
     save_dict = {
         "cli_args": args.__dict__,
         "num_params": num_params,
@@ -244,25 +151,17 @@ def save(
                 else model_state_dict
             )
 
-    if args.fp16:
-        if not partial and args.skip_full_optimizer:
-            print("Skipping saving the final optimizer state")
-        else:
-            if args.shard_optimizer_state == 0 or partial:
-                save_dict["optimizer"] = save_fn(args, model, optimizer, partial=partial)
-            else:
-                print(
-                    "Saving the full optimizer state does not work with shard_optimizer_state > 0! Skipping..."
-                )
+    if partial:
+        save_dict["optimizer"] = optimizer.local_state_dict(gather_if_shard=args.gather_if_shard)
     else:
-        # fp32
-        if partial:
-            save_dict["optimizer"] = optimizer.local_state_dict()
+        if args.skip_full_optimizer:
+            print("Skipping saving the final optimizer state")
+        elif args.shard_optimizer_state > 0:
+            print(
+                    "Saving the full optimizer state does not work with shard_optimizer_state > 0! Skipping..."
+            )
         else:
-            if not args.skip_full_optimizer:
-                save_dict["optimizer"] = optimizer.state_dict()
-            else:
-                print("Skipping saving of full optimizer state")
+            save_dict["optimizer"] = optimizer.state_dict()
 
     if not args.gather_if_shard or (smp.rdp_rank() == 0 and partial) or smp.rank() == 0:
         smp.save(save_dict, output_save_file, partial=partial, v3=not args.gather_if_shard)
@@ -334,33 +233,13 @@ def load_model_and_optimizer(
         checkpoint = (
             checkpoint if args.gather_if_shard > 0 or smp.rdp_rank() == 0 else opt_checkpoint
         )
-        # Loading loss scale eagerly
-        if not args.megatron:
-            opt_state_dict = checkpoint["optimizer"]
-            optimizer.loss_scaler = opt_state_dict["loss_scaler"]
-            optimizer.loss_scaler.model = model
-            optimizer.dynamic_loss_scale = opt_state_dict["dynamic_loss_scale"]
-            optimizer.overflow = opt_state_dict["overflow"]
-            optimizer.first_closure_call_this_step = opt_state_dict["first_closure_call_this_step"]
-
-        def opt_load_hook(mod, opt):
-            load_fn = load_fp16_optimizer_megatron if args.megatron else load_fp16_optimizer
+        
+        if not partial and args.skip_full_optimizer:
+            print("Skipping loading the final optimizer state, and reloading master_params from model_params for fp16")
             if args.fp16:
-                if not partial and args.skip_full_optimizer:
-                    print(
-                        "Skipping loading the final optimizer state, and reloading master_params from model_params"
-                    )
-                    opt.reload_model_params()
-                else:
-                    load_fn(args, mod, opt, checkpoint, partial=partial)
-            else:
-                # fp32
-                if not partial and args.skip_full_optimizer:
-                    print("Skipping loading the final optimizer state")
-                else:
-                    opt.load_state_dict(checkpoint["optimizer"])
-
-        model.register_post_step_hook(opt_load_hook)
+                model.register_post_step_hook(opt.reload_model_params) 
+        else:
+            optimizer.load_state_dict(checkpoint["optimizer"], args.gather_if_shard)
 
     print(f'Loaded model from "{local_ckpt_path}"')
 
@@ -595,10 +474,7 @@ def train(
 
             step_start = time.time()
 
-            if args.fp16:
-                optimizer.zero_grad(set_grads_to_None=True)
-            else:
-                optimizer.zero_grad()
+            optimizer.zero_grad(set_to_none=True)
 
             if args.logits_output:
                 train_output = train_step(model, optimizer, input_ids, attention_mask, args)
@@ -616,7 +492,7 @@ def train(
             loss = loss_mb.reduce_mean()
             if not args.validation_freq:
                 loss_metric = loss.item()
-
+            
             if args.enable_memory_profiling > 0:
                 memory_status(msg="After_train_step")
 
@@ -624,19 +500,12 @@ def train(
                 # empty the cache to avoid OOM
                 torch.cuda.empty_cache()
 
-            if args.fp16:
-                if args.megatron:
-                    success, _, _ = optimizer.step()
-                    overflow = not success
-                else:
-                    optimizer.update_master_grads()
-                    optimizer.clip_master_grads(args.grad_clip)
-                    optimizer.step()
-                    overflow = optimizer.overflow
-            else:
-                optimizer.step()
 
-            if not (args.fp16 and overflow):
+            if args.fp16:
+                optimizer.clip_master_grads(args.grad_clip)
+                
+            optimizer.step()
+            if not (args.fp16 and optimizer.overflow):
                 lr_scheduler.step()
 
             if args.enable_memory_profiling > 0:
@@ -681,18 +550,6 @@ def train(
 
                 delete_oldest_ckpt(args, delete_on_rank0_only=args.use_fsx > 0)
 
-                # save_or_verify_ckptsum if this is the last checkpoint
-                if (args.save_or_verify_ckptsum and total_steps >= args.max_steps) or (
-                    (total_ckpts + 1) * args.checkpoint_freq
-                ) > args.max_steps:
-                    # Save optimizer and model tensor sums and scalars before saving
-                    save_ckptsum(
-                        args,
-                        model,
-                        optimizer,
-                        filename=os.path.join(args.model_dir, "saved_partial_sum"),
-                    )
-
                 save(
                     out_path,
                     model,
@@ -725,7 +582,6 @@ def train(
             train_dataloader = dataset_future.result(timeout=None)
             wait_time = time.time() - s
             if wait_time > 1:
-                # TODO if this happens, we should try num_workers>1 in dataloader
                 print(
                     f"[{smp.rank()}] Waited {wait_time} for data loader to be ready. Please check if dataloader performance can be improved to avoid these waits."
                 )
@@ -766,10 +622,6 @@ def parse_args():
     opt_grp.add_argument("--same_seed", type=int, default=0)
     opt_grp.add_argument("--n_gpus", type=str, default=os.environ["SM_NUM_GPUS"])
     opt_grp.add_argument("--fp16", default=0, type=int, help="automatic mixed precision training")
-    opt_grp.add_argument(
-        "--fp32_grad_accumulation", default=0, type=int, help="Enable FP32 Grad accumulation"
-    )
-    opt_grp.add_argument("--megatron", default=0, type=int, help="use megatron fp16 optimizer")
     opt_grp.add_argument("--grad_clip", default=1.0, type=float, help="gradient clipping")
     opt_grp.add_argument("--weight_decay", default=0.01, type=float, help="weight decay")
     opt_grp.add_argument(
@@ -791,8 +643,7 @@ def parse_args():
     # I/O
     io_grp = parser.add_argument_group(title="io", description="location for input and output")
     io_grp.add_argument("--use_bert_data", type=int, default=0, help="use bert data for training")
-    # change to 0 original 1
-    io_grp.add_argument("--zipped_data", type=int, default=0, help="input data is zipped files")
+    io_grp.add_argument("--zipped_data", type=int, default=1, help="input data is zipped files")
     io_grp.add_argument(
         "--epochs", type=int, default=30, help="times of iterating over the training dataset"
     )
@@ -909,9 +760,6 @@ def parse_args():
         help="number of transformer layers assigned to each partition",
     )
     parser.add_argument(
-        "--match_weights", type=int, default=0, help="Get weights from the original model"
-    )
-    parser.add_argument(
         "--preserve_np_state",
         type=int,
         default=0,
@@ -983,10 +831,6 @@ def parse_args():
     ci_grp.add_argument("--time_to_train", type=int, help="time to train threshold")
     ci_grp.add_argument("--throughput", type=float, help="throughput threshold")
     ci_grp.add_argument("--loss", type=float, help="loss threshold")
-    ci_grp.add_argument(
-        "--save_or_verify_ckptsum", default=False, action="store_true", help="Whether to save sum"
-    )
-
     args, _ = parser.parse_known_args()
     return args
 
@@ -1013,8 +857,7 @@ def main():
         "checkpoint_attentions": False if args.activation_checkpointing else True,
         "shard_optimizer_state": args.shard_optimizer_state > 0,
         "prescaled_batch": args.prescaled_batch > 0,
-        "_match_weights": args.match_weights > 0,
-        "fp16_params": args.fp16 > 0,
+        "fp16": args.fp16 > 0,
         "offload_activations": args.offload_activations > 0,
         "optimize": args.optimize,
         "placement_strategy": args.placement_strategy,
@@ -1022,7 +865,6 @@ def main():
         "skip_tracing": args.skip_tracing > 0,
         "auto_partition": False if args.manual_partition else True,
         "default_partition": 0,
-        "_fp32_grad_accumulation": args.fp32_grad_accumulation > 0,
         "static_mode": args.static_mode > 0,
         "fast_mode": args.fast_mode > 0,
     }
@@ -1081,7 +923,7 @@ def main():
     # the following improves start-up time by skipping proper initialization
     # of weights in the original model. this is not a problem because DistributedModel
     # will override those weights anyway when tensor_parallel_degree > 1.
-    if smp.tp_size() > 1 and args.match_weights < 1:
+    if smp.tp_size() > 1:
         from transformers.modeling_utils import PreTrainedModel
 
         PreTrainedModel.init_weights = lambda x: None
@@ -1098,14 +940,11 @@ def main():
         fused_bias_gelu=args.fused_bias_gelu > 0,
     ):
         with smp.delay_param_initialization(
-            enabled=(smp.tp_size() > 1 and args.match_weights < 1 and args.delayed_param > 0)
+            enabled=(smp.tp_size() > 1 and args.delayed_param > 0)
         ):
             model = AutoModelForCausalLM.from_config(model_config)
-
+            
     torch.set_default_dtype(torch.float32)
-
-    if args.fp16:
-        model = FP16_Module(model)
 
     num_params = sum([np.prod(p.size()) for p in model.parameters()])
     if smp.rank() == 0:
@@ -1126,17 +965,14 @@ def main():
     # the model provided for DistributedModel class instantiation.
     if args.fp16:
         torch.set_default_dtype(torch.float16)
+
     model = smp.DistributedModel(model, trace_device="gpu")
 
-    if args.fp16:
-        m = model.module
-    else:
-        m = model
-
+    m = model.get_module()
     if smp.tp_size() > 1:
-        transformer_layers = m.module.module.transformer.seq_layers
+        transformer_layers = m.transformer.seq_layers
     else:
-        transformer_layers = m.module.module.transformer.h
+        transformer_layers = m.transformer.h
 
     if args.manual_partition:
         print(f"Manual partition enabled")
@@ -1164,10 +1000,7 @@ def main():
 
     torch.set_default_dtype(torch.float32)
 
-    iter_model = model
-    # Build parameter groups (weight decay and non-decay).
-    while isinstance(iter_model, (DistributedDataParallel, FP16_Module)):
-        iter_model = iter_model.module
+    iter_model = m
     param_groups = get_param_groups_by_weight_decay(iter_model)
 
     if args.use_adamw > 0:
@@ -1186,44 +1019,13 @@ def main():
             kwargs["strategy"] = args.activation_strategy
         smp.set_activation_checkpointing(transformer_layers, **kwargs)
 
-    if args.fp16:
-        if args.megatron:
-            grad_scaler = DynamicGradScaler(
-                initial_scale=2**32,
-                min_scale=1,
-                growth_interval=1000,
-                growth_factor=2.0,
-                backoff_factor=0.5,
-                hysteresis=2,
-            )
-            optimizer = Float16OptimizerWithFloat16Params(
-                model,
-                optimizer,
-                clip_grad=1.0,
-                log_num_zeros_in_grad=False,
-                params_have_main_grad=args.fp32_grad_accumulation > 0,
-                bf16=False,
-                grad_scaler=grad_scaler,
-                use_smp=True,
-                shard_optimizer_state=args.shard_optimizer_state > 0,
-            )
-        else:
-            optimizer = FP16_Optimizer(
-                model,
-                optimizer,
-                static_loss_scale=None,
-                dynamic_loss_scale=True,
-                use_smp=True,
-                dynamic_loss_args={"scale_window": 1000, "min_scale": 1, "delayed_shift": 2},
-                params_have_main_grad=args.fp32_grad_accumulation > 0,
-                shard_optimizer_state=args.shard_optimizer_state > 0,
-            )
-
-    optimizer = smp.DistributedOptimizer(optimizer)
+    optimizer = smp.DistributedOptimizer(
+        optimizer, 
+        static_loss_scale=None, 
+        dynamic_loss_scale=True,
+        dynamic_loss_args={"scale_window": 1000, "min_scale": 1, "delayed_shift": 2},
+        )
     lr_scheduler = get_learning_rate_scheduler(optimizer, args)
-
-    if args.fp16:
-        model.register_post_step_hook(lambda model, optimizer: optimizer.init_master_params())
 
     if args.enable_memory_profiling > 0:
         model.register_post_partition_hook(
@@ -1241,10 +1043,10 @@ def main():
         path = args.checkpoint_dir if partial else args.model_dir
         translate_from_hf = not partial
         (
-            model,
-            optimizer,
-            total_steps,
-            start_train_path_index,
+            model, 
+            optimizer, 
+            total_steps, 
+            start_train_path_index, 
             start_batch_index,
         ) = load_model_and_optimizer(
             path,
@@ -1259,11 +1061,6 @@ def main():
             load_optimizer=args.load_partial > 0,
             num_params=num_params,
         )
-        if args.save_or_verify_ckptsum:
-            filename = "saved_sum" if args.load_full else "saved_partial_sum"
-            load_and_verify_ckptsum(
-                args, model, optimizer, filename=os.path.join(args.model_dir, filename)
-            )
     else:
         total_steps = 0
         start_train_path_index = 0
@@ -1298,9 +1095,6 @@ def main():
 
         base_path = f"trained_gpt_nparams-{num_params}_steps-{total_steps}.pt"
         out_path = os.path.join(args.model_dir, base_path)
-        if args.save_or_verify_ckptsum:
-            # Save optimizer and model tensor sums and scalars before saving
-            save_ckptsum(args, model, optimizer, filename=os.path.join(args.model_dir, "saved_sum"))
 
         if smp.rdp_rank() == 0:
             save(
