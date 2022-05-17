@@ -56,7 +56,7 @@ if __name__ == "__main__":
 
     # preprocess function, tokenizes text
     def preprocess_function(examples):
-        return tokenizer(examples["review"], padding="max_length", truncation=True)
+        return tokenizer(examples["sentence"], padding="max_length", truncation=True)
 
     # preprocess dataset
     train_dataset = raw_train_dataset.map(
