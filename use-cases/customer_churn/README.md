@@ -56,6 +56,10 @@ As part of the solution, the following services are used:
 * [Amazon SageMaker Studio Notebooks](https://aws.amazon.com/sagemaker/): Used to preprocess and visualize the data, and to train model.
 * [Amazon SageMaker Endpoint](https://aws.amazon.com/sagemaker/): Used to deploy the trained model.
 
+The diagram below shows how each service is used in relation to other services in different stages of this use case.
+<div>
+    <img src="image/use_case_diagram_v2.png" width="800"/>
+</div>
 
 
 ## Cleaning Up

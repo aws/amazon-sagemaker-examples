@@ -45,9 +45,7 @@ These examples provide quick walkthroughs to get you up and running with the lab
 
 These examples provide a gentle introduction to machine learning concepts as they are applied in practical use cases across a variety of sectors.
 
-- [Targeted Direct Marketing](introduction_to_applying_machine_learning/xgboost_direct_marketing) predicts potential customers that are most likely to convert based on customer and aggregate level metrics, using Amazon SageMaker's implementation of [XGBoost](https://github.com/dmlc/xgboost).
 - [Predicting Customer Churn](introduction_to_applying_machine_learning/xgboost_customer_churn) uses customer interaction and service usage data to find those most likely to churn, and then walks through the cost/benefit trade-offs of providing retention incentives. This uses Amazon SageMaker's implementation of [XGBoost](https://github.com/dmlc/xgboost) to create a highly predictive model.
-- [Time-series Forecasting](introduction_to_applying_machine_learning/linear_time_series_forecast) generates a forecast for topline product demand using Amazon SageMaker's Linear Learner algorithm.
 - [Cancer Prediction](introduction_to_applying_machine_learning/breast_cancer_prediction) predicts Breast Cancer based on features derived from images, using SageMaker's Linear Learner.
 - [Ensembling](introduction_to_applying_machine_learning/ensemble_modeling) predicts income using two Amazon SageMaker models to show the advantages in ensembling.
 - [Video Game Sales](introduction_to_applying_machine_learning/video_game_sales) develops a binary prediction model for the success of video games based on review scores.
@@ -61,7 +59,7 @@ These examples provide a gentle introduction to machine learning concepts as the
 
 These examples introduce SageMaker's hyperparameter tuning functionality which helps deliver the best possible predictions by running a large number of training jobs to determine which hyperparameter values are the most impactful.
 
-- [XGBoost Tuning](hyperparameter_tuning/xgboost_direct_marketing) shows how to use SageMaker hyperparameter tuning to improve your model fits for the [Targeted Direct Marketing](introduction_to_applying_machine_learning/xgboost_direct_marketing) task.
+- [XGBoost Tuning](hyperparameter_tuning/xgboost_direct_marketing) shows how to use SageMaker hyperparameter tuning to improve your model fit.
 - [BlazingText Tuning](hyperparameter_tuning/blazingtext_text_classification_20_newsgroups) shows how to use SageMaker hyperparameter tuning with the BlazingText built-in algorithm and 20_newsgroups dataset..
 - [TensorFlow Tuning](hyperparameter_tuning/tensorflow_mnist) shows how to use SageMaker hyperparameter tuning with the pre-built TensorFlow container and MNIST dataset.
 - [MXNet Tuning](hyperparameter_tuning/mxnet_mnist) shows how to use SageMaker hyperparameter tuning with the pre-built MXNet container and MNIST dataset.
@@ -75,7 +73,7 @@ These examples introduce SageMaker's hyperparameter tuning functionality which h
 These examples introduce SageMaker Autopilot. Autopilot automatically performs feature engineering, model selection, model tuning (hyperparameter optimization) and allows you to directly deploy the best model to an endpoint to serve inference requests.
 
 - [Customer Churn AutoML](autopilot/) shows how to use SageMaker Autopilot to automatically train a model for the [Predicting Customer Churn](introduction_to_applying_machine_learning/xgboost_customer_churn) task.
-- [Targeted Direct Marketing AutoML](autopilot/) shows how to use SageMaker Autopilot to automatically train a model for the [Targeted Direct Marketing](introduction_to_applying_machine_learning/xgboost_direct_marketing) task.
+- [Targeted Direct Marketing AutoML](autopilot/) shows how to use SageMaker Autopilot to automatically train a model.
 - [Housing Prices AutoML](sagemaker-autopilot/housing_prices) shows how to use SageMaker Autopilot for a linear regression problem (predict housing prices).
 
 ### Introduction to Amazon Algorithms
