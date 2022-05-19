@@ -1,6 +1,6 @@
-FROM rapidsai/rapidsai:0.15-cuda11.0-base-ubuntu18.04-py3.7 
+FROM rapidsai/rapidsai:21.06-cuda11.0-base-ubuntu18.04-py3.7 
 
-ENV DATASET_DIRECTORY="1_year"
+ENV DATASET_DIRECTORY="3_year"
 ENV ALGORITHM_CHOICE="XGBoost"
 ENV ML_WORKFLOW_CHOICE="singleGPU"
 ENV CV_FOLDS="3"

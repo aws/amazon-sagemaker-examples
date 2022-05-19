@@ -1,0 +1,28 @@
+SageMaker Clarify
+=================================
+
+These examples provide an introduction to SageMaker Clarify which provides machine learning developers with greater visibility into their training data and models so they can identify and limit bias and explain predictions.
+
+SageMaker Clarify Processing
+----------------------------
+
+.. toctree::
+   :maxdepth: 1
+
+   ../sagemaker_processing/fairness_and_explainability/fairness_and_explainability
+   ../sagemaker_processing/fairness_and_explainability/fairness_and_explainability_jsonlines_format
+   ../sagemaker_processing/fairness_and_explainability/fairness_and_explainability_byoc
+   ../sagemaker_processing/fairness_and_explainability/fairness_and_explainability_spark
+   ../sagemaker_processing/fairness_and_explainability/text_explainability/text_explainability
+   ../sagemaker_processing/fairness_and_explainability/text_explainability_sagemaker_algorithm/byo_blazingtext_model_hosting
+   computer_vision/image_classification/explainability_image_classification
+   computer_vision/object_detection/object_detection_clarify
+   clarify-explainability-inference-pipelines/credit_risk_explainability_inference_pipelines
+
+SageMaker Clarify Model Monitoring
+----------------------------------
+
+.. toctree::
+   :maxdepth: 1
+
+   ../sagemaker_model_monitor/fairness_and_explainability/SageMaker-Model-Monitor-Fairness-and-Explainability

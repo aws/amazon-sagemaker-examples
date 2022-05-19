@@ -85,7 +85,7 @@ library.
 
 .. _mpi
 
-MPI 
+MPI
 ===================================
 
 Use MPI on SageMaker
@@ -94,7 +94,7 @@ Use MPI on SageMaker
 .. toctree::
     :maxdepth: 1
 
-    mpi_on_sagemaker/intro
+    mpi_on_sagemaker/intro/mpi_demo
 
 .. _pytorch-distributed:
 
@@ -119,7 +119,7 @@ SageMaker distributed model parallel (SMP)
    :maxdepth: 1
 
    pytorch/model_parallel/bert/smp_bert_tutorial
-   pytorch/model_parallel/mnist/pytorch_smmodelparallel_mnist
+   pytorch/model_parallel/gpt2/smp-train-gpt-simple
 
 
 Horovod
@@ -163,7 +163,6 @@ Horovod
    :maxdepth: 1
 
    /sagemaker-python-sdk/keras_script_mode_pipe_mode_horovod/tensorflow_keras_CIFAR10
-   /advanced_functionality/distributed_tensorflow_mask_rcnn/mask-rcnn-s3
 
 
 .. _mxnet-distributed:

@@ -1,6 +1,6 @@
 ARG CPU_OR_GPU
 ARG AWS_REGION
-FROM 462105765813.dkr.ecr.${AWS_REGION}.amazonaws.com/sagemaker-rl-ray-container:ray-0.8.2-tf-${CPU_OR_GPU}-py36
+FROM 462105765813.dkr.ecr.${AWS_REGION}.amazonaws.com/sagemaker-rl-ray-container:ray-1.6.0-tf-${CPU_OR_GPU}-py37
 
 WORKDIR /opt/ml
 
@@ -18,8 +18,8 @@ RUN apt-get update && \
     apt-get install -y libboost-python-dev
 
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends python3.6-dev \
-    && ln -s -f /usr/bin/python3.6 /usr/bin/python \
+    && apt-get install -y --no-install-recommends python3.7-dev \
+    && ln -s -f /usr/bin/python3.7 /usr/bin/python \
     && apt-get clean \
     && rm -rf /var/cache/apt/archives/* /var/lib/apt/lists/*
 
@@ -37,6 +37,8 @@ RUN pip install --upgrade \
 RUN pip install sagemaker-tensorflow-training==20.1.4
 
 RUN pip install roboschool==1.0.46
+
+RUN pip install gym==0.15.4
 
 ENV PYTHONUNBUFFERED 1
 

@@ -32,6 +32,7 @@ class MyLauncher(HVACSageMakerRayLauncher):
         self.algorithm = args.algorithm
         self.multi_zone_control = args.multi_zone_control
         self.energy_temp_penalty_ratio = args.energy_temp_penalty_ratio
+        self.framework = args.framework
 
         self.num_cpus = multiprocessing.cpu_count()
 
@@ -64,16 +65,17 @@ class MyLauncher(HVACSageMakerRayLauncher):
             "keep_checkpoints_num": 5,
             "queue_trials": False,
             "config": {
-                "tau": 1,
+                "framework": self.framework,
+                #                 "tau": 1,
                 # === Settings for Rollout Worker processes ===
                 "num_workers": self.num_cpus - 1,
                 #                 "rollout_fragment_length": 140,
                 #                 "batch_mode": "truncate_episodes",
                 # === Advanced Resource Settings ===
-                "num_envs_per_worker": 1,
-                "num_cpus_per_worker": 1,
-                "num_cpus_for_driver": 1,
-                "num_gpus_per_worker": 0,
+                #                 "num_envs_per_worker": 1,
+                #                 "num_cpus_per_worker": 1,
+                #                 "num_cpus_for_driver": 1,
+                #                 "num_gpus_per_worker": 0,
                 # === Settings for the Trainer process ===
                 "num_gpus": self.num_gpus,  # adjust based on number of GPUs available in a single node, e.g., p3.2xlarge has 1 GPU
                 # === Exploration Settings ===
@@ -131,6 +133,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--energy_temp_penalty_ratio", type=float, default=10, help="Number of days to simulate."
     )
+    parser.add_argument("--framework", type=str, default="tf", help="Deep learning framework.")
 
     args = parser.parse_args()
 

@@ -3,9 +3,10 @@ import os
 
 import gym
 import ray
-import roboschool
 from ray.tune import run_experiments
 from ray.tune.registry import register_env
+import roboschool
+
 from sagemaker_rl.ray_launcher import SageMakerRayLauncher
 
 
@@ -29,6 +30,7 @@ class MyLauncher(SageMakerRayLauncher):
                     "episode_reward_mean": 18,
                 },
                 "config": {
+                    "framework": "tf",
                     "gamma": 0.995,
                     "kl_coeff": 1.0,
                     "num_sgd_iter": 20,
