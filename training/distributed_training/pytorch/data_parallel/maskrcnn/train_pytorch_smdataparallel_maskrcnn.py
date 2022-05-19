@@ -30,8 +30,9 @@ from maskrcnn_benchmark.utils.logger import setup_logger
 from maskrcnn_benchmark.utils.miscellaneous import mkdir
 from maskrcnn_benchmark.engine.tester import test
 from maskrcnn_benchmark.utils.logger import format_step
-#from dllogger import Logger, StdOutBackend, JSONStreamBackend, Verbosity
-#import dllogger as DLLogger
+
+# from dllogger import Logger, StdOutBackend, JSONStreamBackend, Verbosity
+# import dllogger as DLLogger
 import dllogger
 from maskrcnn_benchmark.utils.logger import format_step
 import smdistributed.dataparallel.torch.torch_smddp
@@ -39,10 +40,12 @@ import smdistributed.dataparallel.torch.torch_smddp
 # See if we can use apex.DistributedDataParallel instead of the torch default
 try:
     from apex.parallel import DistributedDataParallel as DDP
+
     use_apex_ddp = True
 except ImportError:
-    print('Use APEX for better performance')
+    print("Use APEX for better performance")
     use_apex_ddp = False
+
 
 def test_and_exchange_map(tester, model, distributed):
     results = tester(model=model, distributed=distributed)
@@ -52,21 +55,26 @@ def test_and_exchange_map(tester, model, distributed):
         # Note: one indirection due to possibility of multiple test datasets, we only care about the first
         #       tester returns (parsed results, raw results). In our case, don't care about the latter
         map_results, raw_results = results[0]
-        bbox_map = map_results.results["bbox"]['AP']
-        segm_map = map_results.results["segm"]['AP']
+        bbox_map = map_results.results["bbox"]["AP"]
+        segm_map = map_results.results["segm"]["AP"]
     else:
-        bbox_map = 0.
-        segm_map = 0.
+        bbox_map = 0.0
+        segm_map = 0.0
 
     if distributed:
-        map_tensor = torch.tensor([bbox_map, segm_map], dtype=torch.float32, device=torch.device("cuda"))
+        map_tensor = torch.tensor(
+            [bbox_map, segm_map], dtype=torch.float32, device=torch.device("cuda")
+        )
         torch.distributed.broadcast(map_tensor, 0)
         bbox_map = map_tensor[0].item()
         segm_map = map_tensor[1].item()
 
     return bbox_map, segm_map
 
-def mlperf_test_early_exit(iteration, iters_per_epoch, tester, model, distributed, min_bbox_map, min_segm_map):
+
+def mlperf_test_early_exit(
+    iteration, iters_per_epoch, tester, model, distributed, min_bbox_map, min_segm_map
+):
     if iteration > 0 and iteration % iters_per_epoch == 0:
         epoch = iteration // iters_per_epoch
 
@@ -76,7 +84,13 @@ def mlperf_test_early_exit(iteration, iters_per_epoch, tester, model, distribute
 
         # necessary for correctness
         model.train()
-        dllogger.log(step=(iteration, epoch, ), data={"BBOX_mAP": bbox_map, "MASK_mAP": segm_map})
+        dllogger.log(
+            step=(
+                iteration,
+                epoch,
+            ),
+            data={"BBOX_mAP": bbox_map, "MASK_mAP": segm_map},
+        )
 
         # terminating condition
         if bbox_map >= min_bbox_map and segm_map >= min_segm_map:
@@ -105,9 +119,12 @@ def train(cfg, local_rank, distributed, fp16, dllogger, data_dir):
             model = DDP(model, delay_allreduce=True)
         else:
             model = torch.nn.parallel.DistributedDataParallel(
-                model, device_ids=[local_rank], output_device=local_rank,
+                model,
+                device_ids=[local_rank],
+                output_device=local_rank,
                 # this should be removed if we update BatchNorm stats
-                broadcast_buffers=False)
+                broadcast_buffers=False,
+            )
 
     arguments = {}
     arguments["iteration"] = 0
@@ -126,7 +143,7 @@ def train(cfg, local_rank, distributed, fp16, dllogger, data_dir):
         is_train=True,
         is_distributed=distributed,
         start_iter=arguments["iteration"],
-        data_dir = data_dir,
+        data_dir=data_dir,
     )
 
     checkpoint_period = cfg.SOLVER.CHECKPOINT_PERIOD
@@ -135,13 +152,14 @@ def train(cfg, local_rank, distributed, fp16, dllogger, data_dir):
     # early exit each epoch
     if cfg.PER_EPOCH_EVAL:
         per_iter_callback_fn = functools.partial(
-                mlperf_test_early_exit,
-                iters_per_epoch=iters_per_epoch,
-                tester=functools.partial(test, cfg=cfg, dllogger=dllogger),
-                model=model,
-                distributed=distributed,
-                min_bbox_map=cfg.MIN_BBOX_MAP,
-                min_segm_map=cfg.MIN_MASK_MAP)
+            mlperf_test_early_exit,
+            iters_per_epoch=iters_per_epoch,
+            tester=functools.partial(test, cfg=cfg, dllogger=dllogger),
+            model=model,
+            distributed=distributed,
+            min_bbox_map=cfg.MIN_BBOX_MAP,
+            min_segm_map=cfg.MIN_MASK_MAP,
+        )
     else:
         per_iter_callback_fn = None
 
@@ -162,6 +180,7 @@ def train(cfg, local_rank, distributed, fp16, dllogger, data_dir):
 
     return model, iters_per_epoch
 
+
 def test_model(cfg, model, distributed, iters_per_epoch, dllogger, data_dir):
     if distributed:
         model = model.module
@@ -176,9 +195,13 @@ def test_model(cfg, model, distributed, iters_per_epoch, dllogger, data_dir):
             output_folder = os.path.join(cfg.OUTPUT_DIR, "inference", dataset_name)
             mkdir(output_folder)
             output_folders[idx] = output_folder
-    data_loaders_val = make_data_loader(cfg, is_train=False, is_distributed=distributed, data_dir=data_dir)
+    data_loaders_val = make_data_loader(
+        cfg, is_train=False, is_distributed=distributed, data_dir=data_dir
+    )
     results = []
-    for output_folder, dataset_name, data_loader_val in zip(output_folders, dataset_names, data_loaders_val):
+    for output_folder, dataset_name, data_loader_val in zip(
+        output_folders, dataset_names, data_loaders_val
+    ):
         result = inference(
             model,
             data_loader_val,
@@ -195,13 +218,19 @@ def test_model(cfg, model, distributed, iters_per_epoch, dllogger, data_dir):
         results.append(result)
     if is_main_process():
         map_results, raw_results = results[0]
-        bbox_map = map_results.results["bbox"]['AP']
-        segm_map = map_results.results["segm"]['AP']
-        dllogger.log(step=(cfg.SOLVER.MAX_ITER, cfg.SOLVER.MAX_ITER / iters_per_epoch,), data={"BBOX_mAP": bbox_map, "MASK_mAP": segm_map})
+        bbox_map = map_results.results["bbox"]["AP"]
+        segm_map = map_results.results["segm"]["AP"]
+        dllogger.log(
+            step=(
+                cfg.SOLVER.MAX_ITER,
+                cfg.SOLVER.MAX_ITER / iters_per_epoch,
+            ),
+            data={"BBOX_mAP": bbox_map, "MASK_mAP": segm_map},
+        )
         dllogger.log(step=tuple(), data={"BBOX_mAP": bbox_map, "MASK_mAP": segm_map})
 
-def main():
 
+def main():
 
     parser = argparse.ArgumentParser(description="PyTorch Object Detection Training")
     parser.add_argument(
@@ -211,16 +240,33 @@ def main():
         help="path to config file",
         type=str,
     )
-    parser.add_argument("--local_rank", type=int, default=os.getenv('LOCAL_RANK', 0))
-    parser.add_argument("--max_steps", type=int, default=0, help="Override number of training steps in the config")
-    parser.add_argument("--skip-test", dest="skip_test", help="Do not test the final model",
-                        action="store_true",)
+    parser.add_argument("--local_rank", type=int, default=os.getenv("LOCAL_RANK", 0))
+    parser.add_argument(
+        "--max_steps",
+        type=int,
+        default=0,
+        help="Override number of training steps in the config",
+    )
+    parser.add_argument(
+        "--skip-test",
+        dest="skip_test",
+        help="Do not test the final model",
+        action="store_true",
+    )
     parser.add_argument("--fp16", help="Mixed precision training", action="store_true")
     parser.add_argument("--amp", help="Mixed precision training", action="store_true")
-    parser.add_argument('--skip_checkpoint', default=False, action='store_true', help="Whether to save checkpoints")
-    parser.add_argument("--json-summary", help="Out file for DLLogger", default="dllogger.out",
-                        type=str,
-                        )
+    parser.add_argument(
+        "--skip_checkpoint",
+        default=False,
+        action="store_true",
+        help="Whether to save checkpoints",
+    )
+    parser.add_argument(
+        "--json-summary",
+        help="Out file for DLLogger",
+        default="dllogger.out",
+        type=str,
+    )
     parser.add_argument(
         "opts",
         help="Modify config options using the command-line",
@@ -232,13 +278,10 @@ def main():
         dest="data_dir",
         help="Absolute path of dataset ",
         type=str,
-        default=None
+        default=None,
     )
     parser.add_argument(
-        "--seed",
-        help="manually set random seed for torch",
-        type=int,
-        default=99
+        "--seed", help="manually set random seed for torch", type=int, default=99
     )
     args = parser.parse_args()
 
@@ -256,9 +299,7 @@ def main():
 
     if args.distributed:
         torch.cuda.set_device(args.local_rank)
-        torch.distributed.init_process_group(
-            backend="smddp", init_method="env://"
-        )
+        torch.distributed.init_process_group(backend="smddp", init_method="env://")
         synchronize()
 
     cfg.merge_from_file(args.config_file)
@@ -279,31 +320,42 @@ def main():
 
     logger = setup_logger("maskrcnn_benchmark", output_dir, get_rank())
     if is_main_process():
-        dllogger.init(backends=[dllogger.JSONStreamBackend(verbosity=dllogger.Verbosity.VERBOSE,
-                                filename=args.json_summary),
-                                dllogger.StdOutBackend(verbosity=dllogger.Verbosity.VERBOSE, step_format=format_step)])
+        dllogger.init(
+            backends=[
+                dllogger.JSONStreamBackend(
+                    verbosity=dllogger.Verbosity.VERBOSE, filename=args.json_summary
+                ),
+                dllogger.StdOutBackend(
+                    verbosity=dllogger.Verbosity.VERBOSE, step_format=format_step
+                ),
+            ]
+        )
     else:
         dllogger.init(backends=[])
 
-    dllogger.log(step="PARAMETER", data={"gpu_count":num_gpus})
+    dllogger.log(step="PARAMETER", data={"gpu_count": num_gpus})
     # dllogger.log(step="PARAMETER", data={"environment_info": collect_env_info()})
     dllogger.log(step="PARAMETER", data={"config_file": args.config_file})
 
     with open(args.config_file, "r") as cf:
         config_str = "\n" + cf.read()
 
-    dllogger.log(step="PARAMETER", data={"config":cfg})
+    dllogger.log(step="PARAMETER", data={"config": cfg})
 
     if args.fp16:
         fp16 = True
     else:
         fp16 = False
 
-    model, iters_per_epoch = train(cfg, args.local_rank, args.distributed, fp16, dllogger, args.data_dir)
+    model, iters_per_epoch = train(
+        cfg, args.local_rank, args.distributed, fp16, dllogger, args.data_dir
+    )
 
     if not args.skip_test:
         if not cfg.PER_EPOCH_EVAL:
-            test_model(cfg, model, args.distributed, iters_per_epoch, dllogger, args.data_dir)
+            test_model(
+                cfg, model, args.distributed, iters_per_epoch, dllogger, args.data_dir
+            )
 
 
 if __name__ == "__main__":
