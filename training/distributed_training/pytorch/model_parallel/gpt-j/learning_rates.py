@@ -81,11 +81,7 @@ class AnnealingLR(object):
                     / (self.end_iter - self.plateau_iter)
                 )
         elif self.decay_style == "cosine":
-            lr = (
-                self.start_lr
-                / 2.0
-                * (math.cos(math.pi * num_iters_ / self.end_iter) + 1)
-            )
+            lr = self.start_lr / 2.0 * (math.cos(math.pi * num_iters_ / self.end_iter) + 1)
         elif self.decay_style == "exponential":
             # exp(-0.693) = 1/2
             lr = self.start_lr * math.exp(-0.693 * num_iters_ / self.end_iter)
@@ -132,21 +128,15 @@ class AnnealingLR(object):
 
     def load_state_dict(self, sd):
 
-        self.start_lr = self._check_and_set(
-            self.start_lr, sd["start_lr"], "learning rate"
-        )
-        self.min_lr = self._check_and_set(
-            self.min_lr, sd["min_lr"], "minimum learning rate"
-        )
+        self.start_lr = self._check_and_set(self.start_lr, sd["start_lr"], "learning rate")
+        self.min_lr = self._check_and_set(self.min_lr, sd["min_lr"], "minimum learning rate")
         self.warmup_iter = self._check_and_set(
             self.warmup_iter, sd["warmup_iter"], "warmup iterations"
         )
         self.end_iter = self._check_and_set(
             self.end_iter, sd["end_iter"], "total number of iterations"
         )
-        self.decay_style = self._check_and_set(
-            self.decay_style, sd["decay_style"], "decay style"
-        )
+        self.decay_style = self._check_and_set(self.decay_style, sd["decay_style"], "decay style")
 
         self.num_iters = sd["num_iters"]
         self.step(self.num_iters)
