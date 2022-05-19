@@ -28,7 +28,6 @@ Framework examples
 .. toctree::
    :maxdepth: 1
 
-   frameworks/keras_pipe_mode_horovod/keras_pipe_mode_horovod_cifar10
    frameworks/mxnet_gluon_sentiment/mxnet_sentiment_analysis_with_gluon
    frameworks/mxnet_mnist/mxnet_mnist_with_batch_transform
    frameworks/mxnet_onnx_ei/mxnet_onnx_ei
