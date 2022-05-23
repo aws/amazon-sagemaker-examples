@@ -223,6 +223,7 @@ def save(
     if lr_scheduler is not None:
         save_dict["lr_scheduler"] = lr_scheduler.state_dict()
     if partial:
+        # SMP modification: check if using optimizer state sharding or tensor parallelism
         if args.gather_if_shard > 0 or smp.rdp_rank() == 0:
             # if not gather the opt checkpoint, only save the model for rdp rank 0
             save_dict["model"] = model.local_state_dict()
@@ -255,6 +256,7 @@ def save(
             else:
                 print("Skipping saving of full optimizer state")
 
+    # SMP modification: criteria for checkpointing the zeroth rank for pipeline parallelism, checkpointing the zeroth reduced data parallel rank for tensor parallelism, and preventing checkpointing if optimizer state sharding is enabled
     if not args.gather_if_shard or (smp.rdp_rank() == 0 and partial) or smp.rank() == 0:
         smp.save(save_dict, output_save_file, partial=partial, v3=not args.gather_if_shard)
 
