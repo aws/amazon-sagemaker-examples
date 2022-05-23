@@ -88,7 +88,7 @@ def get_param_groups_by_weight_decay(module):
     return weight_decay_params, no_weight_decay_params
 
 
-# smdistributed: Define smp.step. Return any tensors needed outside.
+# SMP modification: Define smp.step. Return any tensors needed outside.
 @smp.step
 def train_step(model, optimizer, input_ids, attention_mask, args):
     if args.logits_output:
@@ -105,7 +105,7 @@ def train_step(model, optimizer, input_ids, attention_mask, args):
     return loss
 
 
-# smdistributed: Define smp.step. Return any tensors needed outside.
+# SMP modification: Define smp.step. Return any tensors needed outside.
 @smp.step
 def test_step(model, input_ids, attention_mask):
     loss = model(input_ids=input_ids, attention_mask=attention_mask, labels=input_ids)["loss"]
@@ -601,7 +601,7 @@ def train(
                 # Return value, loss_mb is a StepOutput object
                 loss_mb = train_step(model, optimizer, input_ids, attention_mask, args)
 
-            # smdistributed: Average the loss across microbatches.
+            # SMP modification: Average the loss across microbatches.
             loss = loss_mb.reduce_mean()
             if not args.validation_freq:
                 loss_metric = loss.item()
@@ -1071,7 +1071,7 @@ def main():
     if smp.rank() == 0:
         print(f"# total parameters: {num_params}")
 
-    # smdistributed: Set the device to the GPU ID used by the current process.
+    # SMP modification: Set the device to the GPU ID used by the current process.
     # Input tensors should be transferred to this device.
     torch.cuda.set_device(smp.local_rank())
     device = torch.device("cuda")
@@ -1080,7 +1080,7 @@ def main():
         # Set seed by tp_rank to prevent weights from being the same on different tp_ranks
         set_seed(args.seed + smp.tp_rank())
 
-    # smdistributed: Use the DistributedModel container to provide the model
+    # SMP modification: Use the DistributedModel container to provide the model
     # to be partitioned across different ranks. For the rest of the script,
     # the returned DistributedModel object should be used in place of
     # the model provided for DistributedModel class instantiation.
