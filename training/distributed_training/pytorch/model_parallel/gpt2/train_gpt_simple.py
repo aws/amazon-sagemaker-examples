@@ -256,7 +256,10 @@ def save(
             else:
                 print("Skipping saving of full optimizer state")
 
-    # SMP modification: criteria for checkpointing the zeroth rank for pipeline parallelism, checkpointing the zeroth reduced data parallel rank for tensor parallelism, and preventing checkpointing if optimizer state sharding is enabled
+    # SMP modification: criteria for checkpointing the zeroth rank for
+    # pipeline parallelism, checkpointing the zeroth reduced data parallel
+    # rank for tensor parallelism, and preventing checkpointing if optimizer
+    # state sharding is enabled
     if not args.gather_if_shard or (smp.rdp_rank() == 0 and partial) or smp.rank() == 0:
         smp.save(save_dict, output_save_file, partial=partial, v3=not args.gather_if_shard)
 
