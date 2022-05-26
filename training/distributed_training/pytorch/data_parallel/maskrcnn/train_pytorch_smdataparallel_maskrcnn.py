@@ -1,4 +1,5 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved.
+# Modifications Copyright 2022 Amazon.com, Inc. or its affiliates. All Rights Reserved.
 r"""
 Basic training script for PyTorch
 """
