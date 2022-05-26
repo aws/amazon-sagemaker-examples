@@ -651,7 +651,7 @@ def parse_args():
 
     # I/O
     io_grp = parser.add_argument_group(title="io", description="location for input and output")
-    io_grp.add_argument("--use_wiki_data", type=int, default=0, help="use bert data for training")
+    io_grp.add_argument("--use_wiki_data", type=int, default=0, help="use wiki corpus data for training")
     io_grp.add_argument("--zipped_data", type=int, default=1, help="input data is zipped files")
     io_grp.add_argument(
         "--epochs", type=int, default=3, help="times of iterating over the training dataset"
