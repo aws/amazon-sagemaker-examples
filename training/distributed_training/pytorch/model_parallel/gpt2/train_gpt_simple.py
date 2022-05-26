@@ -16,7 +16,7 @@ import torch.utils.data
 import transformers
 from data_pipeline import create_pretraining_dataloader
 from learning_rates import AnnealingLR
-from memory_tracker import memory_status
+from memory_tracker import memory_status, memory_status_cpu
 from smdistributed.modelparallel.torch.nn import FusedLayerNorm as LayerNorm
 from smdistributed.modelparallel.torch.nn.huggingface.gpt2 import (
     translate_hf_state_dict_to_smdistributed,
@@ -88,7 +88,7 @@ def get_param_groups_by_weight_decay(module):
     return weight_decay_params, no_weight_decay_params
 
 
-# smdistributed: Define smp.step. Return any tensors needed outside.
+# SMP modification: Define smp.step. Return any tensors needed outside.
 @smp.step
 def train_step(model, optimizer, input_ids, attention_mask, args):
     if args.logits_output:
@@ -105,7 +105,7 @@ def train_step(model, optimizer, input_ids, attention_mask, args):
     return loss
 
 
-# smdistributed: Define smp.step. Return any tensors needed outside.
+# SMP modification: Define smp.step. Return any tensors needed outside.
 @smp.step
 def test_step(model, input_ids, attention_mask):
     loss = model(input_ids=input_ids, attention_mask=attention_mask, labels=input_ids)["loss"]
@@ -139,6 +139,7 @@ def save(
     if lr_scheduler is not None:
         save_dict["lr_scheduler"] = lr_scheduler.state_dict()
     if partial:
+        # SMP modification: check if using optimizer state sharding or tensor parallelism
         if args.gather_if_shard > 0 or smp.rdp_rank() == 0:
             # if not gather the opt checkpoint, only save the model for rdp rank 0
             save_dict["model"] = model.local_state_dict()
@@ -163,6 +164,10 @@ def save(
         else:
             save_dict["optimizer"] = optimizer.state_dict()
 
+    # SMP modification: criteria for checkpointing the zeroth rank for
+    # pipeline parallelism, checkpointing the zeroth reduced data parallel
+    # rank for tensor parallelism, and preventing checkpointing if optimizer
+    # state sharding is enabled
     if not args.gather_if_shard or (smp.rdp_rank() == 0 and partial) or smp.rank() == 0:
         smp.save(save_dict, output_save_file, partial=partial, v3=not args.gather_if_shard)
 
@@ -324,6 +329,8 @@ def train(
     total_steps,
     args,
 ):
+    if args.enable_memory_profiling > 0:
+        memory_status_cpu(msg="before train step")
     model.train()
     if args.parallel_proc_data_processing:
         pool = ProcessPoolExecutor(1)
@@ -488,12 +495,13 @@ def train(
                 # Return value, loss_mb is a StepOutput object
                 loss_mb = train_step(model, optimizer, input_ids, attention_mask, args)
 
-            # smdistributed: Average the loss across microbatches.
+            # SMP modification: Average the loss across microbatches.
             loss = loss_mb.reduce_mean()
             if not args.validation_freq:
                 loss_metric = loss.item()
             
             if args.enable_memory_profiling > 0:
+                memory_status_cpu("After_train_step_cpu")
                 memory_status(msg="After_train_step")
 
             if args.clean_cache > 0:
@@ -582,6 +590,7 @@ def train(
             train_dataloader = dataset_future.result(timeout=None)
             wait_time = time.time() - s
             if wait_time > 1:
+                # TODO if this happens, we should try num_workers>1 in dataloader
                 print(
                     f"[{smp.rank()}] Waited {wait_time} for data loader to be ready. Please check if dataloader performance can be improved to avoid these waits."
                 )
@@ -859,6 +868,7 @@ def main():
         "prescaled_batch": args.prescaled_batch > 0,
         "fp16": args.fp16 > 0,
         "offload_activations": args.offload_activations > 0,
+        "delayed_parameter_initialization": args.delayed_param > 0,
         "optimize": args.optimize,
         "placement_strategy": args.placement_strategy,
         "activation_loading_horizon": args.activation_loading_horizon,
@@ -913,7 +923,8 @@ def main():
         summary_activation=None,
         summary_proj_to_labels=True,
         summary_first_dropout=args.summary_first_pdrop,
-        use_cache=True,
+        # gradient_checkpointing=args.gradient_checkpointing > 0,
+        use_cache=False,
         bos_token_id=50256,
         eos_token_id=50256,
         return_dict=True,
@@ -929,27 +940,24 @@ def main():
 
     set_seed(args.seed)
 
-    if args.fp16:
-        torch.set_default_dtype(torch.float16)
-    with smp.tensor_parallelism(
-        enabled=smp.tp_size() > 1,
+    if args.enable_memory_profiling > 0:
+        memory_status_cpu(msg="before model creation")
+    with smp.model_creation(
+        tensor_parallelism=smp.tp_size() > 1,
         attention_in_fp32=args.attention_in_fp32 > 0,
         query_key_layer_scaling=args.query_key_layer_scaling > 0,
         fused_softmax=args.fused_softmax > 0,
         fused_bias_gelu=args.fused_bias_gelu > 0,
-    ):
-        with smp.delay_param_initialization(
-            enabled=(smp.tp_size() > 1 and args.delayed_param > 0)
         ):
             model = AutoModelForCausalLM.from_config(model_config)
-            
-    torch.set_default_dtype(torch.float32)
+    if args.enable_memory_profiling > 0:
+        memory_status_cpu(msg="after model creation")
 
     num_params = sum([np.prod(p.size()) for p in model.parameters()])
     if smp.rank() == 0:
         print(f"# total parameters: {num_params}")
 
-    # smdistributed: Set the device to the GPU ID used by the current process.
+    # SMP modification: Set the device to the GPU ID used by the current process.
     # Input tensors should be transferred to this device.
     torch.cuda.set_device(smp.local_rank())
     device = torch.device("cuda")
@@ -958,14 +966,15 @@ def main():
         # Set seed by tp_rank to prevent weights from being the same on different tp_ranks
         set_seed(args.seed + smp.tp_rank())
 
-    # smdistributed: Use the DistributedModel container to provide the model
+    # SMP modification: Use the DistributedModel container to provide the model
     # to be partitioned across different ranks. For the rest of the script,
     # the returned DistributedModel object should be used in place of
     # the model provided for DistributedModel class instantiation.
-    if args.fp16:
-        torch.set_default_dtype(torch.float16)
-
+    if args.enable_memory_profiling > 0:
+        memory_status_cpu(msg="before dist model creation")
     model = smp.DistributedModel(model, trace_device="gpu")
+    if args.enable_memory_profiling > 0:
+        memory_status_cpu(msg="after dist model creation")
 
     m = model.get_module()
     if smp.tp_size() > 1:
@@ -994,8 +1003,6 @@ def main():
         for i, c in enumerate(transformer_layers.children()):
             smp.set_partition(c, assignments[i])
 
-    torch.set_default_dtype(torch.float32)
-
     iter_model = m
     param_groups = get_param_groups_by_weight_decay(iter_model)
 
@@ -1013,7 +1020,10 @@ def main():
         if isinstance(transformer_layers, nn.Sequential):
             kwargs["pack_args_as_tuple"] = True
             kwargs["strategy"] = args.activation_strategy
-        smp.set_activation_checkpointing(transformer_layers, **kwargs)
+            smp.set_activation_checkpointing(transformer_layers, **kwargs)
+        else:
+            for c in transformer_layers.children():
+                smp.set_activation_checkpointing(c)
 
     optimizer = smp.DistributedOptimizer(
         optimizer, 
