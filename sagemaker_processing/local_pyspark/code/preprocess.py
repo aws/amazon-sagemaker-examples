@@ -1,6 +1,3 @@
-from __future__ import print_function
-from __future__ import unicode_literals
-
 import argparse
 import csv
 import os
@@ -24,11 +21,7 @@ from pyspark.sql.types import (
     StructField,
     StructType,
 )
-
-
-def csv_line(data):
-    r = ",".join(str(d) for d in data[1])
-    return str(data[0]) + "," + r
+from pyspark.ml.functions import vector_to_array
 
 
 def main():
@@ -41,12 +34,7 @@ def main():
 
     spark = SparkSession.builder.appName("PySparkApp").getOrCreate()
 
-    # This is needed to save RDDs which is the only way to write nested Dataframes into CSV format
-    spark.sparkContext._jsc.hadoopConfiguration().set(
-        "mapred.output.committer.class", "org.apache.hadoop.mapred.FileOutputCommitter"
-    )
-
-    # Defining the schema corresponding to the input data. The input data does not contain the headers
+    # Defining the schema corresponding to the input data. The input data does not contain headers
     schema = StructType(
         [
             StructField("sex", StringType(), True),
@@ -89,31 +77,30 @@ def main():
         outputCol="features",
     )
 
-    # The pipeline is comprised of the steps added above
+    # add the above steps to a pipeline
     pipeline = Pipeline(stages=[sex_indexer, sex_encoder, assembler])
 
-    # This step trains the feature transformers
+    # train the feature transformers
     model = pipeline.fit(total_df)
 
-    # This step transforms the dataset with information obtained from the previous fit
+    # transform the dataset with information obtained from the previous fit
     transformed_total_df = model.transform(total_df)
 
-    # Split the overall dataset into 80-20 training and validation
+    # split the overall dataset into 80-20 training and validation
     (train_df, validation_df) = transformed_total_df.randomSplit([0.8, 0.2])
 
-    # Convert the train dataframe to RDD to save in CSV format and upload to S3
-    train_rdd = train_df.rdd.map(lambda x: (x.rings, x.features))
-    train_lines = train_rdd.map(csv_line)
-    train_lines.saveAsTextFile(
-        "s3://" + os.path.join(args.s3_output_bucket, args.s3_output_key_prefix, "train")
+    # extract only rings and features columns to write to csv
+    train_df_final = train_df.withColumn("feature", vector_to_array("features")).select(
+        ["rings"] + [col("feature")[i] for i in range(9)]
     )
 
-    # Convert the validation dataframe to RDD to save in CSV format and upload to S3
-    validation_rdd = validation_df.rdd.map(lambda x: (x.rings, x.features))
-    validation_lines = validation_rdd.map(csv_line)
-    validation_lines.saveAsTextFile(
-        "s3://" + os.path.join(args.s3_output_bucket, args.s3_output_key_prefix, "validation")
+    val_df_final = validation_df.withColumn("feature", vector_to_array("features")).select(
+        ["rings"] + [col("feature")[i] for i in range(9)]
     )
+
+    # write to csv files in S3
+    train_df_final.write.csv(f"s3://{args.s3_output_bucket}/{args.s3_output_key_prefix}/train")
+    val_df_final.write.csv(f"s3://{args.s3_output_bucket}/{args.s3_output_key_prefix}/validation")
 
 
 if __name__ == "__main__":
