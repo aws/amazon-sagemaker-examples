@@ -7,10 +7,11 @@
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-if [ "$#" -eq 3 ]; then
-    region=$1
-    image=$2
-    tag=$3
+if [ "$#" -eq 4 ]; then
+    dlc_account_id=$1
+    region=$2
+    image=$3
+    tag=$4
 else
     echo "usage: $0 <aws-region> $1 <image-repo> $2 <image-tag>"
     exit 1
@@ -35,7 +36,7 @@ if [ $? -ne 0 ]; then
 fi
 
 $(aws ecr get-login --no-include-email --region ${region}  --registry-ids 763104351884)
-docker build ${DIR}/ -t ${image} -f ${DIR}/Dockerfile  --build-arg region=${region}
+docker build ${DIR}/ -t ${image} -f ${DIR}/Dockerfile  --build-arg dlc_account_id=${dlc_account_id} region=${region}
 docker tag ${image} ${fullname}
 
 # Get the login command from ECR and execute it directly
