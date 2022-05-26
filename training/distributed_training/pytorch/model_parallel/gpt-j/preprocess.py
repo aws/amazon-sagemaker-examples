@@ -77,9 +77,7 @@ class Preprocess:
         }
 
         if model_args.tokenizer_name:
-            tokenizer = AutoTokenizer.from_pretrained(
-                model_args.tokenizer_name, **tokenizer_kwargs
-            )
+            tokenizer = AutoTokenizer.from_pretrained(model_args.tokenizer_name, **tokenizer_kwargs)
         elif model_args.model_name_or_path:
             tokenizer = AutoTokenizer.from_pretrained(
                 model_args.model_name_or_path, **tokenizer_kwargs
@@ -96,9 +94,7 @@ class Preprocess:
         text_column_name = "text" if "text" in column_names else column_names[0]
 
         # since this will be pickled to avoid _LazyModule error in Hasher force logger loading before tokenize_function
-        tok_logger = transformers.utils.logging.get_logger(
-            "transformers.tokenization_utils_base"
-        )
+        tok_logger = transformers.utils.logging.get_logger("transformers.tokenization_utils_base")
 
         def tokenize_function(examples):
 
@@ -182,9 +178,7 @@ class Preprocess:
 
 def main():
 
-    parser = HfArgumentParser(
-        (ModelArguments, DataTrainingArguments, TrainingArguments)
-    )
+    parser = HfArgumentParser((ModelArguments, DataTrainingArguments, TrainingArguments))
     if len(sys.argv) == 2 and sys.argv[1].endswith(".json"):
         # If we pass only one argument to the script and it's the path to a json file,
         # let's parse it to get our arguments.
