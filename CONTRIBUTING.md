@@ -219,7 +219,7 @@ Please remember to:
 
 ## Writing Sequential Notebooks
 
-Most notebooks are singular - all information and code needed for that example is stored in one notebook. However, there are a few cases in which an example may be split into multiple notebooks. These are called sequential notebooks, as the sequence of the example is split among multiple notebooks. An example you can look at is [this series of sequential notebooks that demonstrates how to build a music recommender](https://github.com/aws/amazon-sagemaker-examples/tree/main/end_to_end/music_recommendation).
+Most notebooks are singular - all information and code needed for that example is stored in one notebook. However, there are a few cases in which an example may be split into multiple notebooks. These are called sequential notebooks, as the sequence of the example is split among multiple notebooks. An example you can look at is [this series of sequential notebooks that demonstrate how to build a music recommender](https://github.com/aws/amazon-sagemaker-examples/tree/main/end_to_end/music_recommendation).
 
 ### When should Sequential Notebooks be used?
 
@@ -238,7 +238,7 @@ If you determine that sequential notebooks are the most suitable format to write
     * This may include generating intermediate artifacts which can be immediately loaded up for use in later notebooks, etc. Depending on the situation, intermediate artifacts can be stored in the following places: 
         * The repo in the same folder where your notebook is stored: This is possible for very small files (on the order of KB)
         * The sagemaker-sample-files S3 bucket: This is for larger files (on or above the order of MB). To upload a file to this bucket, please submit a ticket to the SageMaker Notebook Team using [this ticket template](https://t.corp.amazon.com/create/templates/af6cee93-e0b6-49af-85fb-ee9dc52262d3). If the files are acceptable, one of the SageMaker Notebook Team members will then upload your files on your behalf. 
-* Each notebook must have a ‘Background Section’ clearly stating that the notebook is part of a notebook sequence. It must contain the following elements below. You can look at the Backrgound section in [Music Recommender Data Exploration](https://github.com/aws/amazon-sagemaker-examples/blob/main/end_to_end/music_recommendation/01_data_exploration.ipynb) for an example.
+* Each notebook must have a ‘Background Section’ clearly stating that the notebook is part of a notebook sequence. It must contain the following elements below. You can look at the 'Background' section in [Music Recommender Data Exploration](https://github.com/aws/amazon-sagemaker-examples/blob/main/end_to_end/music_recommendation/01_data_exploration.ipynb) for an example.
     * The objective and/or short summary of the notebook series
     * A statement that the notebook is part of a notebook series.
     * A statement communicating that the customer can choose to run the notebook by itself or as part of the series
@@ -248,7 +248,7 @@ If you determine that sequential notebooks are the most suitable format to write
 * If you have a lot of introductory material for your series, please put it in a README that is located in the same directory with your notebook series instead of an introductory notebook. You can look at this [README.md](https://github.com/aws/amazon-sagemaker-examples/blob/main/end_to_end/music_recommendation/README.md) as an example.
 * When you first use an intermediate artifact in a notebook, add a link to the notebook that is responsible for generating that artifact. That way, customers can easily look up how that artifact was created if they wanted to.
 * Use links to shorten the length of your notebook and keep it simple and organized. Instead of writing a long passage about how a feature works (i.e Batch Transform), it is better to link to the documentation for it. 
-* Design your notebook series such that the customer can get benefit from both the individual notebooks and the whole series. For example, each notebook should have clear takeaway points for the customer (i.e. one notebook teaches data preparation and feature engineering, the next notebook teaches training, etc.).
+* Design your notebook series such that the customer can get benefit from both the individual notebooks and the whole series. For example, each notebook should have clear takeaway points for the customer (i.e. one notebook teaches data preparation and feature engineering, the next notebook teaches training, etc.)
 * Put the sequence order in the notebook file name. For example, the first notebook should start with “1_”, the second notebook with “2_”, etc.
 
 
