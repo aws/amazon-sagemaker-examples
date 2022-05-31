@@ -225,9 +225,9 @@ Most notebooks are singular - only one notebook (.ipynb file) is needed to run t
 
 You may want to consider using sequential notebooks to write your example if the following conditions apply:
 
-* Your example takes over two hours to execute
-* You want to emphasize on the different steps of the example in great detail and depth (i.e. one notebook goes into detail about data exploration, the next notebook thoroughly describes the model training process, etc)
-* You want customers to have the ability to run part of your example if they wish to (i.e. they only want to run the training portion)
+* Your example takes over two hours to execute.
+* You want to emphasize on the different steps of the example in great detail and depth (i.e. one notebook goes into detail about data exploration, the next notebook thoroughly describes the model training process, etc).
+* You want customers to have the ability to run part of your example if they wish to (i.e. they only want to run the training portion).
 
 ### What are the guidelines for writing Sequential Notebooks?
 
@@ -247,7 +247,7 @@ If you determine that sequential notebooks are the most suitable format to write
 * If you have a lot of introductory material for your series, please put it in a README that is located in the same directory with your notebook series instead of an introductory notebook. You can look at this [README.md](https://github.com/aws/amazon-sagemaker-examples/blob/main/end_to_end/music_recommendation/README.md) as an example.
 * When you first use an intermediate artifact in a notebook, add a link to the notebook that is responsible for generating that artifact. That way, customers can easily look up how that artifact was created if they wanted to.
 * Use links to shorten the length of your notebook and keep it simple and organized. Instead of writing a long passage about how a feature works (i.e Batch Transform), it is better to link to the documentation for it. 
-* Design your notebook series such that the customer can get benefit from both the individual notebooks and the whole series. For example, each notebook should have clear takeaway points for the customer (i.e. one notebook teaches data preparation and feature engineering, the next notebook teaches training, etc.)
+* Design your notebook series such that the customer can get benefit from both the individual notebooks and the whole series. For example, each notebook should have clear takeaway points for the customer (i.e. one notebook teaches data preparation and feature engineering, the next notebook teaches training, etc).
 * Put the sequence order in the notebook file name. For example, the first notebook should start with "1_", the second notebook with "2_", etc.
 
 
