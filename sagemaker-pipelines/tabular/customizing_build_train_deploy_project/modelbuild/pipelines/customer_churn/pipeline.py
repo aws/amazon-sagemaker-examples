@@ -104,8 +104,8 @@ def get_pipeline(
 
     # Processing step for feature engineering
     sklearn_processor = SKLearnProcessor(
-        framework_version="0.23-1",
-        instance_type="ml.m5.xlarge",
+        framework_version="1.0-1",
+        instance_type=processing_instance_type,
         instance_count=processing_instance_count,
         base_job_name=f"{base_job_prefix}/sklearn-CustomerChurn-preprocess",  # choose any name
         sagemaker_session=sagemaker_session,
