@@ -47,7 +47,7 @@ training as quickly as possible or at least within a constrained time period.
 Then, distributed training is scaled to use a cluster of multiple nodes, meaning
 not just multiple GPUs in a computing instance, but multiple instances with
 multiple GPUs. As the cluster size increases, so does the significant drop in
-performance. This drop in performance is primarily caused the communications
+performance. This drop in performance is primarily caused by the communications
 overhead between nodes in a cluster.
 
 SageMaker distributed (SMD) offers two options for distributed training:
@@ -85,7 +85,7 @@ library.
 
 .. _mpi
 
-MPI 
+MPI
 ===================================
 
 Use MPI on SageMaker
@@ -94,7 +94,7 @@ Use MPI on SageMaker
 .. toctree::
     :maxdepth: 1
 
-    mpi_on_sagemaker/intro
+    mpi_on_sagemaker/intro/mpi_demo
 
 .. _pytorch-distributed:
 
@@ -119,7 +119,7 @@ SageMaker distributed model parallel (SMP)
    :maxdepth: 1
 
    pytorch/model_parallel/bert/smp_bert_tutorial
-   pytorch/model_parallel/mnist/pytorch_smmodelparallel_mnist
+   pytorch/model_parallel/gpt2/smp-train-gpt-simple
 
 
 Horovod
@@ -163,7 +163,6 @@ Horovod
    :maxdepth: 1
 
    /sagemaker-python-sdk/keras_script_mode_pipe_mode_horovod/tensorflow_keras_CIFAR10
-   /advanced_functionality/distributed_tensorflow_mask_rcnn/mask-rcnn-s3
 
 
 .. _mxnet-distributed:

@@ -1,9 +1,15 @@
+import sys
+import subprocess
+subprocess.check_call([sys.executable, "-m", "pip", "install", "sagemaker"])
+
 import argparse
 import pathlib
 import time
 
 import boto3
 import pandas as pd
+import sagemaker
+from sagemaker.feature_store.feature_group import FeatureGroup
 
 # Parse argument variables passed via the CreateDataset processing step
 parser = argparse.ArgumentParser()
@@ -23,8 +29,25 @@ s3_client = boto3.client("s3")
 account_id = boto3.client("sts").get_caller_identity()["Account"]
 now = pd.to_datetime("now")
 
-claims_feature_group_s3_prefix = f'{args.bucket_prefix}/{account_id}/sagemaker/{region}/offline-store/{args.claims_table_name}/data/year={now.year}/month={now.strftime("%m")}/day={now.strftime("%d")}'
-customers_feature_group_s3_prefix = f'{args.bucket_prefix}/{account_id}/sagemaker/{region}/offline-store/{args.customers_table_name}/data/year={now.year}/month={now.strftime("%m")}/day={now.strftime("%d")}'
+feature_store_session = sagemaker.Session()
+claims_feature_group = FeatureGroup(name=args.claims_feature_group_name, sagemaker_session=feature_store_session)
+customers_feature_group = FeatureGroup(
+    name=args.customers_feature_group_name, sagemaker_session=feature_store_session
+)
+
+claims_table_name = (
+    claims_feature_group.describe()["OfflineStoreConfig"]["DataCatalogConfig"]["TableName"]
+)
+customers_table_name = (
+    customers_feature_group.describe()["OfflineStoreConfig"]["DataCatalogConfig"]["TableName"]
+)
+athena_database_name = customers_feature_group.describe()["OfflineStoreConfig"]["DataCatalogConfig"]["Database"]
+
+print(f'claims_table_name: {claims_table_name}')
+print(f'customers_table_name: {customers_table_name}')
+
+claims_feature_group_s3_prefix = f'{args.bucket_prefix}/{account_id}/sagemaker/{region}/offline-store/{claims_table_name}/data/year={now.year}/month={now.strftime("%m")}/day={now.strftime("%d")}'
+customers_feature_group_s3_prefix = f'{args.bucket_prefix}/{account_id}/sagemaker/{region}/offline-store/{customers_table_name}/data/year={now.year}/month={now.strftime("%m")}/day={now.strftime("%d")}'
 
 print(f'claims_feature_group_s3_prefix: {claims_feature_group_s3_prefix}')
 print(f'customers_feature_group_s3_prefix: {customers_feature_group_s3_prefix}')
@@ -110,7 +133,7 @@ training_columns_string = ", ".join(f'"{c}"' for c in training_columns)
 
 query_string = f"""
 SELECT DISTINCT {training_columns_string}
-FROM "{args.claims_table_name}" claims LEFT JOIN "{args.customers_table_name}" customers
+FROM "{claims_table_name}" claims LEFT JOIN "{customers_table_name}" customers
 ON claims.policy_id = customers.policy_id
 """
 
@@ -118,7 +141,7 @@ print(query_string)
 
 query_execution = athena.start_query_execution(
     QueryString=query_string,
-    QueryExecutionContext={"Database": args.athena_database_name},
+    QueryExecutionContext={"Database": athena_database_name},
     ResultConfiguration={"OutputLocation": f"s3://{args.bucket_name}/query_results/"},
 )
 

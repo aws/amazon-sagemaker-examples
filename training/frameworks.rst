@@ -47,7 +47,6 @@ PyTorch
    ../frameworks/pytorch/get_started_mnist_train
    ../frameworks/pytorch/get_started_mnist_deploy
    ../sagemaker-python-sdk/pytorch_lstm_word_language_model/pytorch_rnn
-   ../sagemaker-python-sdk/pytorch_lstm_word_language_model/pytorch_rnn
 
 
 R
@@ -66,6 +65,7 @@ Scikit-learn
    :maxdepth: 1
 
    ../sagemaker-python-sdk/scikit_learn_randomforest/Sklearn_on_SageMaker_end2end
+   ../sagemaker-python-sdk/scikit_learn_model_registry_batch_transform/scikit_learn_model_registry_batch_transform
 
 ..
    needs to be renamed (remove spaces)
@@ -81,7 +81,6 @@ TensorFlow
 
    ../frameworks/tensorflow/get_started_mnist_train
    ../frameworks/tensorflow/get_started_mnist_deploy
-   ../sagemaker-python-sdk/tensorflow_moving_from_framework_mode_to_script_mode/tensorflow_moving_from_framework_mode_to_script_mode
    ../sagemaker-python-sdk/tensorflow_moving_from_framework_mode_to_script_mode/tensorflow_moving_from_framework_mode_to_script_mode
    ../sagemaker-python-sdk/tensorflow_script_mode_horovod/tensorflow_script_mode_horovod
    ../sagemaker-python-sdk/tensorflow_script_mode_pipe_mode/tensorflow_script_mode_pipe_mode

@@ -55,16 +55,4 @@ def update_dw_s3uri(flow_file_name):
 
     with open(flow_file_name, "w") as f:
         json.dump(flow, f)
-
-
-dw_container_dict = {
-    "us-east-2": "415577184552.dkr.ecr.us-east-2.amazonaws.com/sagemaker-data-wrangler-container:1.0.1"
-}
-
-
-def get_dw_container_for_region(region_in):
-    """
-    Get the Data Wrangler container based on the given region
-    """
-    container_uri = dw_container_dict[region_in]
-    return container_uri
+        

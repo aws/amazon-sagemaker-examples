@@ -27,7 +27,8 @@
           "name": "default",
           "sampling": {
             "sampling_method": "sample_by_ratio",
-            "sample_ratio": 1
+            "sample_ratio": 1,
+            "seed": 123456789
           }
         }
       ]

@@ -1,20 +1,25 @@
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 import argparse
 import json
 import os
 import subprocess
 
-import gym
 import numpy as np
-import ray
+import os
+
+import gym
 from gym import wrappers
-from gym_unity.envs import UnityToGymWrapper
+import ray
+from ray.rllib.models import ModelCatalog
+from ray.tune.registry import register_env
 from mlagents_envs.environment import UnityEnvironment
 from mlagents_envs.exception import UnityWorkerInUseException
 from mlagents_envs.registry import default_registry
-from ray.rllib.models import ModelCatalog
-from ray.tune.registry import register_env
+from gym_unity.envs import UnityToGymWrapper
+
 
 OUTPUT_DIR = "/opt/ml/output/intermediate"
 
@@ -109,7 +114,10 @@ def run(args, parser):
             parser.error("the following arguments are required: --env")
         args.env = args.config.get("env")
 
-    ray.init(webui_host="127.0.0.1")
+    if ray.__version__ > "0.8.5":
+        ray.init()
+    else:
+        ray.init(webui_host="127.0.0.1")
 
     agent_env_config = {"env_name": args.env}
 

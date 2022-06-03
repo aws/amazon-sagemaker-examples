@@ -31,7 +31,7 @@ release = "1.0.0"
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    "nbsphinx",
+    "nbsphinx", "IPython.sphinxext.ipython_console_highlighting"
 ]
 
 # extension nbsphinx config
@@ -62,6 +62,4 @@ html_static_path = ["_static"]
 # For Adobe Analytics
 html_js_files = [
     "https://a0.awsstatic.com/s_code/js/3.0/awshome_s_code.js",
-    "aws-ux-shortbread/index.js",
-    "aws-ux-shortbread/init.js",
 ]

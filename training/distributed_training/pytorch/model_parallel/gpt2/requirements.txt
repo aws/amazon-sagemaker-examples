@@ -1,0 +1,8 @@
+datasets
+numpy
+sagemaker
+sagemaker-experiments
+scipy
+torchnet
+smdebug
+humanize
