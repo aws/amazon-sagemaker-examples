@@ -90,9 +90,6 @@ def get_pipeline(
 
     # Parameters for pipeline execution
     processing_instance_count = ParameterInteger(name="ProcessingInstanceCount", default_value=1)
-    processing_instance_type = ParameterString(
-        name="ProcessingInstanceType", default_value="ml.m5.xlarge"
-    )
     training_instance_type = ParameterString(
         name="TrainingInstanceType", default_value="ml.m5.xlarge"
     )
@@ -107,7 +104,7 @@ def get_pipeline(
 
     # Processing step for feature engineering
     sklearn_processor = SKLearnProcessor(
-        framework_version="0.23-1",
+        framework_version="1.0-1",
         instance_type=processing_instance_type,
         instance_count=processing_instance_count,
         base_job_name=f"{base_job_prefix}/sklearn-CustomerChurn-preprocess",  # choose any name
@@ -133,7 +130,7 @@ def get_pipeline(
         region=region,
         version="1.0-1",
         py_version="py3",
-        instance_type=training_instance_type,
+        instance_type="ml.m5.xlarge",
     )
     xgb_train = Estimator(
         image_uri=image_uri,
@@ -177,7 +174,7 @@ def get_pipeline(
     script_eval = ScriptProcessor(
         image_uri=image_uri,
         command=["python3"],
-        instance_type=processing_instance_type,
+        instance_type="ml.m5.xlarge",
         instance_count=1,
         base_job_name=f"{base_job_prefix}/script-CustomerChurn-eval",
         sagemaker_session=sagemaker_session,
@@ -254,7 +251,6 @@ def get_pipeline(
     pipeline = Pipeline(
         name=pipeline_name,
         parameters=[
-            processing_instance_type,
             processing_instance_count,
             training_instance_type,
             model_approval_status,
