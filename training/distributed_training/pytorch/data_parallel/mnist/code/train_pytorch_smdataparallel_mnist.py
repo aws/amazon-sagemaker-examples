@@ -18,7 +18,8 @@ from packaging.version import Version
 import os
 import time
 
-import smdistributed.dataparallel.torch.distributed as dist
+import smdistributed.dataparallel.torch.torch_smddp
+import torch.distributed as dist
 import torch
 import torchvision
 import torch.nn as nn
@@ -29,7 +30,7 @@ import torch.optim as optim
 from model_def import Net
 
 # Import SMDataParallel PyTorch Modules
-from smdistributed.dataparallel.torch.parallel.distributed import DistributedDataParallel as DDP
+from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.optim.lr_scheduler import StepLR
 from torchvision import datasets, transforms
 
@@ -66,7 +67,7 @@ class CUDANotFoundException(Exception):
     pass
 
 
-dist.init_process_group()
+dist.init_process_group(backend='smddp')
 
 
 def train(args, model, device, train_loader, optimizer, epoch):
@@ -170,11 +171,16 @@ def main():
         default="/tmp/data",
         help="Path for downloading " "the MNIST dataset",
     )
+    parser.add_argument(
+        "--local_rank",
+        type=int,
+        default=os.environ['LOCAL_RANK']
+    )
 
     args = parser.parse_args()
     args.world_size = dist.get_world_size()
     args.rank = rank = dist.get_rank()
-    args.local_rank = local_rank = dist.get_local_rank()
+    local_rank = args.local_rank
     args.lr = 1.0
     args.batch_size //= args.world_size // 8
     args.batch_size = max(args.batch_size, 1)
