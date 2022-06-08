@@ -1,5 +1,5 @@
 # Autogluon Tabular with SageMaker Pipeline
-This example shows how to use [AutoGluon](https://github.com/awslabs/autogluon) with SageMaker Pipelines. To create a SageMaker pipeline, please follow the steps in tutorials such as [this] (https://aws.amazon.com/sagemaker/pipelines/). After the pipeline creation is complete, come back here to do modifications for Autogluon. You need to add below files to the official repo:
+This example shows how to use [AutoGluon](https://github.com/awslabs/autogluon) with SageMaker Pipelines. To create a SageMaker pipeline, please follow the steps in tutorials such as [this](https://aws.amazon.com/sagemaker/pipelines/). After the pipeline creation is complete, come back here to do modifications for Autogluon. You need to add below files to the official repo:
 
 - ag-config.yaml : expected to be in relevant s3 bucket
 - ag_model.py
