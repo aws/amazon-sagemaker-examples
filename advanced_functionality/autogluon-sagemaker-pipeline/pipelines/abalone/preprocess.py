@@ -82,18 +82,18 @@ if __name__ == "__main__":
     os.unlink(fn)
 
     logger.info("Raw data shape: %s", df.shape)
-    logger.info('Writing full data for next steps')
+    logger.info("Writing full data for next steps")
     pathlib.Path(f"{base_dir}/full_data").mkdir(parents=True, exist_ok=True)
     df.to_csv(f"{base_dir}/full_data/full_data.csv", index=False)
 
-    logger.info('full data: %s', df.head())
+    logger.info("full data: %s", df.head())
 
     logger.info("Splitting dataset")
     train_data, test = train_test_split(df, test_size=0.1, random_state=123)
     train, validation = train_test_split(train_data, test_size=0.1, random_state=123)
 
     logger.info("Raw data shape: %s", df.shape)
-    logger.info('Writing full data for next steps')
+    logger.info("Writing full data for next steps")
     pathlib.Path(f"{base_dir}/full_data").mkdir(parents=True, exist_ok=True)
     df.to_csv(f"{base_dir}/full_data/full_data.csv", index=False)
 

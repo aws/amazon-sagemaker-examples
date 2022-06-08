@@ -42,31 +42,33 @@ from sagemaker.workflow.steps import (
     TrainingStep,
 )
 from sagemaker.workflow.step_collections import RegisterModel
-from pipelines.ag_model import (
-    AutoGluonTraining,
-    AutoGluonTabularPredictor,
-    AutoGluonInferenceModel
-)
+from pipelines.ag_model import AutoGluonTraining, AutoGluonTabularPredictor, AutoGluonInferenceModel
+
 # official autogluon images
-image_uri = '763104351884.dkr.ecr.us-east-1.amazonaws.com/autogluon-training:0.3.1-cpu-py37-ubuntu18.04'
-infere_image_uri = '763104351884.dkr.ecr.us-east-1.amazonaws.com/autogluon-inference:0.3.1-cpu-py37-ubuntu16.04'
+image_uri = (
+    "763104351884.dkr.ecr.us-east-1.amazonaws.com/autogluon-training:0.3.1-cpu-py37-ubuntu18.04"
+)
+infere_image_uri = (
+    "763104351884.dkr.ecr.us-east-1.amazonaws.com/autogluon-inference:0.3.1-cpu-py37-ubuntu16.04"
+)
 
 
 BASE_DIR = os.path.dirname(os.path.realpath(__file__))
 
+
 def get_sagemaker_client(region):
-     """Gets the sagemaker client.
+    """Gets the sagemaker client.
 
-        Args:
-            region: the aws region to start the session
-            default_bucket: the bucket to use for storing the artifacts
+    Args:
+        region: the aws region to start the session
+        default_bucket: the bucket to use for storing the artifacts
 
-        Returns:
-            `sagemaker.session.Session instance
-        """
-     boto_session = boto3.Session(region_name=region)
-     sagemaker_client = boto_session.client("sagemaker")
-     return sagemaker_client
+    Returns:
+        `sagemaker.session.Session instance
+    """
+    boto_session = boto3.Session(region_name=region)
+    sagemaker_client = boto_session.client("sagemaker")
+    return sagemaker_client
 
 
 def get_session(region, default_bucket):
@@ -91,11 +93,11 @@ def get_session(region, default_bucket):
         default_bucket=default_bucket,
     )
 
+
 def get_pipeline_custom_tags(new_tags, region, sagemaker_project_arn=None):
     try:
         sm_client = get_sagemaker_client(region)
-        response = sm_client.list_tags(
-            ResourceArn=sagemaker_project_arn)
+        response = sm_client.list_tags(ResourceArn=sagemaker_project_arn)
         project_tags = response["Tags"]
         for project_tag in project_tags:
             new_tags.append(project_tag)
@@ -164,7 +166,7 @@ def get_pipeline(
     )
 
     # the config should be present in relevant bucket
-    config_path = f's3://{sagemaker_session.default_bucket()}/config/ag-config.yaml'
+    config_path = f"s3://{sagemaker_session.default_bucket()}/config/ag-config.yaml"
     # training step for generating model artifacts
     model_path = f"s3://{sagemaker_session.default_bucket()}/{base_job_prefix}/AbaloneTrain"
     ag = AutoGluonTraining(
@@ -176,7 +178,7 @@ def get_pipeline(
         framework_version="0.3.1",
         py_version="py37",
         base_job_name=f"{base_job_prefix}/abalone-train",
-        output_path=model_path
+        output_path=model_path,
     )
     step_train = TrainingStep(
         name="TrainAbaloneModel",
@@ -188,9 +190,7 @@ def get_pipeline(
                 ].S3Output.S3Uri,
                 content_type="text/csv",
             ),
-            "config": TrainingInput(
-                s3_data=config_path,
-                content_type="text/csv"),
+            "config": TrainingInput(s3_data=config_path, content_type="text/csv"),
             "test": TrainingInput(
                 s3_data=step_process.properties.ProcessingOutputConfig.Outputs[
                     "test"
@@ -243,7 +243,7 @@ def get_pipeline(
             s3_uri="{}/evaluation.json".format(
                 step_eval.arguments["ProcessingOutputConfig"]["Outputs"][0]["S3Output"]["S3Uri"]
             ),
-            content_type="application/json"
+            content_type="application/json",
         )
     )
     step_register = RegisterModel(
@@ -257,7 +257,7 @@ def get_pipeline(
         model_package_group_name=model_package_group_name,
         approval_status=model_approval_status,
         model_metrics=model_metrics,
-        image_uri=infere_image_uri
+        image_uri=infere_image_uri,
     )
 
     # condition step for evaluating model quality and branching execution
@@ -265,7 +265,7 @@ def get_pipeline(
         left=JsonGet(
             step=step_eval,
             property_file=evaluation_report,
-            json_path="regression_metrics.rmse.value"
+            json_path="regression_metrics.rmse.value",
         ),
         right=6.0,
     )

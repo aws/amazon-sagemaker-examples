@@ -16,21 +16,22 @@ logger.setLevel(logging.INFO)
 logger.addHandler(logging.StreamHandler())
 
 
-
 if __name__ == "__main__":
     logger.debug("Starting evaluation.")
     model_path = "/opt/ml/processing/model/model.tar.gz"
     with tarfile.open(model_path) as tar:
         tar.extractall(path=".")
 
-    logger.info('Reading evaluation report')
-    report_df = pd.read_csv('evaluation_report.csv')
+    logger.info("Reading evaluation report")
+    report_df = pd.read_csv("evaluation_report.csv")
     logger.debug("report shape %s", report_df.shape)
 
     report_dict = {
         "regression_metrics": {
             "rmse": {
-                "value": report_df[report_df['metric'] == 'root_mean_squared_error']['value'].values[0]
+                "value": report_df[report_df["metric"] == "root_mean_squared_error"][
+                    "value"
+                ].values[0]
             }
         }
     }
