@@ -46,10 +46,10 @@ from pipelines.ag_model import AutoGluonTraining, AutoGluonTabularPredictor, Aut
 
 # official autogluon images
 image_uri = (
-    "763104351884.dkr.ecr.us-east-1.amazonaws.com/autogluon-training:0.3.1-cpu-py37-ubuntu18.04"
+    "763104351884.dkr.ecr.us-east-1.amazonaws.com/autogluon-training:0.4.2-cpu-py38-ubuntu20.04"
 )
 infere_image_uri = (
-    "763104351884.dkr.ecr.us-east-1.amazonaws.com/autogluon-inference:0.3.1-cpu-py37-ubuntu16.04"
+    "763104351884.dkr.ecr.us-east-1.amazonaws.com/autogluon-inference:0.4.2-cpu-py38-ubuntu20.04"
 )
 
 
@@ -175,8 +175,8 @@ def get_pipeline(
         region=region,
         instance_count=1,
         instance_type=training_instance_type,
-        framework_version="0.3.1",
-        py_version="py37",
+        framework_version="0.4",
+        py_version="py38",
         base_job_name=f"{base_job_prefix}/abalone-train",
         output_path=model_path,
     )
