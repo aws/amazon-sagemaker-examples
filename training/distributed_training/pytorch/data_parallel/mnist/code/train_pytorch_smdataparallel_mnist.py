@@ -168,15 +168,15 @@ def main():
         help="Path for downloading " "the MNIST dataset",
     )
 
+    dist.init_process_group(backend='smddp')
     args = parser.parse_args()
     args.world_size = dist.get_world_size()
     args.rank = rank = dist.get_rank()
-    args.local_rank = local_rank = os.getenv('LOCAL_RANK', -1)
+    args.local_rank = local_rank = int(os.getenv('LOCAL_RANK', -1))
     args.lr = 1.0
     args.batch_size //= args.world_size // 8
     args.batch_size = max(args.batch_size, 1)
     data_path = args.data_path
-    dist.init_process_group(backend='smddp')
 
     if args.verbose:
         print(
