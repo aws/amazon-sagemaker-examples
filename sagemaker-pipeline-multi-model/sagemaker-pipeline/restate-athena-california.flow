@@ -15,8 +15,6 @@
           "name": "restate-california",
           "catalogName": "AwsDataCatalog",
           "databaseName": "restate",
-          "queryString": "SELECT * FROM \"restate\".\"california\"",
-          "s3OutputLocation": "s3://sagemaker-ap-southeast-1-240964962523/athena/",
           "outputFormat": "parquet",
           "workgroup": null,
           "workgroupOutputLocation": null,
@@ -25,8 +23,7 @@
       },
       "trained_parameters": {
         "query_execution_id": "ca8a88de-b2b8-403b-b841-f3a9c1a750a0",
-        "ctas_table_name": "sagemaker_tmp_5f97be7f253044558c96b79e9a8fad40",
-        "ctas_s3_output_location": "s3://sagemaker-ap-southeast-1-240964962523/athena/5f97be7f253044558c96b79e9a8fad40/data/"
+        "ctas_table_name": "sagemaker_tmp_5f97be7f253044558c96b79e9a8fad40"
       },
       "inputs": [],
       "outputs": [
