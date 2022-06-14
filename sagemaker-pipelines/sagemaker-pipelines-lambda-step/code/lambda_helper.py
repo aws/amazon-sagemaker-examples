@@ -1,4 +1,3 @@
-
 """
 This Lambda function creates an Endpoint Configuration and deploys a model to an Endpoint. 
 The name of the model to deploy is provided via the `event` argument
