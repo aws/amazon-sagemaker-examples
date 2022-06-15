@@ -80,13 +80,13 @@ def load_dataset(INPUT_SHAPE, NUM_CLASSES):
                         margin[0] : margin[0] + INPUT_SHAPE[0],
                         margin[1] : margin[1] + INPUT_SHAPE[1],
                     ]
+                    label = int(fpath.split("/")[-2].split(".")[0])
                     try:
                         assert array.shape[2] == 3
                         x_train.append(array)
+                        y_train.append(label)
                     except (IndexError, AssertionError) as ex:
                         print(f"{fpath} failed shape check")
-                    label = int(fpath.split("/")[-2].split(".")[0])
-                    y_train.append(label)
     return np.array(x_train, dtype=np.uint8), np.array(y_train, dtype=np.uint8)
 
 
