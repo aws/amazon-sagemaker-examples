@@ -1,5 +1,5 @@
 """
-autoglun helper function directly copied from AWS sagemaker example repo
+AutoGluon helper function directly copied from AWS sagemaker example repo
 see here for more info
 https://github.com/aws/amazon-sagemaker-examples/tree/main/advanced_functionality/autogluon-tabular-containers
 """

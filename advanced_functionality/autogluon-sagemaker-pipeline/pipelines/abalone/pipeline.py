@@ -43,14 +43,9 @@ from sagemaker.workflow.steps import (
 )
 from sagemaker.workflow.step_collections import RegisterModel
 from pipelines.ag_model import AutoGluonTraining, AutoGluonTabularPredictor, AutoGluonInferenceModel
+from sagemaker import image_uris
 
-# official autogluon images
-image_uri = (
-    "763104351884.dkr.ecr.us-east-1.amazonaws.com/autogluon-training:0.4.2-cpu-py38-ubuntu20.04"
-)
-infere_image_uri = (
-    "763104351884.dkr.ecr.us-east-1.amazonaws.com/autogluon-inference:0.4.2-cpu-py38-ubuntu20.04"
-)
+
 
 
 BASE_DIR = os.path.dirname(os.path.realpath(__file__))
@@ -144,6 +139,10 @@ def get_pipeline(
         name="InputDataUrl",
         default_value=f"s3://sagemaker-servicecatalog-seedcode-{region}/dataset/abalone-dataset.csv",
     )
+
+    # official autogluon images
+    image_uri = image_uris.retrieve(framework='autogluon', region=region, image_scope='training', version='0.4')
+    infere_image_uri = image_uris.retrieve(framework='autogluon', region=region, image_scope='inference', version='0.4')
 
     # processing step for feature engineering
     sklearn_processor = SKLearnProcessor(
