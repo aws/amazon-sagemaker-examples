@@ -141,8 +141,10 @@ def get_pipeline(
     )
 
     # official autogluon images
-    image_uri = image_uris.retrieve(framework='autogluon', region=region, image_scope='training', version='0.4')
-    infere_image_uri = image_uris.retrieve(framework='autogluon', region=region, image_scope='inference', version='0.4')
+    image_uri = image_uris.retrieve(framework="autogluon", region=region,
+                                    image_scope="training", version="0.4", instance_type="ml.m5.xlarge")
+    infere_image_uri = image_uris.retrieve(framework="autogluon", region=region,
+                                           image_scope="inference", version="0.4", instance_type="ml.m5.xlarge")
 
     # processing step for feature engineering
     sklearn_processor = SKLearnProcessor(
