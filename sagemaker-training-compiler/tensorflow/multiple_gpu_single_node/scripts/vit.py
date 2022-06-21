@@ -22,6 +22,7 @@ keras.utils.set_random_seed(SEED)
 
 strategy = tf.distribute.MirroredStrategy()
 
+
 def normalize(arr):
     """
     Linear normalization
@@ -403,7 +404,7 @@ if __name__ == "__main__":
     x_train, y_train = load_dataset(args.INPUT_SHAPE, args.NUM_CLASSES)
     x_train = normalize(x_train)
     print(f"Training on dataset size {x_train.shape}")
-    
+
     with strategy.scope():
         model = vit_b16(image_size=tuple(args.INPUT_SHAPE[:2]), classes=args.NUM_CLASSES)
         model.compile(
