@@ -1,0 +1,8 @@
+[run]
+include = pipelines/*
+concurrency = threading
+omit =
+    pipelines/get_pipeline_definition.py
+    pipelines/run_pipeline.py
+    pipelines/_utils.py
+timid = True
