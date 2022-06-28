@@ -1,4 +1,4 @@
-# Train Machine Learning Models using Amazon Keyspaces as a Data Source  
+# Train Machine Learning Models using Amazon Keyspaces as a Data Source 
 
 Please read [Train machine learning models using Amazon Keyspaces as a data source](https://aws.amazon.com/blogs/machine-learning/train-machine-learning-models-using-amazon-keyspaces-as-a-data-source/) blog for more detailed instructions to run this notebook.
 
