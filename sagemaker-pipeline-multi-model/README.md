@@ -54,7 +54,7 @@ The following IAM roles are required:
 - AmazonS3FullAccess
 - AWSGlueServiceRole
 
-[restate-project.ipynb](https://github.com/aws/amazon-sagemaker-samples/blob/main/sagemaker-pipeline-multi-model/restate-project.ipynb) has been tested in a SageMaker notebook that is using a kernel with Python 3.7 installed. This SageMaker notebook is attached with an IAM role with the following managed policies:
+[restate-project.ipynb](restate-project.ipynb) has been tested in a SageMaker notebook that is using a kernel with Python 3.7 installed. This SageMaker notebook is attached with an IAM role with the following managed policies:
 - AmazonEC2ContainerRegistryFullAccess
 - AmazonS3FullAccess
 - AWSGlueServiceNotebookRole
@@ -78,8 +78,6 @@ This SageMaker notebook is attached with an IAM role with the following in-line 
     ]
 }
 ```
-
-See [CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications) for more information.
 
 ## License
 
