@@ -54,9 +54,6 @@ if __name__ == "__main__":
 
     df = pd.read_csv(test_path, header=None)
 
-    logger.debug("Reading test data.")
-    y_test = df.iloc[:, 0].to_numpy()
-
     df.drop(df.columns[0], axis=1, inplace=True)
     X_test = xgboost.DMatrix(df.values)
 
