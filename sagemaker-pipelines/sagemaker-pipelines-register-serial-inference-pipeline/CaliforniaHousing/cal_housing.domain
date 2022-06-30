@@ -1,0 +1,9 @@
+longitude: continuous.
+latitude: continuous.
+housingMedianAge: continuous. 
+totalRooms: continuous. 
+totalBedrooms: continuous. 
+population: continuous. 
+households: continuous. 
+medianIncome: continuous. 
+medianHouseValue: continuous. 
