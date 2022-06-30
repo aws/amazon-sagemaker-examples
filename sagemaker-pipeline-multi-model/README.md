@@ -54,10 +54,10 @@ The following IAM roles are required:
 - AmazonS3FullAccess
 - AWSGlueServiceRole
 
-[restate-project.ipynb](restate-project.ipynb) has been tested in a SageMaker notebook that is using a kernel with Python 3.7 installed. This SageMaker notebook is attached with an IAM role with the following managed policies:
+[restate-project.ipynb](restate-project.ipynb) has been tested in a SageMaker notebook instance that is using a kernel with Python 3.7 installed. This SageMaker notebook instance is attached with an IAM role with the following managed policies:
 - AmazonEC2ContainerRegistryFullAccess
 - AmazonS3FullAccess
-- AWSGlueServiceNotebookRole
+- AWSGlueConsoleSageMakerNotebookFullAccess
 - CloudWatchLogsFullAccess
 - AWSCodeCommitReadOnly	AWS managed	- this is needed assuming you code is pulled from CodeCommit
 - AmazonSageMakerFullAccess

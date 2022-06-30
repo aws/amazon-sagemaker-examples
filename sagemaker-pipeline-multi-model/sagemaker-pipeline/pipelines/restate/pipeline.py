@@ -136,31 +136,12 @@ def get_pipeline(
         default_value=f"",  # Change this to point to the s3 location of your raw input data.
     )
 
-    data_sources = []
     # Sagemaker session
     sess = sagemaker_session
 
     # You can configure this with your own bucket name, e.g.
     # bucket = "my-bucket"
     bucket = sess.default_bucket()
-
-    data_sources.append(
-        ProcessingInput(
-            input_name="restate-california",
-            dataset_definition=DatasetDefinition(
-                local_path="/opt/ml/processing/restate-california",
-                data_distribution_type="FullyReplicated",
-                # You can override below to point to other database or use different queries
-                athena_dataset_definition=AthenaDatasetDefinition(
-                    catalog="AwsDataCatalog",
-                    database="restate",
-                    query_string="SELECT * FROM restate.california_10",
-                    output_s3_uri=f"s3://{bucket}/athena/",
-                    output_format="PARQUET",
-                ),
-            ),
-        )
-    )
 
     print(f"Data Wrangler export storage bucket: {bucket}")
 
@@ -263,7 +244,7 @@ def get_pipeline(
     data_wrangler_step = ProcessingStep(
         name="DataWranglerProcess",
         processor=processor,
-        inputs=[flow_input] + data_sources,
+        inputs=[flow_input],
         outputs=[processing_job_output],
         job_arguments=[f"--output-config '{json.dumps(output_config)}'"],
     )
@@ -326,15 +307,7 @@ def get_pipeline(
         role=role,
     )
     xgb_train.set_hyperparameters(
-        #    #objective="binary:logistic",
-        #    objective="reg:linear",
         num_round=50,
-        #    max_depth=5,
-        #    eta=0.2,
-        #    gamma=4,
-        #    min_child_weight=6,
-        #    subsample=0.7,
-        #    silent=0,
     )
 
     xgb_train.set_hyperparameters(grow_policy="lossguide")
