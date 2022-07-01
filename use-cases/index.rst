@@ -1,3 +1,6 @@
+SageMaker Use Cases
+===================
+
 Music Streaming Service: Customer Churn Detection
 ------------------------------------------------
 
