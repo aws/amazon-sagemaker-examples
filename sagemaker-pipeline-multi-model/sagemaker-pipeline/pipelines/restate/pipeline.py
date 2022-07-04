@@ -103,9 +103,9 @@ def get_pipeline(
     sagemaker_project_arn=None,
     role=None,
     default_bucket=None,
-    model_package_group_name="restatePackageGroup",  # Choose any name
-    pipeline_name="restate-p-XXXXXXXXX",  # You can find your pipeline name in the Studio UI (project -> Pipelines -> name)
-    base_job_prefix="restate",  # Choose any name
+    model_package_group_name="",
+    pipeline_name="",
+    base_job_prefix="",
 ):
     """Gets a SageMaker ML Pipeline instance working with on RE data.
     Args:
