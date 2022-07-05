@@ -1,9 +1,9 @@
-# Train Machine Learning Models using Amazon Keyspaces as a Data Source 
+# Train Machine Learning Models using Amazon Keyspaces as a Data Source
 
 Please read [Train machine learning models using Amazon Keyspaces as a data source](https://aws.amazon.com/blogs/machine-learning/train-machine-learning-models-using-amazon-keyspaces-as-a-data-source/) blog for more detailed instructions to run this notebook.
 
 
-We will provide step-by-step instructions to use SageMaker to ingest customer data from Amazon Keyspaces and train a clustering model that would enable you to segment customers. This information can be used for targeted marketing, greatly improving your business KPI.
+We provides step-by-step instructions to use SageMaker to ingest customer data from Amazon Keyspaces and train a clustering model that enables you to segment customers. This information can be used for targeted marketing, greatly improving your business KPI.
 
 1. First, we install Sigv4 driver to connect to Amazon Keyspaces
 
@@ -13,7 +13,7 @@ We will provide step-by-step instructions to use SageMaker to ingest customer da
 3. Next, we create new Keyspace ***blog_(yyyymmdd)*** and a new table ***online_retail***
 3. Next, we download retail data about customers.
 3. Next, we ingest retail data about customers into Keyspaces.
-3. Next, we use a notebook available within SageMaker Studio to collect data from the Keyspaces database, and prepare data for training using KNN Algorithm. Most of our customers use SageMaker Studio for end-to-end development of ML Use Cases. They use this notebook as a starting  point and customize it for their use case. Also, they are able to share this with other collaborators without requiring them to install any additional software.
+3. Next, we use a notebook available within SageMaker Studio to collect data from the Keyspaces database, and prepare data for training using KNN Algorithm. Most of our customers use SageMaker Studio for end-to-end development of ML Use Cases. They use this notebook as a starting point and customize it for their use case. Also, they are able to share this with other collaborators without requiring them to install any additional software.
 3. Next, we train the data for clustering.
 3. When the training is completed, we can view the mapping between customers and their associated clusters.
 3. And finally, we run a Cleanup Step to drop Keyspaces table to avoid future charges.
