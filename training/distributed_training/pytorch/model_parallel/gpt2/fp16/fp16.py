@@ -119,8 +119,8 @@ def save_fp16_optimizer(args, model, optimizer, partial=True):
     if optimizer.master_params_created:
         register_optimizer_hooks(model)
     if partial:
-        optimizer_state_dict["optimizer_state_dict"] = optimizer.local_state_dict()
-        if args.shard_optimizer_state:
+        optimizer_state_dict["optimizer_state_dict"] = optimizer.local_state_dict(gather_if_shard=args.gather_if_shard > 0)
+        if args.shard_optimizer_state and args.gather_if_shard > 0:
             if smp.rdp_rank() == 0:
                 print("With shard_optimizer_state=True, gather full fp32_from_fp16_groups for the rdp_group on rdp rank 0")
                 gathered_cpu_fp32_from_fp16_groups = [cpu_fp32_from_fp16_groups]
@@ -164,8 +164,7 @@ def load_fp16_optimizer(args, model, optimizer, state_dict, partial=True):
     def hook_fn(model, optimizer):
         optimizer.load_state_dict(opt_state_dict["optimizer_state_dict"])
         if partial:
-            if args.shard_optimizer_state:
-                assert isinstance(opt_state_dict["fp32_from_fp16"], list), "Loading with shard_optimizer_state=True must use the checkpoint that was trained with shard_optimizer_state=True!"
+            if args.shard_optimizer_state and args.gather_if_shard > 0:
                 optimizer.fp32_from_fp16 = opt_state_dict["fp32_from_fp16"][smp.rdp_rank()]
             else:
                 optimizer.fp32_from_fp16 = opt_state_dict["fp32_from_fp16"]
