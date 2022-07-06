@@ -47,11 +47,3 @@ Pipelines with NLP for Product Rating Prediction
 
    product_ratings_with_pipelines/pipelines_product_ratings
 
-
-SageMaker Algorithms with Pre-Trained Model Examples by Problem Type
---------------------------------------------------------------------
-.. toctree::
-    :maxdepth: 1
-
-    jumpstart.rst
-
