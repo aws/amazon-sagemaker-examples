@@ -125,6 +125,7 @@ More examples
     :caption: SageMaker Use Cases
 
     use-cases/index
+    use-cases/examples_by_problem_type
 
 
 .. toctree::
