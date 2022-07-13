@@ -185,7 +185,6 @@ def get_pipeline(
 
     print(f"Data Wrangler flow {flow_file_name} uploaded to {flow_s3_uri}")
 
-    ## Input - Flow: restate-athena-russia.flow
     flow_input = ProcessingInput(
         source=flow_s3_uri,
         destination="/opt/ml/processing/flow",
@@ -347,7 +346,6 @@ def get_pipeline(
         cache_config=cache_config,
     )
 
-    # dtree_image_uri = '625467769535.dkr.ecr.ap-southeast-1.amazonaws.com/sagemaker-decision-tree:latest'
     dtree_image_uri = sagemaker_session.sagemaker_client.describe_image_version(
         ImageName="restate-dtree"
     )["ContainerImage"]
