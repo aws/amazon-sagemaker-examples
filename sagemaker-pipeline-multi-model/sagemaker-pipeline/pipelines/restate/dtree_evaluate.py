@@ -50,15 +50,14 @@ if __name__ == "__main__":
 
     test_path = "/opt/ml/processing/test/test.csv"
 
-    logger.info("Loading test input data")
 
+    logger.info("Loading test input data")
     df = pd.read_csv(test_path, header=None)
 
     logger.debug("Reading test data.")
     y_test = df.iloc[:, 0].to_numpy()
     df.drop(df.columns[0], axis=1, inplace=True)
     X_test = numpy.array(df.values)
-    logger.info(X_test[0])
 
     logger.info("Performing predictions against test data.")
     predictions = model.predict(X_test)
