@@ -2,6 +2,19 @@ import argparse
 import numpy as np
 import os
 import tensorflow as tf
+from smexperiments.tracker import Tracker
+from tensorflow import keras
+
+class MonitoringCallback(keras.callbacks.Callback):
+
+    tracker = None
+
+    def __init__(self):
+        self.tracker = Tracker.load()
+
+    def on_epoch_end(self, epoch, logs=[]):
+        for metric_name, metric_value in logs.items():
+            self.tracker.log_metric(metric_name, metric_value, None, epoch)
 
 def parse_args():
 
@@ -71,7 +84,8 @@ if __name__ == "__main__":
               y_train,
               batch_size=batch_size,
               epochs=epochs,
-              validation_data=(x_test, y_test))
+              validation_data=(x_test, y_test),
+              callbacks=[MonitoringCallback()])
 
     # evaluate on test set
     scores = model.evaluate(x_test, y_test, batch_size, verbose=2)
