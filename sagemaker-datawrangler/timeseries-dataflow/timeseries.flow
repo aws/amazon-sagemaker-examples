@@ -1,0 +1,405 @@
+{
+  "metadata": {
+    "version": 1,
+    "disable_limits": false,
+    "instance_type": "ml.m5.4xlarge"
+  },
+  "nodes": [
+    {
+      "node_id": "99266ce0-99c2-490e-ac54-900f77c52211",
+      "type": "SOURCE",
+      "operator": "sagemaker.s3_source_0.1",
+      "parameters": {
+        "dataset_definition": {
+          "__typename": "S3CreateDatasetDefinitionOutput",
+          "datasetSourceType": "S3",
+          "name": "trip_data",
+          "description": null,
+          "s3ExecutionContext": {
+            "__typename": "S3ExecutionContext",
+            "s3Uri": "s3://datawrangler-githubrepo-timeseries/trip data/",
+            "s3ContentType": "parquet",
+            "s3HasHeader": true,
+            "s3FieldDelimiter": ",",
+            "s3DirIncludesNested": false,
+            "s3AddsFilenameColumn": false
+          }
+        }
+      },
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "default",
+          "sampling": {
+            "sampling_method": "sample_by_limit",
+            "limit_rows": 50000
+          }
+        }
+      ]
+    },
+    {
+      "node_id": "ef33bf2a-82ff-43fd-b559-d5656d8ee7e5",
+      "type": "TRANSFORM",
+      "operator": "sagemaker.spark.infer_and_cast_type_0.1",
+      "parameters": {},
+      "trained_parameters": {},
+      "inputs": [
+        {
+          "name": "df",
+          "node_id": "99266ce0-99c2-490e-ac54-900f77c52211",
+          "output_name": "default"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "default"
+        }
+      ]
+    },
+    {
+      "node_id": "deebdd29-9338-4245-9bcb-f9bce3b79e97",
+      "type": "TRANSFORM",
+      "operator": "sagemaker.spark.manage_columns_0.1",
+      "parameters": {
+        "operator": "Drop column",
+        "drop_column_parameters": {
+          "column_to_drop": [
+            "VendorID",
+            "RatecodeID",
+            "store_and_fwd_flag",
+            "DOLocationID",
+            "payment_type",
+            "fare_amount",
+            "extra",
+            "mta_tax",
+            "tolls_amount",
+            "improvement_surcharge",
+            "passenger_count",
+            "congestion_surcharge",
+            "airport_fee"
+          ]
+        }
+      },
+      "inputs": [
+        {
+          "name": "df",
+          "node_id": "ef33bf2a-82ff-43fd-b559-d5656d8ee7e5",
+          "output_name": "default"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "default"
+        }
+      ]
+    },
+    {
+      "node_id": "22ef3227-291c-45ee-bb1e-179d81a4b42d",
+      "type": "TRANSFORM",
+      "operator": "sagemaker.spark.time_series_0.1",
+      "parameters": {
+        "Validate timestamps_parameters": {
+          "timestamp_column": "tpep_pickup_datetime",
+          "policy": "drop"
+        },
+        "operator": "Validate timestamps"
+      },
+      "inputs": [
+        {
+          "name": "df",
+          "node_id": "deebdd29-9338-4245-9bcb-f9bce3b79e97",
+          "output_name": "default"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "default"
+        }
+      ]
+    },
+    {
+      "node_id": "de777cd8-5ebd-4bed-b18b-4c985488a66f",
+      "type": "TRANSFORM",
+      "operator": "sagemaker.spark.time_series_0.1",
+      "parameters": {
+        "Validate timestamps_parameters": {
+          "timestamp_column": "tpep_dropoff_datetime",
+          "policy": "drop"
+        },
+        "operator": "Validate timestamps"
+      },
+      "inputs": [
+        {
+          "name": "df",
+          "node_id": "22ef3227-291c-45ee-bb1e-179d81a4b42d",
+          "output_name": "default"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "default"
+        }
+      ]
+    },
+    {
+      "node_id": "b74672f2-5b7c-4953-9ae3-02ee8da7f754",
+      "type": "TRANSFORM",
+      "operator": "sagemaker.spark.custom_pyspark_0.1",
+      "parameters": {
+        "code": "# Table is available as variable `df`\nfrom pyspark.sql.functions import col, round\ndf = df.withColumn('duration', round((col(\"tpep_dropoff_datetime\").cast(\"long\")-col(\"tpep_pickup_datetime\").cast(\"long\"))/60,2))\ndf = df.drop(\"tpep_dropoff_datetime\")"
+      },
+      "inputs": [
+        {
+          "name": "df",
+          "node_id": "de777cd8-5ebd-4bed-b18b-4c985488a66f",
+          "output_name": "default"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "default"
+        }
+      ]
+    },
+    {
+      "node_id": "06136a73-3921-4088-9533-bef11610ee87",
+      "type": "TRANSFORM",
+      "operator": "sagemaker.spark.handle_missing_0.1",
+      "parameters": {
+        "operator": "Fill missing",
+        "fill_missing_parameters": {
+          "input_column": [
+            "PULocationID",
+            "tip_amount",
+            "total_amount"
+          ],
+          "fill_value": "0"
+        },
+        "impute_parameters": {
+          "column_type": "Numeric",
+          "numeric_parameters": {
+            "strategy": "Approximate Median"
+          }
+        }
+      },
+      "inputs": [
+        {
+          "name": "df",
+          "node_id": "b74672f2-5b7c-4953-9ae3-02ee8da7f754",
+          "output_name": "default"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "default"
+        }
+      ]
+    },
+    {
+      "node_id": "2e11c5fa-a7ba-4108-b292-e7a6557905fd",
+      "type": "TRANSFORM",
+      "operator": "sagemaker.spark.time_series_0.1",
+      "parameters": {
+        "Handle missing_parameters": {
+          "hm_input_type_Along column_parameters": {
+            "hmac_output_column": "",
+            "hmac_id_column": "PULocationID",
+            "hmac_strategy": "Constant Value",
+            "hmac_leftovernans": "Fill with Forward/Backward feed",
+            "hmac_strategy_Constant Value_parameters": {
+              "hmac_custom_value": "0.0"
+            },
+            "hmac_sequence_column": "trip_distance",
+            "hmac_timestamp_column": "tpep_pickup_datetime"
+          },
+          "hm_input_type": "Along column"
+        },
+        "operator": "Handle missing"
+      },
+      "inputs": [
+        {
+          "name": "df",
+          "node_id": "06136a73-3921-4088-9533-bef11610ee87",
+          "output_name": "default"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "default"
+        }
+      ]
+    },
+    {
+      "node_id": "ee4bef46-99b5-4345-8c8b-1a8aa708708e",
+      "type": "TRANSFORM",
+      "operator": "sagemaker.spark.custom_pyspark_0.1",
+      "parameters": {
+        "code": "# Table is available as variable `df`\ndf = df.filter(df.trip_distance >= 0)\ndf = df.filter(df.tip_amount >= 0)\ndf = df.filter(df.total_amount >= 0)\ndf = df.filter(df.duration >= 1)\ndf = df.filter((1 <= df.PULocationID) & (df.PULocationID <= 263))\ndf = df.filter((df.tpep_pickup_datetime >= \"2019-01-01 00:00:00\") & (df.tpep_pickup_datetime < \"2020-03-01 00:00:00\"))"
+      },
+      "inputs": [
+        {
+          "name": "df",
+          "node_id": "2e11c5fa-a7ba-4108-b292-e7a6557905fd",
+          "output_name": "default"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "default"
+        }
+      ]
+    },
+    {
+      "node_id": "ac28663e-0012-4d01-a4a3-3452c54280ea",
+      "type": "VISUALIZATION",
+      "operator": "sagemaker.visualizations.describe_0.1",
+      "parameters": {
+        "name": "Cleaned dataset summary"
+      },
+      "inputs": [
+        {
+          "name": "df",
+          "node_id": "ee4bef46-99b5-4345-8c8b-1a8aa708708e",
+          "output_name": "default"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "default"
+        }
+      ]
+    },
+    {
+      "node_id": "f0647e3f-4329-42bc-91d9-a4a5130cdacb",
+      "type": "TRANSFORM",
+      "operator": "sagemaker.spark.handle_outliers_0.1",
+      "parameters": {
+        "operator": "Standard deviation numeric outliers",
+        "standard_deviation_numeric_outliers_parameters": {
+          "standard_deviations": 4,
+          "input_column": [
+            "trip_distance",
+            "tip_amount",
+            "duration",
+            "total_amount"
+          ],
+          "fix_method": "Remove"
+        }
+      },
+      "inputs": [
+        {
+          "name": "df",
+          "node_id": "ee4bef46-99b5-4345-8c8b-1a8aa708708e",
+          "output_name": "default"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "default"
+        }
+      ]
+    },
+    {
+      "node_id": "76d7a12c-5b67-4dc4-b0bd-2fb18a8cd852",
+      "type": "TRANSFORM",
+      "operator": "sagemaker.spark.custom_pyspark_0.1",
+      "parameters": {
+        "code": "# Table is available as variable `df`\nfrom pyspark.sql.functions import col, date_trunc\ndf = df.withColumn('pickup_time', date_trunc(\"hour\",col(\"tpep_pickup_datetime\")))\ndf = df.drop(\"tpep_pickup_datetime\")"
+      },
+      "inputs": [
+        {
+          "name": "df",
+          "node_id": "f0647e3f-4329-42bc-91d9-a4a5130cdacb",
+          "output_name": "default"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "default"
+        }
+      ]
+    },
+    {
+      "node_id": "2da4c9ed-ca68-448b-831b-07965bcde4fc",
+      "type": "TRANSFORM",
+      "operator": "sagemaker.spark.custom_pyspark_0.1",
+      "parameters": {
+        "code": "# Table is available as variable `df`\nfrom pyspark.sql import functions as f\nfrom pyspark.sql import Window\ndf = df.withColumn('count', f.count('duration').over(Window.partitionBy([f.col(\"pickup_time\"), f.col(\"PULocationID\")])))"
+      },
+      "inputs": [
+        {
+          "name": "df",
+          "node_id": "76d7a12c-5b67-4dc4-b0bd-2fb18a8cd852",
+          "output_name": "default"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "default"
+        }
+      ]
+    },
+    {
+      "node_id": "b99f613d-153f-4ca2-8c33-a517b1241a5f",
+      "type": "TRANSFORM",
+      "operator": "sagemaker.spark.time_series_0.1",
+      "parameters": {
+        "Resample_parameters": {
+          "frequency": {
+            "quantity": 1,
+            "offset_description": "Hourly"
+          },
+          "downsample": {
+            "non_numeric": "most common",
+            "numeric": "mean"
+          },
+          "upsample": {
+            "non_numeric": "ffill",
+            "numeric": "linear"
+          },
+          "timestamp_column": "pickup_time",
+          "id_column": "PULocationID"
+        },
+        "operator": "Resample"
+      },
+      "inputs": [
+        {
+          "name": "df",
+          "node_id": "2da4c9ed-ca68-448b-831b-07965bcde4fc",
+          "output_name": "default"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "default"
+        }
+      ]
+    },
+    {
+      "node_id": "0d7c7ab1-13c9-40f9-a27d-87709ac16526",
+      "type": "DESTINATION",
+      "operator": "sagemaker.spark.s3_destination_0.1",
+      "name": "S3: NYC_export",
+      "parameters": {
+        "output_config": {
+          "compression": "none",
+          "output_path": "s3://datawrangler-githubrepo-timeseries/",
+          "output_content_type": "CSV",
+          "delimiter": ","
+        }
+      },
+      "inputs": [
+        {
+          "name": "default",
+          "node_id": "b99f613d-153f-4ca2-8c33-a517b1241a5f",
+          "output_name": "default"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "default"
+        }
+      ]
+    }
+  ]
+}
