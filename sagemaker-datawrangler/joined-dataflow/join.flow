@@ -1,0 +1,472 @@
+{
+  "metadata": {
+    "version": 1,
+    "disable_limits": false,
+    "instance_type": "ml.m5.4xlarge"
+  },
+  "nodes": [
+    {
+      "node_id": "856182f7-a75d-416c-b4d1-f6f06ddb8b89",
+      "type": "SOURCE",
+      "operator": "sagemaker.s3_source_0.1",
+      "parameters": {
+        "dataset_definition": {
+          "__typename": "S3CreateDatasetDefinitionOutput",
+          "datasetSourceType": "S3",
+          "name": "tracks.csv",
+          "description": null,
+          "s3ExecutionContext": {
+            "__typename": "S3ExecutionContext",
+            "s3Uri": "s3://sagemaker-us-east-1-631450739534/music-recommendation-workshop/input/tracks.csv",
+            "s3ContentType": "csv",
+            "s3HasHeader": true,
+            "s3FieldDelimiter": ",",
+            "s3DirIncludesNested": false,
+            "s3AddsFilenameColumn": false
+          }
+        }
+      },
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "default"
+        }
+      ]
+    },
+    {
+      "node_id": "d25e306e-76b2-4786-8ee8-203f9d5b54f8",
+      "type": "TRANSFORM",
+      "operator": "sagemaker.spark.infer_and_cast_type_0.1",
+      "parameters": {},
+      "trained_parameters": {
+        "schema": {
+          "trackId": "string",
+          "length": "float",
+          "energy": "float",
+          "acousticness": "float",
+          "valence": "float",
+          "speechiness": "float",
+          "instrumentalness": "float",
+          "liveness": "float",
+          "tempo": "float",
+          "genre": "string"
+        }
+      },
+      "inputs": [
+        {
+          "name": "df",
+          "node_id": "856182f7-a75d-416c-b4d1-f6f06ddb8b89",
+          "output_name": "default"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "default"
+        }
+      ]
+    },
+    {
+      "node_id": "9124b18b-f842-48a9-b46d-93bea1476d45",
+      "type": "SOURCE",
+      "operator": "sagemaker.s3_source_0.1",
+      "parameters": {
+        "dataset_definition": {
+          "__typename": "S3CreateDatasetDefinitionOutput",
+          "datasetSourceType": "S3",
+          "name": "ratings.csv",
+          "description": null,
+          "s3ExecutionContext": {
+            "__typename": "S3ExecutionContext",
+            "s3Uri": "s3://sagemaker-us-east-1-631450739534/music-recommendation-workshop/input/ratings.csv",
+            "s3ContentType": "csv",
+            "s3HasHeader": true,
+            "s3FieldDelimiter": ",",
+            "s3DirIncludesNested": false,
+            "s3AddsFilenameColumn": false
+          }
+        }
+      },
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "default"
+        }
+      ]
+    },
+    {
+      "node_id": "43173440-1736-40e9-805b-8e5547979b02",
+      "type": "TRANSFORM",
+      "operator": "sagemaker.spark.infer_and_cast_type_0.1",
+      "parameters": {},
+      "trained_parameters": {
+        "schema": {
+          "ratingEventId": "string",
+          "ts": "long",
+          "userId": "long",
+          "trackId": "string",
+          "sessionId": "long",
+          "itemInSession": "long",
+          "Rating": "float"
+        }
+      },
+      "inputs": [
+        {
+          "name": "df",
+          "node_id": "9124b18b-f842-48a9-b46d-93bea1476d45",
+          "output_name": "default"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "default"
+        }
+      ]
+    },
+    {
+      "node_id": "be95364d-43ce-4001-a1d5-3d092519eb51",
+      "type": "TRANSFORM",
+      "operator": "sagemaker.spark.encode_categorical_0.1",
+      "parameters": {
+        "operator": "One-hot encode",
+        "one_hot_encode_parameters": {
+          "invalid_handling_strategy": "Keep",
+          "drop_last": false,
+          "output_style": "Columns",
+          "input_column": [
+            "genre"
+          ]
+        },
+        "ordinal_encode_parameters": {
+          "invalid_handling_strategy": "Replace with NaN"
+        }
+      },
+      "trained_parameters": {
+        "one_hot_encode_parameters": {
+          "_hash": "4623886b68927a4dcb437c2769f9d5234824476a",
+          "string_indexer_model": "P)h>@6aWAK2moV6(^RV2EZ5oq003hF000vJ003=ebYWy+bYU-WVRCdWFfcGMFnx|qOT$1EMfd)US*JsyB(2@nO&3K$aT^{pH)-g6`DR9}CI8(qf}o(=%Q=U85z0`EVk<n4k^-qCWDLY7X^k8}DKq3_;>nGBr|||pcnu>ektU0n$Of@(y0-1EH_fJ7*IgwR{}~)7?@IYb*0NraeRr$6czM!g{E_VITTrXkP1CBbAjKzppi;hwBROrbcduj?@dSi|_?$vcJ8#OAU_-C`=c&nkuOl2o%$3j>D4X=~PZZ3ae^vi}*!N#t5#j>fvj#t%1Bx~<UNW3I-yte7&sQH%O9KQH000080AoedRN04O84dsd01N;C02lxO0BvP-VPs)+VJ|LlVRCdWFfcGMFfL<qV@obdW?*1oVz{nza}@wkO9KQH000080AoedR9+>3FxUYA0LTIW07w7;0AyiwVJ~oDa&#>)FfcGMEjBb^W;bFrI4v_cV>2x@Vr4chVq`I7Ei^SbGBji`Fk?3|V=ZGaFfcB2Zeeh6c`k5aa&dKKbd6HoZqqOrb-X64MlTSmt3>3YiqvV7I+Kttv=uiiKSC2iRmBAoLX(>~T~x=(YzNd$eGx9XLR|3{ya1Ox4DQch3?Xr2o$s8_-{*7W@yR4W0R1q~ccY7%8d}J5BXF=Y;Un7|v5HCn0RL+0)BOBp4?qo?W?i4-qCA@v@!ZmQLT58VYZ^T-*xWd3z9cH+JH~yVl)IXJQdC@tg?X>WM}~KIJ=X}Io|4PUJuN?DG*+VES&X2=UNmG$#QaRg=QJk>f@5gkVPr~~JQ0E{5JVO@uGuw~Nwtx8DWf^%>b8U$o!?>yfEILI$K9{HsNr-h;JmpxcYW!)`Hup@R<rd9wm!oB`r}*aIId0&pj9rb76_cKZ5LvONlCN;y!L|MQz5g0+h&M;>;wDouMT;^um%?uRag`sa84CTh$8kk<H}Qul6pf=DpAGC>w0NMSt7mR+bfTgd?nrRq4iDwuX|)mZ|%JP4|TOG<1<ai1y>~F@>Ru{H`Fhn%YTqu7i7xlhUj|N7WA&=^4${Hr(1(ZxoB?_X$Ls)anL@PRvAm$emY3fUYO7{o%Z`_@+j>`QItesGzj{=hhgZay=a;Y4jtFki9gV>kM$q^2~bM|1QY-O00;nMMblI!Ec)>h0000G0000@0001FVRT_HE^uLTbS*G2FfcGJHZ);oH)1t7Ei*V{Gc7b?Wi~BhWHDqdG&MOgG-NO^V>dEmEn_e+FfMa$VQ_GHE^uLTadl;ME@N_IOD;-gU|?WkX!tfiT=I2#H2_dc0Rj{Q6aWAK2moV6(^RV2EZ5oq003hF000vJ0000000000005+c00000ZDn*}WMOn+FK}UUbS*G2FfcGsO928D0~7!N00;nMMblK-hhiBH0000C0000O00000000000001_feQfu0BvP-VPs)+VJ|LlVRCdWFfcGMFfL<qV^B*00u%!j000080AoedR9+>3FxUYA0LTIW07w7;00000000000HlFW0RRAGVRT_HaA9(EEif=JFfc7PG+|~pVl_A|GdN>2Ei__fHZ5XgF=Q<?H90agWH2yeH!@=_V=yo<E^}^SaBz7paA9(Bb!Bu=O928D0~7!N00;nMMblI!Ec)>h0000G0000@00000000000001_fsF$I0AyiwVJ|LlVRCdWFfcGMFfBGTVP-dCH8?FZIAb#{G-72oEn;LbWGyr`IWjb4Ffd~`GGi@cFfcGKb8ca9aCt6pVRCVGWpplMa$`_S1qJ{B000C41ORve000UE00000",
+          "one_hot_encoder_model": "P)h>@6aWAK2moV6(^Ptj8?@8_003zL000vJ003=ebYWy+bYU-WVRCdWFfcGMFpZB*O9U|thVTB2oM+2SWyamPilE@4C$A;8>F!{^NLvps^WUv23W9={9Ny%4UUCBMFlU${@<CuieI$_+@{90JSi(}7#6zIlSZ;!jhIrqGgAU5#DHrq!=3yGgNp6Sj)g*@w&ioT`USeqGOVNvdgZ?dS`o`78wD5;g(I~By&pR#cuAMX<{T`e71cqa}$6R2x=rVP1#9$oVg;#WE6ER0_P^=}@avfdER3V>~j!u0vF5!FemBZSBA&b?O$6w0|*MD~X{fSbacd)J(?@&tv1QY-O00;nMMblJb@Q?-$0000C0000O0001OWprU=VRT_HE^uLTbS*G2FfcGKV{&6lE=p!#U|?d{BHdL508mQ<1QY-O00;nMMblLKRr9Wb0RR9n0ssI=0001FVRT_HaA9(EEif=JFfc7OFf}nUIAu63Wi?_mEi_~>Gc7q`Ff=V=Wn^YFWi>EiF=J*eV=yo<E^}^SaBz7paA9(Bb!BvYQeA7?Fcej^EG?{k=!1+5eh7kw6kK7?iR*+uv~OjMQP#edQj}Qg%w#)}l#MhE>}T``_J{Q5qh)0<2`=~JoO{m|x;+0L6GRy4gam`rBCUWnKOuxR)<fODA~*+U80-hQU@=-{3HHBU?AeJhKkw}Lhb#rbsE_IXSU7oKoB37oAT6|Sp?;G#bzvO<2tGt~M`~Hh${`Q?fgf~s188>GLVot1ye7SZ3HGq}=>2JQc2EDK)em4F7_+K8dKmd3rM0=|Vj@5!U+d++q_IU^(T@p_c!cQDKL|V39GvM)I&SLUyp&Gl!U_7+STHxANH%2Fnc3K}kf}oI+_K@#f>okimENrZhz;Y7DU1<wNN-oW-eijkNYX%lTvtvMmHjr;nhllERxU$UK_o^RpfFg5>{SyqUM_E!h<@2BJ}ymryJ9=$am3?xcQh+>-j38DSG^>cN{zBi<tHjj(=<<$bP#8~&q)%gUOLJLM}82%3qCgxx`e;-0#Hi>1QY-O00;nMMblKwdm8o<0000G0000@0001FVRT_HE^uLTbS*G2FfcGJH83?XGB{;8EoC)gGc7b^Ff%PVVK6i;V`XG!G-Wj~VKHN7En_e+FfMa$VQ_GHE^uLTadl;ME@N_IOD;-gU|?Wk=<MX<J@?Pb3;<9|0Rj{Q6aWAK2moV6(^Ptj8?@8_003zL000vJ0000000000005+c00000ZDn*}WMOn+FK}UUbS*G2FfcGsO928D0~7!N00;nMMblJb@Q?-$0000C0000O00000000000001_fdv5o0BvP-VPs)+VJ|LlVRCdWFfcGMFfL<qV^B*00u%!j000080AoedRQpx)u7Uvo05Ado07w7;00000000000HlFQ0RRAGVRT_HaA9(EEif=JFfc7OFf}nUIAu63Wi?_mEi_~>Gc7q`Ff=V=Wn^YFWi>EiF=J*eV=yo<E^}^SaBz7paA9(Bb!Bu=O928D0~7!N00;nMMblKwdm8o<0000G0000@00000000000001_fiVLB0AyiwVJ|LlVRCdWFfcGMFfBDOH8C<cWjHNmHDWU@G-NO{EjeK@G%aIgWM(vFH85c@V`eR5FfcGKb8ca9aCt6pVRCVGWpplMa$`_S1qJ{B000C41ORve006E700000"
+        }
+      },
+      "inputs": [
+        {
+          "name": "df",
+          "node_id": "d25e306e-76b2-4786-8ee8-203f9d5b54f8",
+          "output_name": "default"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "default"
+        }
+      ]
+    },
+    {
+      "node_id": "307f42ba-6711-4ea5-bf9f-ad924dd05a2c",
+      "type": "TRANSFORM",
+      "operator": "sagemaker.spark.custom_formula_0.1",
+      "parameters": {
+        "output_column": "danceability",
+        "formula": "0.3*valence + 0.1*liveness + 0.1*energy"
+      },
+      "inputs": [
+        {
+          "name": "df",
+          "node_id": "be95364d-43ce-4001-a1d5-3d092519eb51",
+          "output_name": "default"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "default"
+        }
+      ]
+    },
+    {
+      "node_id": "47ffa6be-d4ee-4997-8a4a-eff685e7f06d",
+      "type": "TRANSFORM",
+      "operator": "sagemaker.spark.join_tables_0.1",
+      "name": "jointrackid.csv",
+      "parameters": {
+        "left_column": "trackId",
+        "right_column": "trackId",
+        "join_type": "inner"
+      },
+      "inputs": [
+        {
+          "name": "df",
+          "node_id": "307f42ba-6711-4ea5-bf9f-ad924dd05a2c",
+          "output_name": "default"
+        },
+        {
+          "name": "df",
+          "node_id": "43173440-1736-40e9-805b-8e5547979b02",
+          "output_name": "default"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "default"
+        }
+      ]
+    },
+    {
+      "node_id": "c0a64988-58bd-4863-9119-888188c5ce45",
+      "type": "TRANSFORM",
+      "operator": "sagemaker.spark.custom_code_0.1",
+      "parameters": {
+        "operator": "Python (PySpark)",
+        "pyspark_parameters": {
+          "code": "# Table is available as variable `df`\nimport pyspark.sql.functions as F\n# numeric features\nnum_feat_cols = ['energy', 'acousticness', 'valence', 'speechiness', 'instrumentalness', 'liveness', 'tempo', 'danceability', 'genre_Latin', 'genre_Folk',  'genre_Blues', 'genre_Rap', 'genre_Reggae', 'genre_Jazz', 'genre_RnB', 'genre_Country', 'genre_Electronic', 'genre_Pop_Rock']\n# calculate averages for 5-star ratings\nagg_obj = [F.avg(feat_col).alias(feat_col+\"_5star\") for feat_col in num_feat_cols]\ndf = df.filter(F.col('Rating')==5).groupBy('userId').agg(*agg_obj)\n"
+        },
+        "name": "calculate 5-star ratings"
+      },
+      "inputs": [
+        {
+          "name": "df",
+          "node_id": "47ffa6be-d4ee-4997-8a4a-eff685e7f06d",
+          "output_name": "default"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "default"
+        }
+      ]
+    },
+    {
+      "node_id": "27072493-b276-4448-ba78-13259c200735",
+      "type": "TRANSFORM",
+      "operator": "sagemaker.spark.manage_columns_0.1",
+      "parameters": {
+        "operator": "Drop column",
+        "drop_column_parameters": {
+          "column_to_drop": [
+            "trackId_0",
+            "trackId_1",
+            "ts",
+            "sessionId",
+            "itemInSession",
+            "ratingEventId"
+          ]
+        }
+      },
+      "inputs": [
+        {
+          "name": "df",
+          "node_id": "47ffa6be-d4ee-4997-8a4a-eff685e7f06d",
+          "output_name": "default"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "default"
+        }
+      ]
+    },
+    {
+      "node_id": "a054a61f-8748-4711-b633-74471cfb4c7b",
+      "type": "TRANSFORM",
+      "operator": "sagemaker.spark.join_tables_0.1",
+      "name": "dataset",
+      "parameters": {
+        "left_column": "userId",
+        "right_column": "userId",
+        "join_type": "inner"
+      },
+      "inputs": [
+        {
+          "name": "df",
+          "node_id": "c0a64988-58bd-4863-9119-888188c5ce45",
+          "output_name": "default"
+        },
+        {
+          "name": "df",
+          "node_id": "27072493-b276-4448-ba78-13259c200735",
+          "output_name": "default"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "default"
+        }
+      ]
+    },
+    {
+      "node_id": "c057fdb7-cc7d-4a5a-8320-773844592667",
+      "type": "TRANSFORM",
+      "operator": "sagemaker.spark.manage_columns_0.1",
+      "parameters": {
+        "operator": "Drop column",
+        "drop_column_parameters": {
+          "column_to_drop": [
+            "userId_0",
+            "userId_1"
+          ]
+        }
+      },
+      "inputs": [
+        {
+          "name": "df",
+          "node_id": "a054a61f-8748-4711-b633-74471cfb4c7b",
+          "output_name": "default"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "default"
+        }
+      ]
+    },
+    {
+      "node_id": "63b8eeac-88a9-4750-8780-afa3e5d52bd6",
+      "type": "TRANSFORM",
+      "operator": "sagemaker.spark.manage_columns_0.1",
+      "parameters": {
+        "operator": "Move column",
+        "move_column_parameters": {
+          "move_type": "Move to start",
+          "move_to_start_parameters": {
+            "column_to_move": "Rating"
+          }
+        },
+        "drop_column_parameters": {}
+      },
+      "inputs": [
+        {
+          "name": "df",
+          "node_id": "c057fdb7-cc7d-4a5a-8320-773844592667",
+          "output_name": "default"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "default"
+        }
+      ]
+    },
+    {
+      "node_id": "47a6ac96-703f-483a-add8-6c1629033b09",
+      "type": "TRANSFORM",
+      "operator": "sagemaker.spark.split_0.1",
+      "parameters": {
+        "operator": "Randomized split",
+        "randomized_split_parameters": {
+          "splits": [
+            {
+              "name": "Train",
+              "percentage": 0.8
+            },
+            {
+              "name": "Test",
+              "percentage": 0.2
+            }
+          ],
+          "error": 0.0001
+        }
+      },
+      "inputs": [
+        {
+          "name": "df",
+          "node_id": "63b8eeac-88a9-4750-8780-afa3e5d52bd6",
+          "output_name": "default"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "Train"
+        },
+        {
+          "name": "Test"
+        }
+      ]
+    },
+    {
+      "node_id": "f088dbd3-274c-4335-94ae-d51278cbadb7",
+      "type": "DATASET",
+      "operator": "sagemaker.dataset.identity_0.1",
+      "parameters": {},
+      "inputs": [
+        {
+          "name": "df",
+          "node_id": "47a6ac96-703f-483a-add8-6c1629033b09",
+          "output_name": "Train"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "default"
+        }
+      ]
+    },
+    {
+      "node_id": "1d573e54-75bd-4e18-a3f1-04159d564fc2",
+      "type": "DATASET",
+      "operator": "sagemaker.dataset.identity_0.1",
+      "parameters": {},
+      "inputs": [
+        {
+          "name": "df",
+          "node_id": "47a6ac96-703f-483a-add8-6c1629033b09",
+          "output_name": "Test"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "default"
+        }
+      ]
+    },
+    {
+      "node_id": "a50d670e-07a6-4146-8f2f-ddf87d0bfa5d",
+      "type": "DESTINATION",
+      "operator": "sagemaker.spark.s3_destination_0.1",
+      "name": "S3: training",
+      "parameters": {
+        "output_config": {
+          "compression": "none",
+          "output_path": "s3://sagemaker-us-east-1-631450739534/music-recommendation-workshop/input/train/",
+          "output_content_type": "CSV",
+          "delimiter": ","
+        }
+      },
+      "inputs": [
+        {
+          "name": "default",
+          "node_id": "f088dbd3-274c-4335-94ae-d51278cbadb7",
+          "output_name": "default"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "default"
+        }
+      ]
+    },
+    {
+      "node_id": "fe15bf83-02ff-4397-b4e1-cd0e4de5b1fc",
+      "type": "DESTINATION",
+      "operator": "sagemaker.spark.s3_destination_0.1",
+      "name": "S3: test",
+      "parameters": {
+        "output_config": {
+          "compression": "none",
+          "output_path": "s3://sagemaker-us-east-1-631450739534/music-recommendation-workshop/input/test/",
+          "output_content_type": "CSV",
+          "delimiter": ","
+        }
+      },
+      "inputs": [
+        {
+          "name": "default",
+          "node_id": "1d573e54-75bd-4e18-a3f1-04159d564fc2",
+          "output_name": "default"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "default"
+        }
+      ]
+    }
+  ]
+}
