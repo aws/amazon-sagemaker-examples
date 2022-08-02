@@ -1,0 +1,8 @@
+datasets
+pytorch-lightning == 1.6.3
+lightning-bolts == 0.5.0
+scipy
+transformers
+torchmetrics>=0.3
+scikit-learn
+torchtext>=0.9
