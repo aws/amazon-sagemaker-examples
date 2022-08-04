@@ -36,12 +36,13 @@ Before sending us a pull request, please ensure that:
 1. Clone your fork of the repository: `git clone https://github.com/<username>/amazon-sagemaker-examples` where `<username>` is your github username.
 
 
-### Run the Linters
+### Run the Linter
 
-1. Install tox using `pip install tox`
-1. cd into the amazon-sagemaker-examples folder: `cd amazon-sagemaker-examples` or `cd /environment/amazon-sagemaker-examples`
-1. Run the following tox command and verify that all linters pass: `tox -e black-check,black-nb-check`
-1. If the linters did not pass, run the following tox command to fix the issues: `tox -e black-format,black-nb-format`
+Apply Python code formatting to Jupyter notebook files using [black-nb](https://pypi.org/project/black-nb/).
+
+1. Install black-nb using `pip install black-nb`
+1. Run the following black-nb command on each of your ipynb notebook files and verify that the linter passes: `black-nb -l 100 {path}/{notebook-name}.ipynb`
+1. Some notebook features such as `%` bash commands or `%%` cell magic cause black-nb to fail. As long as you run the above command to format as much as possible, that is sufficient, even if the check fails
 
 
 ### Test Your Notebook End-to-End
