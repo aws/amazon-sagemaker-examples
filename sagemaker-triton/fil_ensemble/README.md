@@ -12,7 +12,7 @@ In this example we show an end-to-end GPU-accelerated fraud detection example ma
             4. Search Mode: select Extended.
             5. Replace All. And then copy paste this into the AWS Lifecycle Configuration Start Notebook UI
     - **IMPORTANT:** In Additional Configuration for **Volume Size in GB** specify at least **50 GB**.
-    - For git repositories select the option `Clone a public git repository to this notebook instance only` and specify the Git repository URL https://github.com/kshitizgupta21/fil_triton_sagemaker
+    - For git repositories select the option `Clone a public git repository to this notebook instance only` and specify the Git repository URL https://github.com/aws/amazon-sagemaker-examples/tree/main/sagemaker-triton/fil_ensemble
 
 2. Once JupyterLab is ready, launch the [1_prep_rapids_train_xgb.ipynb](1_prep_rapids_train_xgb.ipynb) notebook with `rapids-2106` conda kernel and run through this notebook to do GPU-accelerated data preprocessing and XGBoost training on credit card transactions dataset for fraud detection use-case. **Make sure to use the `rapids-2106` kernel for this notebook.**
 
