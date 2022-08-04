@@ -9,12 +9,12 @@ SageMaker Clarify Processing
 .. toctree::
    :maxdepth: 1
 
-   ../sagemaker_processing/fairness_and_explainability/fairness_and_explainability
-   ../sagemaker_processing/fairness_and_explainability/fairness_and_explainability_jsonlines_format
-   ../sagemaker_processing/fairness_and_explainability/fairness_and_explainability_byoc
-   ../sagemaker_processing/fairness_and_explainability/fairness_and_explainability_spark
-   ../sagemaker_processing/fairness_and_explainability/text_explainability/text_explainability
-   ../sagemaker_processing/fairness_and_explainability/text_explainability_sagemaker_algorithm/byo_blazingtext_model_hosting
+   fairness_and_explainability/fairness_and_explainability
+   fairness_and_explainability/fairness_and_explainability_jsonlines_format
+   fairness_and_explainability/fairness_and_explainability_byoc
+   fairness_and_explainability/fairness_and_explainability_spark
+   fairness_and_explainability/text_explainability/text_explainability
+   fairness_and_explainability/text_explainability_sagemaker_algorithm/byo_blazingtext_model_hosting
    computer_vision/image_classification/explainability_image_classification
    computer_vision/object_detection/object_detection_clarify
    clarify-explainability-inference-pipelines/credit_risk_explainability_inference_pipelines
