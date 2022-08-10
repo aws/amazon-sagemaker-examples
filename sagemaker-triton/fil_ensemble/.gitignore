@@ -1,0 +1,3 @@
+**/*.ipynb_checkpoints/
+preprocessing_env.tar.gz
+**/*__pycache__/
