@@ -601,7 +601,7 @@ var KendraSearch = {
             type_badge_html = '<span class="example-badge">Example</span>'
           }else if(doc_url.includes("docs.aws.amazon.com")){
             type_badge_html = '<span class="aws-doc-badge">AWS Dev Guide</span>'
-          }else if(doc_url.includes("sagemaker.readthedocs.io")){
+          }else if(doc_url.includes("sagemaker.readthedocs.io") || doc_url.includes("sagemaker-debugger.readthedocs.io")){
             type_badge_html = '<span class="sdk-doc-badge">SDK Guide</span>'
           }
 
