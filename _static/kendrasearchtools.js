@@ -1,8 +1,10 @@
 /*
- * searchtools.js
+ * kendrasearchtools.js
  * ~~~~~~~~~~~~~~~~
  *
- * Sphinx JavaScript utilities for the full-text search.
+ * A modification of searchtools.js (https://github.com/sphinx-doc/sphinx/blob/275d9/sphinx/themes/basic/static/searchtools.js)
+ * where the default full-text search implemented in searchtools.js is replaced with AWS Kendra searching over multiple
+ * websites. The default full-text search is still kept and implemented as a fallback in the case that the Kendra search doesn't work.
  *
  * :copyright: Copyright 2007-2021 by the Sphinx team, see AUTHORS.
  * :license: BSD, see LICENSE for details.
@@ -305,7 +307,7 @@ var Search = {
         Search.stopPulse();
         Search.title.text(_('Search Results'));
         if (!resultCount)
-          Search.status.text(_('Your search did not match any documents. Please make sure that all words are spelled correctly and that you\'ve selected enough categories.'));
+          Search.status.text(_('Your search did not match any documents. Please make sure that all words are spelled correctly and that you\'ve used the correct terminology.'));
         else
             Search.status.text(_('Search finished, found %s page(s) matching the search query.').replace('%s', resultCount));
         Search.status.fadeIn(500);
