@@ -1,0 +1,15 @@
+{
+    "Version": "2008-10-17",
+    "Statement": [
+        {
+            "Sid": "allowSageMakerToPullAndPush",
+            "Effect": "Allow",
+            "Principal": {
+                "Service": "sagemaker.amazonaws.com"
+            },
+            "Action": [
+                "ecr:*",
+            ]
+        }
+    ]
+}
