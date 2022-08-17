@@ -1,0 +1,29 @@
+.example-badge {
+    background-color: #c63340;
+    color: white;
+    padding: 0.25rem 0.5rem;
+    text-align: center;
+    border-radius: 5px;
+    font-size: 0.8rem;
+    display: inline-block;
+}
+
+.aws-doc-badge {
+    background-color: #e18b50;
+    color: white;
+    padding: 0.25rem 0.5rem;
+    text-align: center;
+    border-radius: 5px;
+    font-size: 0.8rem;
+    display: inline-block;
+}
+
+.sdk-doc-badge {
+    background-color: #4c968f;
+    color: white;
+    padding: 0.25rem 0.5rem;
+    text-align: center;
+    border-radius: 5px;
+    font-size: 0.8rem;
+    display: inline-block;
+}
