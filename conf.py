@@ -63,3 +63,8 @@ html_static_path = ["_static"]
 html_js_files = [
     "https://a0.awsstatic.com/s_code/js/3.0/awshome_s_code.js",
 ]
+
+html_css_files = [
+    'pagination.css',
+    'search_accessories.css',
+]
