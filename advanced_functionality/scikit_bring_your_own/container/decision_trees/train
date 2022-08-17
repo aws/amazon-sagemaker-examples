@@ -50,6 +50,12 @@ def train():
         # labels are in the first column
         train_y = train_data.iloc[:,0]
         train_X = train_data.iloc[:,1:]
+        
+        print("train_y")
+        print(train_y)
+        
+        print("train_X")
+        print(train_X)
 
         # Here we only support a single hyperparameter. Note that hyperparameters are always passed in as
         # strings, so we need to do any necessary conversions.
