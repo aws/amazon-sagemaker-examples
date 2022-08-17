@@ -1,0 +1,94 @@
+name: "preprocessing"
+backend: "python"
+max_batch_size: 882352
+input [
+    {
+        name: "User"
+        data_type: TYPE_FP32
+        dims: [ 1 ]
+    },
+    {
+        name: "Card"
+        data_type: TYPE_FP32
+        dims: [ 1 ]
+    },
+    {
+        name: "Year"
+        data_type: TYPE_FP32
+        dims: [ 1 ]
+    },
+    {
+        name: "Month"
+        data_type: TYPE_FP32
+        dims: [ 1 ]
+    },
+    {
+        name: "Day"
+        data_type: TYPE_FP32
+        dims: [ 1 ]
+    },
+    {
+        name: "Time"
+        data_type: TYPE_STRING
+        dims: [ 1 ]
+    },
+    {
+        name: "Amount"
+        data_type: TYPE_STRING
+        dims: [ 1 ]
+    },
+    {
+        name: "Use Chip"
+        data_type: TYPE_STRING
+        dims: [ 1 ]
+    },
+    {
+        name: "Merchant Name"
+        data_type: TYPE_STRING
+        dims: [ 1 ]
+    },
+    {
+        name: "Merchant City"
+        data_type: TYPE_STRING
+        dims: [ 1 ]
+    },
+    {
+        name: "Merchant State"
+        data_type: TYPE_STRING
+        dims: [ 1 ]
+    },
+    {
+        name: "Zip"
+        data_type: TYPE_STRING
+        dims: [ 1 ]
+    },
+    {
+        name: "MCC"
+        data_type: TYPE_STRING
+        dims: [ 1 ]
+    },
+    {
+        name: "Errors?"
+        data_type: TYPE_STRING
+        dims: [ 1 ]
+    }
+    
+]
+output [
+    {
+        name: "OUTPUT"
+        data_type: TYPE_FP32
+        dims: [ 15 ]
+    }
+]
+
+instance_group [
+    {
+        count: 1
+        kind: KIND_CPU
+    }
+]
+parameters: {
+  key: "EXECUTION_ENV_PATH",
+  value: {string_value: "$$TRITON_MODEL_DIRECTORY/preprocessing_env.tar.gz"}
+}
