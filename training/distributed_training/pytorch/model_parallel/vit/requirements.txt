@@ -1,0 +1,10 @@
+transformers==v4.21.0
+evaluate
+datasets
+numpy
+sagemaker
+sagemaker-experiments
+scipy
+torchnet
+smdebug
+humanize
