@@ -1,5 +1,3 @@
-# mpirun --host bc427428b2c7 -x SMDATAPARALLEL_USE_SINGLENODE=1 -x FI_PROVIDER=ena  -np 1 python -m mpi4py ptl-test.py
-
 import smdistributed.dataparallel.torch.torch_smddp
 
 import os
@@ -11,12 +9,10 @@ from pytorch_lightning.plugins.training_type.ddp import DDPPlugin
 from pytorch_lightning.plugins.environments.lightning_environment import LightningEnvironment
 from pl_bolts.datamodules.mnist_datamodule import MNISTDataModule
 
-
 class LitClassifier(pl.LightningModule):
     def __init__(self, hidden_dim: int = 128, learning_rate: float = 0.0001):
         super().__init__()
         self.save_hyperparameters()
-
         self.l1 = torch.nn.Linear(28 * 28, self.hparams.hidden_dim)
         self.l2 = torch.nn.Linear(self.hparams.hidden_dim, 10)
 
@@ -60,24 +56,16 @@ class LitClassifier(pl.LightningModule):
 if __name__ == "__main__":
     dm = MNISTDataModule(batch_size=32)
     model = LitClassifier()
-    
-    os.environ['WORLD_SIZE'] = os.environ['OMPI_COMM_WORLD_SIZE']
-    os.environ['RANK'] = os.environ['OMPI_COMM_WORLD_RANK']
-    os.environ['LOCAL_RANK'] = os.environ['OMPI_COMM_WORLD_LOCAL_RANK']
-    os.environ["NODE_RANK"] = os.environ["OMPI_COMM_WORLD_NODE_RANK"]
     os.environ['PL_TORCH_DISTRIBUTED_BACKEND'] = "smddp"
-
     env = LightningEnvironment()
     env.world_size = lambda: int(os.environ.get("WORLD_SIZE", 0))
     env.global_rank = lambda: int(os.environ.get("RANK", 0))
-
-    num_nodes = 2
-    num_gpus = 8
-
+    world_size = int(os.environ["WORLD_SIZE"])
+    num_gpus = int(os.environ["SM_NUM_GPUS"])
+    num_nodes = int(world_size/num_gpus)
     ddp = DDPPlugin(
         parallel_devices=[torch.device("cuda", d) for d in range(num_gpus)],
         cluster_environment=env)
-
-    trainer = pl.Trainer(gpus=num_gpus, num_nodes=num_nodes, max_epochs=200, strategy=ddp)
+    trainer = pl.Trainer(max_epochs=200, strategy=ddp, gpus=num_gpus, num_nodes=num_nodes, )
     trainer.fit(model, datamodule=dm)
     trainer.test(model, datamodule=dm)

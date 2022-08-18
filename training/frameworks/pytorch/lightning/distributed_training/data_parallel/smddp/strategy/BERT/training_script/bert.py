@@ -19,9 +19,6 @@ from transformers import (
 from pytorch_lightning.strategies import DDPStrategy
 from pytorch_lightning.plugins.environments.lightning_environment import LightningEnvironment
 
-AVAIL_GPUS = min(1, torch.cuda.device_count())
-
-
 class GLUEDataModule(LightningDataModule):
 
     task_text_field_map = {
@@ -251,17 +248,12 @@ model = GLUETransformer(
     eval_splits=dm.eval_splits,
     task_name=dm.task_name,
 )
-os.environ['WORLD_SIZE'] = os.environ['OMPI_COMM_WORLD_SIZE']
-os.environ['RANK'] = os.environ['OMPI_COMM_WORLD_RANK']
-os.environ['LOCAL_RANK'] = os.environ['OMPI_COMM_WORLD_LOCAL_RANK']
-os.environ["NODE_RANK"] = os.environ["OMPI_COMM_WORLD_NODE_RANK"]
-local_rank = os.environ["LOCAL_RANK"]
-torch.cuda.set_device(int(local_rank))
-
 env = LightningEnvironment()
 env.world_size = lambda: int(os.environ["WORLD_SIZE"])
 env.global_rank = lambda: int(os.environ["RANK"])
-
+world_size = int(os.environ["WORLD_SIZE"])
+num_gpus = int(os.environ["SM_NUM_GPUS"])
+num_nodes = int(world_size/num_gpus)
 ddp = DDPStrategy(cluster_environment=env, process_group_backend="smddp", accelerator="gpu")
 trainer = Trainer(max_epochs=200, strategy=ddp, devices=8, num_nodes=4)
 trainer.fit(model, datamodule=dm)

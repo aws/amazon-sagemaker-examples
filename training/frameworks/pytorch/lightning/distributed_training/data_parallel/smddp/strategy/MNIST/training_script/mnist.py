@@ -10,7 +10,6 @@ from pytorch_lightning.strategies import DDPStrategy
 from pytorch_lightning.plugins.environments.lightning_environment import LightningEnvironment
 from pl_bolts.datamodules.mnist_datamodule import MNISTDataModule
 
-
 class LitClassifier(pl.LightningModule):
     def __init__(self, hidden_dim: int = 128, learning_rate: float = 0.0001):
         super().__init__()
@@ -67,25 +66,16 @@ class LitClassifier(pl.LightningModule):
 if __name__ == "__main__":
     dm = MNISTDataModule(batch_size=32)
     model = LitClassifier()
-    
-    os.environ['WORLD_SIZE'] = os.environ['OMPI_COMM_WORLD_SIZE']
-    os.environ['RANK'] = os.environ['OMPI_COMM_WORLD_RANK']
-    os.environ['LOCAL_RANK'] = os.environ['OMPI_COMM_WORLD_LOCAL_RANK']
-    os.environ["NODE_RANK"] = os.environ["OMPI_COMM_WORLD_NODE_RANK"]
-    local_rank = os.environ["LOCAL_RANK"]
-    torch.cuda.set_device(int(local_rank))
-    num_nodes = 2
-    num_gpus = 8
-
     env = LightningEnvironment()
     env.world_size = lambda: int(os.environ.get("WORLD_SIZE", 0))
     env.global_rank = lambda: int(os.environ.get("RANK", 0))
-
+    world_size = int(os.environ["WORLD_SIZE"])
+    num_gpus = int(os.environ["SM_NUM_GPUS"])
+    num_nodes = int(world_size/num_gpus)
     ddp = DDPStrategy(
         cluster_environment=env, 
         process_group_backend="smddp", 
         accelerator="gpu")
-
     trainer = pl.Trainer(max_epochs=200, strategy=ddp, devices=num_gpus, num_nodes=num_nodes)
     trainer.fit(model, datamodule=dm)
     trainer.test(model, datamodule=dm)
