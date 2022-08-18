@@ -16,7 +16,7 @@ RUN apt-get update && \
     python3 \
     vim \
     && rm -rf /var/lib/apt/lists/* \
-    && curl -O https://bootstrap.pypa.io/pip/3.7/get-pip.py \
+    && curl -O https://bootstrap.pypa.io/pip/3.6/get-pip.py \
     && python3 get-pip.py
 
 RUN update-alternatives --install /usr/bin/python python /usr/bin/python3 1
