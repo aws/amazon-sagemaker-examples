@@ -8,6 +8,7 @@ Get started with Autopilot
 
    sagemaker_autopilot_direct_marketing
    sagemaker_autopilot_abalone_parquet_input
+   sagemaker_autopilot_neo4j_portfolio_churn
 
 
 Feature selection
