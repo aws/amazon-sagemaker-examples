@@ -533,11 +533,20 @@ var KendraSearch = {
   _pulse_status : -1,
 
   init : function() {
+      var filters = {};
       var params = $.getQueryParameters();
+      console.log(params);
       if (params.q) {
           var query = params.q[0];
           $('input[name="q"]')[0].value = query;
-          this.performSearch(query);
+
+          Object.keys(params).forEach(function(key) {
+            if(key.startsWith("filter")){
+              filters[key] = true;
+              $('input[name="' + key + '"]')[0].checked = true;
+            }
+          });
+          this.performSearch(query, filters=filters);
       }
   },
 
@@ -577,16 +586,18 @@ var KendraSearch = {
   /**
    * execute search (requires search index to be loaded)
    */
-   query : function(query, pageNumber, pageSize=10) {
-    var url = " https://9cs56celvj.execute-api.us-west-2.amazonaws.com/prod"
+   query : function(query, pageNumber, pageSize=10, filters={}) {
+    var url = "https://8e38o66cpd.execute-api.us-west-2.amazonaws.com/prod"
 
     $('#search-progress').empty();
 
     query = KendraSearch.sanitize(query);
 
+    console.log(query, pageNumber, pageSize, filters, window.location.host);
+
     fetch(url, {
       method: 'post',
-      body: JSON.stringify({ "queryText": query , "pageNumber": pageNumber, "pageSize": pageSize, "host": window.location.host}),
+      body: JSON.stringify({ "queryText": query , "pageNumber": pageNumber, "pageSize": pageSize, "filters": filters, "host": window.location.host}),
     }).then(response => response.json())
     .then(function(data) {
       var docs = data["ResultItems"];
@@ -638,6 +649,7 @@ var KendraSearch = {
       }else{
         KendraSearch.stopPulse();
         KendraSearch.title.text(_('Search Results'));
+
         var no_pages = Math.min(Math.floor(parseFloat(data["TotalNumberOfResults"])/parseFloat(pageSize))+1, 100.00/parseFloat(pageSize));
         var maxPaginationButtons = Math.min(6, no_pages);
         var startPaginationButtons = Math.max(1, pageNumber-Math.ceil(maxPaginationButtons/2));
@@ -651,12 +663,11 @@ var KendraSearch = {
           }
         } 
         KendraSearch.out.append(paginationItem);
-
         $('.paginationnolink').each(function ( index, element ) {
           $(element).on('click', function() {
             KendraSearch.output.empty();
             paginationItem.remove();
-            KendraSearch.query(query, parseInt($(element).attr('id').split("-")[1]));
+            KendraSearch.query(query, parseInt($(element).attr('id').split("-")[1]), pageSize, filters);
           });
         });
       }     
@@ -670,20 +681,30 @@ var KendraSearch = {
   /**
    * perform a search for something (or wait until index is loaded)
    */
-   performSearch : function(query) {
+   performSearch : function(query, filters) {
     // create the required interface elements
     this.out = $('#search-results');
     this.title = $('<h2>' + _('Searching...') + '</h2>').appendTo(this.out);
     this.dots = $('<span></span>').appendTo(this.title);
     this.status = $('<p class="search-summary">&nbsp;</p>').appendTo(this.out);
+    // this.searchFilter = $('<div class="search-filter"></div>').appendTo(this.out)
     this.output = $('<ul class="search"/>').appendTo(this.out);
     this.out.css("margin", "auto");
 
     $('#search-progress').text(_('Preparing search...'));
     this.startPulse();
 
-    this.query(query, 1)
+    this.query(query, 1, pageSize=10, filters=filters)
   },
+
+  submitFilterForm: function(that){
+    console.log(that);
+    console.log(that.filterSDKGuide.checked);
+    this.filters["exampleFilter"] = that.filterExample.checked;
+    this.filters["awsDevGuideFilter"] = that.filterAWSDevGuide.checked;
+    this.filters["sdkGuideFilter"] = that.filterSDKGuide.checked;
+    
+  }
   
 };
 
