@@ -684,7 +684,6 @@ var KendraSearch = {
     this.title = $('<h2>' + _('Searching...') + '</h2>').appendTo(this.out);
     this.dots = $('<span></span>').appendTo(this.title);
     this.status = $('<p class="search-summary">&nbsp;</p>').appendTo(this.out);
-    // this.searchFilter = $('<div class="search-filter"></div>').appendTo(this.out)
     this.output = $('<ul class="search"/>').appendTo(this.out);
     this.out.css("margin", "auto");
 
