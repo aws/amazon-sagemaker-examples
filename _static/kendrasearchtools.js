@@ -535,7 +535,6 @@ var KendraSearch = {
   init : function() {
       var filters = {};
       var params = $.getQueryParameters();
-      console.log(params);
       if (params.q) {
           var query = params.q[0];
           $('input[name="q"]')[0].value = query;
@@ -588,13 +587,10 @@ var KendraSearch = {
    */
    query : function(query, pageNumber, pageSize=10, filters={}) {
     var url = "https://9cs56celvj.execute-api.us-west-2.amazonaws.com/prod"
-    console.log("url: " + url);
 
     $('#search-progress').empty();
 
     query = KendraSearch.sanitize(query);
-
-    console.log(query, pageNumber, pageSize, filters, window.location.host);
 
     fetch(url, {
       method: 'post',
@@ -650,7 +646,6 @@ var KendraSearch = {
       }else{
         KendraSearch.stopPulse();
         KendraSearch.title.text(_('Search Results'));
-
         var no_pages = Math.min(Math.floor(parseFloat(data["TotalNumberOfResults"])/parseFloat(pageSize))+1, 100.00/parseFloat(pageSize));
         var maxPaginationButtons = Math.min(6, no_pages);
         var startPaginationButtons = Math.max(1, pageNumber-Math.ceil(maxPaginationButtons/2));
@@ -664,6 +659,7 @@ var KendraSearch = {
           }
         } 
         KendraSearch.out.append(paginationItem);
+
         $('.paginationnolink').each(function ( index, element ) {
           $(element).on('click', function() {
             KendraSearch.output.empty();
@@ -697,15 +693,6 @@ var KendraSearch = {
 
     this.query(query, 1, pageSize=10, filters=filters)
   },
-
-  submitFilterForm: function(that){
-    console.log(that);
-    console.log(that.filterSDKGuide.checked);
-    this.filters["exampleFilter"] = that.filterExample.checked;
-    this.filters["awsDevGuideFilter"] = that.filterAWSDevGuide.checked;
-    this.filters["sdkGuideFilter"] = that.filterSDKGuide.checked;
-    
-  }
   
 };
 
