@@ -587,7 +587,8 @@ var KendraSearch = {
    * execute search (requires search index to be loaded)
    */
    query : function(query, pageNumber, pageSize=10, filters={}) {
-    var url = "https://8e38o66cpd.execute-api.us-west-2.amazonaws.com/prod"
+    var url = "https://9cs56celvj.execute-api.us-west-2.amazonaws.com/prod"
+    console.log("url: " + url);
 
     $('#search-progress').empty();
 
@@ -613,7 +614,7 @@ var KendraSearch = {
           if(doc_url.includes("sagemaker-examples.readthedocs.io")){
             type_badge_html = '<span class="example-badge">Example</span>'
           }else if(doc_url.includes("docs.aws.amazon.com")){
-            type_badge_html = '<span class="aws-doc-badge">AWS Dev Guide</span>'
+            type_badge_html = '<span class="aws-doc-badge">Dev Guide</span>'
           }else if(doc_url.includes("sagemaker.readthedocs.io") || doc_url.includes("sagemaker-debugger.readthedocs.io")){
             type_badge_html = '<span class="sdk-doc-badge">SDK Guide</span>'
           }
