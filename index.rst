@@ -217,3 +217,10 @@ More examples
    :caption: Community examples
 
    contrib/index
+   
+.. toctree::
+   :maxdepth: 1
+   :caption: Data Wrangler Examples
+
+   sagemaker-datawrangler/index
+   
