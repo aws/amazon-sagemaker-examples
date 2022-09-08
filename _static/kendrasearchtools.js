@@ -533,11 +533,19 @@ var KendraSearch = {
   _pulse_status : -1,
 
   init : function() {
+      var filters = {};
       var params = $.getQueryParameters();
       if (params.q) {
           var query = params.q[0];
           $('input[name="q"]')[0].value = query;
-          this.performSearch(query);
+
+          Object.keys(params).forEach(function(key) {
+            if(key.startsWith("filter")){
+              filters[key] = true;
+              $('input[name="' + key + '"]')[0].checked = true;
+            }
+          });
+          this.performSearch(query, filters=filters);
       }
   },
 
@@ -577,8 +585,8 @@ var KendraSearch = {
   /**
    * execute search (requires search index to be loaded)
    */
-   query : function(query, pageNumber, pageSize=10) {
-    var url = " https://9cs56celvj.execute-api.us-west-2.amazonaws.com/prod"
+   query : function(query, pageNumber, pageSize=10, filters={}) {
+    var url = "https://9cs56celvj.execute-api.us-west-2.amazonaws.com/prod"
 
     $('#search-progress').empty();
 
@@ -586,7 +594,7 @@ var KendraSearch = {
 
     fetch(url, {
       method: 'post',
-      body: JSON.stringify({ "queryText": query , "pageNumber": pageNumber, "pageSize": pageSize, "host": window.location.host}),
+      body: JSON.stringify({ "queryText": query , "pageNumber": pageNumber, "pageSize": pageSize, "filters": filters, "host": window.location.host}),
     }).then(response => response.json())
     .then(function(data) {
       var docs = data["ResultItems"];
@@ -602,7 +610,7 @@ var KendraSearch = {
           if(doc_url.includes("sagemaker-examples.readthedocs.io")){
             type_badge_html = '<span class="example-badge">Example</span>'
           }else if(doc_url.includes("docs.aws.amazon.com")){
-            type_badge_html = '<span class="aws-doc-badge">AWS Dev Guide</span>'
+            type_badge_html = '<span class="aws-doc-badge">Dev Guide</span>'
           }else if(doc_url.includes("sagemaker.readthedocs.io") || doc_url.includes("sagemaker-debugger.readthedocs.io")){
             type_badge_html = '<span class="sdk-doc-badge">SDK Guide</span>'
           }
@@ -656,7 +664,7 @@ var KendraSearch = {
           $(element).on('click', function() {
             KendraSearch.output.empty();
             paginationItem.remove();
-            KendraSearch.query(query, parseInt($(element).attr('id').split("-")[1]));
+            KendraSearch.query(query, parseInt($(element).attr('id').split("-")[1]), pageSize, filters);
           });
         });
       }     
@@ -670,7 +678,7 @@ var KendraSearch = {
   /**
    * perform a search for something (or wait until index is loaded)
    */
-   performSearch : function(query) {
+   performSearch : function(query, filters) {
     // create the required interface elements
     this.out = $('#search-results');
     this.title = $('<h2>' + _('Searching...') + '</h2>').appendTo(this.out);
@@ -682,7 +690,7 @@ var KendraSearch = {
     $('#search-progress').text(_('Preparing search...'));
     this.startPulse();
 
-    this.query(query, 1)
+    this.query(query, 1, pageSize=10, filters=filters)
   },
   
 };
