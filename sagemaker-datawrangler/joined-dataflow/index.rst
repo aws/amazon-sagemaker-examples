@@ -1,5 +1,13 @@
-Music Recommendation Example
+
+Joined Dataflow Example
 ============================
+This example provide quick walkthrough of how to aggregate and prepare
+data for Machine Learning using Amazon SageMaker Data Wrangler for
+joined dataset.
+
+
+Music Recommendation Example
+------------------------------
 
 With the rapid growth of the commercial music streaming services, more
 and more people nowadayas are listening to music from they model
