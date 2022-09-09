@@ -1,5 +1,4 @@
 .. figure:: https://github.com/aws/amazon-sagemaker-examples/raw/main/_static/sagemaker-banner.png
-   :alt: Amazon SageMaker Data Wrangler
 
    Amazon SageMaker Data Wrangler
 
@@ -9,7 +8,7 @@ Amazon SageMaker Data Wrangler Examples
 Example flows that demonstrate how to aggregate and prepare data for
 Machine Learning using Amazon SageMaker Data Wrangler.
 
-:books: Background
+
 ------------------
 
 `Amazon SageMaker Data
@@ -30,7 +29,7 @@ The `SageMaker example
 notebooks <https://sagemaker-examples.readthedocs.io/en/latest/>`__ are
 Jupyter notebooks that demonstrate the usage of Amazon SageMaker.
 
-:hammer_and_wrench: Setup
+Setup
 -------------------------
 
 Amazon SageMaker Data Wrangler is a feature in Amazon SageMaker Studio.
@@ -44,26 +43,43 @@ Wrangler. Do the following:
    Wrangler <https://docs.aws.amazon.com/sagemaker/latest/dg/data-wrangler-getting-started.html#data-wrangler-getting-started-access>`__
    to start using Data Wrangler.
 
-:notebook: Examples
+Examples
 -------------------
 
-`Tabular DataFlow </joined-dataflow>`__
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Tabular Dataflow
+----------------------------
 
 This example provide quick walkthrough of how to aggregate and prepare
 data for Machine Learning using Amazon SageMaker Data Wrangler for
 Tabular dataset.
 
-`Timeseries DataFlow </timeseries-dataflow>`__
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. toctree::
+   :maxdepth: 1
+   :caption: Tabular Dataflow example
+
+   tabular-dataflow
+
+Timeseries Dataflow
+----------------------------
 
 This example provide quick walkthrough of how to aggregate and prepare
 data for Machine Learning using Amazon SageMaker Data Wrangler for
 Timeseries dataset.
+.. toctree::
+   :maxdepth: 1
+   :caption: Timeseries Dataflow example
 
-`Joined DataFlow </joined-dataflow>`__
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   timeseries-dataflow
+
+Joined Dataflow
+----------------------------
 
 This example provide quick walkthrough of how to aggregate and prepare
 data for Machine Learning using Amazon SageMaker Data Wrangler for
 Joined dataset.
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Joined Dataflow example
+
+   joined-dataflow
