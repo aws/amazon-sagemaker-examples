@@ -210,6 +210,7 @@ More examples
    sagemaker-clarify/index
    scientific_details_of_algorithms/index
    aws_marketplace/index
+   sagemaker-datawrangler/index
 
 
 .. toctree::
@@ -218,9 +219,7 @@ More examples
 
    contrib/index
    
-.. toctree::
-   :maxdepth: 1
-   :caption: Data Wrangler Examples
 
-   sagemaker-datawrangler/index
+
+   
    
