@@ -87,13 +87,13 @@ For this experiment the Data Source will be [Amazon S3](https://aws.amazon.com/s
 4. Note the S3 URL for the file uploaded in Step 3 before moving to the next sextion. This data will be used as input to the Datawrangler. The S3 URL will be used in the next step. 
 
 ### Data Import from S3 to Data Wrangler
-The hotel-bookings.csv file uploaded in previous section needs to be imported in Data Wrangler as input. Please refer to **[Data Import from S3](./data-import/Data-Import.md)** and follow steps for importing the data.
+The hotel-bookings.csv file uploaded in previous section needs to be imported in Data Wrangler as input. Please refer to **[Data Import from S3](data-import/Data-Import.md)** and follow steps for importing the data.
 
 ### Exploratory Data Analysis
-Before applying various data transformations, we need to explore the data to find correlations, duplicate rows as well as target leakage. Please refer to **[Exploratory Data Analysis](./data-exploraion/Data-Exploration.md)** and follow steps for Data exploration.
+Before applying various data transformations, we need to explore the data to find correlations, duplicate rows as well as target leakage. Please refer to **[Exploratory Data Analysis](data-exploraion/Data-Exploration.md)** and follow steps for Data exploration.
 
 ### Data Transformation 
-Based on the Data explorations carried out in previous step, we are now ready to apply transformations to the data. Please refer to **[Data Transformations](./data-transformation/Data-Transformations.md)** and follow steps for Data Transformation.
+Based on the Data explorations carried out in previous step, we are now ready to apply transformations to the data. Please refer to **[Data Transformations](data-transformation/Data-Transformations.md)** and follow steps for Data Transformation.
 
 ### Data Export
 Data Wrangler UI can also be used to export the transformed data to Amazon S3. To get started with this process, first let's create a destination node. Right click on the final transform on your data and choose `Add destination` → `Amazon S3`. Assign a name for your output data and choose the S3 location where you want the data to be stored and click Add destination button at the bottom as shown below.
