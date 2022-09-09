@@ -259,7 +259,7 @@ imported in Data Wrangler as input.
    :maxdepth: 1
    :caption: Data Import from S3 to Data Wrangler
 
-   data-import
+   data-import/index
 
 
 Exploratory Data Analysis
@@ -272,7 +272,7 @@ data to find correlations, duplicate rows as well as target leakage.
    :maxdepth: 1
    :caption: Data Exploration from S3 to Data Wrangler
 
-   data-exploration
+   data-exploration/index
 
 Data Transformation
 ~~~~~~~~~~~~~~~~~~~
@@ -284,7 +284,7 @@ ready to apply transformations to the data.
    :maxdepth: 1
    :caption: Data transformations from S3 to Data Wrangler
 
-   data-transformations
+   data-transformations/index
 
 Data Export
 ~~~~~~~~~~~
