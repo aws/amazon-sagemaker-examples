@@ -140,7 +140,7 @@ Data Wrangler will automatically recognize data types. You should see
 “Validation complete 0 errors message”
 
 Change data types
-=================
+------------------
 
 First we will check the data types were correctly recognized. This might
 be necessary as Data Wrangler selects data types based on a sampled data
@@ -164,7 +164,7 @@ Click Preview and then Apply button.
 Click Back to data flow.
 
 Dataset preparation
-===================
+-------------------
 
 Drop columns
 ------------
@@ -1040,7 +1040,7 @@ series!
       You can now move to an optional advanced time series transformation exercise
 
 Clean up (Only if not planning to do the Advanced part of the timeseries exercise)
-==================================================================================
+-----------------------------------------------------
 
 -  Delete artifacts in S3.
 -  Delete data flow file in SageMaker Studio.
