@@ -8,7 +8,7 @@ Data used in this demo:
 
 The taxi trip records include fields capturing pick-up and drop-off dates/times, pick-up and drop-off locations, trip distances, itemized fares, rate types, payment types, and driver-reported passenger counts. The raw data is split 1 month per file, per Yellow, Green, or ForHire from 2008 through 2020, with each file around 600 MB. The entire raw dataset is huge. For our lab, we will use 13 of these files of around a year's worth of trip data and focus only on the iconic yellow cab trips. We picked trip data from Feb 2019 to Feb 2020 to avoid COVID effects. The data dictionary below describes the Yellow taxi trip data with raw feature column names and their respective descriptions. The picked dataset covers 13 months and encapsulates approximately 90 million trips. 
 
-<img src="img/ImportTableColumns.png" width="55%"/>
+<img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/ImportTableColumns.png" width="55%"/>
 
 
 ## Instructions to download the dateset 
@@ -18,11 +18,11 @@ To copy the dataset, copy and execute the Python code below within SageMaker Stu
 
 To create a SageMaker Studio notebook, from the launcher page, click on the ***Notebook Python 3*** options under ***Notebooks and compute resources*** as show in the figure below. 
 
-<img src="img/Notebookimg.png" width="65%"/>
+<img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/Notebookimg.png" width="65%"/>
 
 Copy and paste the shared code snippet below into the launched notebook's cell (shown below) and execute it by clicking on the play icon on the top bar.
 
-<img src="img/jupyterstart.png" width="65%"/>
+<img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/jupyterstart.png" width="65%"/>
 
 
 ```python
@@ -71,42 +71,42 @@ Our first step is to launch a new SageMaker Data Wrangler session and there are 
 
 Click File -> New -> Data Wrangler Flow
 
-   <img src="img/newDWF.png" width="60%"/>
+   <img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/newDWF.png" width="60%"/>
 
 Amazon SageMaker will start to provision a resources for you and you a could find a new Data Wrangler Flow file in a File Browser section
 
-   <img src="img/DWStarting.png" width="85%" />
+   <img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/DWStarting.png" width="85%" />
 
 Lets rename our new workflow: Right click on file -> Rename Data Wrangler Flow
 
-<img src="img/DWRename.png" width="60%"/>
+<img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/DWRename.png" width="60%"/>
 
 Put a new name, for example: `TS-Workshop-DataPreparation.flow`
 
-<img src="img/DWNewName.png" width="25%"/>
+<img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/DWNewName.png" width="25%"/>
 
 In few minutes Data Wrangler will finish to provision resources and you could see "Import Data" screen. 
 SageMaker Data Wrangler supports many data sources: Amazon S3, Amazon Athena, Amazon Redshift, Snowflake, Databricks.
 Our data already in S3, let's import it by clicking "Amazon S3" button. 
 
 
-<img src="img/SelectS3.png" width="45%"/>
+<img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/SelectS3.png" width="45%"/>
 
 You will see all your S3 buckets so please search for your bucket (if you used provided code the bucket will have a suffix dw-ts-lab)
 
-<img src="img/EntireS3.png" width="65%"/>
+<img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/EntireS3.png" width="65%"/>
 
 All the files required for this lab are in "trip data" folder, so let's select it. SageMaker Data Wrangler will import all files from a folder and sample up to 100 MB of data for an interactive preview. On a right side menu you could customize import job settings like Name, File type, Delimiter, etc. More information about import process could be found [here](https://docs.aws.amazon.com/sagemaker/latest/dg/data-wrangler-import.html).
 
 
 To finish setting up import step select "parquet" in "File type" drop down menu and press the orange button "Import"
     
-<img src="img/SelectS3Folder.png" width="75%"/>
+<img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/SelectS3Folder.png" width="75%"/>
 
 
 It will take a few minutes to import data and validate it. SageMaker Data Wrangler will automatically recognize data types. You should see "Validation complete 0 errors message"
 
-<img src="img/ImportedS3.png" width="75%"/>
+<img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/ImportedS3.png" width="75%"/>
 
 
 # Change data types
@@ -116,7 +116,7 @@ First we will check the data types were correctly recognized. This might be nece
 
 To add a data transformation step use the plus sign next to Data types and choose Edit data types as shown below.
 
-<img src="img/SelectEditDataTypes.png" width="75%"/>
+<img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/SelectEditDataTypes.png" width="75%"/>
 
 
 In our case several columns were incorrectly recognized: 
@@ -126,7 +126,7 @@ In our case several columns were incorrectly recognized:
 
 I know correct data types from dataset description. In real life you could also easily find such information. Let's correct data types by selecting a correct type from a drop down menu. 
 
-<img src="img/DWDataTypesCorrection.png" width="75%"/>
+<img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/DWDataTypesCorrection.png" width="75%"/>
 
 
 Click Preview and then Apply button.
@@ -160,22 +160,22 @@ As we are interested in per hour forecast we have to aggregate some features and
 To remove those columns:
 1. Click the plus sign next to "Data types" element and choose Add transform.
 
-    <img src="img/SelectAddTransform.png" width="75%"/>
+    <img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/SelectAddTransform.png" width="75%"/>
 
 
 2. Click "+ Add step" orange button in the TRANSFORMS menu.
 
-    <img src="img/AddStep.png" width="35%"/>
+    <img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/AddStep.png" width="35%"/>
 
 
 3. Choose Manage columns. \
 
-    <img src="img/SelectManageColumns.png" width="45%"/>
+    <img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/SelectManageColumns.png" width="45%"/>
 
 
 4. For Transform, choose Drop column and for Column to drop, choose all mentioned above.
 
-    <img src="img/DropColumns.png" width="35%"/>
+    <img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/DropColumns.png" width="35%"/>
 
 
 5. Choose Preview
@@ -183,7 +183,7 @@ To remove those columns:
 
 Once transformation is applied on a sampled data you should see all current steps and a preview of a resulted dataset like show here. 
 
-   <img src="img/ColumnsDroped.png" width="75%"/>
+   <img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/ColumnsDroped.png" width="75%"/>
 
 Click Back to data flow.
 
@@ -199,20 +199,20 @@ All future aggregations will be based on time stamps, so we have to make sure th
 To validate timestamps in `tpep_dropoff_datetime` and `tpep_pickup_datetime` columns:
 1. Click the plus sign next to "Drop columns" element and choose Add transform.
 
-    <img src="img/AddDateValidationTransform.png" width="80%"/>
+    <img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/AddDateValidationTransform.png" width="80%"/>
 
 
 2. Click "+ Add step" orange button in the TRANSFORMS menu.
 
-    <img src="img/AddStep.png" width="40%"/>
+    <img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/AddStep.png" width="40%"/>
 
 3. Choose Time Series.
 
-    <img src="img/SelectTimeSeries.png" width="40%"/>
+    <img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/SelectTimeSeries.png" width="40%"/>
 
 4. For Transform choose Validate Timestamps, For TimeStamp columns choose `tpep_pickup_datetime`, for Policy select drop. 
 
-    <img src="img/ValidateDate.png" width="30%"/>
+    <img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/ValidateDate.png" width="30%"/>
 
 5. Choose Preview
 6. Choose Add to save the step.
@@ -220,7 +220,7 @@ To validate timestamps in `tpep_dropoff_datetime` and `tpep_pickup_datetime` col
 
 When you apply a transformation a sampled data you should see all current steps and a preview of a resulted dataset. 
 
-<img src="img/DatesValidated.png" width="70%"/>
+<img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/DatesValidated.png" width="70%"/>
 
 Click Back to data flow.
 
@@ -232,15 +232,15 @@ At this stage we have pickup and drop-off timestamps, but we are more interested
 To create a custom transformation you have to:
 1. Click the plus sign next to a collection of transformation elements and choose Add transform.
 
-   <img src="img/AddTransformDur.png" width="75%"/>
+   <img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/AddTransformDur.png" width="75%"/>
 
 2. Click "+ Add step" orange button in the TRANSFORMS menu.
 
-   <img src="img/AddStep.png" width="35%"/>
+   <img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/AddStep.png" width="35%"/>
 
 3. Choose Custom transform.
 
-   <img src="img/CustomTransform.png" width="35%"/>
+   <img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/CustomTransform.png" width="35%"/>
 
 4. Name the transformation as "Duration_Transformation" - (naming is optional but good to have a structure)
 5. In drop down menu select Python (PySpark) and use code below. This code will import functions, calculate difference between two timestamps by converting them to unix format (real number) and round result and drop tpep_dropoff_datetime column
@@ -250,14 +250,14 @@ To create a custom transformation you have to:
    df = df.withColumn('duration', round((col("tpep_dropoff_datetime").cast("long")-col("tpep_pickup_datetime").cast("long"))/60,2))
    df = df.drop("tpep_dropoff_datetime")
    ```  
-   <img src="img/CustomTransformCode.png" width="35%"/>
+   <img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/CustomTransformCode.png" width="35%"/>
 
 6. Choose Preview
 7. Choose Add to save the step.
 
 When transformation is applied on a sampled data you should see all current steps and a preview of a resulted dataset with a new column duration and without column tpep_dropoff_datetime
 
-   <img src="img/DurResult.png" width="75%"/>
+   <img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/DurResult.png" width="75%"/>
 
 Click Back to data flow.
 
@@ -276,15 +276,15 @@ This transformation can be used if you want to:
 To create this transformation you have to:
 1. Click the plus sign next to a collection of transformation elements and choose Add transform.
 
-    <img src="img/AddTransformMissingGeneral.png" width="75%"/>
+    <img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/AddTransformMissingGeneral.png" width="75%"/>
 
 2. Click "+ Add step" orange button in the TRANSFORMS menu.
 
-    <img src="img/AddStep.png" width="35%"/>
+    <img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/AddStep.png" width="35%"/>
 
 3. Choose Handle Missing 
 
-    <img src="img/chooseHandleMissing.png" width="45%"/>
+    <img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/chooseHandleMissing.png" width="45%"/>
     
 4. For "Transform" choose Fill missing
     
@@ -292,14 +292,14 @@ To create this transformation you have to:
 
 6. For "Fill value" put 0
    
-    <img src="img/handleMissingGeneral.png" width="30%"/>
+    <img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/handleMissingGeneral.png" width="30%"/>
 
 7. Choose Preview
 8. Choose Add to save the step.
 
 When transformation is applied on a sampled data you should see all current steps and a preview of a resulted dataset. 
 
-<img src="img/handleMissingGeneralResult.png" width="75%"/>
+<img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/handleMissingGeneralResult.png" width="75%"/>
 
 ### Handle missing data with special Time Series transformation
 
@@ -308,12 +308,12 @@ In real life datasets, we have many time-series in the same dataset and to separ
 To create this transformation you have to:
 1. Click "+ Add step" orange button in the TRANSFORMS menu.
 
-    <img src="img/AddStep.png" width="35%"/>
+    <img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/AddStep.png" width="35%"/>
 
 
 2. Choose Time Series
 
-    <img src="img/SelectTimeSeries.png" width="45%"/>
+    <img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/SelectTimeSeries.png" width="45%"/>
 
 3. For "Transform" choose Handle missing
 
@@ -329,14 +329,14 @@ To create this transformation you have to:
 
 9. For "Custom value" put 0.0
 
-    <img src="img/HandleMissing.png" width="35%"/>
+    <img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/HandleMissing.png" width="35%"/>
 
 10. Choose Preview
 11. Choose Add to save the step.
 
 When this transformation is applied on the dataset, you can see all current steps until this point in time and get a preview of the resulting dataset. 
 
-<img src="img/HandleMissingCompleted.png" width="100%"/>
+<img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/HandleMissingCompleted.png" width="100%"/>
 
 ### Filter rows with invalid data
 
@@ -350,22 +350,22 @@ We can filter data based on following rules:
 5. `duration` - have to be greater than or equal to 1 (we are not interested in super short trips).
 6. `PULocationID` - have to be in the range (1 to 263). These are the assigned zones. For the sake of brevity, let's use only the 1st ten location IDs for this workshop (see image below).
 
-<img src="img/Top10Location.png" width="50%"/>
+<img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/Top10Location.png" width="50%"/>
 
 There is no built-in filter transformation in Data Wrangler to handle these various constraints. Hence, we will create a custom transformation.
 
 To create a custom transformation, follow the steps below:
 1. Click the plus sign next to a collection of transformation elements and choose Add transform.
 
-    <img src="img/AddTransformFilter.png" width="65%"/>
+    <img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/AddTransformFilter.png" width="65%"/>
 
 2. Click "+ Add step" orange button in the TRANSFORMS menu.
 
-    <img src="img/AddStep.png" width="35%"/>
+    <img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/AddStep.png" width="35%"/>
 
 3. Choose Custom Transform. 
 
-    <img src="img/CustomTransform.png" width="35%"/>
+    <img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/CustomTransform.png" width="35%"/>
 
 4. In drop down menu select Python (PySpark) and use code below. This code will filter rows based on the specified conditions. 
 
@@ -378,7 +378,7 @@ To create a custom transformation, follow the steps below:
     df = df.filter((df.tpep_pickup_datetime >= "2019-01-01 00:00:00") & (df.tpep_pickup_datetime < "2020-03-01 00:00:00"))
     ``` 
 
-    <img src="img/FilterTransform.png" width="35%"/>
+    <img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/FilterTransform.png" width="35%"/>
 
 
 5. Choose Preview
@@ -386,7 +386,7 @@ To create a custom transformation, follow the steps below:
 
 When this transformation is applied on the dataset, you can see all current steps until this point in time and get a preview of the resulting dataset.
 
-<img src="img/FilterTransformResult.png" width="99%"/>
+<img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/FilterTransformResult.png" width="99%"/>
 
 ## Quick analysis of dataset
 
@@ -397,11 +397,11 @@ For this lab, let's use the Table Summary built-in analysis type to quickly summ
 To create this analysis, follow the steps below:
 1. Click the plus sign next to a collection of transformation elements and choose "Add analyses".
 
-    <img src="img/addFirstAnalyses.png" width="65%"/>
+    <img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/addFirstAnalyses.png" width="65%"/>
 
 2. In a "analyses type" drop down menu select "Table Summary" and provide a name for "Analysis name", for example: "Cleaned dataset summary"
 
-    <img src="img/AnalysesConfig.png" width="45%"/>
+    <img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/AnalysesConfig.png" width="45%"/>
 
 3. Choose Preview
 
@@ -409,13 +409,13 @@ To create this analysis, follow the steps below:
 
 5. You could find your first analyses on a "Analysis" tab. All future visualizations will could be also found here. 
 
-    <img src="img/AnalysesPreview.png" width="35%"/>
+    <img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/AnalysesPreview.png" width="35%"/>
 
 6. Click on analyses icon to open it. 
 
 Let's take a look at our results. The most interesting part is the summary for duration column: maximum value is 1439 and this is in minutes! 1439 minutes = almost 24 hours and this is definitely an issue which will reduce the quality of our model if this dataset is used in its current form. This looks more like an issue due to the prevalence of outliers in our dataset. Next, let's see how to issue this issue using a built-in transform Data Wrangler offers.
 
-  <img src="img/AnalysesResult.png" width="99%"/>
+  <img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/AnalysesResult.png" width="99%"/>
 
 ## Handling outliers in numeric attributes
 
@@ -428,34 +428,34 @@ SageMaker Data Wrangler supports several outliers detection and handle methods. 
 To create this transformation, follow the steps below:
 1. Click the plus sign next to a collection of transformation elements and choose "Add transform".
 
-    <img src="img/AddTransformOutliers.png" width="65%"/>
+    <img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/AddTransformOutliers.png" width="65%"/>
 
 2. Click "+ Add step" orange button in the TRANSFORMS menu.
 
-    <img src="img/AddStep.png" width="35%"/>
+    <img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/AddStep.png" width="35%"/>
 
 3. Choose Handle Outliers.
 
-    <img src="img/SelectOutliers.png" width="45%"/>
+    <img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/SelectOutliers.png" width="45%"/>
 
 4. For "Transform" choose "Standard deviation numeric outliers"
 5. For "Inputs columns" choose `tip_amount`, `total_amount`, `duration`, and `trip_distance`
 6. For "Fix method" choose "Remove" 
 7. For "Standard deviations" put 4
    
-    <img src="img/outliersConfig.png" width="35%"/>
+    <img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/outliersConfig.png" width="35%"/>
 
 8. Choose Preview
 9.  Choose Add to save the step.
 
 When transformation is applied on a sampled data you should see all current steps and a preview of resulted dataset. 
 
-<img src="img/outliersResult.png" width="75%"/>
+<img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/outliersResult.png" width="75%"/>
 
 
 Optional: If you want, you could repeat the steps from our previous analysis ("Quick analysis of a current dataset") to create a new table summary and check for the new maximum for the `duration` column. You can see, the new max value for duration is 243 minutes = just over an hour. This is more realistic for long trips than what we previously had.
 
-<img src="img/newTableSumary.png" width="80%"/>
+<img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/newTableSumary.png" width="80%"/>
 
 ## Grouping/Aggregating data
 At this moment we have cleaned dataset by removing outliers, invalid values, and added new features. There are few more steps before we start training our forecasting model. 
@@ -468,15 +468,15 @@ We don't need minutes and seconds in out timestamp, so we remove them. There is 
 To create a custom transformation, follow the steps below::
 1. Click the plus sign next to a collection of transformation elements and choose "Add transform".
 
-    <img src="img/addTrandformDate.png" width="75%"/>
+    <img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/addTrandformDate.png" width="75%"/>
 
 2. Click "+ Add step" orange button in the TRANSFORMS menu.
     
-    <img src="img/AddStep.png" width="35%"/>
+    <img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/AddStep.png" width="35%"/>
 
 3. Choose Custom Transform.
     
-    <img src="img/CustomTransform.png" width="45%"/>
+    <img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/CustomTransform.png" width="45%"/>
 
 4. In drop down menu select Python (PySpark) and use code below. This code will create a new column with a truncated timestamp and then drop original pickup column. 
 
@@ -486,7 +486,7 @@ To create a custom transformation, follow the steps below::
     df = df.drop("tpep_pickup_datetime")
     ``` 
 
-    <img src="img/DateTruncCode.png" width="45%"/>
+    <img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/DateTruncCode.png" width="45%"/>
 
 5. Choose Preview
 
@@ -494,7 +494,7 @@ To create a custom transformation, follow the steps below::
 
 When you apply the transformation on sampled data, you can see all the current steps until this point in time and get a preview of the resulting dataset with a new column `pickup_time` and without the old column `tpep_pickup_datetime`
 
-<img src="img/DateTruncResult.png" width="75%"/>
+<img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/DateTruncResult.png" width="75%"/>
 
 ### Count number of trips per hour per station
 Currently, we have only piece of information about each trip, but we don't know how many trips were made from each station per hour. The simplest way to do that is count number of records per stationID per hourly timestamp. While Amazon Data Wrangler provides GroupBy transformation. The built-in transformation doesn't support grouping by multiple columns, so we use a custom transformation.
@@ -502,15 +502,15 @@ Currently, we have only piece of information about each trip, but we don't know 
 To create a custom transformation you have to:
 1. Click the plus sign next to a collection of transformation elements and choose "Add transform".
 
-    <img src="img/addTrandformDate.png" width="75%"/>
+    <img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/addTrandformDate.png" width="75%"/>
 
 2. Click "+ Add step" orange button in the TRANSFORMS menu.
     
-    <img src="img/AddStep.png" width="35%"/>
+    <img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/AddStep.png" width="35%"/>
 
 3. Choose Custom Transform.
     
-    <img src="img/CustomTransform.png" width="45%"/>
+    <img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/CustomTransform.png" width="45%"/>
 
 4. In drop down menu select Python (PySpark) and use code below. This code will create a new column with a number of trips from each location for each timestamp. 
 
@@ -520,14 +520,14 @@ To create a custom transformation you have to:
     df = df.withColumn('count', f.count('duration').over(Window.partitionBy([f.col("pickup_time"), f.col("PULocationID")])))
     ``` 
 
-    <img src="img/CountCode.png" width="40%"/>
+    <img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/CountCode.png" width="40%"/>
 
 5. Choose Preview
 6. Choose Add to save the step.
 
 When transformation is applied on a sampled data you should see all current steps and a preview of a resulted dataset with a new column count.
 
-<img src="img/CountResult.png" width="75%"/>
+<img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/CountResult.png" width="75%"/>
 
 ## Resample time series
 Now, we are ready to make a final aggregation! We want to aggregate all rows by a combination of `PULocationID` and `pickup_time` columns, while features should be replaced by mean value for each combination.
@@ -537,17 +537,17 @@ We use special built-in Time Series transformation **Resample**. The Resample tr
 To create this transformation, follow the steps below:
 1. Click the plus sign next to a collection of transformation elements and choose Add transform.
 
-    <img src="img/AddResample.png" width="75%"/>
+    <img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/AddResample.png" width="75%"/>
 
 
 2. Click "+ Add step" orange button in the TRANSFORMS menu.
 
-    <img src="img/AddStep.png" width="35%"/>
+    <img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/AddStep.png" width="35%"/>
 
 
 3. Choose Time Series.
 
-    <img src="img/SelectTimeSeries.png" width="45%"/>
+    <img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/SelectTimeSeries.png" width="45%"/>
 
 4. For "Transform" choose "Resample"
 5. For "Timestamp" choose `pickup_time`
@@ -557,14 +557,14 @@ To create this transformation, follow the steps below:
 9. For "Method to aggregate numeric values" choose "mean"
 10. Use default values for the rest of parameters
     
-    <img src="img/ResampleConfig.png" width="45%"/>
+    <img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/ResampleConfig.png" width="45%"/>
 
 11. Choose Preview
 12. Choose Add to save the step.
 
 When transformation is applied on a sampled data you should see all current steps and a preview of a resulted dataset.
 
-<img src="img/ResampleResult.png" width="99%"/>
+<img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/ResampleResult.png" width="99%"/>
 
 ## Resample time series
 Now we are ready to make a final aggregation! We aggregate all rows by combination of `PULocationID` and `pickup_time` timestamp while features should be replaced by mean value for each combination. 
@@ -574,15 +574,15 @@ We use special built-in Time Series transformation **Resample**. The Resample tr
 To create this transformation you have to:
 1. Click the plus sign next to a collection of transformation elements and choose Add transform.
 
-    <img src="img/AddResample.png" width="65%"/>
+    <img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/AddResample.png" width="65%"/>
 
 2. Click "+ Add step" orange button in the TRANSFORMS menu.
 
-    <img src="img/AddStep.png" width="35%"/>
+    <img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/AddStep.png" width="35%"/>
 
 3. Choose Time Series.
 
-    <img src="img/SelectTimeSeries.png" width="45%"/>
+    <img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/SelectTimeSeries.png" width="45%"/>
 
 4. For "Transform" choose "Resample"
 5. For "Timestamp" choose pickup_time
@@ -592,14 +592,14 @@ To create this transformation you have to:
 9. For "Method to aggregate numeric values" choose "mean"
 10. Use default values for the rest of parameters
        
-    <img src="img/ResampleConfig.png" width="40%"/>
+    <img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/ResampleConfig.png" width="40%"/>
 
 11. Choose Preview
 12. Choose Add to save the step.
 
 When this transformation is applied on the dataset, you can see all current steps until this point in time and get a preview of the resulting dataset. 
 
-<img src="img/ResampleResult.png" width="99%"/>
+<img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/ResampleResult.png" width="99%"/>
 
 [here](https://docs.aws.amazon.com/sagemaker/latest/dg/data-wrangler-import.html).
 
@@ -612,11 +612,11 @@ To create this transformation you have to:
 
 2. Click "+ Add step" orange button in the TRANSFORMS menu
 
-    <img src="img/AddStep.png" width="30%"/>
+    <img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/AddStep.png" width="30%"/>
 
 3. Choose Time Series
 
-    <img src="img/SelectTimeSeries.png" width="35%"/>
+    <img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/SelectTimeSeries.png" width="35%"/>
 
     * For "Transform" choose "Featurize date/time"
     * For "Input Column" choose `pickup_time`
@@ -625,7 +625,7 @@ To create this transformation you have to:
     * For "Output format" choose "Columns"
     * For date/time features to extract, select Year, Month, Day, Hour, Week of year, Day of year, and Quarter.
    
-       <img src="img/dataFeatureConfig.png" width="35%"/>
+       <img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/dataFeatureConfig.png" width="35%"/>
 
 4. Choose Preview
 5. Choose Add to save the step.
@@ -644,11 +644,11 @@ To create this transformation, follow the steps below:
 
 2. Click "+ Add step" orange button in the TRANSFORMS menu.
 
-   <img src="img/AddStep.png" width="30%"/>
+   <img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/AddStep.png" width="30%"/>
 
 3. Choose Time Series
 
-   <img src="img/SelectTimeSeries.png" width="35%"/>
+   <img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/SelectTimeSeries.png" width="35%"/>
 
    * For "Transform" choose "Lag features"
    * For "Generate lag features for this column" choose "count"
@@ -658,14 +658,14 @@ To create this transformation, follow the steps below:
    * Because we’re interested in observing up to the previous 8 lag values, let’s select Include the entire lag window.
    * To create a new column for each lag value, select Flatten the output
 
-      <img src="img/lagConfig.png" width="30%"/>
+      <img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/lagConfig.png" width="30%"/>
    
 4. Choose Preview
 5. Choose Add to save the step.
 
 When transformation is applied on a sampled data you should see all current steps and a preview of a resulted dataset. 
 
-   <img src="img/lagResult.png" width="65%"/>
+   <img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/lagResult.png" width="65%"/>
 
 ## Rolling window features
 We can also calculate meaningful statistical summaries across a range of values and include them as input features. Let’s extract common statistical time series features.
@@ -677,11 +677,11 @@ To create this transformation you have to:
 
 2. Click "+ Add step" orange button in the TRANSFORMS menu.
 
-    <img src="img/AddStep.png" width="30%"/>
+    <img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/AddStep.png" width="30%"/>
 
 3. Choose Time Series
 
-    <img src="img/SelectTimeSeries.png" width="30%"/>
+    <img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/SelectTimeSeries.png" width="30%"/>
 
    * For "Transform" choose "Rolling window features"
    * For "Generate rolling window features for this column" choose "count"
@@ -691,14 +691,14 @@ To create this transformation you have to:
    * Select Flatten to create a new column for each computed feature.
    * Choose "Strategy" as "Minimal subset". This strategy extracts eight features that are useful in downstream analyses. Other strategies include Efficient Subset, Custom subset, and All features.
 
-      <img src="img/rollingConfig.png" width="30%"/>
+      <img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/rollingConfig.png" width="30%"/>
 
 4. Choose Preview
 5. Choose Add to save the step.
 
 When this transformation is applied on the dataset, you can see all current steps until this point in time and get a preview of the resulting dataset.
 
-<img src="img/rollingResult.png" width="65%"/>
+<img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/rollingResult.png" width="65%"/>
 
 Click "Back to data flow" to head back to the block diagram editor window.
 
@@ -717,7 +717,7 @@ Additionally, you can also drop columns if needed right before the export step. 
 Follow the next steps to setup export to S3.
 1. Click the plus sign next to a collection of transformation elements and choose **"Add destination" -> "Amazon S3"**
 
-    <img src="img/addDestination.png" width="75%"/>
+    <img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/addDestination.png" width="75%"/>
 
 2. Provide parameters for S3 destination:
    * Dataset name - name for new dataset, for example used "NYC_export"
@@ -728,15 +728,15 @@ Follow the next steps to setup export to S3.
 
 3. Click "Add destination" orange button
 
-    <img src="img/addDestinationConfig.png" width="35%"/>
+    <img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/addDestinationConfig.png" width="35%"/>
 
 4. Now your dataflow has a final step and you see a new "Create job" orange button. Click it. 
 
-    <img src="img/flowCompleated.png" width="65%"/>
+    <img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/flowCompleated.png" width="65%"/>
 
 5. Provide a "Job name" or keep autogenerated option and select "destination". We have only one "S3:NYC_export", but you might have multiple destinations from different steps in your workflow. Leave a "KMS key ARN" field empty and click "Next" orange button. 
 
-    <img src="img/Job1.png" width="35%"/>
+    <img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/Job1.png" width="35%"/>
 
 6. Now your have to provide configuration for a compute capacity for a job. You can keep all defaults values:
    * For Instance type use "ml.m5.4xlarge"
@@ -744,19 +744,19 @@ Follow the next steps to setup export to S3.
    * You can explore "Additional configuration", but keep them without change. 
    * Click "Run" orange button
 
-    <img src="img/Job2.png" width="35%"/>
+    <img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/Job2.png" width="35%"/>
 
 7. Now your job is started and it takes about 1 hour to process 6 GB of data according to our Data Wrangler processing flow. Cost for this job will be around 2 USD as "ml.m5.4xlarge" cost 0.922 USD per hour and we are using two of them.
 
-    <img src="img/Job3.png" width="25%"/>
+    <img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/Job3.png" width="25%"/>
 
 8. If you click on the job name you will be redirected to a new window with the job details. On the job details page you see all parameters from a previous steps.
 
-    <img src="img/Job4.png" width="85%"/>
+    <img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/Job4.png" width="85%"/>
 
 Approximately in one hour you should see that job status changed to "Completed" and you could also check "Processing time (seconds)" value.  
 
-<img src="img/Job5.png" width="75%"/>
+<img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/Job5.png" width="75%"/>
 
 Now you could close job details page.
 
