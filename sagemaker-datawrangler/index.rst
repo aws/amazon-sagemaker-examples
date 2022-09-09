@@ -1,6 +1,7 @@
-.. figure:: https://github.com/aws/amazon-sagemaker-examples/raw/main/_static/sagemaker-banner.png
+.. image:: https://github.com/aws/amazon-sagemaker-examples/raw/main/_static/sagemaker-banner.png
+  :width: 600
+  :alt: sagemaker_logo
 
-   Amazon SageMaker Data Wrangler
 
 Amazon SageMaker Data Wrangler Examples
 =======================================
@@ -57,7 +58,7 @@ Tabular dataset.
    :maxdepth: 1
    :caption: Tabular Dataflow example
 
-   tabular-dataflow
+   tabular-dataflow/index
 
 Timeseries Dataflow
 ----------------------------
@@ -69,7 +70,7 @@ Timeseries dataset.
    :maxdepth: 1
    :caption: Timeseries Dataflow example
 
-   timeseries-dataflow
+   timeseries-dataflow/index
 
 Joined Dataflow
 ----------------------------
@@ -82,4 +83,4 @@ Joined dataset.
    :maxdepth: 1
    :caption: Joined Dataflow example
 
-   joined-dataflow
+   joined-dataflow/index
