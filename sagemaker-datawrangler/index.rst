@@ -47,25 +47,23 @@ Examples
 Tabular Dataflow
 ----------------------------
 
-
-
 .. toctree::
    :maxdepth: 1
+   
    tabular-dataflow/index
 
 Timeseries Dataflow
 ----------------------------
 
-
-
 .. toctree::
    :maxdepth: 1
+   
    timeseries-dataflow/index
 
 Joined Dataflow
 ----------------------------
 
-
 .. toctree::
    :maxdepth: 1
+   
    joined-dataflow/index
