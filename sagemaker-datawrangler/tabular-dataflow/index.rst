@@ -253,24 +253,38 @@ Data Import from S3 to Data Wrangler
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The hotel-bookings.csv file uploaded in previous section needs to be
-imported in Data Wrangler as input. Please refer to `Data Import from
-S3 <./Data-Import.md>`__ and follow steps for importing the data.
+imported in Data Wrangler as input. 
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Data Import from S3 to Data Wrangler
+
+   data-import
+
 
 Exploratory Data Analysis
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Before applying various data transformations, we need to explore the
 data to find correlations, duplicate rows as well as target leakage.
-Please refer to `Exploratory Data Analysis <./Data-Exploration.md>`__
-and follow steps for Data exploration.
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Data Exploration from S3 to Data Wrangler
+
+   data-exploration
 
 Data Transformation
 ~~~~~~~~~~~~~~~~~~~
 
 Based on the Data explorations carried out in previous step, we are now
-ready to apply transformations to the data. Please refer to `Data
-Transformations <./Data-Transformations.md>`__ and follow steps for Data
-Transformation.
+ready to apply transformations to the data. 
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Data transformations from S3 to Data Wrangler
+
+   data-transformations
 
 Data Export
 ~~~~~~~~~~~
