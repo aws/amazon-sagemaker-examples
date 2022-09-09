@@ -1,6 +1,3 @@
-.. image:: https://github.com/aws/amazon-sagemaker-examples/raw/main/_static/sagemaker-banner.png
-  :width: 600
-
 
 
 Amazon SageMaker Data Wrangler
@@ -54,8 +51,6 @@ Tabular Dataflow
 
 .. toctree::
    :maxdepth: 1
-   :caption: Tabular Dataflow example
-
    tabular-dataflow/index
 
 Timeseries Dataflow
@@ -65,8 +60,6 @@ Timeseries Dataflow
 
 .. toctree::
    :maxdepth: 1
-   :caption: Timeseries Dataflow example
-
    timeseries-dataflow/index
 
 Joined Dataflow
@@ -75,6 +68,4 @@ Joined Dataflow
 
 .. toctree::
    :maxdepth: 1
-   :caption: Joined Dataflow example
-
    joined-dataflow/index
