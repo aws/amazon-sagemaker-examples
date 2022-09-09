@@ -6,7 +6,7 @@ Before we transform our raw features to make it ML ready for model building, let
 
 In order to apply an action on the imported data, select the **Add Analysis** option on right clicking the the **Data Types** block. As depicted in the figure below, you can see options to add a transform, perform an analysis, add a destination sink or export the steps as Jupyter notebook. You can also join and concatenate on the imported dataset with other datasets.
 
-![image](./img/image-8.png)
+![image](https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/image-8.png)
 
 On selecting Add Analysis, the Analysis pane os shown, where you can choose the analysis you want to perform. 
 
@@ -28,7 +28,7 @@ Following sections showcase few of the analysis techniques for the Hotel-booking
 You can get the Data Insights report by selecting **Get Insights** option for the **Data Types** block as shown in the figure. 
 
 
-![image](./img/get-insights.png)
+![image](https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/get-insights.png)
 
 Please select the following parameters and hit **Create**.  
  - `Target column`: `is-cancelled`
@@ -36,7 +36,7 @@ Please select the following parameters and hit **Create**.
 
 After the report is generated, it outlines findings about statistics, duplicate rows, warnings, confusion matrix and feature summary. This can be a useful report before we start our detailed analysis. 
 
-![image](./img/get-insights-report.png)
+![image](https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/get-insights-report.png)
 
 
 
@@ -49,7 +49,7 @@ Please select the following parameters and hit **Preview**.
 
 Overall details of the data for various columsn is displayed as depicted in figure below. 
 
-![image](./img/table-information.png)
+![image](https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/table-information.png)
 
 Select **Save** to save the analysis. 
 
@@ -75,14 +75,14 @@ Please select the following parameters and hit **Preview**.
 - `Problem type`: `Classification` 
 
 
-![image](./img/target-leakage-pre.png)
+![image](https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/target-leakage-pre.png)
 
 
 For our example dataset, the image below shows a target leakage report for a hotel booking cancellation problem, that is, predicting if a person will cancel his hotel reservation or not. An AUC - ROC curve is used to calculate the predictive ability of 31 raw features, out of which `reservation_status` was determined to a target leakage. Also, features - `arrival_day_of_month`, `babies`, `reservation_status_date`, `arrival_date_month`, `reserved_room_type`, `hotel` and `days_in_waiting_list` were identified as redundant.
 
 The identified features can be fairly omitted as part of the transformations we will apply post this initial analysis.
 
-![target-leakage](./img/target-leakage.png)
+![target-leakage](https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/target-leakage.png)
 
 Select **Save** to save the analysis. 
 
@@ -103,11 +103,11 @@ This analysis will take a few minutes to complete.
 
 Features that are not either numeric or categorical are ignored. The table below lists for each feature what is the most correlated feature to it. 
 
-![linear-pre](./img/linear-pre.png)
+![linear-pre](https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/linear-pre.png)
 
 Based on the correlation values, we can see the top 6 feature pairs (as listed below) are strongly correlating with one another. Also, some of these features also showed up in the target analysis we did previously.
 
-![linear-correlated](./img/linear-strongly-correlated.png)
+![linear-correlated](https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/linear-strongly-correlated.png)
 
 P.S.: A limit of 100,000 rows is used for this analysis.
 
@@ -128,7 +128,7 @@ This analysis will take a few minutes to complete.
 
 The table below lists for each feature what is the most correlated feature to it. You can see most of the top correlated feature pairs overlap with the previous two analyses.
     
-![non-linear-correlated](./img/non-linear-pre.png)
+![non-linear-correlated](https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/non-linear-pre.png)
 
 Select **Save** to save the analysis.
 
@@ -148,7 +148,7 @@ As per the above rule, we can eliminate the following feature columns from our f
 * `arrival_date_week_number`
 * `stays_in_week_nights`
 
-![variance-inflation-factors](./img/vif-pre.png)
+![variance-inflation-factors](https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/vif-pre.png)
 
 Select **Save** to save the analysis.
 
@@ -166,7 +166,7 @@ As per the above rule, it is evident the numbers (variances) are not uniform hen
 
 
 
-![pca-pre](./img/pca-pre.png)
+![pca-pre](https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/pca-pre.png)
 
 Select **Save** to save the analysis.
 
@@ -189,7 +189,7 @@ The plot below provides features' importance scores (absolute coefficients) afte
  
 The classifier obtained a roc_auc score: `0.639269142214666`.
 
-![lasso-pre](./img/lasso-pre.png)
+![lasso-pre](https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/lasso-pre.png)
 
 Select **Save** to save the analysis.
 
@@ -200,7 +200,7 @@ Next, with the new duplicate row detection visualization, you can quickly detect
 
 From the figure bwlow, we can see almost ~33% of the rows in the dataset are duplicates.
 
-![duplicate](./img/duplicate-rows.png)
+![duplicate](https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/duplicate-rows.png)
 
 
 
@@ -225,14 +225,14 @@ Please choose **Quick Model** for Analysis type. Select the following parameters
 
 This analysis will take a few minutes to complete. 
 
-![quick-model-pre](./img/create-quick-model.png)
+![quick-model-pre](https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/create-quick-model.png)
 
 A limit of 100,000 rows is used for this analysis. You can use the Quick Model feature to provide a rough estimate of the expected predicted quality and the predictive power of the features in your dataset. 
 
 We can from the results below, Quick model was able to predict with an F1 score of 82% on the test set. But, this is misleading, given we haven't eliminated most of the feature columns that are a target leakage or redundant based on high colinearity. This is justified in the results below where the column `reservation_status` which is a target leakage ranked as the most important feature.
 
 
-![quick-model-pre](./img/quick-model-pre.png)
+![quick-model-pre](https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/quick-model-pre.png)
 
 Select **Save** to save the model.
 
