@@ -1,5 +1,12 @@
+
+Tabular Dataflow Example
+========================
+This example provide quick walkthrough of how to aggregate and prepare
+data for Machine Learning using Amazon SageMaker Data Wrangler for
+Tabular dataset.
+
 Hotel Booking Demand Example
-============================
+----------------------------
 
 Background
 ----------
@@ -250,10 +257,9 @@ Downloading the dataset
    The S3 URL will be used in the next step.
 
 Data Import from S3 to Data Wrangler
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+------------------------------------
 
-The hotel-bookings.csv file uploaded in previous section needs to be
-imported in Data Wrangler as input. 
+
 
 .. toctree::
    :maxdepth: 1
@@ -263,10 +269,8 @@ imported in Data Wrangler as input.
 
 
 Exploratory Data Analysis
-~~~~~~~~~~~~~~~~~~~~~~~~~
+--------------------------
 
-Before applying various data transformations, we need to explore the
-data to find correlations, duplicate rows as well as target leakage.
 
 .. toctree::
    :maxdepth: 1
@@ -275,10 +279,8 @@ data to find correlations, duplicate rows as well as target leakage.
    data-exploration/index
 
 Data Transformation
-~~~~~~~~~~~~~~~~~~~
+-------------------
 
-Based on the Data explorations carried out in previous step, we are now
-ready to apply transformations to the data. 
 
 .. toctree::
    :maxdepth: 1
