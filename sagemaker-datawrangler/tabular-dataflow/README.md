@@ -98,27 +98,27 @@ Based on the Data explorations carried out in previous step, we are now ready to
 ### Data Export
 Data Wrangler UI can also be used to export the transformed data to Amazon S3. To get started with this process, first let's create a destination node. Right click on the final transform on your data and choose `Add destination` → `Amazon S3`. Assign a name for your output data and choose the S3 location where you want the data to be stored and click Add destination button at the bottom as shown below.
 
-![add-destination](./img/add-destination.png)
+![add-destination](https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/add-destination.png)
 
 This adds a destination node to our data flow. The destination node acts as a sink to your data flow. 
 
-![destination](./img/destination.png)
+![destination](https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/destination.png)
 
 Next, click on the Create job button in the upper right corner of the page. In the configuration page for the SageMaker Processing job we are about to create, choose the Instance type and Instance count for our processing cluster. Advance configuration is optional, where you can assign tags as needed and choose the appropriate Volume Size. 
 
-![export-create-job](./img/configure-job.png)
+![export-create-job](https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/configure-job.png)
 
 Select `Run` to start the export job. The job created will have Job Name and Job ARN which can be used to search for the job status. 
 
-![export-create-job](./img/create-job.png)
+![export-create-job](https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/create-job.png)
 
 The job created in the previous step will be available in the monitoring page for `SageMaker Processing job` as shown in the figure below.
 
-![export-processing-job](./img/processing-job.png)
+![export-processing-job](https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/processing-job.png)
 
 After a certain time, the job will be complete. The image below shows the completed job. Exported data should be available in the output S3 bucket. 
 
-![export-complete-job](./img/complete-job.png)
+![export-complete-job](https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/complete-job.png)
  
  
  This exported data can now be used for running the ML Models
