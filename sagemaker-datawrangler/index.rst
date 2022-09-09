@@ -1,12 +1,12 @@
 .. image:: https://github.com/aws/amazon-sagemaker-examples/raw/main/_static/sagemaker-banner.png
   :width: 600
-  :alt: sagemaker_logo
 
 
-Amazon SageMaker Data Wrangler Examples
+
+Amazon SageMaker Data Wrangler
 =======================================
 
-Example flows that demonstrate how to aggregate and prepare data for
+These example flows demonstrates how to aggregate and prepare data for
 Machine Learning using Amazon SageMaker Data Wrangler.
 
 
@@ -50,9 +50,7 @@ Examples
 Tabular Dataflow
 ----------------------------
 
-This example provide quick walkthrough of how to aggregate and prepare
-data for Machine Learning using Amazon SageMaker Data Wrangler for
-Tabular dataset.
+
 
 .. toctree::
    :maxdepth: 1
@@ -63,9 +61,8 @@ Tabular dataset.
 Timeseries Dataflow
 ----------------------------
 
-This example provide quick walkthrough of how to aggregate and prepare
-data for Machine Learning using Amazon SageMaker Data Wrangler for
-Timeseries dataset.
+
+
 .. toctree::
    :maxdepth: 1
    :caption: Timeseries Dataflow example
@@ -75,9 +72,6 @@ Timeseries dataset.
 Joined Dataflow
 ----------------------------
 
-This example provide quick walkthrough of how to aggregate and prepare
-data for Machine Learning using Amazon SageMaker Data Wrangler for
-Joined dataset.
 
 .. toctree::
    :maxdepth: 1
