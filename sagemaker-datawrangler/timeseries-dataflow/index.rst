@@ -1,5 +1,11 @@
-Amazon SageMaker Data Wrangler time series workshop
+Timeseries Data Flow example
 ===================================================
+This example provide quick walkthrough of how to aggregate and prepare data for Machine Learning using Amazon SageMaker Data Wrangler for Timeseries dataset.
+
+
+
+New York city(NYC) yellow cab time-series example
+-------------------------------------------------
 
 Our end goal for this lab is to prepare a time-series dataset and get it
 to a ready state for ML modeling. We will start with the New York city
