@@ -422,9 +422,7 @@ Select **Save** to save the model.
 
 Next Steps
 ----------
+.. toctree::
+   :maxdepth: 1
 
-In the next section, we will apply post analysis transformations to fix
-the data of the various colinearity and other issues and re-generate a
-quick model and compare the differences. Please refer to `Data
-Transformations <./Data-Transformations.md>`__ and follow steps for Data
-Transformation.
+   ./data-transdormations/index
