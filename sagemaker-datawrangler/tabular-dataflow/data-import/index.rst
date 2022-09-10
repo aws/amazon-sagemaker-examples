@@ -8,19 +8,28 @@ by Data Wrangler
 | 1. Initialize SageMaker Data Wrangler via SageMaker Studio UI. You can
   use any one of the options specified below.
 
-::
 
-   -  <b>Option 1.</b> </br> Use the Sage Maker Launcher screen as depicted here:
 
-   ![image](https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/image-1.png)
+Option 1 : Use the Sage Maker Launcher screen
+--------------------------------------------
 
-   -  <b>Option 2.</b> </br>  You can use the SageMaker resources menu on the left, selecting Data Wrangler, and new flow
+.. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/image-1.png
+:alt: destination
 
-   ![image](https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/image-1-1.png)
-   ![image](https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/image-1-2.png)
-   -  <b>Option 3.</b> </br> You can also use the File -> New -> DataWrangler option as shown here
+Option 2 : You can use the SageMaker resources menu on the left, selecting Data Wrangler, and new flow
+----------------------------------------------------------------------------
 
-   ![image](https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/image-1-3.png)
+.. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/image-1-1.png
+:alt: destination
+
+
+.. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/image-1-2.png
+:alt: destination
+
+Option 3. : You can also use the File -> New -> DataWrangler option as shown here
+--------------------------------------------------------------------------------
+.. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/image-1-3.png
+:alt: destination
 
 2. Data Wrangler takes a few minutes to load.
 
@@ -28,18 +37,18 @@ by Data Wrangler
 under running instances and apps as shown below.
 
 .. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/image-3.png
-   :alt: image
+:alt: image
 
-   image
+
 
 4. Once Data Wrangler is up and running, you can see the following data
    flow interface with options for import, creating data flows and
    export as shown below.
 
 .. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/image-4.png
-   :alt: image
+:alt: image
 
-   image
+
 
 5. Make sure to rename the untitled.flow to your preference (for e.g.,
    hotel-bookings.flow)
@@ -79,9 +88,8 @@ under running instances and apps as shown below.
 
 Next Steps
 ----------
+.. toctree::
+   :maxdepth: 1
 
-As a next step, we will explore the data that we uploaded. Please refer
-to `Exploratory Data Analysis <./Data-Exploration.md>`__ and follow
-steps for Data exploration.
+   ./data-exploration/index
 
-.. |image| image:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/image-2.png
