@@ -209,9 +209,8 @@ purpose we don’t need the following columns:
 To remove those columns: 1. Click the plus sign next to “Data types”
 element and choose Add transform.
 
-::
-
-   <img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/SelectAddTransform.png" width="75%"/>
+.. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/SelectAddTransform.png
+:alt: destination
 
 2. Click “+ Add step” orange button in the TRANSFORMS menu.
 
@@ -256,9 +255,10 @@ To validate timestamps in ``tpep_dropoff_datetime`` and
 ``tpep_pickup_datetime`` columns: 1. Click the plus sign next to “Drop
 columns” element and choose Add transform.
 
-::
 
-   <img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/AddDateValidationTransform.png" width="80%"/>
+
+.. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/AddDateValidationTransform.png 
+:alt: destination
 
 2. Click “+ Add step” orange button in the TRANSFORMS menu.
 
@@ -356,9 +356,8 @@ example: one sensor or one product in a shop)
 To create this transformation you have to: 1. Click the plus sign next
 to a collection of transformation elements and choose Add transform.
 
-::
-
-   <img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/AddTransformMissingGeneral.png" width="75%"/>
+.. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/AddTransformMissingGeneral.png
+:alt: destination
 
 2. Click “+ Add step” orange button in the TRANSFORMS menu.
 
@@ -392,9 +391,8 @@ Wrangler and get this easily done!.
 To create this transformation you have to: 1. Click “+ Add step” orange
 button in the TRANSFORMS menu.
 
-::
-
-   <img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/AddStep.png" width="35%"/>
+.. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/AddStep.png
+:alt: destination
 
 2.  Choose Time Series
 
@@ -447,9 +445,8 @@ To create a custom transformation, follow the steps below: 1. Click the
 plus sign next to a collection of transformation elements and choose Add
 transform.
 
-::
-
-   <img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/AddTransformFilter.png" width="65%"/>
+.. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/AddTransformFilter.png
+:alt: destination
 
 2. Click “+ Add step” orange button in the TRANSFORMS menu.
 
@@ -502,9 +499,8 @@ To create this analysis, follow the steps below: 1. Click the plus sign
 next to a collection of transformation elements and choose “Add
 analyses”.
 
-::
-
-   <img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/addFirstAnalyses.png" width="65%"/>
+.. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/addFirstAnalyses.png
+:alt: destination
 
 2. In a “analyses type” drop down menu select “Table Summary” and
    provide a name for “Analysis name”, for example: “Cleaned dataset
@@ -560,9 +556,8 @@ To create this transformation, follow the steps below: 1. Click the plus
 sign next to a collection of transformation elements and choose “Add
 transform”.
 
-::
-
-   <img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/AddTransformOutliers.png" width="65%"/>
+.. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/AddTransformOutliers.png
+:alt: destination
 
 2. Click “+ Add step” orange button in the TRANSFORMS menu.
 
@@ -612,9 +607,8 @@ To create a custom transformation, follow the steps below:: 1. Click the
 plus sign next to a collection of transformation elements and choose
 “Add transform”.
 
-::
-
-   <img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/addTrandformDate.png" width="75%"/>
+.. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/addTrandformDate.png
+:alt: destination
 
 2. Click “+ Add step” orange button in the TRANSFORMS menu.
 
@@ -653,9 +647,8 @@ To create a custom transformation you have to: 1. Click the plus sign
 next to a collection of transformation elements and choose “Add
 transform”.
 
-::
-
-   <img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/addTrandformDate.png" width="75%"/>
+.. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/addTrandformDate.png
+:alt: destination
 
 2. Click “+ Add step” orange button in the TRANSFORMS menu.
 
@@ -698,9 +691,8 @@ To create this transformation, follow the steps below: 1. Click the plus
 sign next to a collection of transformation elements and choose Add
 transform.
 
-::
-
-   <img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/AddResample.png" width="75%"/>
+.. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/AddResample.png
+:alt: destination
 
 2.  Click “+ Add step” orange button in the TRANSFORMS menu.
 
@@ -747,9 +739,9 @@ from hourly to daily.
 To create this transformation you have to: 1. Click the plus sign next
 to a collection of transformation elements and choose Add transform.
 
-::
+.. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/AddResample.png
+:alt: destination
 
-   <img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/AddResample.png" width="65%"/>
 
 2.  Click “+ Add step” orange button in the TRANSFORMS menu.
 
@@ -971,9 +963,8 @@ Follow the next steps to setup export to S3. 1. Click the plus sign next
 to a collection of transformation elements and choose **“Add
 destination” -> “Amazon S3”**
 
-::
-
-   <img src="https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/addDestination.png" width="75%"/>
+.. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-dataflow/addDestination.png
+:alt: destination
 
 2. Provide parameters for S3 destination:
 
