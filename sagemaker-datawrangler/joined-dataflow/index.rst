@@ -452,6 +452,7 @@ Joining datasets - first join
    -  The data flow now looks as below: 
       |image40|
 
+
 Export transformed features to S3 (will be consumed by SageMaker Autopilot)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
