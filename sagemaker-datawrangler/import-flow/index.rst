@@ -11,7 +11,7 @@ Here are the steps to import the flow
 -  In Sagemaker Studio, drag and drop the flow file or use the upload
    button to browse the flow and upload
 
-.. figure:: /uploadflow.png
+.. figure:: ./uploadflow.png
    :alt: uploadflow
 
    uploadflow
