@@ -445,24 +445,31 @@ Joining datasets - first join
 
    -  To split the dataset, add another transform step and choose
       **Split data**. 
+
       |image38|
+
    -  We choose *Randomized split* and get 80% for training and 20% data
       for testing. 
+
       |image39|
+
    -  The data flow now looks as below: 
+
       |image40|
 
 
 Export transformed features to S3 (will be consumed by SageMaker Autopilot)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 -  To export the transformed dataset, first click on the + symbol and
    choose Add Destination, followed by Amazon S3 as pointed out by the
    screen shot below. 
+
    |image41|
 
 -  A new window is opened, Click Export data, choose the S3 location
    where you want to save the transformed dataset. 
+
    |image42|
 
 -  Follow the same step to set the S3 location for the test data.
@@ -528,7 +535,9 @@ Export transformed features to S3 (will be consumed by SageMaker Autopilot)
    many other formats.
 -  To start exporting, click on the train Dataset data block and click
    on the + icon and select **Export to**. 
+
    |image43|
+
 -  You can export the analysis and transforms in 4 different ways in
    addition to direct export to S3 which we saw previously.
 
@@ -567,25 +576,36 @@ Autopilot from the SageMaker Data Wrangler data flow.
 
    -  To set up a SageMaker Autopilot job, click the train data block,
       select **Train model**. 
+
       |image44|
+
    -  On the new window, select the S3 location you want the training
       dataset and the Autopilot job output to be saved. 
+
       |image45|
+
    -  Select **Export and train**. This will take about one minute to
       export the train data to S3. 
+
       |image46|
+
    -  When data exported successfully, we can configure the Autopilot
       job. Select the *Target* training column (Rating). 
+
       |image47|
+
    -  Under the **Advanced settings**, choose the machine learning
       problem type as *Regression*. By default, SageMaker autopilot will
       run 250 training jobs to find the best model, this will take a few
       hours for the job to finish. To reduce runtime, you can set the
       *Max candidates* to a smaller number. 
+
       |image48|
+
    -  After click **Create Experiment**, an autopilot job will be
       started. You can come back to SageMaker Studio later to check the
       job output. 
+      
       |image49|
 
 .. |image| image:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/joined-dataflow/dl-image-3.png
