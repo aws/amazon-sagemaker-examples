@@ -459,34 +459,34 @@ Joining datasets - first join
 
 
 Export transformed features to S3 (will be consumed by SageMaker Autopilot)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
--  To export the transformed dataset, first click on the + symbol and
+To export the transformed dataset, first click on the + symbol and
    choose Add Destination, followed by Amazon S3 as pointed out by the
    screen shot below. 
 
    |image41|
 
--  A new window is opened, Click Export data, choose the S3 location
+A new window is opened, Click Export data, choose the S3 location
    where you want to save the transformed dataset. 
 
    |image42|
 
--  Follow the same step to set the S3 location for the test data.
+Follow the same step to set the S3 location for the test data.
 
--  A job is needed to export the data to Amazon S3, to do this press the
+A job is needed to export the data to Amazon S3, to do this press the
    Create Job button on the top right, this will open a window.
 
--  Set the Job name to something like generate-train-test-data
+Set the Job name to something like generate-train-test-data
 
 .. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/joined-dataflow/image-42.png
    :alt: image
 
    image
 
--  Hit the **Configure Job** button at the bottom
+Hit the **Configure Job** button at the bottom
 
--  Leave the default instance type, and press the Run button at the
+Leave the default instance type, and press the Run button at the
    bottom.
 
 .. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/joined-dataflow/image-43.png
@@ -494,7 +494,7 @@ Export transformed features to S3 (will be consumed by SageMaker Autopilot)
 
    image
 
--  Note that your job has been created successfully and if you want to
+Note that your job has been created successfully and if you want to
    see the progress of the job you can do so by following the link to
    the generate-train-test-data process.
 
@@ -503,7 +503,7 @@ Export transformed features to S3 (will be consumed by SageMaker Autopilot)
 
    
 
--  Follow the link to see the status of your job. This processing job
+Follow the link to see the status of your job. This processing job
    takes around 5-10 mins.
 
 .. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/joined-dataflow/image-45.png
@@ -511,7 +511,7 @@ Export transformed features to S3 (will be consumed by SageMaker Autopilot)
 
    
 
--  When the job is complete the train and test output files will be
+When the job is complete the train and test output files will be
    available in the corresponding S3 output folders. You can find the
    output location from the processing job configurations.
 
@@ -523,28 +523,32 @@ Export transformed features to S3 (will be consumed by SageMaker Autopilot)
 *Other ways to export the transformations and analysis*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
--  The join.flow file that we created initially captures all of the
+The join.flow file that we created initially captures all of the
    transformations, joins and analysis.
--  In a way, this file allows us to capture and persist every step of
+
+In a way, this file allows us to capture and persist every step of
    our feature engineering journey into a static file.
--  The flow file can then be used to re-create the analysis and feature
+
+The flow file can then be used to re-create the analysis and feature
    engineering steps via Data Wrangler. All you need to do is import the
    flow file to SageMaker Studio and click on it.
--  We saw previously, how to export transformed dataset into S3.
+
+We saw previously, how to export transformed dataset into S3.
    Additionally, we can also export the analysis and transformations in
    many other formats.
--  To start exporting, click on the train Dataset data block and click
+
+To start exporting, click on the train Dataset data block and click
    on the + icon and select **Export to**. 
 
    |image43|
 
--  You can export the analysis and transforms in 4 different ways in
+You can export the analysis and transforms in 4 different ways in
    addition to direct export to S3 which we saw previously.
 
-   -  Save to S3 as a SageMaker Processing job notebook.
-   -  Export as a SageMaker Pipeline notebook.
-   -  Export as a Python script.
-   -  Export to SageMaker Feature Store as a notebook.
+* Save to S3 as a SageMaker Processing job notebook.
+* Export as a SageMaker Pipeline notebook.
+* Export as a Python script.
+* Export to SageMaker Feature Store as a notebook.
 
 :bulb:**NOTE** 
 
@@ -570,43 +574,43 @@ Autopilot from the SageMaker Data Wrangler data flow.
 *Run Autopilot training directly from Data Wrangler flow* (**Optional**)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
--  SageMaker Data Wragler now allow you to directly run an
-   `Autopilot <https://docs.aws.amazon.com/sagemaker/latest/dg/autopilot-automate-model-development.html>`__
-   job to automatically train a model.
+SageMaker Data Wragler now allow you to directly run an
+`Autopilot <https://docs.aws.amazon.com/sagemaker/latest/dg/autopilot-automate-model-development.html>`__
+job to automatically train a model.
 
-   -  To set up a SageMaker Autopilot job, click the train data block,
-      select **Train model**. 
+To set up a SageMaker Autopilot job, click the train data block,
+select **Train model**. 
 
-      |image44|
+|image44|
 
-   -  On the new window, select the S3 location you want the training
-      dataset and the Autopilot job output to be saved. 
+On the new window, select the S3 location you want the training
+dataset and the Autopilot job output to be saved. 
 
-      |image45|
+|image45|
 
-   -  Select **Export and train**. This will take about one minute to
-      export the train data to S3. 
+Select **Export and train**. This will take about one minute to
+export the train data to S3. 
 
-      |image46|
+|image46|
 
-   -  When data exported successfully, we can configure the Autopilot
-      job. Select the *Target* training column (Rating). 
+When data exported successfully, we can configure the Autopilot
+job. Select the *Target* training column (Rating). 
 
-      |image47|
+|image47|
 
-   -  Under the **Advanced settings**, choose the machine learning
-      problem type as *Regression*. By default, SageMaker autopilot will
-      run 250 training jobs to find the best model, this will take a few
-      hours for the job to finish. To reduce runtime, you can set the
-      *Max candidates* to a smaller number. 
+Under the **Advanced settings**, choose the machine learning
+problem type as *Regression*. By default, SageMaker autopilot will
+run 250 training jobs to find the best model, this will take a few
+hours for the job to finish. To reduce runtime, you can set the
+*Max candidates* to a smaller number. 
 
-      |image48|
+|image48|
 
-   -  After click **Create Experiment**, an autopilot job will be
-      started. You can come back to SageMaker Studio later to check the
-      job output. 
-      
-      |image49|
+After click **Create Experiment**, an autopilot job will be
+started. You can come back to SageMaker Studio later to check the
+job output. 
+
+|image49|
 
 .. |image| image:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/joined-dataflow/dl-image-3.png
 .. |image1| image:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/joined-dataflow/dl-image-4.png
