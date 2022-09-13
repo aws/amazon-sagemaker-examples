@@ -1,0 +1,3 @@
+tensorflow==2.8.0
+protobuf==3.20.1
+tensorflow-addons==0.17.0
