@@ -20,7 +20,7 @@ parser.add_argument("--training_dir", type=str, default='data')
 args = parser.parse_args()
 
 assert args.is_cloud_job or not args.is_hetero, 'Heterogeneous cluster is not supported in sagemaker local mode'
-assert args.is_hetero or args.tf_data_mode == 'local', 'TODO: tf.data.service not implemented in homogenous cluster yet'
+assert args.is_hetero or args.tf_data_mode == 'local', 'TODO: tf.data.service not implemented in homogeneous cluster yet'
 
 REGION = 'us-east-1'
 os.environ["AWS_DEFAULT_REGION"] = REGION

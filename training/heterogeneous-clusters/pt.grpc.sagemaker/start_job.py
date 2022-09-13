@@ -19,7 +19,7 @@ REGION = 'us-east-1'
 os.environ["AWS_DEFAULT_REGION"] = REGION
 
 IS_CLOUD_JOB = True
-IS_HETERO = True # if set to false, uses homogenous cluster
+IS_HETERO = True # if set to false, uses homogeneous cluster
 PT_DATA_MODE = 'service' if IS_HETERO else 'local' # local | service
 IS_DNN_DISTRIBUTION = False # Distributed Training with DNN nodes not tested, set it to False
 
