@@ -1,6 +1,6 @@
 
 import os
-os.system("python3 -m pip install opencv-python-headless mxnet opencv-python==4.5.5.64")
+os.system("python3 -m pip install opencv-python-headless mxnet opencv-python==4.6.0.66")
 
 import json
 import os
