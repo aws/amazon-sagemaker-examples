@@ -358,5 +358,4 @@ Here are the steps to import the flow
 
 * Download the flow file
 
-* In Sagemaker Studio, drag and drop the flow file or use the upload
-button to browse the flow and upload
+* In Sagemaker Studio, drag and drop the flow file or use the upload button to browse the flow and upload
