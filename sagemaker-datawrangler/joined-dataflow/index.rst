@@ -581,18 +581,6 @@ addition to direct export to S3 which we saw previously.
 * Export as a Python script.
 * Export to SageMaker Feature Store as a notebook.
 
-:bulb:**NOTE** 
-
-
-Import Dataflow
-----------------------------
-
-.. toctree::
-   :maxdepth: 1
-   
-   import-flow/index
-
-
 
 So far, we have demonstrated how to use Amazon SageMaker Data Wrangler
 to preprocess the data and perform feature engineering to prepare for
@@ -601,6 +589,23 @@ scientists can work on training a machine learning model using these
 datasets. In the next section, we will show you how to directly start a
 training job with the train data by leveraging Amazon SageMaker
 Autopilot from the SageMaker Data Wrangler data flow.
+
+
+Import Dataflow
+----------------------------
+
+Here is the final flow file :download:`<join.flow>` available which you can directly
+import to expediate the process or validate the flow.
+
+Here are the steps to import the flow
+
+* Download the flow file
+
+* In Sagemaker Studio, drag and drop the flow file or use the upload
+button to browse the flow and upload
+
+
+
 
 Optional : Run Autopilot training directly from Data Wrangler flow
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
