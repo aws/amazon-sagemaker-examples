@@ -351,7 +351,9 @@ This exported data can now be used for running the ML Models
 Import Dataflow
 ----------------------------
 
-Here is the final flow file :download:`<Hotel-Bookings-Classification.flow>` available which you can directly
+Here is the final flow file 
+`Flow file <https://github.com/aws/amazon-sagemaker-examples/sagemaker-datawrangler/tabular-dataflow/Hotel-Bookings-Classification.flow>` __
+ available which you can directly
 import to expediate the process or validate the flow.
 
 Here are the steps to import the flow
