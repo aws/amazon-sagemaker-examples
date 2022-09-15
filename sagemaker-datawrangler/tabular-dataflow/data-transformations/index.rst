@@ -21,9 +21,7 @@ the displayed window, select **Add Steps** to display **Add Transform**
 window.
 
 .. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/add-transform.png
-   :alt: add-transform
 
-   add-transform
 
 Drop Columns
 ------------
@@ -55,9 +53,6 @@ Please select the the column names we want to drop as shown in the image
 below and hit **Preview**.
 
 .. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/drop-columns.png
-   :alt: drop-columns
-
-   drop-columns
 
 If the Preview is OK, click **Add** to add the transform in the data
 flow.
@@ -68,9 +63,6 @@ inflation factor scores are greater than 5. Please select the the column
 names we want to drop and hit **Preview**.
 
 .. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/drop-more-cols.png
-   :alt: drop-more-columns
-
-   drop-more-columns
 
 If the Preview is OK, click **Add** to add the transform in the data
 flow.
@@ -84,9 +76,6 @@ transform from the **Add Transform** window. Then select the **Drop
 duplicates** option from **Manage rows** transform and hit **Preview**.
 
 .. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/drop-duplicates.png
-   :alt: drop-duplicates
-
-   drop-duplicates
 
 If the Preview is OK, click **Add** to add the transform in the data
 flow.
@@ -116,9 +105,7 @@ statistics are used when running a Data Wrangler job.
    ``required_car_parking_spaces``,
 
 .. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/handle-outliers.png
-   :alt: outliers
 
-   outliers
 
 If the Preview is OK, click **Add** to add the transform in the data
 flow.
@@ -135,9 +122,7 @@ values in our feature columns using Data Wrangler.
    number of children = 0.
 
 .. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/fill-missing-children-val.png
-   :alt: fill-missing-children
 
-   fill-missing-children
 
 Please hit **Preview** to look at the transform preview, and if it is
 OK, click **Add** to add the transform in the data flow.
@@ -149,9 +134,7 @@ OK, click **Add** to add the transform in the data flow.
    column with ``PRT`` based on value counts
 
 .. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/fill-missing-country-val.png
-   :alt: fill-missing-country
 
-   fill-missing-country
 
 Please hit **Preview** to look at the transform preview, and if it is
 OK, click **Add** to add the transform in the data flow.
@@ -164,9 +147,6 @@ OK, click **Add** to add the transform in the data flow.
    in the transform as shown in figure below.
 
 .. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/custom-pyspark-code.png
-   :alt: custom-pyspark
-
-   custom-pyspark
 
 .. code:: python
 
@@ -202,9 +182,6 @@ numeric**. Please select the following parameters and hit **Preview**.
    ``required_car_parking_spaces``
 
 .. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/min-max.png
-   :alt: scale-numeric
-
-   scale-numeric
 
 If the Preview is OK, click **Add** to add the transform in the data
 flow.
@@ -231,9 +208,7 @@ variables and Noisy data.
   ``customer_type``
 
 .. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/categorical-one-hot.png
-   :alt: scale-categorical
 
-   scale-categorical
 
 If the Preview is OK, click **Add** to add the transform in the data
 flow.
@@ -266,9 +241,7 @@ techniques.
   ``Transform``: ``Random oversample``
 
 .. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/random-oversample.png
-   :alt: random-oversample
 
-   random-oversample
 
 If the Preview is OK, click **Add** to add the transform in the data
 flow.
@@ -278,9 +251,7 @@ The state of the classes before and after balancing is as follows:
 The ratio of positive to negative case = ~0.38
 
 .. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/class-before-balance.png
-   :alt: pre-balance
 
-   pre-balance
 
 After balancing, the ratio is 1 |post-balance|
 
@@ -316,9 +287,6 @@ Craete a quick model, similar to one we created in the `Exploratory Data
 Analysis <./Data-Exploration.md>`__ step.
 
 .. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/quick-model-post.png
-   :alt: post-quick-model
-
-   post-quick-model
 
 Compare the model with the one created in Exploratory Data Analysis
 step.
