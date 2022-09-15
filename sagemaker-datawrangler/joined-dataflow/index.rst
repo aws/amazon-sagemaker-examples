@@ -300,7 +300,7 @@ Copy and paste below formula and put **danceability** to the
 0.3*valence + 0.1*liveness + 0.1*energy
 
 .. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/joined-dataflow/image-16.png
-:alt: image
+
 
 
 Click **Preview** and **Add** the step to the flow. 
@@ -395,7 +395,7 @@ custom script to the window.
    df = df.filter(F.col('Rating')==5).groupBy('userId').agg(*agg_obj)
 
 -  .. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/joined-dataflow/image-25.png
-      :alt: image
+      
 
 
  Click *Preview* and the *Add* this step to the flow.
@@ -420,7 +420,7 @@ listed as below
 *ratingEventId*
 
 .. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/joined-dataflow/image-27.png
-:alt: image
+
 
 image
 
@@ -428,14 +428,14 @@ we can drop multiple columns by selecting each column from the
 drop down manual.
 
 .. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/joined-dataflow/image-28.png
-:alt: image
+
 
 
 Once all the columns are selected, hit **Preview** first and then
 **Add**.
 
 .. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/joined-dataflow/image-29.png
-:alt: image
+
 
 
 
@@ -512,7 +512,7 @@ Create Job button on the top right, this will open a window.
 Set the Job name to something like generate-train-test-data
 
 .. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/joined-dataflow/image-42.png
-:alt: image
+
 
 
 Hit the **Configure Job** button at the bottom
@@ -521,7 +521,7 @@ Leave the default instance type, and press the Run button at the
 bottom.
 
 .. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/joined-dataflow/image-43.png
-:alt: image
+
 
 
 
@@ -530,7 +530,7 @@ see the progress of the job you can do so by following the link to
 the generate-train-test-data process.
 
 .. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/joined-dataflow/image-44.png
-:alt: image
+
 
    
 
@@ -538,7 +538,7 @@ Follow the link to see the status of your job. This processing job
 takes around 5-10 mins.
 
 .. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/joined-dataflow/image-45.png
-:alt: image
+
 
    
 
@@ -547,7 +547,7 @@ available in the corresponding S3 output folders. You can find the
 output location from the processing job configurations.
 
 .. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/joined-dataflow/image-processing-job-output.png
-   :alt: image
+   
 
    
 
