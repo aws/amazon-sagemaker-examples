@@ -20,9 +20,9 @@ Jupyter notebook. You can also join and concatenate on the imported
 dataset with other datasets.
 
 .. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/image-8.png
-   :alt: image
+   
 
-   image
+
 
 On selecting Add Analysis, the Analysis pane os shown, where you can
 choose the analysis you want to perform.
@@ -51,9 +51,9 @@ You can get the Data Insights report by selecting **Get Insights**
 option for the **Data Types** block as shown in the figure.
 
 .. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/get-insights.png
-   :alt: image
+   
 
-   image
+
 
 | Please select the following parameters and hit **Create**.
 | - ``Target column``: ``is-cancelled`` - ``Problem type``:
@@ -64,9 +64,8 @@ duplicate rows, warnings, confusion matrix and feature summary. This can
 be a useful report before we start our detailed analysis.
 
 .. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/get-insights-report.png
-   :alt: image
+   
 
-   image
 
 Table Summary
 -------------
@@ -80,9 +79,8 @@ Overall details of the data for various columsn is displayed as depicted
 in figure below.
 
 .. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/table-information.png
-   :alt: image
+   
 
-   image
 
 Select **Save** to save the analysis.
 
@@ -126,7 +124,7 @@ indicate the feature is redundant.
   ``Classification``
 
 .. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/target-leakage-pre.png
-   :alt: image
+   
 
    image
 
@@ -144,9 +142,7 @@ The identified features can be fairly omitted as part of the
 transformations we will apply post this initial analysis.
 
 .. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/target-leakage.png
-   :alt: target-leakage
 
-   target-leakage
 
 Select **Save** to save the analysis.
 
@@ -181,18 +177,13 @@ table below lists for each feature what is the most correlated feature
 to it.
 
 .. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/linear-pre.png
-   :alt: linear-pre
-
-   linear-pre
 
 Based on the correlation values, we can see the top 6 feature pairs (as
 listed below) are strongly correlating with one another. Also, some of
 these features also showed up in the target analysis we did previously.
 
 .. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/linear-strongly-correlated.png
-   :alt: linear-correlated
 
-   linear-correlated
 
 P.S.: A limit of 100,000 rows is used for this analysis.
 
@@ -228,9 +219,7 @@ feature to it. You can see most of the top correlated feature pairs
 overlap with the previous two analyses.
 
 .. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/non-linear-pre.png
-   :alt: non-linear-correlated
 
-   non-linear-correlated
 
 Select **Save** to save the analysis.
 
@@ -266,9 +255,7 @@ features.
 -  ``stays_in_week_nights``
 
 .. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/vif-pre.png
-   :alt: variance-inflation-factors
 
-   variance-inflation-factors
 
 Select **Save** to save the analysis.
 
@@ -297,9 +284,6 @@ uniform hence confirming that the data has multicolinearies to fix. This
 has already been confirmed by our previous analysis.
 
 .. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/pca-pre.png
-   :alt: pca-pre
-
-   pca-pre
 
 Select **Save** to save the analysis.
 
@@ -331,9 +315,7 @@ avoid a skewed importance score due to different scales.
 The classifier obtained a roc_auc score: ``0.639269142214666``.
 
 .. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/lasso-pre.png
-   :alt: lasso-pre
 
-   lasso-pre
 
 Select **Save** to save the analysis.
 
@@ -348,9 +330,7 @@ From the figure bwlow, we can see almost ~33% of the rows in the dataset
 are duplicates.
 
 .. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/duplicate-rows.png
-   :alt: duplicate
 
-   duplicate
 
 Quick Model
 -----------
@@ -398,9 +378,9 @@ with in Data Wrangler’s Quick Model option.
 This analysis will take a few minutes to complete.
 
 .. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/create-quick-model.png
-   :alt: quick-model-pre
 
-   quick-model-pre
+
+
 
 A limit of 100,000 rows is used for this analysis. You can use the Quick
 Model feature to provide a rough estimate of the expected predicted
@@ -414,9 +394,9 @@ below where the column ``reservation_status`` which is a target leakage
 ranked as the most important feature.
 
 .. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/quick-model-pre.png
-   :alt: quick-model-pre
 
-   quick-model-pre
+
+
 
 Select **Save** to save the model.
 
