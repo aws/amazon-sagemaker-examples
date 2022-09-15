@@ -37,7 +37,7 @@ Option 3. : You can also use the File -> New -> DataWrangler option as shown her
 under running instances and apps as shown below.
 
 .. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/image-3.png
-:alt: image
+
 
 
 
@@ -46,7 +46,7 @@ under running instances and apps as shown below.
    export as shown below.
 
 .. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/image-4.png
-:alt: image
+
 
 
 
@@ -59,9 +59,9 @@ under running instances and apps as shown below.
    go.
 
 .. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/image-5.png
-   :alt: image
+   
 
-   image
+
 
 7. Data Wrangler will show you a preview of the data. Select the CSV
    file from the drop down results. On the right pane, make sure COMMA
@@ -71,9 +71,9 @@ under running instances and apps as shown below.
    select *Import* to import this dataset to Data Wrangler.
 
 .. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/image-6.png
-   :alt: image
+   
 
-   image
+
 
 8. Once the dataset is imported, Data Wrangler automatically validates
    the dataset and detects the data types. The flow editor now shows 2
@@ -82,9 +82,9 @@ under running instances and apps as shown below.
    needed.
 
 .. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/image-7.png
-   :alt: image
+   
 
-   image
+
 
 Next Steps
 ----------
