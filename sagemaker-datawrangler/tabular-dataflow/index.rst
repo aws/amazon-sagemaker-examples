@@ -299,17 +299,16 @@ output data and choose the S3 location where you want the data to be
 stored and click Add destination button at the bottom as shown below.
 
 .. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/add-destination.png
-   :alt: add-destination
 
-   add-destination
+
+
 
 This adds a destination node to our data flow. The destination node acts
 as a sink to your data flow.
 
 .. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/destination.png
-   :alt: destination
 
-   destination
+
 
 Next, click on the Create job button in the upper right corner of the
 page. In the configuration page for the SageMaker Processing job we are
@@ -318,37 +317,46 @@ processing cluster. Advance configuration is optional, where you can
 assign tags as needed and choose the appropriate Volume Size.
 
 .. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/configure-job.png
-   :alt: export-create-job
 
-   export-create-job
+
+ 
 
 Select ``Run`` to start the export job. The job created will have Job
 Name and Job ARN which can be used to search for the job status.
 
 .. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/create-job.png
-   :alt: export-create-job
 
-   export-create-job
+
+ 
 
 The job created in the previous step will be available in the monitoring
 page for ``SageMaker Processing job`` as shown in the figure below.
 
 .. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/processing-job.png
-   :alt: export-processing-job
 
-   export-processing-job
+
+ 
 
 After a certain time, the job will be complete. The image below shows
 the completed job. Exported data should be available in the output S3
 bucket.
 
 .. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/complete-job.png
-   :alt: export-complete-job
 
-   export-complete-job
+
 
 This exported data can now be used for running the ML Models
 
-:bulb:**NOTE** - Also, you can import the `flow
-file <./Hotel-Bookings-Classification.flow>`__ by following the steps
-`here <../import-flow.md>`__
+
+Import Dataflow
+----------------------------
+
+Here is the final flow file :download:`<Hotel-Bookings-Classification.flow>` available which you can directly
+import to expediate the process or validate the flow.
+
+Here are the steps to import the flow
+
+* Download the flow file
+
+* In Sagemaker Studio, drag and drop the flow file or use the upload
+button to browse the flow and upload
