@@ -594,7 +594,9 @@ Autopilot from the SageMaker Data Wrangler data flow.
 Import Dataflow
 ----------------------------
 
-Here is the final flow file :download:`<join.flow>` available which you can directly
+Here is the final flow file 
+`Flow file <https://github.com/aws/amazon-sagemaker-examples/sagemaker-datawrangler/joined-dataflow/join.flow>` __
+ available which you can directly
 import to expediate the process or validate the flow.
 
 Here are the steps to import the flow
@@ -603,7 +605,6 @@ Here are the steps to import the flow
 
 * In Sagemaker Studio, drag and drop the flow file or use the upload
 button to browse the flow and upload
-
 
 
 
