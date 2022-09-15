@@ -1031,10 +1031,8 @@ series!
 Import Dataflow
 ----------------------------
 
-Here is the final flow file 
-`Flow file <https://github.com/aws/amazon-sagemaker-examples/sagemaker-datawrangler/timeseries-dataflow/TS-Workshop-DataPreparation.flow>` __
- available which you can directly
-import to expediate the process or validate the flow.
+Here is the final `Flow file 
+<https://github.com/aws/amazon-sagemaker-examples/sagemaker-datawrangler/timeseries-dataflow/TS-Workshop-DataPreparation.flow>`__ available which you can directly import to expediate the process or validate the flow.
 
 Here are the steps to import the flow
 
