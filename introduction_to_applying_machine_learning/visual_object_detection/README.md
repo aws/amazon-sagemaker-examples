@@ -6,12 +6,12 @@ This solution will demonstrate the immense advantage of fine-tuning a high-quali
 
 ### Contents
 1. [Overview](#overview)
-   1. [How Does the Input Data Look Like?](#input)
+   1. [What Does the Input Data Look Like?](#input)
    2. [How to Prepare Your Data to Feed into the Model?](#preparedata)
    3. [What are the Outputs?](#output)
    4. [What is the Estimated Cost?](#cost)
    5. [What Algorithms & Models are Used?](#algorithms)
-   6. [How Does the Data Flow Look Like?](#dataflow)
+   6. [What Does the Data Flow Look Like?](#dataflow)
 2. [Solution Details](#solution)
    1. [Background](#background)
    2. [What is Visual Inspection?](#inspection)
@@ -24,9 +24,9 @@ This solution will demonstrate the immense advantage of fine-tuning a high-quali
 
 ## 1. Overview <a name="overview"></a>
 
-### 1.1. How Does the Input Data Look Like? <a name="input"></a>
+### 1.1. What Does the Input Data Look Like? <a name="input"></a>
 
-Input is an image of a defective / non-defective product. The training data should have relatively balanced classes, with annotations for ground truth defects (locations and defect types) per image. Here is an example used in the demo
+Input is an image of a defective / non-defective product. The training data should have relatively balanced classes, with annotations for ground truth defects (locations and defect types) per image. Here are examples of annotations used in the demo, they show some "inclusion" defects on the surface:
 
 !["sample2"](https://sagemaker-solutions-prod-us-east-2.s3.us-east-2.amazonaws.com/sagemaker-defect-detection/docs/sample2.png)
 
@@ -34,7 +34,7 @@ The NEU surface defect database (see [references](#references)) is a *balanced* 
 
 > Six kinds of typical surface defects of the hot-rolled steel strip are collected, i.e., rolled-in scale (RS), patches (Pa), crazing (Cr), pitted surface (PS), inclusion (In) and scratches (Sc). The database includes 1,800 grayscale images: 300 samples each of six different kinds of typical surface defects
 
-Here is a sample images of the six classes
+Here is a sample image of the six classes
 
 !["data sample"](https://sagemaker-solutions-prod-us-east-2.s3.us-east-2.amazonaws.com/sagemaker-defect-detection/docs/data.png)
 
@@ -45,7 +45,7 @@ For finetuning pretrained Sagemaker models, you need to prepare either a single 
 
 ### 1.3. What are the Outputs? <a name="output"></a>
 
-* For each image, the trained model will produce bounding boxes of detected visual defects (if any), the predicted defect type and prediction confidence score (0~1).
+* For each image, the trained model will produce bounding boxes of detected visual defects (if any), the predicted defect type, and prediction confidence score (0~1).
 * If you have a labeled test dataset, you could obtain the mean Average Precision (mAP) score for each model and compare among all the models.
    * For example, the mAP scores on a test set of the NEU dataset
 
@@ -56,7 +56,7 @@ For finetuning pretrained Sagemaker models, you need to prepare either a single 
 
 ### 1.4. What is the Estimated Cost? <a name="cost"></a>
 
-* Running the notebook costs around $130~140 USD. This notebook provides advanced materials, including finetuning two types of pretrained Sagemaker models **till convergence**, with and without hyperparameter optimization (HPO), and result in four models for inference. You could choose to train either one model, or all four models according to your budget and requirements. The cost and runtime for training each model (assuming using p3.2xlarge EC2 instance) are:
+* Running the notebook costs around $130~140 USD, assuming using p3.2xlarge EC2 instance in the notebook, and $3.06 on-demand hourly rate in US East. This notebook provides advanced materials, including finetuning two types of pretrained Sagemaker models **till convergence**, with and without hyperparameter optimization (HPO), and result in four models for inference. You could choose to train either one model, or all four models according to your budget and requirements. The cost and runtime for training each model are:
 
    | Model | Cost (USD) | Runtime (Hours) | Billable time (Hours)|
    |:----------:|:---------------:|:----:|:-----:|
@@ -65,7 +65,7 @@ For finetuning pretrained Sagemaker models, you need to prepare either a single 
    |Type 2|    4.6     |       1.5       | 1.5|
    |Type 2 with HPO (20 jobs)|     92     |       3*        | 30|
   (*) HPO tasks in this solution consider 20 jobs in total and 10 jobs in parallel. So 1 actual runtime hour amounts to 10 billable cost hours.
-* Please make sure you have read the cleaning up part [here](#cleaning-up) after training to avoid incurred cost from deployed models.
+* Please make sure you have read the cleaning up part in [Section 4](#cleaning-up) after training to avoid incurred cost from deployed models.
 
 
 
@@ -81,21 +81,21 @@ For finetuning pretrained Sagemaker models, you need to prepare either a single 
 
 ### 2.1. Background <a name="background"></a>
 
-According to the [Gartner](https://www.gartner.com/smarterwithgartner/gartner-top-10-strategic-technology-trends-for-2020/),  hyper-automation is the number one trend in 2020 and will continue advancing in future. When it comes to manufacturing, one of the main barriers to hyper-automation is in areas where Human involvements is still struggling to be reduced and intelligent systems have hard times to become on-par with Human visual recognition abilities and become mainstream, despite great advancement of Deep Learning in Computer Vision. This is mainly due to lack of enough annotated data (or when data is sparse) in areas such as _Quality Control_ sections where trained Human eyes still dominates.
+According to the [Gartner study on the top 10 strategic tech trends for 2020](https://www.gartner.com/smarterwithgartner/gartner-top-10-strategic-technology-trends-for-2020/),  hyper-automation is the number one trend in 2020 and will continue advancing in future. When it comes to manufacturing, one of the main barriers to hyper-automation is in areas where Human involvements is still struggling to be reduced and intelligent systems have hard times to become on-par with Human visual recognition abilities and become mainstream, despite great advancement of Deep Learning in Computer Vision. This is mainly due to lack of enough annotated data (or when data is sparse) in areas such as _Quality Control_ sections where trained Human eyes still dominates.
 
 
 ### 2.2. What is Visual Inspection? <a name="inspection"></a>
 
-The **analysis of products on the production line for the purpose of Quality Control**. Visual inspection can also be used for internal and external assessment of the various equipment in a production facility such as storage tanks, pressure vessels, piping, and other equipment ([source](https://nanonets.com/blog/ai-visual-inspection/)) which expands to many industries from Electronics, Medical, Food and Raw Materials.
+The **analysis of products on the production line for the purpose of Quality Control**. According to [Everything you need to know about Visual Inspection with AI](https://nanonets.com/blog/ai-visual-inspection/), visual inspection can also be used for internal and external assessment of the various equipment in a production facility such as storage tanks, pressure vessels, piping, and other equipment which expands to many industries from Electronics, Medical, Food and Raw Materials.
 
 ### 2.3. What are the Problems? <a name="problems"></a>
 
-* *Human visual inspection error* is a major factor in this area. According to this [report](https://www.osti.gov/servlets/purl/1476816)
+* *Human visual inspection error* is a major factor in this area. According to the report [The Role of Visual Inspection in the 21st Century](https://www.osti.gov/servlets/purl/1476816)
 
    > Most inspection tasks are much more complex and typically exhibit error rates of 20% to 30% (Drury & Fox, 1975)
 
 which directly translates to *cost*.
-* Cost: according to some [estimate](https://www.glassdoor.co.in/Salaries/us-quality-control-inspector-salary-SRCH_IL.0,2_IN1_KO3,28.htm), a trained quality inspector salary varies between 26K (US) - 60K per year.
+* Cost: according to [glassdoor estimate](https://www.glassdoor.co.in/Salaries/us-quality-control-inspector-salary-SRCH_IL.0,2_IN1_KO3,28.htm), a trained quality inspector salary varies between 29K (US) - 64K per year.
 
 ### 2.4. What Does this Solution Offer?  <a name="offer"></a>
 
@@ -107,7 +107,7 @@ The **most important** information this solution delivers, is that training a de
 
 ## 3. Architecture Overview <a name="architecture"></a>
 
-Here is architecture for the end-to-end training and deployment process
+The following illustration is the architecture for the end-to-end training and deployment process
 
 !["Solution Architecture"](https://sagemaker-solutions-prod-us-east-2.s3.us-east-2.amazonaws.com/sagemaker-defect-detection/docs/train_arch.png)
 
@@ -119,9 +119,9 @@ Here is architecture for the end-to-end training and deployment process
 
 ## 4. Cleaning up <a name="cleaning-up"></a>
 
-When you've finished with this solution, make sure that you delete all unwanted AWS resources. AWS CloudFormation can be used to automatically delete all standard resources that have been created by the solution and notebook. Go to the AWS CloudFormation Console, and delete the parent stack. Choosing to delete the parent stack will automatically delete the nested stacks.
+If you run the notebook end-to-end, the Cleaning up section in the notebook will delete all the checkpoints and models automatically for you. If you choose to only train some of the four models in the notebook, please make sure to run corresponding code in the Cleaning up section to delete all the artifacts.
 
-**Caution:** You need to manually delete any extra resources that you may have created in this notebook. Some examples include, extra Amazon S3 buckets (to the solution's default bucket), extra Amazon SageMaker endpoints (using a custom name).
+**Caution:** You need to manually delete any extra resources that you may have created in this notebook. For examples extra Amazon S3 bucketis.
 
 ## 5. Customization <a name="customization"></a>
 

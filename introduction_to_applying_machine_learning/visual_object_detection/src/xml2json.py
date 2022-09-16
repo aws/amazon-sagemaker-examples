@@ -2,9 +2,6 @@
 # Reference: XML2JSON.py https://linuxtut.com/en/e391e5e6924945b8a852/
 
 import random
-import subprocess
-subprocess.run("python -m pip install opencv-python-headless xmltodict", shell=True)
-
 import xmltodict
 import copy
 import json
