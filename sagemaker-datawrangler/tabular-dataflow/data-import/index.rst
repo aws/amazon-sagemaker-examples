@@ -14,31 +14,31 @@ Option 1 : Use the Sage Maker Launcher screen
 --------------------------------------------
 
 .. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/image-1.png
-:alt: destination
+
 
 Option 2 : You can use the SageMaker resources menu on the left, selecting Data Wrangler, and new flow
 ----------------------------------------------------------------------------
 
 .. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/image-1-1.png
-:alt: destination
+
 
 
 .. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/image-1-2.png
-:alt: destination
+
 
 Option 3. : You can also use the File -> New -> DataWrangler option as shown here
 --------------------------------------------------------------------------------
 .. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/image-1-3.png
-:alt: destination
+
 
 2. Data Wrangler takes a few minutes to load.
 
-|image| 3. Once Data Wrangler is loaded, you should be able to see it
+|image| 
+
+3. Once Data Wrangler is loaded, you should be able to see it
 under running instances and apps as shown below.
 
 .. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/image-3.png
-
-
 
 
 4. Once Data Wrangler is up and running, you can see the following data
@@ -46,8 +46,6 @@ under running instances and apps as shown below.
    export as shown below.
 
 .. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/image-4.png
-
-
 
 
 5. Make sure to rename the untitled.flow to your preference (for e.g.,
@@ -61,8 +59,6 @@ under running instances and apps as shown below.
 .. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/image-5.png
    
 
-
-
 7. Data Wrangler will show you a preview of the data. Select the CSV
    file from the drop down results. On the right pane, make sure COMMA
    is chosen as the delimiter and Sampling is *None*. Our data set is
@@ -73,8 +69,6 @@ under running instances and apps as shown below.
 .. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/image-6.png
    
 
-
-
 8. Once the dataset is imported, Data Wrangler automatically validates
    the dataset and detects the data types. The flow editor now shows 2
    blocks showcasing that the data was imported from a source and data
@@ -83,8 +77,6 @@ under running instances and apps as shown below.
 
 .. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/image-7.png
    
-
-
 
 Next Steps
 ----------
