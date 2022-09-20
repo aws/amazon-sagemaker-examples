@@ -70,7 +70,7 @@ flow.
 Drop Duplicate Rows
 -------------------
 
-To drop the duplicate rows that we identified based on the analysis we
+We should drop the duplicate rows that we identified based on the analysis we
 did in the previous section. To drop columns, choose **Manage rows**
 transform from the **Add Transform** window. Then select the **Drop
 duplicates** option from **Manage rows** transform and hit **Preview**.
