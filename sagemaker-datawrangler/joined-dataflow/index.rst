@@ -1,7 +1,7 @@
 
 Joined Dataflow Example
 ============================
-This example provide quick walkthrough of how to aggregate and prepare
+The example provide quick walkthrough of how to aggregate and prepare
 data for Machine Learning using Amazon SageMaker Data Wrangler for
 joined dataset.
 
