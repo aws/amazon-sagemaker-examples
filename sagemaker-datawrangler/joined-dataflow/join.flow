@@ -17,7 +17,7 @@
           "description": null,
           "s3ExecutionContext": {
             "__typename": "S3ExecutionContext",
-            "s3Uri": "s3://sagemaker-us-east-1-631450739534/music-recommendation-workshop/input/tracks.csv",
+            "s3Uri": "s3://sagemaker-sample-files/datasets/tabular/synthetic-music/tracks.csv",
             "s3ContentType": "csv",
             "s3HasHeader": true,
             "s3FieldDelimiter": ",",
@@ -77,7 +77,7 @@
           "description": null,
           "s3ExecutionContext": {
             "__typename": "S3ExecutionContext",
-            "s3Uri": "s3://sagemaker-us-east-1-631450739534/music-recommendation-workshop/input/ratings.csv",
+            "s3Uri": "s3://sagemaker-sample-files/datasets/tabular/synthetic-music/ratings.csv",
             "s3ContentType": "csv",
             "s3HasHeader": true,
             "s3FieldDelimiter": ",",
@@ -408,58 +408,6 @@
           "name": "df",
           "node_id": "47a6ac96-703f-483a-add8-6c1629033b09",
           "output_name": "Test"
-        }
-      ],
-      "outputs": [
-        {
-          "name": "default"
-        }
-      ]
-    },
-    {
-      "node_id": "a50d670e-07a6-4146-8f2f-ddf87d0bfa5d",
-      "type": "DESTINATION",
-      "operator": "sagemaker.spark.s3_destination_0.1",
-      "name": "S3: training",
-      "parameters": {
-        "output_config": {
-          "compression": "none",
-          "output_path": "s3://sagemaker-us-east-1-631450739534/music-recommendation-workshop/input/train/",
-          "output_content_type": "CSV",
-          "delimiter": ","
-        }
-      },
-      "inputs": [
-        {
-          "name": "default",
-          "node_id": "f088dbd3-274c-4335-94ae-d51278cbadb7",
-          "output_name": "default"
-        }
-      ],
-      "outputs": [
-        {
-          "name": "default"
-        }
-      ]
-    },
-    {
-      "node_id": "fe15bf83-02ff-4397-b4e1-cd0e4de5b1fc",
-      "type": "DESTINATION",
-      "operator": "sagemaker.spark.s3_destination_0.1",
-      "name": "S3: test",
-      "parameters": {
-        "output_config": {
-          "compression": "none",
-          "output_path": "s3://sagemaker-us-east-1-631450739534/music-recommendation-workshop/input/test/",
-          "output_content_type": "CSV",
-          "delimiter": ","
-        }
-      },
-      "inputs": [
-        {
-          "name": "default",
-          "node_id": "1d573e54-75bd-4e18-a3f1-04159d564fc2",
-          "output_name": "default"
         }
       ],
       "outputs": [
