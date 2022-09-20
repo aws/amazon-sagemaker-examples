@@ -1,6 +1,6 @@
 ## Import Flow
 
-Each of the example has a flow file available which you can directly import to expediate the process or validate the flow.
+Each of the example has a flow file available which you can directly import to expedite the process or validate the flow.
 
 Here are the steps to import the flow
 
