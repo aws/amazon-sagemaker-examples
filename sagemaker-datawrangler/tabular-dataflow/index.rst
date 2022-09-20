@@ -27,7 +27,7 @@ Dataset
 
 Dataset
 
-We will be using the `Hotel Booking Demand
+We are using the `Hotel Booking Demand
 dataset <https://www.kaggle.com/jessemostipak/hotel-booking-demand>`__
 that is publically available. This data set contains booking information
 for a city hotel and a resort hotel, and includes information such as
