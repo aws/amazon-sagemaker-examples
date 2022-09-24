@@ -101,6 +101,7 @@ def train(batch_size, epoch, net, hook, args, local_rank):
 
         print("START VALIDATING")
         if hook:
+            hook.register_module(net)
             hook.set_mode(modes.EVAL)
         test_sampler.set_epoch(i)
         net.eval()
