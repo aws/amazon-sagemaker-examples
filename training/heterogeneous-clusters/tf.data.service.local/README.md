@@ -11,16 +11,10 @@ Install requirements:
 ```bash
 pip install -r requirements.txt
 ```
-
-Let's generate some data to train over:
-```bash
-python3 ./generate_cifar10_tfrecords.py --data-dir ./data
-rm -rf /tmp/data.old && mv data data.old && mkdir data && cp data.old/train/train.1.tfrecords ./data/ && cp data.old/train/train.2.tfrecords ./data/ && mv data.old /tmp
-```
 ## Running without tf.data.service
 First lets run a single training process that handles both data augmentation and NN optimization:
 ```bash
-python3 ./train.py --mode local --sm-model-dir /tmp
+python3 ./train.py --mode local --model-dir /tmp
 ```
 Expected output:
 ```
@@ -42,7 +36,7 @@ Expected output:
 ```
 Now let's launch the NN training script which will connect to the dispatcher to consume its data.source
 ```bash
-python3 ./train.py --mode service --sm-model-dir /tmp
+python3 ./train.py --mode service --model-dir /tmp
 ```
 Expected output:
 ```

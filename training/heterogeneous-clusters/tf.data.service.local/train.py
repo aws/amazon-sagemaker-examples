@@ -6,17 +6,6 @@ from tensorflow.keras.layers.experimental import preprocessing
 
 DISPATCHER_HOST='localhost'
 
-# parse TFRecord+
-def parse_image_function(example_proto):
-    image_feature_description = {'image': tf.io.FixedLenFeature([], tf.string),
-        'label': tf.io.FixedLenFeature([], tf.int64)}
-    features = tf.io.parse_single_example(
-                    example_proto, image_feature_description)
-    image = tf.io.decode_raw(features['image'], tf.uint8)
-    image.set_shape([3 * 32 * 32])
-    image = tf.reshape(image, [32, 32, 3])
-    label = tf.cast(features['label'], tf.int32)
-    return image, label
 # dilation filter
 def dilate(image, label):
     dilateFilter = tf.zeros([3, 3, 3], tf.uint8)
@@ -46,12 +35,15 @@ def augment(image, label):
     image = data_augmentation(image)
     return image, label
 
-'this function loads mnist as tf.data.Dataset'
-def load_mnist():
+# This function generates a dataset consisting 32x32x3 random images
+# And a corresponding random label representing 10 different classes.
+# As this dataset is randomly generated, you should not expect the model
+# to converge in a meaningful way, it doesn't matter as our intent is 
+# only to measure data pipeline and DNN optimization throughput
+def generate_artificial_dataset():
     import numpy as np
-    (x_train, y_train), (x_test, y_test) = tf.keras.datasets.mnist.load_data()
-    x_train = x_train.astype(np.float32) / 255.0
-    x_train = np.expand_dims(x_train, -1)
+    x_train = np.random.randint(0, 255, size=(32000, 32, 32, 3), dtype=np.uint8)
+    y_train = np.random.randint(0, 10, size=(32000,1))
     train_dataset = tf.data.Dataset.from_tensor_slices((x_train, y_train))
     return train_dataset
 
@@ -59,15 +51,12 @@ def get_dataset(training_dir : str, batch_size : int, use_tf_data_service : bool
     autotune = tf.data.experimental.AUTOTUNE
     options = tf.data.Options()
     options.experimental_deterministic = False
-    records = tf.data.Dataset.list_files(
-        training_dir+'/*', shuffle=True).with_options(options)
-    ds = tf.data.TFRecordDataset(records, num_parallel_reads=autotune).repeat()
     
-    ds = ds.map(parse_image_function, num_parallel_calls=autotune)
+    ds = generate_artificial_dataset().shuffle(10000).repeat()
+    
     ds = ds.map(dilate, num_parallel_calls=autotune)
     ds = ds.map(blur, num_parallel_calls=autotune)
     ds = ds.map(rescale,num_parallel_calls=autotune)
-
     ds = ds.map(augment, num_parallel_calls=autotune)
     ds = ds.batch(batch_size)
 

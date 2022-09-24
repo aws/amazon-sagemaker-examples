@@ -1,7 +1,6 @@
 import datetime
 from sagemaker.tensorflow import TensorFlow
 from sagemaker.instance_group import InstanceGroup
-from sagemaker.inputs import TrainingInput
 import os
 
 import argparse
@@ -78,17 +77,7 @@ estimator = TensorFlow(
     disable_profiler=True,
     **kwargs,
 )
-
-s3_bucket_dataset = estimator.sagemaker_session.default_bucket() # or replace with your own bucket name
-s3_input = TrainingInput(
-    's3://'+s3_bucket_dataset+'/cifar10-tfrecord/', 
-    #instance_groups=['data_group'], # this training channel is created only in data_group instances (i.e., not in dnn_group instance)
-    input_mode='FastFile',
-    )
-
-data_uri = s3_input if args.is_cloud_job else 'file://./data/'
 print(f'kwargs={kwargs}')
 estimator.fit(
-    inputs=data_uri,
     job_name=f'hetero-tf-data-{args.tf_data_mode}-Dnode{args.num_of_data_instances}-wrkrs-{args.num_of_data_workers}-{datetime.datetime.utcnow().strftime("%Y%m%dT%H%M%SZ")}',
 )

@@ -68,6 +68,8 @@ class MyMNIST(datasets.MNIST):
 
 
 def fill_queue(q,kill, args):
+
+    MyMNIST.mirrors = ["https://sagemaker-sample-files.s3.amazonaws.com/datasets/image/MNIST/"]
     train_kwargs = {'batch_size': args.batch_size,
                     'num_workers': args.num_data_workers}
     transform=transforms.Compose([

@@ -1,12 +1,11 @@
 # SageMaker Heterogeneous Clusters Training
 SageMaker Training Heterogeneous Clusters allows you to run one training job that includes instances of different types (for example a GPU instance like ml.p4d.24xlarge and a CPU instance like c5.18xlarge). One primary use case is offloading CPU intensive tasks like image pre-processing (data augmentation) from the GPU instance to a dedicate CPU instance, so you can fully utilize the expensive GPUs, and arrive at an improved time and cost to train.
 
-You'll find TensorFlow (tf.data.service) and PyTorch (a customer gRPC based distributed data loading) examples on how to utilize Heterogeneous clusters in your training jobs.
+You'll find TensorFlow (tf.data.service) and PyTorch (a customer gRPC based distributed data loading) examples on how to utilize Heterogeneous clusters in your training jobs. You can reuse these examples when enabling your own training workload to use heterogeneous clusters.
 
 ![Hetero job diagram](tf.data.service.sagemaker/images/basic-heterogeneous-job.png)
 
 ## Examples:
-
 
 ### TensorFlow examples
 - [**TensorFlow's tf.data.service running locally**](tf.data.service.local/README.md):

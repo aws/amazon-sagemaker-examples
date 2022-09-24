@@ -5,18 +5,6 @@ import tensorflow as tf
 import os
 import horovod.tensorflow.keras as hvd
 
-# parse TFRecord
-def parse_image_function(example_proto):
-    image_feature_description = {'image': tf.io.FixedLenFeature([], tf.string),
-                                 'label': tf.io.FixedLenFeature([], tf.int64)}
-    features = tf.io.parse_single_example(
-        example_proto, image_feature_description)
-    image = tf.io.decode_raw(features['image'], tf.uint8)
-    image.set_shape([3 * 32 * 32])
-    image = tf.reshape(image, [32, 32, 3])
-    label = tf.cast(features['label'], tf.int32)
-    return image, label
-
 
 # dilation filter
 def dilate(image, label):
@@ -53,19 +41,29 @@ def augment(image, label):
     return image, label
 
 
-def get_dataset(training_dir : str, batch_size : int, use_tf_data_service : bool, dispatcher_host : str):
+# This function generates a dataset consisting 32x32x3 random images
+# And a corresponding random label representing 10 different classes.
+# As this dataset is randomly generated, you should not expect the model
+# to converge in a meaningful way, it doesn't matter as our intent is 
+# only to measure data pipeline and DNN optimization throughput
+def generate_artificial_dataset():
+    import numpy as np
+    x_train = np.random.randint(0, 255, size=(32000, 32, 32, 3), dtype=np.uint8)
+    y_train = np.random.randint(0, 10, size=(32000,1))
+    train_dataset = tf.data.Dataset.from_tensor_slices((x_train, y_train))
+    return train_dataset
+
+
+def get_dataset(batch_size : int, use_tf_data_service : bool, dispatcher_host : str):
     autotune = tf.data.experimental.AUTOTUNE
     options = tf.data.Options()
     options.experimental_deterministic = False
-    records = tf.data.Dataset.list_files(
-        training_dir+'/*', shuffle=True).with_options(options)
-    ds = tf.data.TFRecordDataset(records, num_parallel_reads=autotune).repeat()
     
-    ds = ds.map(parse_image_function, num_parallel_calls=autotune)
+    ds = generate_artificial_dataset().shuffle(10000).repeat()
+
     ds = ds.map(dilate, num_parallel_calls=autotune)
     ds = ds.map(blur, num_parallel_calls=autotune)
     ds = ds.map(rescale,num_parallel_calls=autotune)
-
     ds = ds.map(augment, num_parallel_calls=autotune)
     ds = ds.batch(batch_size)
 
@@ -79,7 +77,6 @@ def get_dataset(training_dir : str, batch_size : int, use_tf_data_service : bool
     ds = ds.prefetch(autotune)
     return ds
 
-
 "This function read mode command line argument"
 def read_args():
     import argparse
@@ -91,8 +88,6 @@ def read_args():
     parser.add_argument('--epochs', type=int, default=1)
     parser.add_argument("--n_gpus", type=str,
                         default=os.environ.get("SM_NUM_GPUS"))
-    parser.add_argument("--training_dir", type=str,
-                        default=os.environ.get("SM_CHANNEL_TRAINING"))
     parser.add_argument("--dispatcher_host", type=str)
     parser.add_argument("--num_of_data_workers", type=int, default=1)
     parser.add_argument("--output_data_dir", type=str,
@@ -146,7 +141,7 @@ if __name__ == "__main__":
 
     assert(args.tf_data_mode == 'local' or args.tf_data_mode == 'service')
     print(f'Running in {args.tf_data_mode} tf_data_mode.')
-    dataset = get_dataset(args.training_dir, batch_size = args.batch_size, use_tf_data_service=(args.tf_data_mode == 'service'), dispatcher_host = args.dispatcher_host)
+    dataset = get_dataset(batch_size = args.batch_size, use_tf_data_service=(args.tf_data_mode == 'service'), dispatcher_host = args.dispatcher_host)
     
     model.fit(  dataset, 
                 steps_per_epoch=args.steps_per_epoch,
