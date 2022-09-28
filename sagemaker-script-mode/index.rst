@@ -15,4 +15,7 @@ SageMaker Script Mode at Increasing Levels of Customization
 .. toctree::
    :maxdepth: 1
 
+
+   pytorch_bert/deploy_bert
+   sklearn/sklearn_byom
    sagemaker-script-mode

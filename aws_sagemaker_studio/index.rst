@@ -19,11 +19,25 @@ Basic training example for SageMaker Studio
    :maxdepth: 1
 
    sagemaker_algorithms/linear_learner_mnist/linear_learner_mnist
+   getting_started/xgboost_customer_churn_studio
 
 
+SageMaker-Debugger
+-------------------------------------------
 
-Framework examples
-=======================
+.. toctree::
+   :maxdepth: 1
+
+   sagemaker_debugger/mnist_tensor_plot/mnist-tensor-plot
+   sagemaker_debugger/mxnet_realtime_analysis/mxnet-realtime-analysis
+   sagemaker_debugger/tensorflow_builtin_rule/tf-mnist-builtin-rule
+   sagemaker_debugger/pytorch_profiling/pt-resnet-profiling-single-gpu-single-node
+   sagemaker_debugger/tensorflow_action_on_rule/detect_stalled_training_job_and_actions
+   sagemaker_debugger/tensorflow2/tensorflow2_keras_custom_container/tf2-keras-custom-container
+
+
+Framework Examples
+====================
 
 .. toctree::
    :maxdepth: 1
@@ -32,6 +46,7 @@ Framework examples
    frameworks/mxnet_mnist/mxnet_mnist_with_batch_transform
    frameworks/mxnet_onnx_ei/mxnet_onnx_ei
    frameworks/pytorch_cnn_cifar10/pytorch_cnn_cifar10
+   frameworks/tensorflow_mnist/tensorflow_mnist
 
 
 Model compilation with Neo

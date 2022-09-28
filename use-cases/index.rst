@@ -55,3 +55,15 @@ Credit Risk
    :maxdepth: 1
 
    credit_risk/risk_bucketing
+
+
+SageMaker Data Wrangler
+--------------------------
+
+
+.. toctree::
+   :maxdepth: 1
+
+   predictive_maintenance/dw_flow/dw_job
+
+

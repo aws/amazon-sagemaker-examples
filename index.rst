@@ -35,6 +35,7 @@ We recommend the following notebooks as a broad introduction to the capabilities
 
    introduction_to_applying_machine_learning/xgboost_customer_churn/xgboost_customer_churn_outputs
 
+
 .. toctree::
    :maxdepth: 1
    :caption: Prepare data
@@ -104,6 +105,12 @@ More examples
    aws_sagemaker_studio/index
    sagemaker-lineage/index
 
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Introduction to Amazon Algorithms
+
+   introduction_to_amazon_algorithms/index
 
 .. toctree::
    :maxdepth: 1
@@ -191,6 +198,7 @@ More examples
    :caption: Inference
 
    inference/index
+   model-governance/index
 
 
 .. toctree::
@@ -202,6 +210,12 @@ More examples
    sagemaker-spark/index
    step-functions-data-science-sdk/index
 
+.. toctree::
+   :maxdepth: 1
+   :caption: Advanced Functionality
+
+   advanced_functionality/index
+   serverless-inference/index
 
 .. toctree::
    :maxdepth: 1
