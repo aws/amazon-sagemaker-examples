@@ -93,7 +93,7 @@ Bring Your Own Model
    scikit_learn_bring_your_own_model/scikit_learn_bring_your_own_model
 
 
-Casual Interfernce Container
+Casual Inference Container
 -------------------------------------
 
 .. toctree::
