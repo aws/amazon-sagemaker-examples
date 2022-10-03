@@ -47,7 +47,7 @@ training as quickly as possible or at least within a constrained time period.
 Then, distributed training is scaled to use a cluster of multiple nodes, meaning
 not just multiple GPUs in a computing instance, but multiple instances with
 multiple GPUs. As the cluster size increases, so does the significant drop in
-performance. This drop in performance is primarily caused the communications
+performance. This drop in performance is primarily caused by the communications
 overhead between nodes in a cluster.
 
 SageMaker distributed (SMD) offers two options for distributed training:
@@ -94,7 +94,7 @@ Use MPI on SageMaker
 .. toctree::
     :maxdepth: 1
 
-    mpi_on_sagemaker/intro
+    mpi_on_sagemaker/intro/mpi_demo
 
 .. _pytorch-distributed:
 

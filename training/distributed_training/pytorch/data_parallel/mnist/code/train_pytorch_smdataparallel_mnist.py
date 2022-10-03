@@ -18,20 +18,22 @@ from packaging.version import Version
 import os
 import time
 
-import smdistributed.dataparallel.torch.distributed as dist
 import torch
 import torchvision
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
+import torch.distributed as dist
+from torch.nn.parallel import DistributedDataParallel as DDP
+from torch.optim.lr_scheduler import StepLR
+from torchvision import datasets, transforms
 
 # Network definition
 from model_def import Net
 
 # Import SMDataParallel PyTorch Modules
-from smdistributed.dataparallel.torch.parallel.distributed import DistributedDataParallel as DDP
-from torch.optim.lr_scheduler import StepLR
-from torchvision import datasets, transforms
+import smdistributed.dataparallel.torch.torch_smddp
+
 
 # override dependency on mirrors provided by torch vision package
 # from torchvision 0.9.1, 2 candidate mirror website links will be added before "resources" items automatically
@@ -64,9 +66,6 @@ else:
 
 class CUDANotFoundException(Exception):
     pass
-
-
-dist.init_process_group()
 
 
 def train(args, model, device, train_loader, optimizer, epoch):
@@ -171,10 +170,11 @@ def main():
         help="Path for downloading " "the MNIST dataset",
     )
 
+    dist.init_process_group(backend="smddp")
     args = parser.parse_args()
     args.world_size = dist.get_world_size()
     args.rank = rank = dist.get_rank()
-    args.local_rank = local_rank = dist.get_local_rank()
+    args.local_rank = local_rank = int(os.getenv("LOCAL_RANK", -1))
     args.lr = 1.0
     args.batch_size //= args.world_size // 8
     args.batch_size = max(args.batch_size, 1)

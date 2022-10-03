@@ -23,7 +23,7 @@ reported the issue. Please try to include as much information as you can. Detail
 
 Before sending us a pull request, please ensure that:
 
-* You are working against the latest source on the *master* branch.
+* You are working against the latest source on the *main* branch.
 * You check the existing open and recently merged pull requests to make sure someone else hasn't already addressed the problem.
 * You open an issue to discuss any significant work - we would hate for your time to be wasted.
 
@@ -36,12 +36,13 @@ Before sending us a pull request, please ensure that:
 1. Clone your fork of the repository: `git clone https://github.com/<username>/amazon-sagemaker-examples` where `<username>` is your github username.
 
 
-### Run the Linters
+### Run the Linter
 
-1. Install tox using `pip install tox`
-1. cd into the amazon-sagemaker-examples folder: `cd amazon-sagemaker-examples` or `cd /environment/amazon-sagemaker-examples`
-1. Run the following tox command and verify that all linters pass: `tox -e black-check,black-nb-check`
-1. If the linters did not pass, run the following tox command to fix the issues: `tox -e black-format,black-nb-format`
+Apply Python code formatting to Jupyter notebook files using [black-nb](https://pypi.org/project/black-nb/).
+
+1. Install black-nb using `pip install black-nb`
+1. Run the following black-nb command on each of your ipynb notebook files and verify that the linter passes: `black-nb -l 100 {path}/{notebook-name}.ipynb`
+1. Some notebook features such as `%` bash commands or `%%` cell magic cause black-nb to fail. As long as you run the above command to format as much as possible, that is sufficient, even if the check fails
 
 
 ### Test Your Notebook End-to-End
@@ -62,7 +63,7 @@ You can use the same Conda environment for multiple related projects. This means
 1. You can do this by using an environment file to update the environment
 2. Or just use conda or pip to install the new deps
 3. Update the name (the -n arg) to whatever makes sense for you for your project
-4. Keep an eye out for updates to the dependencies. This project’s dependencies are here: https://github.com/aws/amazon-sagemaker-examples/blob/master/environment.yml
+4. Keep an eye out for updates to the dependencies. This project’s dependencies are here: https://github.com/aws/amazon-sagemaker-examples/blob/main/environment.yml
 5. Fork the repo: https://github.com/aws/amazon-sagemaker-examples.git
 6. Clone your fork
 7. Cd into the fork directory
@@ -112,8 +113,8 @@ python -m http.server 8000
 #### Add a notebook to the website
 
 You will typically modify an index.rst file and add the notebook by name, minus the extension. For example, if the new notebook is in a subfolder in the `aws_marketplace` folder:
-https://github.com/aws/amazon-sagemaker-examples/blob/master/aws_marketplace/creating_marketplace_products/Bring_Your_Own-Creating_Algorithm_and_Model_Package.ipynb
-You would modify this file: https://github.com/aws/amazon-sagemaker-examples/blob/master/aws_marketplace/index.rst
+https://github.com/aws/amazon-sagemaker-examples/blob/main/aws_marketplace/creating_marketplace_products/algorithms/Bring_Your_Own-Creating_Algorithm_and_Model_Package.ipynb
+You would modify this file: https://github.com/aws/amazon-sagemaker-examples/blob/main/aws_marketplace/index.rst
 
 
 1. Look for the table of contents directive, `toctree` :
@@ -132,7 +133,7 @@ You would modify this file: https://github.com/aws/amazon-sagemaker-examples/blo
    .. toctree::
       :maxdepth: 1
 
-      creating_marketplace_products/Bring_Your_Own-Creating_Algorithm_and_Model_Package
+      creating_marketplace_products/algorithms/Bring_Your_Own-Creating_Algorithm_and_Model_Package
    ```
 
 #### Adjusting navigation
@@ -153,10 +154,10 @@ Create your algorithm and model package
 .. toctree::
    :maxdepth: 1
 
-   creating_marketplace_products/Bring_Your_Own-Creating_Algorithm_and_Model_Package
+   creating_marketplace_products/algorithms/Bring_Your_Own-Creating_Algorithm_and_Model_Package
 ```
 
-You can create further depth by using tilda (~~~~~), asterisk (********), and carrot (^^^^^).
+You can create further depth by using tilde (~~~~~), asterisk (********), and caret (^^^^^).
 
 Important: the underline must be at least as long as the title you’re underlining.
 
@@ -171,13 +172,13 @@ Sometimes you include topics from other folders on one index page. If you includ
 If more than one entry is displayed for the same notebook, this is because the author of the notebook mistakenly used multiple H1’s. You can see this in the notebooks where they do this:
 
 ```
-# Main title
+# Main title [CORRECT]
 Some content
 
 ## Subtitle
 Some content
 
-# Some other section
+# Some other section [INCORRECT]
 Some content
 ```
 
@@ -215,6 +216,40 @@ GitHub provides additional document on [Creating a Pull Request](https://help.gi
 Please remember to:
 * Send us a pull request, answering any default questions in the pull request interface.
 * Pay attention to any automated CI failures reported in the pull request, and stay involved in the conversation.
+
+
+## Writing Sequential Notebooks
+
+Most notebooks are singular - only one notebook (.ipynb file) is needed to run that example. However, there are a few cases in which an example may be split into multiple notebooks. These are called sequential notebooks, as the sequence of the example is split among multiple notebooks. An example you can look at is [this series of sequential notebooks that demonstrate how to build a music recommender](https://github.com/aws/amazon-sagemaker-examples/tree/main/end_to_end/music_recommendation).
+
+### When should Sequential Notebooks be used?
+
+You may want to consider using sequential notebooks to write your example if the following conditions apply:
+
+* Your example takes over two hours to execute.
+* You want to emphasize on the different steps of the example in great detail and depth (i.e. one notebook goes into detail about data exploration, the next notebook thoroughly describes the model training process, etc).
+* You want customers to have the ability to run part of your example if they wish to (i.e. they only want to run the training portion).
+
+### What are the guidelines for writing Sequential Notebooks?
+
+If you determine that sequential notebooks are the most suitable format to write your examples, please follow these guidelines:
+
+* *Each notebook in the series must independently run end-to-end so that it can be tested in the daily CI (i.e. the CI test amazon-sagemaker-example-pr must pass).*
+    * This may include generating intermediate artifacts which can be immediately loaded up for use in later notebooks, etc. Depending on the situation, intermediate artifacts can be stored in the following places: 
+        * The repo in the same folder where your notebook is stored: This is possible for very small files (on the order of KB)
+        * The sagemaker-sample-files S3 bucket: This is for larger files (on or above the order of MB).
+* Each notebook must have a 'Background Section' clearly stating that the notebook is part of a notebook sequence. It must contain the following elements below. You can look at the 'Background' section in [Music Recommender Data Exploration](https://github.com/aws/amazon-sagemaker-examples/blob/main/end_to_end/music_recommendation/01_data_exploration.ipynb) for an example.
+    * The objective and/or short summary of the notebook series.
+    * A statement that the notebook is part of a notebook series.
+    * A statement communicating that the customer can choose to run the notebook by itself or as part of the series.
+    * List and link to the other notebooks in the series.
+    * Clearly display where the current notebook fits in relation to the other notebooks (i.e. it is the 3rd notebook in the series).
+    * If you have a README that contains more introductory information about the notebook series as a whole, link to it. For example, it is nice to have an architecture diagram showing how the services interact across different notebooks - the README would be a good place to put such information. An example of such a README is You can look at this [README.md](https://github.com/aws/amazon-sagemaker-examples/blob/main/end_to_end/music_recommendation/README.md).
+* If you have a lot of introductory material for your series, please put it in a README that is located in the same directory with your notebook series instead of an introductory notebook. You can look at this [README.md](https://github.com/aws/amazon-sagemaker-examples/blob/main/end_to_end/music_recommendation/README.md) as an example.
+* When you first use an intermediate artifact in a notebook, add a link to the notebook that is responsible for generating that artifact. That way, customers can easily look up how that artifact was created if they wanted to.
+* Use links to shorten the length of your notebook and keep it simple and organized. Instead of writing a long passage about how a feature works (i.e Batch Transform), it is better to link to the documentation for it. 
+* Design your notebook series such that the customer can get benefit from both the individual notebooks and the whole series. For example, each notebook should have clear takeaway points for the customer (i.e. one notebook teaches data preparation and feature engineering, the next notebook teaches training, etc).
+* Put the sequence order in the notebook file name. For example, the first notebook should start with "1_", the second notebook with "2_", etc.
 
 
 ## Example Notebook Best Practices
@@ -271,6 +306,6 @@ If you discover a potential security issue in this project we ask that you notif
 
 ## Licensing
 
-See the [LICENSE](https://github.com/aws/amazon-sagemaker-examples/blob/master/LICENSE) file for our project's licensing. We will ask you to confirm the licensing of your contribution.
+See the [LICENSE](https://github.com/aws/amazon-sagemaker-examples/blob/main/LICENSE.txt) file for our project's licensing. We will ask you to confirm the licensing of your contribution.
 
 We may ask you to sign a [Contributor License Agreement (CLA)](http://en.wikipedia.org/wiki/Contributor_License_Agreement) for larger changes.
