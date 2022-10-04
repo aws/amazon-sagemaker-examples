@@ -76,6 +76,8 @@ def transform_data(df):
     try:
         df.insert(0, 'ID', range(1, len(df) + 1))
 
+        df['Class'] = df['Class'].map(lambda x: x.replace("'", ""))
+
         return df
 
     except Exception as e:

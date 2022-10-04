@@ -56,6 +56,8 @@ def prepare_data(train, test):
         X_train, y_train = train.iloc[:, train.columns != 'Class'], train.iloc[:, train.columns == 'Class']
         X_test, y_test = test.iloc[:, test.columns != 'Class'], test.iloc[:, train.columns == 'Class']
 
+        y_test = y_test.astype("int64")
+
         scaler = preprocessing.MinMaxScaler()
 
         X_train = scaler.fit_transform(X_train.values)
