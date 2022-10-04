@@ -185,7 +185,7 @@ More examples
    sagemaker-script-mode/index
    training/bring_your_own_container
    training/management
-
+   training/heterogeneous-clusters/index
 
 .. toctree::
    :maxdepth: 1
