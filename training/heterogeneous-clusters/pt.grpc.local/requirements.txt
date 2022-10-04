@@ -1,5 +1,0 @@
-torch
-torchvision
-grpcio-tools
-tensorboard
-torch-tb-profiler
