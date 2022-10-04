@@ -16,31 +16,21 @@ an improved time and cost to train.
       - `SageMaker heterogeneous cluster developer guide <https://docs.aws.amazon.com/sagemaker/latest/dg/train-heterogeneous-cluster.html>`_
 
  
-You'll find TensorFlow (tf.data.service) and PyTorch (a gRPC based distributed data loading) examples on how to utilize Heterogeneous clusters in your training jobs. You can reuse these examples when enabling your own training workload to use heterogeneous clusters.
-Try one of the notebooks:
+See the following example notebooks:
 
-.. admonition:: Frameworks
-
-   - :ref:`hello-world-heterogeneous`
-   - :ref:`tensorflow-heterogeneous`
-   - :ref:`pytorch-heterogeneous`
-   
-
-
-.. _hello-world-heterogeneous:
-
-Hello world
+Hello World
 ====================================
+This minimal example launches a Heterogeneous cluster training job, print environment information, and exit.
 
 .. toctree::
    :maxdepth: 1
 
    hello.world.sagemaker/helloworld-example
 
-.. _tensorflow-heterogeneous:
 
 TensorFlow
 ====================================
+This example is a reusable implementation of Heterogeneous cluster with TensorFlow's tf.data.service
 
 .. toctree::
    :maxdepth: 1
@@ -50,6 +40,7 @@ TensorFlow
 
 PyTorch
 ====================================
+This example is a reusable implementation of Heterogeneous cluster with gRPC based data loader
 
 .. toctree::
    :maxdepth: 1
