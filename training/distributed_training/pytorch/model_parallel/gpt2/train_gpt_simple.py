@@ -790,7 +790,7 @@ def main():
     else:
         dtype = torch.get_default_dtype()
 
-    ith smp.model_creation(
+    with smp.model_creation(
         tensor_parallelism=smp.tp_size() > 1 or args.use_distributed_transformer > 0,
         dtype=dtype,
         attention_in_fp32=args.attention_in_fp32 > 0,
