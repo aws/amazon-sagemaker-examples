@@ -17,9 +17,10 @@ import transformers
 from data_pipeline import create_pretraining_dataloader
 from learning_rates import AnnealingLR
 from memory_tracker import memory_status, memory_status_cpu
+from sharded_data_parallel_checkpoint import get_buffer_names, get_param_shapes
 from smdistributed.modelparallel.torch.nn import FusedLayerNorm as LayerNorm
 from smdistributed.modelparallel.torch.nn.huggingface.gpt2 import (
-    translate_hf_state_dict_to_smdistributed,
+    translate_hf_state_dict_to_smdistributed_gpt2,
     translate_state_dict_to_hf_gpt2,
 )
 from torch import optim
@@ -36,6 +37,7 @@ from transformers import (
 )
 from transformers.trainer_utils import is_main_process
 
+logging.getLogger("torch.distributed.distributed_c10d").setLevel(logging.ERROR)
 logger = logging.getLogger(__name__)
 
 
@@ -88,7 +90,7 @@ def get_param_groups_by_weight_decay(module):
     return weight_decay_params, no_weight_decay_params
 
 
-# SMP modification: Define smp.step. Return any tensors needed outside.
+# smdistributed: Define smp.step. Return any tensors needed outside.
 @smp.step
 def train_step(model, optimizer, input_ids, attention_mask, args):
     if args.logits_output:
@@ -105,187 +107,11 @@ def train_step(model, optimizer, input_ids, attention_mask, args):
     return loss
 
 
-# SMP modification: Define smp.step. Return any tensors needed outside.
+# smdistributed: Define smp.step. Return any tensors needed outside.
 @smp.step
 def test_step(model, input_ids, attention_mask):
     loss = model(input_ids=input_ids, attention_mask=attention_mask, labels=input_ids)["loss"]
     return loss
-
-
-def save(
-    output_save_file,
-    model,
-    optimizer,
-    lr_scheduler,
-    model_config,
-    num_params,
-    total_steps,
-    curr_train_path_index,
-    args,
-    partial=True,
-    translate_to_hf=False,
-    seq_length=1024,
-    batch_idx=0,
-):
-    save_dict = {
-        "cli_args": args.__dict__,
-        "num_params": num_params,
-        "total_steps": total_steps,
-        "curr_train_path_index": curr_train_path_index,
-        "model_config": model_config,
-        "batch_idx": batch_idx,
-    }
-
-    if lr_scheduler is not None:
-        save_dict["lr_scheduler"] = lr_scheduler.state_dict()
-    if partial:
-        # SMP modification: check if using optimizer state sharding or tensor parallelism
-        if args.gather_if_shard > 0 or smp.rdp_rank() == 0:
-            # if not gather the opt checkpoint, only save the model for rdp rank 0
-            save_dict["model"] = model.local_state_dict()
-    else:
-        model_state_dict = model.state_dict(gather_to_rank0=True)
-        if smp.rank() == 0:
-            save_dict["model"] = (
-                translate_state_dict_to_hf_gpt2(model_state_dict, seq_length)
-                if translate_to_hf
-                else model_state_dict
-            )
-
-    if partial:
-        save_dict["optimizer"] = optimizer.local_state_dict(gather_if_shard=args.gather_if_shard)
-    else:
-        if args.skip_full_optimizer:
-            print("Skipping saving the final optimizer state")
-        elif args.shard_optimizer_state > 0:
-            print(
-                    "Saving the full optimizer state does not work with shard_optimizer_state > 0! Skipping..."
-            )
-        else:
-            save_dict["optimizer"] = optimizer.state_dict()
-
-    # SMP modification: criteria for checkpointing the zeroth rank for
-    # pipeline parallelism, checkpointing the zeroth reduced data parallel
-    # rank for tensor parallelism, and preventing checkpointing if optimizer
-    # state sharding is enabled
-    if not args.gather_if_shard or (smp.rdp_rank() == 0 and partial) or smp.rank() == 0:
-        smp.save(save_dict, output_save_file, partial=partial, v3=not args.gather_if_shard)
-
-    print(f"Finished checkpointing after {total_steps} steps: {output_save_file}")
-
-
-def load_model_and_optimizer(
-    output_dir,
-    model,
-    optimizer,
-    lr_scheduler,
-    partial,
-    args,
-    translate_from_hf=False,
-    seq_length=1024,
-    load_model=True,
-    load_optimizer=True,
-    num_params=0,
-):
-    # Find longest-trained checkpoint
-    re_pattern = f"trained_gpt_nparams-{num_params}_steps-(?P<total_steps>\d+)\.pt"
-    if partial:
-        re_pattern += "_(?P<rank>\d+)"
-    else:
-        re_pattern += "$"
-
-    ckpt_paths = sorted(
-        [
-            (int(re.match(re_pattern, p).group("total_steps")), os.path.join(output_dir, p))
-            for p in os.listdir(output_dir)
-            if re.match(re_pattern, p)
-        ],
-        reverse=True,
-    )
-    if not ckpt_paths:
-        raise Exception(
-            f'No checkpoints could be found in "{output_dir}".  Candidates: {os.listdir(output_dir)}'
-        )
-
-    local_ckpt_path = ckpt_paths[0][1]
-
-    if partial:
-        # need to pass prefix without ranks to smp
-        local_ckpt_path = local_ckpt_path.split(".pt")[0] + ".pt"
-
-    if args.gather_if_shard > 0:
-        # Should expect v2 checkpoint here
-        checkpoint = smp.load(local_ckpt_path, partial=partial)
-    else:
-        # Loading separately for model and opt
-        checkpoint = torch.load(f"{local_ckpt_path}_{smp.pp_rank()}_{smp.tp_rank()}_0")
-        if smp.rdp_rank() != 0:
-            opt_checkpoint = torch.load(
-                f"{local_ckpt_path}_{smp.pp_rank()}_{smp.tp_rank()}_{smp.rdp_rank()}"
-            )
-
-    if load_model:
-        checkpointed_model = (
-            translate_hf_state_dict_to_smdistributed(checkpoint["model"], seq_length)
-            if translate_from_hf
-            else checkpoint["model"]
-        )
-        model.load_state_dict(checkpointed_model, same_partition_load=args.same_partition_load > 0)
-        if lr_scheduler is not None:
-            lr_scheduler.load_state_dict(checkpoint["lr_scheduler"])
-
-    if load_optimizer:
-        checkpoint = (
-            checkpoint if args.gather_if_shard > 0 or smp.rdp_rank() == 0 else opt_checkpoint
-        )
-        
-        if not partial and args.skip_full_optimizer:
-            print("Skipping loading the final optimizer state, and reloading master_params from model_params for fp16")
-            if args.fp16:
-                model.register_post_step_hook(opt.reload_model_params) 
-        else:
-            optimizer.load_state_dict(checkpoint["optimizer"], args.gather_if_shard)
-
-    print(f'Loaded model from "{local_ckpt_path}"')
-
-    batch_idx = 0
-    if "batch_idx" in checkpoint:
-        batch_idx = checkpoint["batch_idx"]
-
-    return (
-        model,
-        optimizer,
-        checkpoint["total_steps"],
-        checkpoint["curr_train_path_index"],
-        batch_idx,
-    )
-
-
-def delete_oldest_ckpt(args, delete_on_rank0_only=False):
-    to_delete = smp.rank() == 0 if delete_on_rank0_only else smp.local_rank() == 0
-    if to_delete:
-        re_pattern = "trained_gpt_nparams-(?P<num_params>\d+)_steps-(?P<total_steps>\d+)\.pt"
-
-        # partial
-        re_pattern += "_(?P<pp_rank>\d+)_(?P<tp_rank>\d+)"
-
-        paths_per_step = collections.defaultdict(list)
-
-        for p in os.listdir(args.checkpoint_dir):
-            if re.match(re_pattern, p):
-                step = int(re.match(re_pattern, p).group("total_steps"))
-                path = os.path.join(args.checkpoint_dir, p)
-                paths_per_step[step].append(path)
-
-        if paths_per_step:
-            oldest_step = sorted(paths_per_step.keys())[0]
-            num_parts = len(paths_per_step[oldest_step])
-            if len(paths_per_step) >= args.num_kept_checkpoints:
-                # delete oldest step to save the new one
-                for p in paths_per_step[oldest_step]:
-                    os.remove(p)
-        # else We still haven't reached maximum number of checkpoints -- no need to delete older ones
-    return None
 
 
 def eval_model(model, dataloader, num_batches, use_wiki_data):
@@ -418,6 +244,9 @@ def train(
     to_save = {"loss": [], "val_loss": []}
     loss_metric = 0
 
+    def grad_accumulation_boundary(batch_idx):
+    return batch_idx % args.gradient_accumulation == args.gradient_accumulation - 1
+
     def should_record():
         # only record the ranks that in the tp group that contains global rank 0
         if smp.tp_size() > 1:
@@ -481,7 +310,8 @@ def train(
 
             step_start = time.time()
 
-            optimizer.zero_grad(set_to_none=True)
+            if grad_accumulation_boundary(batch_idx - 1):
+                optimizer.zero_grad(set_to_none=True)
 
             if args.logits_output:
                 train_output = train_step(model, optimizer, input_ids, attention_mask, args)
@@ -495,7 +325,7 @@ def train(
                 # Return value, loss_mb is a StepOutput object
                 loss_mb = train_step(model, optimizer, input_ids, attention_mask, args)
 
-            # SMP modification: Average the loss across microbatches.
+            # smdistributed: Average the loss across microbatches.
             loss = loss_mb.reduce_mean()
             if not args.validation_freq:
                 loss_metric = loss.item()
@@ -509,24 +339,29 @@ def train(
                 torch.cuda.empty_cache()
 
 
-            if args.fp16:
-                optimizer.clip_master_grads(args.grad_clip)
-                
-            optimizer.step()
-            if not (args.fp16 and optimizer.overflow):
-                lr_scheduler.step()
+            if grad_accumulation_boundary(batch_idx):
+                if args.fp16:
+                    optimizer.clip_master_grads(args.grad_clip)
+                    
+                optimizer.step()
+                if not (args.fp16 and optimizer.overflow):
+                    lr_scheduler.step()
 
-            if args.enable_memory_profiling > 0:
-                memory_status(msg="After_opt_step")
+                if args.enable_memory_profiling > 0:
+                    memory_status(msg="After_opt_step")
 
             total_steps += 1
             time_elapsed = time.time() - start
             step_time = time.time() - step_start
             sample_processed = input_ids.shape[0] * dp_size
             throughput = sample_processed / step_time
+            tokens_per_gpu = input_ids.shape[0] * input_ids.shape[1]
+
+            # Based on the formula in https://developer.nvidia.com/blog/scaling-language-model-training-to-a-trillion-parameters-using-megatron/
+            tflops_per_gpu = 8 * num_params * tokens_per_gpu / step_time / 1e12
             if smp.rank() == 0 and not total_steps % args.logging_freq:
                 print(
-                    f"({int(time_elapsed)}s), Batch {total_steps - 1} Loss: {loss.item()}, Speed: {throughput} samples/sec"
+                    f"({int(time_elapsed)}s), Batch {total_steps - 1} Loss: {loss.item()}, Speed: {throughput} samples/sec, TFLOPS/GPU: {tflops_per_gpu}"
                 )
 
             # evaluate on validation
@@ -552,25 +387,26 @@ def train(
 
             # checkpoint
             if not (total_steps % args.checkpoint_freq):
-                base_path = f"trained_gpt_nparams-{num_params}_steps-{total_steps}.pt"
-                out_path = os.path.join(args.checkpoint_dir, base_path)
-                total_ckpts = total_steps // args.checkpoint_freq
-
-                delete_oldest_ckpt(args, delete_on_rank0_only=args.use_fsx > 0)
-
-                save(
-                    out_path,
-                    model,
-                    optimizer,
-                    lr_scheduler,
-                    model_config,
-                    num_params,
-                    total_steps,
-                    curr_train_path_index,
-                    args,
+                user_content = {
+                    "cli_args": args.__dict__,
+                    "num_params": num_params,
+                    "total_steps": total_steps,
+                    "start_train_path_index": curr_train_path_index,
+                    "model_config": model_config,
+                    "start_batch_index": batch_idx+1,
+                }
+                # to reconstruct the full model
+                if args.sharded_data_parallel_degree > 1:
+                    user_content["buffer_names"] = get_buffer_names(model)
+                    user_content["param_shapes"] = get_param_shapes(model, optimizer)
+                user_content["lr_scheduler"] = lr_scheduler.state_dict()
+                smp.save_checkpoint(args.checkpoint_dir,
+                    tag=f"total_steps{total_steps}",
                     partial=True,
-                    batch_idx=batch_idx + 1,
-                )
+                    model=model,
+                    optimizer=optimizer,
+                    user_content=user_content,
+                    num_kept_partial_checkpoints=args.num_kept_checkpoints)
 
             if args.logits_output:
                 to_save["loss"].append(loss.item())
@@ -631,6 +467,8 @@ def parse_args():
     opt_grp.add_argument("--same_seed", type=int, default=0)
     opt_grp.add_argument("--n_gpus", type=str, default=os.environ["SM_NUM_GPUS"])
     opt_grp.add_argument("--fp16", default=0, type=int, help="automatic mixed precision training")
+    opt_grp.add_argument("--bf16", default=0, type=int, help="automatic mixed precision training")
+    opt_grp.add_argument("--sharded_data_parallel_degree", default=1, type=int)
     opt_grp.add_argument("--grad_clip", default=1.0, type=float, help="gradient clipping")
     opt_grp.add_argument("--weight_decay", default=0.01, type=float, help="weight decay")
     opt_grp.add_argument(
@@ -683,12 +521,6 @@ def parse_args():
         default=0,
         help="Enabling this will save a combined model only at the end",
     )
-    io_grp.add_argument(
-        "--skip_full_optimizer",
-        type=int,
-        default=1,
-        help="Disabling this will also save the full optimizer state",
-    )
     io_grp.add_argument("--load_partial", type=int, default=0, help="Load from partial checkpoints")
     io_grp.add_argument("--load_full", type=int, default=0, help="Load from full checkpoints")
     io_grp.add_argument(
@@ -701,7 +533,7 @@ def parse_args():
         title="model", description="arguments to describe model configuration"
     )
     model_grp.add_argument("--max_context_width", type=int, default=1024)
-    model_grp.add_argument("--vocab_size", type=int, default=50257)
+    model_grp.add_argument("--vocab_size", type=int, default=50264)
     model_grp.add_argument("--hidden_width", type=int, default=768)
     model_grp.add_argument("--num_layers", type=int, default=12)
     model_grp.add_argument("--num_heads", type=int, default=12)
@@ -710,9 +542,11 @@ def parse_args():
     model_grp.add_argument("--attn_pdrop", type=float, default=0.1)
     model_grp.add_argument("--summary_first_pdrop", type=float, default=0.1)
     model_grp.add_argument("--use_adamw", type=int, default=0, help="Use adamw optimizer")
+    model_grp.add_argument("--use_distributed_transformer", type=int, default=1, help="Use distributed transformer")
+    model_grp.add_argument("--checkpoint_sublayers", type=int, default=0, help="Apply activation checkpointing to submodules of each transformer layer")
 
     smp_grp = parser.add_argument_group(title="smp", description="smp")
-    smp_grp.add_argument("--tensor_parallel_degree", type=int, default=8)
+    smp_grp.add_argument("--tensor_parallel_degree", type=int, default=1)
     smp_grp.add_argument("--pipeline_parallel_degree", type=int, default=1)
     smp_grp.add_argument("--microbatches", type=int, default=1)
     smp_grp.add_argument("--active_microbatches", type=int, default=None)
@@ -730,7 +564,9 @@ def parse_args():
     smp_grp.add_argument("--skip_tracing", type=int, default=0)
     smp_grp.add_argument("--query_key_layer_scaling", type=int, default=1)
     smp_grp.add_argument("--fused_softmax", type=int, default=1)
+    smp_grp.add_argument("--fused_dropout", type=int, default=0)
     smp_grp.add_argument("--fused_bias_gelu", type=int, default=1)
+    smp_grp.add_argument("--gradient_accumulation", type=int, default=1)
 
     parser.add_argument(
         "--num_kept_checkpoints",
@@ -843,14 +679,21 @@ def parse_args():
     args, _ = parser.parse_known_args()
     return args
 
+def compute_num_params(model):
+    num_params = 0
+    seen = set()
+    for p in model.parameters():
+        if p not in seen:
+            seen.add(p)
+            if hasattr(p, "ds_shape"):
+                num_params += np.prod(p.ds_shape) 
+            else:
+                num_params += np.prod(p.size())
+    
+    return num_params 
 
 def main():
     args = parse_args()
-
-    if args.shard_optimizer_state > 0 and not args.skip_full_optimizer:
-        raise ValueError(
-            "If shard_optimizer_state is enabled, skip_full_optimizer must also be enabled. Full optimizer saving is currently not supported under optimizer state sharding."
-        )
 
     if args.partition_assignment != "" and args.manual_partition == 0:
         print("[Warning] partition_assignment is set, enable manual_partition")
@@ -862,11 +705,10 @@ def main():
         "tensor_parallel_degree": args.tensor_parallel_degree,
         "pipeline_parallel_degree": args.pipeline_parallel_degree,
         "microbatches": args.microbatches,
-        # if activation_checkpointing true checkpoints transformer layers below
-        "checkpoint_attentions": False if args.activation_checkpointing else True,
         "shard_optimizer_state": args.shard_optimizer_state > 0,
         "prescaled_batch": args.prescaled_batch > 0,
         "fp16": args.fp16 > 0,
+        "bf16": args.bf16 > 0,
         "offload_activations": args.offload_activations > 0,
         "delayed_parameter_initialization": args.delayed_param > 0,
         "optimize": args.optimize,
@@ -877,6 +719,7 @@ def main():
         "default_partition": 0,
         "static_mode": args.static_mode > 0,
         "fast_mode": args.fast_mode > 0,
+        "sharded_data_parallel_degree": args.sharded_data_parallel_degree,
     }
     if args.active_microbatches is not None:
         smp_config["active_microbatches"] = args.active_microbatches
@@ -899,11 +742,6 @@ def main():
         assert (
             len(partition_assignment) == smp.pp_size()
         ), f"partition_assignment must have the same size as pipeline parallel degree, but getting {len(partition_assignment)} vs {smp.pp_size()}"
-
-    if smp.rank() == 0 or (smp.local_rank() == 0 and args.use_fsx == 0):
-        for path in [args.model_dir, args.checkpoint_dir]:
-            if not os.path.exists(path):
-                os.makedirs(path, exist_ok=True)
 
     model_config = GPT2Config(
         vocab_size=args.vocab_size,
@@ -932,8 +770,8 @@ def main():
 
     # the following improves start-up time by skipping proper initialization
     # of weights in the original model. this is not a problem because DistributedModel
-    # will override those weights anyway when tensor_parallel_degree > 1.
-    if smp.tp_size() > 1:
+    # will override those weights anyway when we use distributed transformer. 
+    if args.use_distributed_transformer > 0:
         from transformers.modeling_utils import PreTrainedModel
 
         PreTrainedModel.init_weights = lambda x: None
@@ -942,22 +780,34 @@ def main():
 
     if args.enable_memory_profiling > 0:
         memory_status_cpu(msg="before model creation")
-    with smp.model_creation(
-        tensor_parallelism=smp.tp_size() > 1,
+
+    if args.fp16 and args.bf16:
+        raise ValueError("FP16 and BF16 cannot be simultaneously enabled.")
+    elif args.fp16:
+        dtype = torch.float16
+    elif args.bf16:
+        dtype = torch.bfloat16
+    else:
+        dtype = torch.get_default_dtype()
+
+    ith smp.model_creation(
+        tensor_parallelism=smp.tp_size() > 1 or args.use_distributed_transformer > 0,
+        dtype=dtype,
         attention_in_fp32=args.attention_in_fp32 > 0,
-        query_key_layer_scaling=args.query_key_layer_scaling > 0,
+        query_key_layer_scaling=args.query_key_layer_scaling > 0 and args.bf16 < 1,
         fused_softmax=args.fused_softmax > 0,
+        fused_dropout=args.fused_dropout > 0,
         fused_bias_gelu=args.fused_bias_gelu > 0,
         ):
             model = AutoModelForCausalLM.from_config(model_config)
     if args.enable_memory_profiling > 0:
         memory_status_cpu(msg="after model creation")
 
-    num_params = sum([np.prod(p.size()) for p in model.parameters()])
+    num_params = compute_num_params(model)
     if smp.rank() == 0:
         print(f"# total parameters: {num_params}")
 
-    # SMP modification: Set the device to the GPU ID used by the current process.
+    # smdistributed: Set the device to the GPU ID used by the current process.
     # Input tensors should be transferred to this device.
     torch.cuda.set_device(smp.local_rank())
     device = torch.device("cuda")
@@ -966,18 +816,18 @@ def main():
         # Set seed by tp_rank to prevent weights from being the same on different tp_ranks
         set_seed(args.seed + smp.tp_rank())
 
-    # SMP modification: Use the DistributedModel container to provide the model
+    # smdistributed: Use the DistributedModel container to provide the model
     # to be partitioned across different ranks. For the rest of the script,
     # the returned DistributedModel object should be used in place of
     # the model provided for DistributedModel class instantiation.
     if args.enable_memory_profiling > 0:
         memory_status_cpu(msg="before dist model creation")
-    model = smp.DistributedModel(model, trace_device="gpu")
+    model = smp.DistributedModel(model, trace_device="gpu", backward_passes_per_step=args.gradient_accumulation)
     if args.enable_memory_profiling > 0:
         memory_status_cpu(msg="after dist model creation")
 
     m = model.get_module()
-    if smp.tp_size() > 1:
+    if args.use_distributed_transformer > 1:
         transformer_layers = m.transformer.seq_layers
     else:
         transformer_layers = m.transformer.h
@@ -1003,8 +853,7 @@ def main():
         for i, c in enumerate(transformer_layers.children()):
             smp.set_partition(c, assignments[i])
 
-    iter_model = m
-    param_groups = get_param_groups_by_weight_decay(iter_model)
+    param_groups = get_param_groups_by_weight_decay(m)
 
     if args.use_adamw > 0:
         optimizer = optim.AdamW(
@@ -1016,14 +865,20 @@ def main():
         )
 
     if args.activation_checkpointing:
-        kwargs = {}
-        if isinstance(transformer_layers, nn.Sequential):
-            kwargs["pack_args_as_tuple"] = True
-            kwargs["strategy"] = args.activation_strategy
-            smp.set_activation_checkpointing(transformer_layers, **kwargs)
+        if args.use_distributed_transformer or smp.tp_size() > 1:
+            if args.checkpoint_sublayers:
+                for c in transformer_layers.children():
+                    smp.set_activation_checkpointing(c.attention)
+                    smp.set_activation_checkpointing(c.output)
+            else:
+                smp.set_activation_checkpointing(transformer_layers, strategy=args.activation_strategy)
         else:
             for c in transformer_layers.children():
-                smp.set_activation_checkpointing(c)
+                if args.checkpoint_sublayers:
+                    smp.set_activation_checkpointing(c.attn)
+                    smp.set_activation_checkpointing(c.mlp)
+                else:
+                    smp.set_activation_checkpointing(c)
 
     optimizer = smp.DistributedOptimizer(
         optimizer, 
@@ -1047,20 +902,13 @@ def main():
             )
         partial = not args.load_full
         path = args.checkpoint_dir if partial else args.model_dir
-        translate_from_hf = not partial
-        model, optimizer, total_steps, start_train_path_index, start_batch_index = load_model_and_optimizer(
-            path,
-            model,
-            optimizer,
-            lr_scheduler,
-            partial,
-            args,
-            translate_from_hf=translate_from_hf,
-            seq_length=args.max_context_width,
-            load_model=True,
-            load_optimizer=args.load_partial > 0,
-            num_params=num_params,
-        )
+        tag = None if partial else "fullmodel.pt"
+        user_content = smp.resume_from_checkpoint(path, tag=tag, partial=partial)
+        total_steps = user_content["total_steps"] if partial else 0
+        start_train_path_index = user_content.get("start_train_path_index", 0)
+        start_batch_index = user_content.get("start_batch_index", 0)
+        if "lr_scheduler" in user_content:
+            lr_scheduler.load_state_dict(user_content["lr_scheduler"])
     else:
         total_steps = 0
         start_train_path_index = 0
@@ -1091,25 +939,30 @@ def main():
 
     if args.save_final_full_model:
         # saves full model at the end
-
-        base_path = f"trained_gpt_nparams-{num_params}_steps-{total_steps}.pt"
-        out_path = os.path.join(args.model_dir, base_path)
-
-        if smp.rdp_rank() == 0:
-            save(
-                out_path,
-                model,
-                optimizer,
-                lr_scheduler,
-                model_config,
-                num_params,
-                total_steps,
-                -1,
-                args,
-                partial=False,
-                translate_to_hf=smp.tp_size() > 1,
-                seq_length=args.max_context_width,
-            )
+        user_content = {
+            "cli_args": args.__dict__,
+            "num_params": num_params,
+            "total_steps": total_steps,
+            "model_config": model_config,
+        }
+        if args.sharded_data_parallel_degree > 1:
+            # When sharded_data_parallel_degree > 1, saving full model is not supported, saving partial instead
+            # To get the full model, one can use the following API
+            # > from sharded_data_parallel_checkpoint import get_full_state_dict_from_sharded_data_parallel_checkpoint
+            # > full_model = get_full_state_dict_from_sharded_data_parallel_checkpoint(args.model_dir, tag=f"sharded_data_parallel_final_full_{num_params}", dtype=torch.float32)
+            # > if args.use_distributed_transformer > 0: # translate the state_dict to hf format if distributed transformer is used
+            # >     full_model = smp.nn.huggingface.gpt2.translate_state_dict_to_hf_gpt2(full_model, max_seq_len=args.max_context_width)
+            # Note: the shared parameter will not be reflected so during loading you might need to load with strict=False
+            user_content["buffer_names"] = get_buffer_names(model)
+            user_content["param_shapes"] = get_param_shapes(model, optimizer)
+            smp.save_checkpoint(args.model_dir,
+                tag=f"sharded_data_parallel_final_full_{num_params}",
+                partial=True,
+                model=model,
+                optimizer=optimizer,
+                user_content=user_content)
+        else:
+            smp.save_checkpoint(args.model_dir, tag="fullmodel.pt", partial=False, model=model, user_content=user_content)
 
     smp.barrier()
     if smp.rank() == 0:
