@@ -827,7 +827,7 @@ def main():
         memory_status_cpu(msg="after dist model creation")
 
     m = model.get_module()
-    if args.use_distributed_transformer > 1:
+    if args.use_distributed_transformer > 0:
         transformer_layers = m.transformer.seq_layers
     else:
         transformer_layers = m.transformer.h
