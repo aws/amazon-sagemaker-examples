@@ -17,6 +17,9 @@ Apache MXNet
    ../sagemaker-python-sdk/mxnet_onnx_export/mxnet_onnx_export
    ../sagemaker-python-sdk/mxnet_mnist/mxnet_mnist_with_batch_transform
    ../sagemaker-python-sdk/mxnet_mnist/mxnet_mnist_elastic_inference
+   ../sagemaker-python-sdk/mxnet_mnist/mxnet_mnist
+   ../sagemaker-python-sdk/mxnet_gluon_mnist/mxnet_mnist_with_gluon
+   ../sagemaker-python-sdk/dgl_gcmc/mxnet_gcmc
 
 
 Deep Graph Library
@@ -47,7 +50,9 @@ PyTorch
    ../frameworks/pytorch/get_started_mnist_train
    ../frameworks/pytorch/get_started_mnist_deploy
    ../sagemaker-python-sdk/pytorch_lstm_word_language_model/pytorch_rnn
-
+   ../sagemaker-python-sdk/pytorch_horovod_mnist/pytorch_mnist_horovod
+   ../sagemaker-python-sdk/pytorch_mnist/pytorch_mnist_elastic_inference
+   ../sagemaker-python-sdk/pytorch_mnist/pytorch_mnist
 
 R
 ====
@@ -66,7 +71,9 @@ Scikit-learn
 
    ../sagemaker-python-sdk/scikit_learn_randomforest/Sklearn_on_SageMaker_end2end
    ../sagemaker-python-sdk/scikit_learn_model_registry_batch_transform/scikit_learn_model_registry_batch_transform
-
+   ../sagemaker-python-sdk/scikit_learn_inference_pipeline/Inference Pipeline with Scikit-learn and Linear Learner
+   ../sagemaker-python-sdk/scikit_learn_iris/scikit_learn_estimator_example_with_batch_transform
+   ../aws_sagemaker_studio/sagemaker-python-sdk/scikit_learn_iris/Scikit-learn Estimator Example With Batch Transform
 ..
    needs to be renamed (remove spaces)
    ../sagemaker-python-sdk/scikit_learn_iris/
@@ -89,6 +96,7 @@ TensorFlow
    ../sagemaker-python-sdk/tensorflow-eager-script-mode/tf-eager-sm-scriptmode
    ../sagemaker-python-sdk/tensorflow_script_mode_training_and_serving/tensorflow_script_mode_training_and_serving
    ../sagemaker-python-sdk/tensorboard_keras/tensorboard_keras
+   ../sagemaker-python-sdk/tensorflow_serving_using_elastic_inference_with_your_own_model/tensorflow_neo_compiled_model_elastic_inference
 
 
 JAX

@@ -67,3 +67,11 @@ Joined Dataflow
    :maxdepth: 1
    
    joined-dataflow/index
+
+SageMaker Data Wrangler
+--------------------------
+
+.. toctree::
+   :maxdepth: 1
+
+   predictive_maintenance/dw_flow/dw_job
