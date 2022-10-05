@@ -245,7 +245,7 @@ def train(
     loss_metric = 0
 
     def grad_accumulation_boundary(batch_idx):
-    return batch_idx % args.gradient_accumulation == args.gradient_accumulation - 1
+        return batch_idx % args.gradient_accumulation == args.gradient_accumulation - 1
 
     def should_record():
         # only record the ranks that in the tp group that contains global rank 0
