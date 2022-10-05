@@ -19,7 +19,7 @@ from learning_rates import AnnealingLR
 from memory_tracker import memory_status, memory_status_cpu
 from sharded_data_parallel_checkpoint import get_buffer_names, get_param_shapes
 from smdistributed.modelparallel.torch.nn import FusedLayerNorm as LayerNorm
-from smdistributed.modelparallel.torch.nn.huggingface.j import (
+from smdistributed.modelparallel.torch.nn.huggingface.gptj import (
     translate_hf_state_dict_to_smdistributed_gptj,
     translate_state_dict_to_hf_gptj,
 )
