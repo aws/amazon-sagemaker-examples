@@ -114,14 +114,14 @@ def test_step(model, input_ids, attention_mask):
     return loss
 
 
-def eval_model(model, dataloader, num_batches, use_wiki_data):
+def eval_model(model, dataloader, num_batches, use_bert_data):
     model = model.eval()
     n_batches = 0
     loss = 0.0
 
     with torch.no_grad():
         for batch_idx, input_data in enumerate(dataloader):
-            if use_wiki_data:
+            if use_bert_data:
                 input_ids, _, attention_mask, _, _ = input_data
             else:
                 input_ids, attention_mask = input_data
@@ -163,9 +163,9 @@ def train(
 
     dp_rank = smp.dp_rank() if not args.prescaled_batch else smp.rdp_rank()
     dp_size = smp.dp_size() if not args.prescaled_batch else smp.rdp_size()
-    data_type = "wiki" if args.use_wiki_data else "openwebtext"
+    data_type = "BERT" if args.use_bert_data else "GPT"
 
-    if args.use_wiki_data:
+    if args.use_bert_data:
         train_paths = sorted(
             [
                 os.path.join(args.training_dir, p)
@@ -203,7 +203,7 @@ def train(
         # load all validation examples
         if smp.rank() == 0:
             print("Creating val dataloader")
-        if args.use_wiki_data:
+        if args.use_bert_data:
             val_paths = sorted(
                 [
                     os.path.join(args.test_dir, p)
@@ -281,7 +281,7 @@ def train(
             )
 
         if smp.rank() == 0:
-            if args.use_wiki_data:
+            if args.use_bert_data:
                 print(f"Reading data from training path {train_dataloader.dataset.input_file}")
             else:
                 print(f"Reading data from training path {train_dataloader.dataset.input_paths}")
@@ -300,7 +300,7 @@ def train(
             else:
                 start_batch_index = 0
 
-            if args.use_wiki_data:
+            if args.use_bert_data:
                 input_ids, _, attention_mask, _, _ = input_data
             else:
                 input_ids, attention_mask = input_data
@@ -369,7 +369,7 @@ def train(
                 cur_state = np.random.get_state()
                 model = model.eval()
                 val_loss, val_ppl = eval_model(
-                    model, val_dataloader, args.validation_batches, args.use_wiki_data
+                    model, val_dataloader, args.validation_batches, args.use_bert_data
                 )
                 if is_main_process(smp.rank()):
                     print(
@@ -489,7 +489,7 @@ def parse_args():
 
     # I/O
     io_grp = parser.add_argument_group(title="io", description="location for input and output")
-    io_grp.add_argument("--use_wiki_data", type=int, default=0, help="use wiki corpus data for training")
+    io_grp.add_argument("--use_bert_data", type=int, default=0, help="use wiki corpus data for training")
     io_grp.add_argument("--zipped_data", type=int, default=1, help="input data is zipped files")
     io_grp.add_argument(
         "--epochs", type=int, default=3, help="times of iterating over the training dataset"
