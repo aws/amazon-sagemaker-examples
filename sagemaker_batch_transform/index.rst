@@ -5,7 +5,7 @@ Get started with Batch Transform
    :maxdepth: 1
 
    introduction_to_batch_transform/batch_transform_pca_dbscan_movie_clusters
-
+   batch_transform_associate_predictions_with_input/Batch Transform - breast cancer prediction with lowel level SDK
 ..
    file name change required
    batch_transform_associate_predictions_with_input/Batch Transform - breast cancer prediction with high level SDK
@@ -61,4 +61,5 @@ TensorFlow
 .. toctree::
    :maxdepth: 1
 
-   tensorflow_cifar-10_with_inference_script/tensorflow-serving-cifar10-python-sdk
+   tensorflow_cifar-10_with_inference_script/tensorflow-serving-cifar10-python-sdk   
+   custom_tensorflow_inference_script_csv_and_tfrecord/custom_tensorflow_inference_script_csv_and_tfrecord
