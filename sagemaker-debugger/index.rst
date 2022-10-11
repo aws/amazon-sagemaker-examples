@@ -25,6 +25,7 @@ Profiling
 
    debugger_interactive_analysis_profiling/interactive_analysis_profiling_data
    tensorflow_nlp_sentiment_analysis/sentiment-analysis-tf-distributed-training-bringyourownscript
+   pytorch_profiling/pt-resnet-profiling-single-gpu-single-node
 
 ----
 
@@ -77,6 +78,7 @@ TensorFlow 1.x
   tensorflow_action_on_rule/detect_stalled_training_job_and_stop
   tensorflow_action_on_rule/tf-mnist-stop-training-job
   tensorflow_keras_custom_rule/tf-keras-custom-rule
+  tensorflow_action_on_rule/detect_stalled_training_job_and_actions
 
 
 PyTorch
