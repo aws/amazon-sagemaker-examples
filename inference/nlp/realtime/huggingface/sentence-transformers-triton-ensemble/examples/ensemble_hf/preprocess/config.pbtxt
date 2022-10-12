@@ -1,0 +1,28 @@
+name: "preprocess"
+backend: "python"
+max_batch_size: 16
+
+input [
+  {
+    name: "INPUT0"
+    data_type: TYPE_STRING
+    dims: [ 1 ]
+    
+  }
+]
+output [
+  {
+    name: "OUTPUT0"
+    data_type: TYPE_INT32
+    dims: [ 128 ]
+  },
+  
+  {
+    name: "OUTPUT1"
+    data_type: TYPE_INT32
+    dims: [ 128 ]
+  }
+  
+]
+
+instance_group [{ kind: KIND_CPU }]

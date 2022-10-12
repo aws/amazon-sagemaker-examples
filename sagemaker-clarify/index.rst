@@ -26,3 +26,12 @@ SageMaker Clarify Model Monitoring
    :maxdepth: 1
 
    ../sagemaker_model_monitor/fairness_and_explainability/SageMaker-Model-Monitor-Fairness-and-Explainability
+   
+SageMaker Clarify Online Explainability
+---------------------------------------
+
+.. toctree::
+   :maxdepth: 1
+
+   online_explainability/tabular/tabular_online_explainability_with_sagemaker_clarify
+   online_explainability/natural_language_processing/nlp_online_explainability_with_sagemaker_clarify
