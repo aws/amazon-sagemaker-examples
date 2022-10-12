@@ -53,6 +53,7 @@ def train(batch_size, epoch, net, hook, device, local_rank):
     epoch_times = []
 
     if hook:
+        hook.register_module(net)
         hook.register_loss(loss_optim)
     # train the model
 
