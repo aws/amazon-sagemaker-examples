@@ -74,7 +74,7 @@ class Net(nn.Module):
         return output
 
 
-def train(args, model, device, train_loader, optimizer, epoch, hook):
+def train(args, model, loss_fn, device, train_loader, optimizer, epoch, hook):
     model.train()
     # =================================================#
     # 2. Set the SMDebug hook for the training phase. #
@@ -84,12 +84,12 @@ def train(args, model, device, train_loader, optimizer, epoch, hook):
         data, target = data.to(device), target.to(device)
         optimizer.zero_grad()
         output = model(data)
-        loss = F.nll_loss(output, target)
+        loss = loss_fn(output, target)
         loss.backward()
         optimizer.step()
         if batch_idx % args.log_interval == 0:
             print(
-                "Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}".format(
+                "Train Epoch: {} [{}/{} ({:.0f}%)]\t Loss: {:.6f}".format(
                     epoch,
                     batch_idx * len(data),
                     len(train_loader.dataset),
@@ -101,7 +101,7 @@ def train(args, model, device, train_loader, optimizer, epoch, hook):
                 break
 
 
-def test(model, device, test_loader, hook):
+def test(model, loss_fn, device, test_loader, hook):
     model.eval()
     # ===================================================#
     # 3. Set the SMDebug hook for the validation phase. #
@@ -113,7 +113,7 @@ def test(model, device, test_loader, hook):
         for data, target in test_loader:
             data, target = data.to(device), target.to(device)
             output = model(data)
-            test_loss += F.nll_loss(output, target, reduction="sum").item()  # sum up batch loss
+            test_loss += loss_fn(output, target).item()  # sum up batch loss
             pred = output.argmax(dim=1, keepdim=True)  # get the index of the max log-probability
             correct += pred.eq(target.view_as(pred)).sum().item()
 
@@ -201,12 +201,14 @@ def main():
     test_loader = torch.utils.data.DataLoader(dataset2, **test_kwargs)
 
     model = Net().to(device)
+    loss_fn = nn.NLLLoss()
 
     # ======================================================#
     # 4. Register the SMDebug hook to save output tensors. #
     # ======================================================#
     hook = smd.Hook.create_from_json_file()
     hook.register_hook(model)
+    hook.register_loss(loss_fn)
 
     optimizer = optim.Adadelta(model.parameters(), lr=args.lr)
 
@@ -215,8 +217,8 @@ def main():
         # ===========================================================#
         # 5. Pass the SMDebug hook to the train and test functions. #
         # ===========================================================#
-        train(args, model, device, train_loader, optimizer, epoch, hook)
-        test(model, device, test_loader, hook)
+        train(args, model, loss_fn, device, train_loader, optimizer, epoch, hook)
+        test(model, loss_fn, device, test_loader, hook)
         scheduler.step()
 
     if args.save_model:

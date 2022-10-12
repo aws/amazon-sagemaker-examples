@@ -75,6 +75,7 @@ def train(args, net, device):
     epoch_times = []
 
     if hook:
+        hook.register_module(net)
         hook.register_loss(loss_optim)
     # train the model
 

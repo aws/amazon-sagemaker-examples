@@ -47,4 +47,4 @@ parse_file <- function(file) {
 # Second helper function for apply
 parse_json <- function(line) {
     if (validate(line)) {
-        return(do.call(rbind, fromJSON(line)[['projections']][[1]]))}}
+        return(do.call(rbind, fromJSON(line)))}}

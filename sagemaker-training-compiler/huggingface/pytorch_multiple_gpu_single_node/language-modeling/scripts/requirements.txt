@@ -1,0 +1,2 @@
+transformers==4.21.1
+datasets==1.18.4
