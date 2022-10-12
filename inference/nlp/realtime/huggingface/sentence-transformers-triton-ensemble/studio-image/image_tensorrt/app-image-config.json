@@ -1,0 +1,16 @@
+{
+    "AppImageConfigName": "nvidia-tensorrt-21-08-config",
+    "KernelGatewayImageConfig": {
+        "KernelSpecs": [
+            {
+                "Name": "python3",
+                "DisplayName": "Python3"
+            }
+        ],
+        "FileSystemConfig": {
+            "MountPath": "/root",
+            "DefaultUid": 0,
+            "DefaultGid": 0
+        }
+    }
+}
