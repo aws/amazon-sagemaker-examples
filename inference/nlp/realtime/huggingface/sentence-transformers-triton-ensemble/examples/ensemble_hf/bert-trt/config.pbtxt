@@ -1,0 +1,32 @@
+name: "bert-trt"
+platform: "tensorrt_plan"
+max_batch_size: 16
+input [
+  {
+    name: "token_ids"
+    data_type: TYPE_INT32
+    dims: [128]
+  },
+  {
+    name: "attn_mask"
+    data_type: TYPE_INT32
+    dims: [128]
+  }
+]
+output [
+  {
+    name: "output"
+    data_type: TYPE_FP32
+    dims: [128, 384]
+  },
+  {
+    name: "854"
+    data_type: TYPE_FP32
+    dims: [384]
+  }
+]
+instance_group [
+    {
+      kind: KIND_GPU
+    }
+  ]
