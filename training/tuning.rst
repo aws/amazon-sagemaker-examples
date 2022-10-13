@@ -21,7 +21,7 @@ PyTorch
    :maxdepth: 1
 
    ../hyperparameter_tuning/pytorch_mnist/hpo_pytorch_mnist
-
+   ../hyperparameter_tuning/huggingface_multiclass_text_classification_20_newsgroups/hpo_huggingface_text_classification_20_newsgroups
 
 R
 ===
@@ -50,6 +50,7 @@ TensorFlow
 
    ../hyperparameter_tuning/tensorflow_mnist/hpo_tensorflow_mnist
    ../hyperparameter_tuning/keras_bring_your_own/hpo_bring_your_own_keras_container
+   ../hyperparameter_tuning/tensorflow2_mnist/hpo_tensorflow2_mnist
 
 
 XGBoost
@@ -61,6 +62,14 @@ XGBoost
    ../hyperparameter_tuning/xgboost_direct_marketing/hpo_xgboost_direct_marketing_sagemaker_APIs
    ../hyperparameter_tuning/xgboost_direct_marketing/hpo_xgboost_direct_marketing_sagemaker_python_sdk
    ../hyperparameter_tuning/xgboost_random_log/hpo_xgboost_random_log
+
+BlazingText
+============
+
+.. toctree::
+   :maxdepth: 1
+
+   ../hyperparameter_tuning/blazingtext_text_classification_20_newsgroups/hpo_blazingtext_text_classification_20_newsgroups
 
 
 Use cases
