@@ -36,12 +36,13 @@ Before sending us a pull request, please ensure that:
 1. Clone your fork of the repository: `git clone https://github.com/<username>/amazon-sagemaker-examples` where `<username>` is your github username.
 
 
-### Run the Linters
+### Run the Linter
 
-1. Install tox using `pip install tox`
-1. cd into the amazon-sagemaker-examples folder: `cd amazon-sagemaker-examples` or `cd /environment/amazon-sagemaker-examples`
-1. Run the following tox command and verify that all linters pass: `tox -e black-check,black-nb-check`
-1. If the linters did not pass, run the following tox command to fix the issues: `tox -e black-format,black-nb-format`
+Apply Python code formatting to Jupyter notebook files using [black-nb](https://pypi.org/project/black-nb/).
+
+1. Install black-nb using `pip install black-nb`
+1. Run the following black-nb command on each of your ipynb notebook files and verify that the linter passes: `black-nb -l 100 {path}/{notebook-name}.ipynb`
+1. Some notebook features such as `%` bash commands or `%%` cell magic cause black-nb to fail. As long as you run the above command to format as much as possible, that is sufficient, even if the check fails
 
 
 ### Test Your Notebook End-to-End
@@ -215,6 +216,40 @@ GitHub provides additional document on [Creating a Pull Request](https://help.gi
 Please remember to:
 * Send us a pull request, answering any default questions in the pull request interface.
 * Pay attention to any automated CI failures reported in the pull request, and stay involved in the conversation.
+
+
+## Writing Sequential Notebooks
+
+Most notebooks are singular - only one notebook (.ipynb file) is needed to run that example. However, there are a few cases in which an example may be split into multiple notebooks. These are called sequential notebooks, as the sequence of the example is split among multiple notebooks. An example you can look at is [this series of sequential notebooks that demonstrate how to build a music recommender](https://github.com/aws/amazon-sagemaker-examples/tree/main/end_to_end/music_recommendation).
+
+### When should Sequential Notebooks be used?
+
+You may want to consider using sequential notebooks to write your example if the following conditions apply:
+
+* Your example takes over two hours to execute.
+* You want to emphasize on the different steps of the example in great detail and depth (i.e. one notebook goes into detail about data exploration, the next notebook thoroughly describes the model training process, etc).
+* You want customers to have the ability to run part of your example if they wish to (i.e. they only want to run the training portion).
+
+### What are the guidelines for writing Sequential Notebooks?
+
+If you determine that sequential notebooks are the most suitable format to write your examples, please follow these guidelines:
+
+* *Each notebook in the series must independently run end-to-end so that it can be tested in the daily CI (i.e. the CI test amazon-sagemaker-example-pr must pass).*
+    * This may include generating intermediate artifacts which can be immediately loaded up for use in later notebooks, etc. Depending on the situation, intermediate artifacts can be stored in the following places: 
+        * The repo in the same folder where your notebook is stored: This is possible for very small files (on the order of KB)
+        * The sagemaker-sample-files S3 bucket: This is for larger files (on or above the order of MB).
+* Each notebook must have a 'Background Section' clearly stating that the notebook is part of a notebook sequence. It must contain the following elements below. You can look at the 'Background' section in [Music Recommender Data Exploration](https://github.com/aws/amazon-sagemaker-examples/blob/main/end_to_end/music_recommendation/01_data_exploration.ipynb) for an example.
+    * The objective and/or short summary of the notebook series.
+    * A statement that the notebook is part of a notebook series.
+    * A statement communicating that the customer can choose to run the notebook by itself or as part of the series.
+    * List and link to the other notebooks in the series.
+    * Clearly display where the current notebook fits in relation to the other notebooks (i.e. it is the 3rd notebook in the series).
+    * If you have a README that contains more introductory information about the notebook series as a whole, link to it. For example, it is nice to have an architecture diagram showing how the services interact across different notebooks - the README would be a good place to put such information. An example of such a README is You can look at this [README.md](https://github.com/aws/amazon-sagemaker-examples/blob/main/end_to_end/music_recommendation/README.md).
+* If you have a lot of introductory material for your series, please put it in a README that is located in the same directory with your notebook series instead of an introductory notebook. You can look at this [README.md](https://github.com/aws/amazon-sagemaker-examples/blob/main/end_to_end/music_recommendation/README.md) as an example.
+* When you first use an intermediate artifact in a notebook, add a link to the notebook that is responsible for generating that artifact. That way, customers can easily look up how that artifact was created if they wanted to.
+* Use links to shorten the length of your notebook and keep it simple and organized. Instead of writing a long passage about how a feature works (i.e Batch Transform), it is better to link to the documentation for it. 
+* Design your notebook series such that the customer can get benefit from both the individual notebooks and the whole series. For example, each notebook should have clear takeaway points for the customer (i.e. one notebook teaches data preparation and feature engineering, the next notebook teaches training, etc).
+* Put the sequence order in the notebook file name. For example, the first notebook should start with "1_", the second notebook with "2_", etc.
 
 
 ## Example Notebook Best Practices

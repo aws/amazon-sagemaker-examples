@@ -1,24 +1,28 @@
-# Train Machine Learning Models using Amazon Keyspaces as a Data Source  
+# Train Machine Learning Models using Amazon Keyspaces as a Data Source
 
-In this notebook we will provide step-by-step instruction to use SageMaker to ingest customer data from Amazon Keyspaces and train a clustering model that allowed you to segment customers. You could use this information for targeted marketing, greatly improving your business KPI.
+Please read [Train machine learning models using Amazon Keyspaces as a data source](https://aws.amazon.com/blogs/machine-learning/train-machine-learning-models-using-amazon-keyspaces-as-a-data-source/) blog for more detailed instructions to run this notebook.
+
+
+We provides step-by-step instructions to use SageMaker to ingest customer data from Amazon Keyspaces and train a clustering model that enables you to segment customers. This information can be used for targeted marketing, greatly improving your business KPI.
 
 1. First, we install Sigv4 driver to connect to Amazon Keyspaces
 
 > The Amazon Keyspaces SigV4 authentication plugin for Cassandra client drivers enables you to authenticate calls to Amazon Keyspaces ***using IAM access keys instead of user name and password***. To learn more about how the Amazon Keyspaces SigV4 plugin enables [`IAM users, roles, and federated identities`](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles.html) to authenticate in Amazon Keyspaces API requests, see [`AWS Signature Version 4 process (SigV4)`](https://docs.aws.amazon.com/general/latest/gr/signature-version-4.html)
 
-2. Next, we establish a connection to Amazon Keyspaces 
-3. Next, we create new Keyspace ***blog_(yyyymmdd)*** and a new table ***online_retail*** 
-3. Next, we will download retail data about customers.
-3. Next, we will ingest retail data about customers into Keyspaces.
-3. Next, we use a notebook available within SageMaker Studio to collect data from Keyspaces database, and prepare data for training using KNN Algorithm. Most of our customers use SageMaker Studio for end to end development of ML Use Cases. They could use this notebook as a base and customize it quickly for their use case. Additionally, they will be able to share this with other collaborators without requiring them to install any additional software. 
-3. Next, we will train the data for clustering.
-3. After the training is complete, we can view the mapping between customer and their associated cluster.
-3. And finally, Cleanup Step to drop Keyspaces table to avoid future charges. 
+2. Next, we establish a connection to Amazon Keyspaces
+3. Next, we create new Keyspace ***blog_(yyyymmdd)*** and a new table ***online_retail***
+3. Next, we download retail data about customers.
+3. Next, we ingest retail data about customers into Keyspaces.
+3. Next, we use a notebook available within SageMaker Studio to collect data from the Keyspaces database, and prepare data for training using KNN Algorithm. Most of our customers use SageMaker Studio for end-to-end development of ML Use Cases. They use this notebook as a starting point and customize it for their use case. Also, they are able to share this with other collaborators without requiring them to install any additional software.
+3. Next, we train the data for clustering.
+3. When the training is completed, we can view the mapping between customers and their associated clusters.
+3. And finally, we run a Cleanup Step to drop Keyspaces table to avoid future charges.
 
-Contributers 
+Contributers
 - `Vadim Lyakhovich (AWS)`
 - `Ram Pathangi (AWS)`
 - `Parth Patel (AWS)`
+- `Arvind Jain (AWS)`
 
 ### Note
 The notebook execution role must include permissions to access Amazon Keyspaces and Assume the role.
