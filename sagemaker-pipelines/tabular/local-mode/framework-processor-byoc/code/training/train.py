@@ -42,8 +42,6 @@ def __read_data(files_path):
 
         data = data.dropna()
 
-        data = data.drop(["ID", "Time"], axis=1)
-
         return data
     except Exception as e:
         stacktrace = traceback.format_exc()
@@ -53,8 +51,8 @@ def __read_data(files_path):
 
 def prepare_data(train, test):
     try:
-        X_train, y_train = train.iloc[:, train.columns != 'Class'], train.iloc[:, train.columns == 'Class']
-        X_test, y_test = test.iloc[:, test.columns != 'Class'], test.iloc[:, train.columns == 'Class']
+        X_train, y_train = train.iloc[:, train.columns != 'labels'], train.iloc[:, train.columns == 'labels']
+        X_test, y_test = test.iloc[:, test.columns != 'labels'], test.iloc[:, train.columns == 'labels']
 
         y_test = y_test.astype("int64")
 
