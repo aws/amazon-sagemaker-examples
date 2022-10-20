@@ -454,6 +454,7 @@ def main():
                 remove_columns=[text_column_name],
                 load_from_cache_file=not data_args.overwrite_cache,
                 desc="Running tokenizer on dataset line_by_line",
+                keep_in_memory=True,
             )
     else:
         # Otherwise, we tokenize every text, then concatenate them together before splitting them in smaller parts.
@@ -470,6 +471,7 @@ def main():
                 remove_columns=column_names,
                 load_from_cache_file=not data_args.overwrite_cache,
                 desc="Running tokenizer on every text in dataset",
+                keep_in_memory=True,
             )
 
         # Main data processing function that will concatenate all texts from our dataset and generate chunks of
@@ -503,6 +505,7 @@ def main():
                 num_proc=data_args.preprocessing_num_workers,
                 load_from_cache_file=not data_args.overwrite_cache,
                 desc=f"Grouping texts in chunks of {max_seq_length}",
+                keep_in_memory=True,
             )
 
     if training_args.do_train:
