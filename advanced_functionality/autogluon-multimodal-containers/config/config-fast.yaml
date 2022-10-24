@@ -1,0 +1,11 @@
+# AutoGluon Predictor constructor arguments
+ag_predictor_args:
+  label: AdoptionSpeed
+  problem_type: binary
+  eval_metric: accuracy
+
+# AutoGluon Predictor.fit arguments
+ag_fit_args:
+    time_limit: 300
+
+output_prediction_format: csv  # predictions output format: csv or parquet
