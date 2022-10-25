@@ -105,6 +105,11 @@ More examples
    aws_sagemaker_studio/index
    sagemaker-lineage/index
 
+.. toctree::
+   :maxdepth: 1
+   :caption: Introduction to Amazon Algorithms
+
+   introduction_to_amazon_algorithms/index
 
 .. toctree::
    :maxdepth: 1
@@ -185,14 +190,14 @@ More examples
    sagemaker-script-mode/index
    training/bring_your_own_container
    training/management
-
+   training/heterogeneous-clusters/index
 
 .. toctree::
    :maxdepth: 1
    :caption: Inference
 
    inference/index
-
+   model-governance/index
 
 .. toctree::
    :maxdepth: 1
@@ -203,6 +208,12 @@ More examples
    sagemaker-spark/index
    step-functions-data-science-sdk/index
 
+.. toctree::
+   :maxdepth: 1
+   :caption: Advanced Functionality
+
+   advanced_functionality/index
+   serverless-inference/index
 
 .. toctree::
    :maxdepth: 1
@@ -212,15 +223,8 @@ More examples
    scientific_details_of_algorithms/index
    aws_marketplace/index
    
-
-
 .. toctree::
    :maxdepth: 1
    :caption: Community examples
 
    contrib/index
-   
-
-
-   
-   
