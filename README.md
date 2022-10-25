@@ -77,6 +77,7 @@ These examples introduce SageMaker Autopilot. Autopilot automatically performs f
 - [Targeted Direct Marketing AutoML](autopilot/) shows how to use SageMaker Autopilot to automatically train a model.
 - [Housing Prices AutoML](sagemaker-autopilot/housing_prices) shows how to use SageMaker Autopilot for a linear regression problem (predict housing prices).
 - [Portfolio Churn Prediction with Amazon SageMaker Autopilot and Neo4j](autopilot/sagemaker_autopilot_neo4j_portfolio_churn.ipynb) shows how to use SageMaker Autopilot with graph embeddings to predict investment portfolio churn.
+- [Move Amazon SageMaker Autopilot ML models from experimentation to production using Amazon SageMaker Pipelines](autopilot/sagemaker-autopilot-pipelines) shows how to use SageMaker Autopilot in combination with SageMaker Pipelines for end-to-end AutoML training automation.
 
 ### Introduction to Amazon Algorithms
 
@@ -225,6 +226,7 @@ These examples show you how to use [SageMaker Pipelines](https://aws.amazon.com/
 - [Amazon Comprehend with SageMaker Pipelines](sagemaker-pipelines/nlp/amazon_comprehend_sagemaker_pipeline) shows how to deploy a custom text classification using Amazon Comprehend and SageMaker Pipelines.
 - [Amazon Forecast with SageMaker Pipelines](sagemaker-pipelines/time_series_forecasting/amazon_forecast_pipeline) shows how you can create a dataset, dataset group and predictor with Amazon Forecast and SageMaker Pipelines.
 - [Multi-model SageMaker Pipeline with Hyperparamater Tuning and Experiments](sagemaker-pipeline-multi-model) shows how you can generate a regression model by training real estate data from Athena using Data Wrangler, and uses multiple algorithms both from a custom container and a SageMaker container in a single pipeline.
+- [SageMaker Pipeline Local Mode with FrameworkProcessor and BYOC for PyTorch with sagemaker-training-toolkig](sagemaker-pipelines/tabular/local-mode/framework-processor-byoc)
 
 ### Amazon SageMaker Pre-Built Framework Containers and the Python SDK
 
