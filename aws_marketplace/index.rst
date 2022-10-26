@@ -11,7 +11,7 @@ Create your algorithm and model package
 .. toctree::
    :maxdepth: 0
 
-   creating_marketplace_products/Bring_Your_Own-Creating_Algorithm_and_Model_Package
+   creating_marketplace_products/algorithms/Bring_Your_Own-Creating_Algorithm_and_Model_Package
 
 
 Curate your sample notebook
@@ -39,6 +39,7 @@ Use AWS Data Exchange products
    :maxdepth: 0
 
    using_data/image_classification_with_shutterstock_image_datasets/image-classification-with-shutterstock-datasets
+   using_data/using_data_with_ml_model/using-dataset-product-from-aws-data-exchange-with-ml-model-from-aws-marketplace
 
 
 Use AWS Marketplace algorithms
@@ -132,12 +133,20 @@ Amazon Augmented AI (A2I) with AWS Marketplace ML models
 
 
 Person Counting use case
---------------------------------------------------------
+------------------------
 
 .. toctree::
    :maxdepth: 0
 
    using_model_packages/evaluating_aws_marketplace_models_for_person_counting_use_case/evaluating_aws_marketplace_models_for_person_counting_use_case
+
+Create synthetic features using pre-trained models in AWS Marketplace
+---------------------------------------------------------------------
+ 
+.. toctree::
+   :maxdepth: 1
+ 
+   using_model_packages/preprocessing-audio-data-using-a-machine-learning-model/preprocessing-audio-data-using-a-machine-learning-model
 
 
 Use AWS Marketplace open source model packages

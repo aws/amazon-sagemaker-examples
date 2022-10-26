@@ -1,0 +1,11 @@
+.venv/
+.DS_Store
+data/MyMNIST
+pt.grpc.local/data/*
+pt.grpc.local/__pycache__
+pt.grpc.local/profile
+tf.data.service.sagemaker/data
+tf.data.service.sagemaker/code/__pycache__
+tf.data.service.local/data
+pt.grpc.sagemaker/data
+tf.data.service.sagemaker/__pycache__
