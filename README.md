@@ -54,6 +54,7 @@ These examples provide a gentle introduction to machine learning concepts as the
 - [Population Segmentation of US Census Data using PCA and Kmeans](introduction_to_applying_machine_learning/US-census_population_segmentation_PCA_Kmeans) analyzes US census data and reduces dimensionality using PCA then clusters US counties using KMeans to identify segments of similar counties.
 - [Document Embedding using Object2Vec](introduction_to_applying_machine_learning/object2vec_document_embedding) is an example to embed a large collection of documents in a common low-dimensional space, so that the semantic distances between these documents are preserved.
 - [Traffic violations forecasting using DeepAR](introduction_to_applying_machine_learning/deepar_chicago_traffic_violations) is an example to use daily traffic violation data to predict pattern and seasonality to use Amazon DeepAR alogorithm.
+- [Visual Inspection Automation with Pre-trained Amazon SageMaker Models](introduction_to_applying_machine_learning/visual_object_detection) is an example for fine-tuning pre-trained Amazon Sagemaker models on a target dataset.
 
 ### SageMaker Automatic Model Tuning
 
@@ -75,6 +76,8 @@ These examples introduce SageMaker Autopilot. Autopilot automatically performs f
 - [Customer Churn AutoML](autopilot/) shows how to use SageMaker Autopilot to automatically train a model for the [Predicting Customer Churn](introduction_to_applying_machine_learning/xgboost_customer_churn) task.
 - [Targeted Direct Marketing AutoML](autopilot/) shows how to use SageMaker Autopilot to automatically train a model.
 - [Housing Prices AutoML](sagemaker-autopilot/housing_prices) shows how to use SageMaker Autopilot for a linear regression problem (predict housing prices).
+- [Portfolio Churn Prediction with Amazon SageMaker Autopilot and Neo4j](autopilot/sagemaker_autopilot_neo4j_portfolio_churn.ipynb) shows how to use SageMaker Autopilot with graph embeddings to predict investment portfolio churn.
+- [Move Amazon SageMaker Autopilot ML models from experimentation to production using Amazon SageMaker Pipelines](autopilot/sagemaker-autopilot-pipelines) shows how to use SageMaker Autopilot in combination with SageMaker Pipelines for end-to-end AutoML training automation.
 
 ### Introduction to Amazon Algorithms
 
@@ -149,6 +152,15 @@ These examples provide and introduction to SageMaker Debugger which allows debug
 - [Reacting to CloudWatch Events from Rules to take an action based on status with TensorFlow](sagemaker-debugger/tensorflow_action_on_rule/)
 - [Using SageMaker Debugger with a custom PyTorch container](sagemaker-debugger/pytorch_custom_container/)
 
+### Amazon SageMaker Distributed Training
+
+These examples provide an introduction to SageMaker Distributed Training Libraries for data parallelism and model parallelism. The libraries are optimized for the SageMaker training environment, help adapt your distributed training jobs to SageMaker, and improve training speed and throughput.
+More examples for models such as BERT and YOLOv5 can be found in [distributed_training/](https://github.com/aws/amazon-sagemaker-examples/tree/main/training/distributed_training).
+
+- [Train GPT-2 with Sharded Data Parallel](https://github.com/aws/amazon-sagemaker-examples/tree/main/training/distributed_training/pytorch/model_parallel/gpt2/smp-train-gpt-simple-sharded-data-parallel.ipynb) shows how to train GPT-2 with near-linear scaling using Sharded Data Parallelism technique in SageMaker Model Parallelism Library.
+- [Train EleutherAI GPT-J with Model Parallel](https://github.com/aws/amazon-sagemaker-examples/blob/main/training/distributed_training/pytorch/model_parallel/gpt-j/11_train_gptj_smp_tensor_parallel_notebook.ipynb) shows how to train EleutherAI GPT-J with PyTorch and Tensor Parallelism technique in the SageMaker Model Parallelism Library.
+- [Train MaskRCNN with Data Parallel](https://github.com/aws/amazon-sagemaker-examples/blob/main/training/distributed_training/pytorch/data_parallel/maskrcnn/pytorch_smdataparallel_maskrcnn_demo.ipynb) shows how to train MaskRCNN with PyTorch and SageMaker Data Parallelism Library.
+
 ### Amazon SageMaker Clarify
 
 These examples provide an introduction to SageMaker Clarify which provides machine learning developers with greater visibility into their training data and models so they can identify and limit bias and explain predictions.
@@ -185,6 +197,7 @@ These examples showcase unique functionality available in Amazon SageMaker. They
 - [Host Multiple Models with SKLearn](advanced_functionality/multi_model_sklearn_home_value) shows how to deploy multiple models to a realtime hosted endpoint using a multi-model enabled SKLearn container.
 - [SageMaker Training and Inference with Script Mode](sagemaker-script-mode) shows how to use custom training and inference scripts, similar to those you would use outside of SageMaker, with SageMaker's prebuilt containers for various frameworks like Scikit-learn, PyTorch, and XGBoost.
 - [Host Models with NVidia Triton Server](sagemaker-triton) shows how to deploy models to a realtime hosted endpoint using [Triton](https://developer.nvidia.com/nvidia-triton-inference-server) as the model inference server.
+- [Heterogenous Clusters Training in TensorFlow or PyTorch ](training/heterogeneous-clusters/README.md) shows how to train using TensorFlow tf.data.service (distributed data pipeline) or Pytorch (with gRPC) on top of Amazon SageMaker Heterogenous clusters to overcome CPU bottlenecks by including different instance types (GPU/CPU) in the same training job.
 
 ### Amazon SageMaker Neo Compilation Jobs
 
@@ -213,6 +226,8 @@ These examples show you how to use [SageMaker Pipelines](https://aws.amazon.com/
 - [Amazon Comprehend with SageMaker Pipelines](sagemaker-pipelines/nlp/amazon_comprehend_sagemaker_pipeline) shows how to deploy a custom text classification using Amazon Comprehend and SageMaker Pipelines.
 - [Amazon Forecast with SageMaker Pipelines](sagemaker-pipelines/time_series_forecasting/amazon_forecast_pipeline) shows how you can create a dataset, dataset group and predictor with Amazon Forecast and SageMaker Pipelines.
 - [Multi-model SageMaker Pipeline with Hyperparamater Tuning and Experiments](sagemaker-pipeline-multi-model) shows how you can generate a regression model by training real estate data from Athena using Data Wrangler, and uses multiple algorithms both from a custom container and a SageMaker container in a single pipeline.
+- [SageMaker Pipeline Local Mode with FrameworkProcessor and BYOC for PyTorch with sagemaker-training-toolkig](sagemaker-pipelines/tabular/local-mode/framework-processor-byoc)
+- [SageMaker Pipeline Step Caching](sagemaker-pipelines/tabular/caching) shows how you can leverage pipeline step caching while building pipelines and shows expected cache hit / cache miss behavior.
 
 ### Amazon SageMaker Pre-Built Framework Containers and the Python SDK
 
