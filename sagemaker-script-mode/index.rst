@@ -16,5 +16,3 @@ SageMaker Script Mode at Increasing Levels of Customization
    :maxdepth: 1
 
    sagemaker-script-mode
-   pytorch_bert/deploy_bert
-   sklearn/sklearn_byom

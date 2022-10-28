@@ -6,14 +6,7 @@ Get started with Model Monitor
 
    introduction/SageMaker-ModelMonitoring
 
-Model Quality
-==============================
 
-.. toctree::
-   :maxdepth: 1
-
-   model_quality/model_quality_churn_sdk
- 
 
 Model Monitor with Tensorflow
 =============================

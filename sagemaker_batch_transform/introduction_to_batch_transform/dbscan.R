@@ -69,7 +69,7 @@ parse_file <- function(file) {
 # Second helper function for apply
 parse_json <- function(line) {
     if (validate(line)) {
-        return(do.call(rbind, fromJSON(line)))}}
+        return(do.call(rbind, fromJSON(line)[['projections']][[1]]))}}
 
 
 # Setup scoring function

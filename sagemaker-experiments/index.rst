@@ -35,11 +35,3 @@ Search
    :maxdepth: 1
 
    ../advanced_functionality/search/ml_experiment_management_using_search
-
-Hyperparameter Tuning Job
-=========================
-
-.. toctree::
-   :maxdepth: 1
-
-   associate-hyper-parameter-tuning-job/associate-hyperparameter-tuning-job

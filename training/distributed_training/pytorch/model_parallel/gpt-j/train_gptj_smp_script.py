@@ -38,6 +38,7 @@ from args import CustomTrainingArguments as TrainingArguments
 from preprocess import Preprocess
 from smp_trainer import SMPTrainer
 
+from fp16 import FP16_Module, FP16_Optimizer, load_fp16_optimizer, save_fp16_optimizer
 from learning_rates import AnnealingLR
 
 from smdistributed.modelparallel.torch.nn import FusedLayerNorm as LayerNorm
@@ -99,6 +100,7 @@ def save(
     seq_length=1024,
     batch_idx=0,
 ):
+    save_fn = save_fp16_optimizer_megatron if args.megatron else save_fp16_optimizer
     save_dict = {
         "cli_args": args.__dict__,
         "num_params": num_params,
@@ -123,17 +125,25 @@ def save(
                 else model_state_dict
             )
 
-    if partial:
-        save_dict["optimizer"] = optimizer.local_state_dict(gather_if_shard=args.gather_if_shard)
-    else:
-        if args.skip_full_optimizer:
+    if args.fp16:
+        if not partial and args.skip_full_optimizer:
             print("Skipping saving the final optimizer state")
-        elif args.shard_optimizer_state > 0:
-            print(
-                    "Saving the full optimizer state does not work with shard_optimizer_state > 0! Skipping..."
-            )
         else:
-            save_dict["optimizer"] = optimizer.state_dict()
+            if args.shard_optimizer_state == 0 or partial:
+                save_dict["optimizer"] = save_fn(args, model, optimizer, partial=partial)
+            else:
+                print(
+                    "Saving the full optimizer state does not work with shard_optimizer_state > 0! Skipping..."
+                )
+    else:
+        # fp32
+        if partial:
+            save_dict["optimizer"] = optimizer.local_state_dict()
+        else:
+            if not args.skip_full_optimizer:
+                save_dict["optimizer"] = optimizer.state_dict()
+            else:
+                print("Skipping saving of full optimizer state")
 
     if not args.gather_if_shard or (smp.rdp_rank() == 0 and partial) or smp.rank() == 0:
         smp.save(save_dict, output_save_file, partial=partial, v3=not args.gather_if_shard)
@@ -306,7 +316,10 @@ def main():
 
         torch.set_default_dtype(torch.float32)
 
-        iter_model = model.get_module()
+        iter_model = model
+        # Build parameter groups (weight decay and non-decay).
+        while isinstance(iter_model, (DistributedDataParallel, FP16_Module)):
+            iter_model = iter_model.module
 
         param_groups = get_param_groups_by_weight_decay(iter_model)
 
