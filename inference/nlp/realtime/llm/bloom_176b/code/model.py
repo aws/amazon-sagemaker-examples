@@ -14,36 +14,75 @@ tokenizer = None
 model = None
 
 
+def check_config():
+    local_rank = os.getenv("LOCAL_RANK")
+    curr_pid = os.getpid()
+    print(
+        f"__Number CUDA Devices:{torch.cuda.device_count()}:::local_rank={local_rank}::curr_pid={curr_pid}::"
+    )
+
+    if not local_rank:
+        return False
+
+    return True
+
+
 def get_model():
+
+    if not check_config():
+        raise Exception(
+            "DJL:DeepSpeed configurations are not default. This code does not support non default configurations"
+        )
+
+    deepspeed.init_distributed("nccl")
 
     tensor_parallel = int(os.getenv("TENSOR_PARALLEL_DEGREE", "1"))
     local_rank = int(os.getenv("LOCAL_RANK", "0"))
     model_dir = "/tmp/model"
     bucket = os.environ.get("MODEL_S3_BUCKET")
     key_prefix = os.environ.get("MODEL_S3_PREFIX")
-
-    print(f"rank: {local_rank}")
+    curr_pid = os.getpid()
+    print(f"tensor_parallel={tensor_parallel}::curr_pid={curr_pid}::")
+    print(
+        f"Current Rank: {local_rank}:: pid={curr_pid}::Going to load the model weights on rank 0: bucket={bucket}::key={key_prefix}::"
+    )
 
     if local_rank == 0:
 
         if f"{model_dir}/DONE" not in glob(f"{model_dir}/*"):
-            print("Starting Model downloading files")
-            # download_files(s3_paths, model_dir)
-            subprocess.run(
-                ["aws", "s3", "cp", "--recursive", f"s3://{bucket}/{key_prefix}", model_dir]
-            )
-            print("Model downloading finished")
+            print("Starting Model downloading files pid={curr_pid}::")
+            print(f"Starting Model pid={curr_pid}::")
 
-            # write file when download complete. Could use dist.barrier() but this makes it easier to check if model is downloaded in case of retry
-            with open(f"{model_dir}/DONE", "w") as f:
-                f.write("download_complete")
+            try:
+                # --
+                proc_run = subprocess.run(
+                    ["aws", "s3", "cp", "--recursive", f"s3://{bucket}/{key_prefix}", model_dir],
+                    capture_output=True,
+                    text=True,
+                )  # python 7 onwards
+                print(f"Model download finished: pid={curr_pid}::")
 
-    else:
-        while f"{model_dir}/DONE" not in glob(f"{model_dir}/*"):
-            time.sleep(60)
-            if local_rank == 1:
-                print("Model download in progress")
+                # write file when download complete. Could use dist.barrier() but this makes it easier to check if model is downloaded in case of retry
+                with open(f"{model_dir}/DONE", "w") as f:
+                    f.write("download_complete")
 
+                print(
+                    f"Model download checkmark written out pid={curr_pid}::return_code:{proc_run.returncode}:stderr:-- >:{proc_run.stderr}"
+                )
+                proc_run.check_returncode()  # to throw the error in case there was one
+
+            except subprocess.CalledProcessError as e:
+                print(
+                    "Model download failed: Error:\nreturn code: ",
+                    e.returncode,
+                    "\nOutput: ",
+                    e.stderr,
+                )
+                raise  # FAIL FAST
+
+    dist.barrier()  # - to ensure all processes load fine
+
+    print(f"Load the Model  pid={curr_pid}::")
     tokenizer = AutoTokenizer.from_pretrained(model_dir)
 
     # has to be FP16 as Int8 model loading not yet supported
