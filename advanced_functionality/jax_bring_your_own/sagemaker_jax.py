@@ -25,8 +25,12 @@ class JaxEstimator(Framework):
         source_dir=None,
         hyperparameters=None,
         image_uri=None,
+        framework_version=None,
+        py_version=None,
         **kwargs
     ):
+        self.framework_version = framework_version
+        self.py_version = py_version
         super(JaxEstimator, self).__init__(
             entry_point, source_dir, hyperparameters, image_uri=image_uri, **kwargs
         )
