@@ -110,6 +110,7 @@ These examples provide quick walkthroughs to get you up and running with Amazon 
 - [JumpStart Object Detection](introduction_to_amazon_algorithms/jumpstart_object_detection) demonstrates how to use a pre-trained Object Detection model available in JumpStart for inference, how to finetune the pre-trained model on a custom dataset using JumpStart transfer learning algorithm, and how to use fine-tuned model for inference.
 - [JumpStart Machine Translation](introduction_to_amazon_algorithms/jumpstart_machine_translation) demonstrates how to translate text from one language to another language in JumpStart.
 - [JumpStart Named Entity Recognition](introduction_to_amazon_algorithms/jumpstart_named_entity_recognition) demonstrates how to identify named entities such as names, locations etc. in the text in JumpStart.
+- [JumpStart Text to Image](introduction_to_amazon_algorithms/jumpstart_text_to_image) demonstrates how to generate image conditioned on text in JumpStart.
 
 ### Amazon SageMaker RL
 
