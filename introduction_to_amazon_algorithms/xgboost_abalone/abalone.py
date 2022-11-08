@@ -52,8 +52,8 @@ if __name__ == "__main__":
         type=int,
     )
     parser.add_argument("--eta", type=float)
-    parser.add_argument("--gamma", type=int)
-    parser.add_argument("--min_child_weight", type=int)
+    parser.add_argument("--gamma", type=float)
+    parser.add_argument("--min_child_weight", type=float)
     parser.add_argument("--subsample", type=float)
     parser.add_argument("--verbosity", type=int)
     parser.add_argument("--objective", type=str)
