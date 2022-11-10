@@ -55,6 +55,7 @@ These examples provide a gentle introduction to machine learning concepts as the
 - [Document Embedding using Object2Vec](introduction_to_applying_machine_learning/object2vec_document_embedding) is an example to embed a large collection of documents in a common low-dimensional space, so that the semantic distances between these documents are preserved.
 - [Traffic violations forecasting using DeepAR](introduction_to_applying_machine_learning/deepar_chicago_traffic_violations) is an example to use daily traffic violation data to predict pattern and seasonality to use Amazon DeepAR alogorithm.
 - [Visual Inspection Automation with Pre-trained Amazon SageMaker Models](introduction_to_applying_machine_learning/visual_object_detection) is an example for fine-tuning pre-trained Amazon Sagemaker models on a target dataset.
+- [Create SageMaker Models Using the PyTorch Model Zoo](introduction_to_applying_machine_learning/sagemaker_pytorch_model_zoo) contains an example notebook to create a SageMaker model leveraging the PyTorch Model Zoo and visualize the results.
 
 ### SageMaker Automatic Model Tuning
 
