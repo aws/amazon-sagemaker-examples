@@ -30,7 +30,7 @@ if __name__=='__main__':
     # returns JSON object as 
     # a dictionary
     sec_summary = json.load(f)
-    sec_summary['inputs'] = sec_summary['inputs'][:2500]
+    sec_summary['inputs'] = sec_summary['inputs'][:2000]
     sec_summary['source'] = f'{args.ticker_cik} SEC Report'
     sec_df = pd.json_normalize(sec_summary)
     sec_df = sec_df[['source', 'inputs']]
