@@ -12,6 +12,7 @@ Get started with Autopilot
    autopilot_customer_churn_high_level_with_evaluation
    autopilot_california_housing
    autopilot_customer_churn
+   sagemaker-autopilot-pipelines/autopilot_pipelines_demo_notebook
 
 
 Feature selection
