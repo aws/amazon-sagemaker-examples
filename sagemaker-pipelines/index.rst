@@ -43,3 +43,13 @@ Pipeline Compare
    :maxdepth: 1
 
    ../sagemaker-pipeline-compare-model-versions/notebook
+
+
+Launch AutoML with Pipelines
+============================
+
+.. toctree::
+   :maxdepth: 1
+
+   tabular/automl-step/sagemaker_autopilot_pipelines_native_auto_ml_step
+

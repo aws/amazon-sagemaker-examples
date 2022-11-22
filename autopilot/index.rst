@@ -4,7 +4,7 @@ Get started with Autopilot
 .. image:: https://readthedocs.org/projects/sagemaker-examples-test-website/badge/?version=latest
 
 .. toctree::
-   :maxdepth: 0
+   :maxdepth: 1
 
    sagemaker_autopilot_direct_marketing
    sagemaker_autopilot_abalone_parquet_input
@@ -19,7 +19,7 @@ Feature selection
 ==========================
 
 .. toctree::
-   :maxdepth: 0
+   :maxdepth: 1
 
    custom-feature-selection/Feature_selection_autopilot
 
@@ -28,6 +28,15 @@ Model explainability
 ==========================
 
 .. toctree::
-   :maxdepth: 0
+   :maxdepth: 1
 
    model-explainability/explaining_customer_churn_model
+
+
+Autopilot Pipelines
+==========================
+
+.. toctree::
+   :maxdepth: 1
+
+   sagemaker-autopilot-pipelines/autopilot_pipelines_demo_notebook
