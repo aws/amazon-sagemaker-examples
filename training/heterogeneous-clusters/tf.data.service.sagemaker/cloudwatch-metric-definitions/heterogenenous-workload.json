@@ -1,0 +1,30 @@
+{
+    "metrics": [
+        [ { "expression": "100*(m1/9600)", "label": "DNN1 CPU/100%", "id": "e1" } ],
+        [ { "expression": "100*(m2/800)", "label": "DNN1 GPU/100%", "id": "e2" } ],
+        [ { "expression": "100*(m3/7200)", "label": "DATA1 CPU/100%", "id": "e3" } ],
+        [ { "expression": "100*(m4/7200)", "label": "DATA2 CPU/100%", "id": "e4" } ],
+        [ "/aws/sagemaker/TrainingJobs", "CPUUtilization", "Host", "hetero-tf-data-service-Dnode2-wrkrs-1-20220922T214326Z/algo-1", { "id": "m1", "yAxis": "left", "visible": false } ],
+        [ ".", "GPUUtilization", ".", ".", { "id": "m2", "visible": false } ],
+        [ ".", "CPUUtilization", ".", "hetero-tf-data-service-Dnode2-wrkrs-1-20220922T214326Z/algo-2", { "id": "m3", "visible": false } ],
+        [ "...", "hetero-tf-data-service-Dnode2-wrkrs-1-20220922T214326Z/algo-3", { "id": "m4", "visible": false } ]
+    ],
+    "sparkline": true,
+    "view": "timeSeries",
+    "stacked": false,
+    "region": "us-east-1",
+    "stat": "Average",
+    "period": 60,
+    "setPeriodToTimeRange": true,
+    "yAxis": {
+        "left": {
+            "min": 0,
+            "max": 100,
+            "label": "% Utilization",
+            "showUnits": false
+        }
+    },
+    "legend": {
+        "position": "bottom"
+    }
+}

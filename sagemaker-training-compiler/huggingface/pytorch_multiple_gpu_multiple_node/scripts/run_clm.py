@@ -435,6 +435,7 @@ def main():
             remove_columns=column_names,
             load_from_cache_file=not data_args.overwrite_cache,
             desc="Running tokenizer on dataset",
+            keep_in_memory=True,
         )
 
     if data_args.block_size is None:
@@ -484,6 +485,7 @@ def main():
             num_proc=data_args.preprocessing_num_workers,
             load_from_cache_file=not data_args.overwrite_cache,
             desc=f"Grouping texts in chunks of {block_size}",
+            keep_in_memory=True,
         )
 
     if training_args.do_train:

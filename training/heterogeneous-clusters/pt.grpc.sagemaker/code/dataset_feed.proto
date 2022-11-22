@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+service DatasetFeed {
+    rpc get_examples(Dummy) returns (stream Example) {}
+    rpc shutdown(Dummy) returns (Dummy) {}
+}
+
+message Dummy {
+}
+
+message Example {
+   bytes image = 1;
+   bytes label = 2;
+}

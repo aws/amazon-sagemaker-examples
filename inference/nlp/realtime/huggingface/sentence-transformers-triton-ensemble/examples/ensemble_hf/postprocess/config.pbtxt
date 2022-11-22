@@ -1,0 +1,26 @@
+name: "postprocess"
+backend: "python"
+max_batch_size: 16
+
+input [
+  {
+    name: "TOKEN_EMBEDS_POST"
+    data_type: TYPE_FP32
+    dims: [128, 384]
+    
+  },
+   {
+    name: "ATTENTION_POST"
+    data_type: TYPE_INT32
+    dims: [128]
+  }
+]
+output [
+  {
+    name: "SENT_EMBED"
+    data_type: TYPE_FP32
+    dims: [ 384 ]
+  }
+]
+
+instance_group [{ kind: KIND_GPU }]
