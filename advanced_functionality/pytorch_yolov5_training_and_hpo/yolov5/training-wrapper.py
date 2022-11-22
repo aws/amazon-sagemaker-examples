@@ -85,28 +85,6 @@ def buildCMD(arguments):
 
     return ''.join(initialstr)
 
-    
-
-#def getDataFromS3(s3source,dest,dt):
-#    '''Requires, S3 source, local destination directory to copy to, and
-#       and whether train or val'''
-#    bucketname = s3source.split('/')[2]
-#    prfx = (s3source.split(bucketname)[1]).strip('/')
-#    fls = []
-#    client = boto3.client('s3')
-#    kwargs = {'Bucket': bucketname,'Prefix': prfx + '/' + dt}
-#    while True:
-#        resp = client.list_objects_v2(**kwargs)
-#        for obj in resp['Contents']:
-#            fls.append(obj['Key'])
-#        try:
-#            kwargs['ContinuationToken'] = resp['NextContinuationToken']
-#        except KeyError:
-#            break
-#    for fl in fls:
-#        fname = fl.split('/')[-1]
-#        client.download_file(bucketname,fl,dest + dt + '/' + fname)
-
 def separateimages(prefx,chan):
     '''Here prefx is the full path to the parent of train or val'''
     pngs = [f for f in os.listdir(prefx + '/' + chan) if f.endswith('JPG')]
