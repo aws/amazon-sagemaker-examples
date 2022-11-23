@@ -9,17 +9,12 @@ import sys
 import time
 from io import StringIO
 
+import flask
 import joblib
 import numpy as np
 import pandas as pd
-from sagemaker_containers.beta.framework import (
-    content_types,
-    encoders,
-    env,
-    modules,
-    transformer,
-    worker,
-)
+
+from sagemaker_inference.encoder import encode
 from sklearn.compose import ColumnTransformer, make_column_selector
 from sklearn.impute import SimpleImputer
 from sklearn.pipeline import make_pipeline
@@ -163,15 +158,10 @@ def output_fn(prediction, accept):
     container can read the response payload correctly.
     """
     if accept == "application/json":
-        instances = []
-        for row in prediction.tolist():
-            instances.append({"features": row})
-
-        json_output = {"instances": instances}
-
-        return worker.Response(json.dumps(json_output), mimetype=accept)
+        json_output = {"instances": [{"features": row} for row in prediction.tolist()]}
+        return flask.Response(response=json.dumps(json_output), mimetype=accept)
     elif accept == "text/csv":
-        return worker.Response(encoders.encode(prediction, accept), mimetype=accept)
+        return flask.Response(response=encode(prediction, accept), mimetype=accept)
     else:
         raise RuntimeException("{} accept type is not supported by this script.".format(accept))
 
