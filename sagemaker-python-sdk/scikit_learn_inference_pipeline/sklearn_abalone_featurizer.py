@@ -1,12 +1,8 @@
 from __future__ import print_function
 
 import argparse
-import csv
 import json
 import os
-import shutil
-import sys
-import time
 from io import StringIO
 
 import flask
@@ -18,7 +14,7 @@ from sagemaker_inference.encoder import encode
 from sklearn.compose import ColumnTransformer, make_column_selector
 from sklearn.impute import SimpleImputer
 from sklearn.pipeline import make_pipeline
-from sklearn.preprocessing import Binarizer, OneHotEncoder, StandardScaler
+from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
 # Since we get a headerless CSV file we specify the column names here.
 feature_columns_names = [
