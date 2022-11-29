@@ -1,4 +1,5 @@
-FROM 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:1.11.0-cpu-py38
+ARG REGION
+FROM 763104351884.dkr.ecr.${REGION}.amazonaws.com/pytorch-training:1.11.0-cpu-py38
 RUN git clone https://github.com/ultralytics/yolov5
 ENV PATH="/yolov5:${PATH}"
 RUN wget https://bootstrap.pypa.io/get-pip.py
