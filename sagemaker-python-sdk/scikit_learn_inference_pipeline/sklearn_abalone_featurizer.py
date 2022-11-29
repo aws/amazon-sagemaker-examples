@@ -5,16 +5,15 @@ import json
 import os
 from io import StringIO
 
-import flask
 import joblib
 import numpy as np
 import pandas as pd
-
 from sagemaker_inference.encoder import encode
 from sklearn.compose import ColumnTransformer, make_column_selector
 from sklearn.impute import SimpleImputer
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
+from werkzeug.wrappers import Response
 
 # Since we get a headerless CSV file we specify the column names here.
 feature_columns_names = [
@@ -153,11 +152,12 @@ def output_fn(prediction, accept):
     We also want to set the ContentType or mimetype as the same value as accept so the next
     container can read the response payload correctly.
     """
+    # To be able to set the response MIME type, we use a WSGI-compliant Response object
     if accept == "application/json":
         json_output = {"instances": [{"features": row} for row in prediction.tolist()]}
-        return flask.Response(response=json.dumps(json_output), mimetype=accept)
+        return Response(response=json.dumps(json_output), mimetype=accept)
     elif accept == "text/csv":
-        return flask.Response(response=encode(prediction, accept), mimetype=accept)
+        return Response(response=encode(prediction, accept), mimetype=accept)
     else:
         raise RuntimeException("{} accept type is not supported by this script.".format(accept))
 
