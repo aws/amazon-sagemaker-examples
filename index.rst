@@ -198,6 +198,7 @@ More examples
 
    inference/index
    model-governance/index
+   sagemaker-shadow-variant/index
 
 .. toctree::
    :maxdepth: 1
@@ -207,6 +208,7 @@ More examples
    sagemaker_processing/index
    sagemaker-spark/index
    step-functions-data-science-sdk/index
+   sagemaker-notebook-jobs/index
 
 .. toctree::
    :maxdepth: 1
@@ -222,6 +224,7 @@ More examples
    sagemaker-clarify/index
    scientific_details_of_algorithms/index
    aws_marketplace/index
+   sagemaker-geospatial/index
    
 .. toctree::
    :maxdepth: 1
