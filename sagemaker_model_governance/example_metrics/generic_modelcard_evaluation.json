@@ -1,0 +1,34 @@
+{
+    "metric_groups": [
+        {
+            "metric_data": [
+                {
+                    "name": "AD",
+                    "type": "number",
+                    "value": -0.11415724421435
+                }
+            ],
+            "name": "post_training_bias_metrics - label Target = 1 and facet Gender=0"
+        },
+        {
+            "metric_data": [
+                {
+                    "name": "AD",
+                    "type": "number",
+                    "value": -0.1141572442143538
+                }
+            ],
+            "name": "post_training_bias_metrics - label Target = 1 and facet Gender=1"
+        },
+        {
+            "metric_data": [
+                {
+                    "name": "CDDL",
+                    "type": "number",
+                    "value": 0.21491590864936
+                }
+            ],
+            "name": "pre_training_bias_metrics - label Target = 1 and facet Gender=0"
+        }
+    ]
+}
