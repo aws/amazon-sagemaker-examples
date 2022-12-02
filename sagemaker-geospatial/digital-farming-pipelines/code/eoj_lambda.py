@@ -16,25 +16,12 @@ def lambda_handler(event, context):
     Manages SageMaker geospatial EOJs as required.
     """
     try:
-        # BETA STEPS - REMOVE FOR GA VERSION!!!
-        bucket = "sagemaker-us-west-2-889960878219"
-        key = "sm-geospatial-e2e/axis-sdk/service-2.json"
-        s3 = boto3.resource("s3")
-        isExist = os.path.exists("/tmp/sagemaker-geospatial/2020-05-27")
-        if not isExist:
-            os.mkdir("/tmp/sagemaker-geospatial")
-            os.mkdir("/tmp/sagemaker-geospatial/2020-05-27")
-        s3.Bucket(bucket).download_file(key, "/tmp/sagemaker-geospatial/2020-05-27/service-2.json")
-        os.environ["AWS_DATA_PATH"] = "/tmp/"
-        # BETA STEPS - REMOVE FOR GA VERSION!!!
-
         # Setup client...
         if "region" in event:
             region = event["region"]
         else:
             region = "us-west-2"
-        session = botocore.session.get_session()
-        gsClient = session.create_client(service_name="sagemaker-geospatial", region_name=region)
+        gsClient = boto3.client("sagemaker-geospatial", region_name="us-west-2")
 
         if "eoj_name" in event:
             # Create a new EOJ...
