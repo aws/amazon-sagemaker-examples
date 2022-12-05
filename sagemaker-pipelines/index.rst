@@ -11,6 +11,7 @@ Amazon SageMaker Model Building Pipelines is a tool for building machine learnin
    tabular/tensorflow2-california-housing-sagemaker-pipelines-deploy-endpoint/tensorflow2-california-housing-sagemaker-pipelines-deploy-endpoint
    nlp/amazon_comprehend_sagemaker_pipeline/sm_pipeline_with_comprehend
    time_series_forecasting/amazon_forecast_pipeline/sm_pipeline_with_amazon_forecast
+   sagemaker-pipelines/tabular/automl-step/sagemaker_autopilot_pipelines_native_auto_ml_step
    sagemaker-pipelines/tabular/tuning-step/sagemaker-pipelines-tuning-step
    sagemaker-pipelines/tabular/lambda-step/sagemaker-pipelines-lambda-step
    sagemaker-pipelines/tabular/model-monitor-clarify-pipelines/sagemaker-pipeline-model-monitor-clarify-steps
@@ -42,3 +43,13 @@ Pipeline Compare
    :maxdepth: 1
 
    ../sagemaker-pipeline-compare-model-versions/notebook
+
+
+Launch AutoML with Pipelines
+============================
+
+.. toctree::
+   :maxdepth: 1
+
+   tabular/automl-step/sagemaker_autopilot_pipelines_native_auto_ml_step
+
