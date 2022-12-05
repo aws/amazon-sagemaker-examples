@@ -2,6 +2,7 @@ Model Governance
 ---------------------
 
 .. toctree::
-   :maxdepth: 0
+   :maxdepth: 1
 
    model_governance_graph
+   ../sagemaker_model_governance/model_card
