@@ -79,6 +79,7 @@ These examples introduce SageMaker Autopilot. Autopilot automatically performs f
 - [Housing Prices AutoML](sagemaker-autopilot/housing_prices) shows how to use SageMaker Autopilot for a linear regression problem (predict housing prices).
 - [Portfolio Churn Prediction with Amazon SageMaker Autopilot and Neo4j](autopilot/sagemaker_autopilot_neo4j_portfolio_churn.ipynb) shows how to use SageMaker Autopilot with graph embeddings to predict investment portfolio churn.
 - [Move Amazon SageMaker Autopilot ML models from experimentation to production using Amazon SageMaker Pipelines](autopilot/sagemaker-autopilot-pipelines) shows how to use SageMaker Autopilot in combination with SageMaker Pipelines for end-to-end AutoML training automation.
+- [Amazon SageMaker Autopilot models to serverless endpoints](autopilot/autopilot-serverless-inference) shows how to deploy Autopilot generated models to serverless endpoints.
 
 ### Introduction to Amazon Algorithms
 
@@ -112,7 +113,7 @@ These examples provide quick walkthroughs to get you up and running with Amazon 
 - [JumpStart Machine Translation](introduction_to_amazon_algorithms/jumpstart_machine_translation) demonstrates how to translate text from one language to another language in JumpStart.
 - [JumpStart Named Entity Recognition](introduction_to_amazon_algorithms/jumpstart_named_entity_recognition) demonstrates how to identify named entities such as names, locations etc. in the text in JumpStart.
 - [JumpStart Text to Image](introduction_to_amazon_algorithms/jumpstart_text_to_image) demonstrates how to generate image conditioned on text in JumpStart.
-
+- [In-context learning with AlexaTM 20B](introduction_to_amazon_algorithms/jumpstart_alexatm20b) demonstrates how to use AlexaTM 20B for in-context-learning in JumpStart.
 ### Amazon SageMaker RL
 
 The following provide examples demonstrating different capabilities of Amazon SageMaker RL.
@@ -230,6 +231,7 @@ These examples show you how to use [SageMaker Pipelines](https://aws.amazon.com/
 - [Multi-model SageMaker Pipeline with Hyperparamater Tuning and Experiments](sagemaker-pipeline-multi-model) shows how you can generate a regression model by training real estate data from Athena using Data Wrangler, and uses multiple algorithms both from a custom container and a SageMaker container in a single pipeline.
 - [SageMaker Pipeline Local Mode with FrameworkProcessor and BYOC for PyTorch with sagemaker-training-toolkig](sagemaker-pipelines/tabular/local-mode/framework-processor-byoc)
 - [SageMaker Pipeline Step Caching](sagemaker-pipelines/tabular/caching) shows how you can leverage pipeline step caching while building pipelines and shows expected cache hit / cache miss behavior.
+- [Native AutoML step in SageMaker Pipelines](sagemaker-pipelines/tabular/automl-step/sagemaker_autopilot_pipelines_native_auto_ml_step.ipynb) shows how you can use SageMaker Autopilot with a native AutoML step in SageMaker Pipelines for end-to-end AutoML training automation.
 
 ### Amazon SageMaker Pre-Built Framework Containers and the Python SDK
 
