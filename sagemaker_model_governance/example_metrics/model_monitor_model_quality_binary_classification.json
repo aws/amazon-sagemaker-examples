@@ -1,0 +1,116 @@
+{
+    "binary_classification_metrics": {
+      "accuracy": {
+        "standard_deviation": "NaN",
+        "value": 0.5
+      },
+      "accuracy_best_constant_classifier": {
+        "standard_deviation": 0.2,
+        "value": 0.25
+      },
+      "auc": {
+        "standard_deviation": 0.1,
+        "value": 1
+      },
+      "confusion_matrix": {
+        "0": {
+          "0": 1,
+          "1": 2
+        },
+        "1": {
+          "0": 0,
+          "1": 1
+        }
+      },
+      "f0_5": {
+        "standard_deviation": "NaN",
+        "value": 0.38461538461538
+      },
+      "f0_5_best_constant_classifier": {
+        "standard_deviation": "NaN",
+        "value": 0.29411764705882
+      },
+      "f1": {
+        "standard_deviation": "NaN",
+        "value": 0.5
+      },
+      "f1_best_constant_classifier": {
+        "standard_deviation": "NaN",
+        "value": 0.4
+      },
+      "f2": {
+        "standard_deviation": "NaN",
+        "value": 0.71428571428571
+      },
+      "f2_best_constant_classifier": {
+        "standard_deviation": "NaN",
+        "value": 0.625
+      },
+      "false_negative_rate": {
+        "standard_deviation": "NaN",
+        "value": 0
+      },
+      "false_positive_rate": {
+        "standard_deviation": "NaN",
+        "value": 0.66666666666667
+      },
+      "precision": {
+        "standard_deviation": "NaN",
+        "value": 0.33333333333333
+      },
+      "precision_best_constant_classifier": {
+        "standard_deviation": "NaN",
+        "value": 0.25
+      },
+      "precision_recall_curve": {
+        "precisions": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "recalls": [
+          0,
+          0.25,
+          0.5,
+          0.75,
+          1
+        ]
+      },
+      "recall": {
+        "standard_deviation": "NaN",
+        "value": 1
+      },
+      "recall_best_constant_classifier": {
+        "standard_deviation": "NaN",
+        "value": 1
+      },
+      "receiver_operating_characteristic_curve": {
+        "false_positive_rates": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          1
+        ],
+        "true_positive_rates": [
+          0,
+          0.25,
+          0.5,
+          0.75,
+          1,
+          1
+        ]
+      },
+      "true_negative_rate": {
+        "standard_deviation": "NaN",
+        "value": 0.33333333333333
+      },
+      "true_positive_rate": {
+        "standard_deviation": "NaN",
+        "value": 1
+      }
+    }
+  }
