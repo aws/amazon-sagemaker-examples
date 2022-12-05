@@ -79,6 +79,7 @@ These examples introduce SageMaker Autopilot. Autopilot automatically performs f
 - [Housing Prices AutoML](sagemaker-autopilot/housing_prices) shows how to use SageMaker Autopilot for a linear regression problem (predict housing prices).
 - [Portfolio Churn Prediction with Amazon SageMaker Autopilot and Neo4j](autopilot/sagemaker_autopilot_neo4j_portfolio_churn.ipynb) shows how to use SageMaker Autopilot with graph embeddings to predict investment portfolio churn.
 - [Move Amazon SageMaker Autopilot ML models from experimentation to production using Amazon SageMaker Pipelines](autopilot/sagemaker-autopilot-pipelines) shows how to use SageMaker Autopilot in combination with SageMaker Pipelines for end-to-end AutoML training automation.
+- [Amazon SageMaker Autopilot models to serverless endpoints](autopilot/autopilot-serverless-inference) shows how to deploy Autopilot generated models to serverless endpoints.
 
 ### Introduction to Amazon Algorithms
 
@@ -112,7 +113,7 @@ These examples provide quick walkthroughs to get you up and running with Amazon 
 - [JumpStart Machine Translation](introduction_to_amazon_algorithms/jumpstart_machine_translation) demonstrates how to translate text from one language to another language in JumpStart.
 - [JumpStart Named Entity Recognition](introduction_to_amazon_algorithms/jumpstart_named_entity_recognition) demonstrates how to identify named entities such as names, locations etc. in the text in JumpStart.
 - [JumpStart Text to Image](introduction_to_amazon_algorithms/jumpstart_text_to_image) demonstrates how to generate image conditioned on text in JumpStart.
-- [In-context learning with AlexaTM 20B](introduction_to_amazon_algorithms/alexatm20b) demonstrates how to use AlexaTM 20B for in-context-learning in JumpStart.
+- [In-context learning with AlexaTM 20B](introduction_to_amazon_algorithms/jumpstart_alexatm20b) demonstrates how to use AlexaTM 20B for in-context-learning in JumpStart.
 ### Amazon SageMaker RL
 
 The following provide examples demonstrating different capabilities of Amazon SageMaker RL.
