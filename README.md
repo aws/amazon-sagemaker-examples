@@ -30,6 +30,12 @@ As of February 7, 2022, the default branch is named "main". See our [announcemen
 
 ## :notebook: Examples
 
+### Introduction to geospatial capabilities
+
+These examples introduce SageMaker geospatial capabilities which makes it easy to build, train, and deploy ML models using geospatial data.
+
+-[Monitoring Lake Drought with SageMaker Geospatial Capabilities](sagemaker-geospatial/lake-mead-drought-monitoring) shows how to monitor Lake Mead drought using SageMaker geospatial capabilities.
+
 ### Introduction to Ground Truth Labeling Jobs
 
 These examples provide quick walkthroughs to get you up and running with the labeling job workflow for Amazon SageMaker Ground Truth.
