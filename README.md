@@ -269,6 +269,7 @@ These examples show you how to build Machine Learning models with frameworks lik
 These examples show how to use Amazon SageMaker for model training, hosting, and inference through Apache Spark using [SageMaker Spark](https://github.com/aws/sagemaker-spark). SageMaker Spark allows you to interleave Spark Pipeline stages with Pipeline stages that interact with Amazon SageMaker.
 
 - [MNIST with SageMaker PySpark](sagemaker-spark/pyspark_mnist)
+- [Parameterize spark configuration in pipeline PySparkProcessor execution](sagemaker-spark/parameterize-spark-config-pysparkprocessor-pipeline) shows how you can define spark-configuration in different pipeline PysparkProcessor executions
 
 ### Using Amazon SageMaker with Amazon Keyspaces (for Apache Cassandra)
 
