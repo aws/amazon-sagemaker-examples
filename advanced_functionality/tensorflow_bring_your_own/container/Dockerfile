@@ -21,7 +21,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends nginx curl
 # https://www.tensorflow.org/serving/setup#installing_the_modelserver
 RUN echo "deb [arch=amd64] http://storage.googleapis.com/tensorflow-serving-apt stable tensorflow-model-server tensorflow-model-server-universal" | tee /etc/apt/sources.list.d/tensorflow-serving.list
 RUN curl https://storage.googleapis.com/tensorflow-serving-apt/tensorflow-serving.release.pub.gpg | apt-key add -
-RUN apt-get update && apt-get install tensorflow-model-server
+
+RUN curl "http://storage.googleapis.com/tensorflow-serving-apt/pool/tensorflow-model-server-2.1.4/t/tensorflow-model-server/tensorflow-model-server_2.1.4_all.deb" --output tensorflow-model-server_2.1.4_all.deb
+RUN dpkg -i tensorflow-model-server_2.1.4_all.deb
+
+# RUN apt-get update && apt-get install tensorflow-model-server
+RUN apt-get update && apt list -a tensorflow-model-server
 
 ENV PATH="/opt/ml/code:${PATH}"
 
