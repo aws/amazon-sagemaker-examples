@@ -30,6 +30,12 @@ As of February 7, 2022, the default branch is named "main". See our [announcemen
 
 ## :notebook: Examples
 
+### Introduction to geospatial capabilities
+
+These examples introduce SageMaker geospatial capabilities which makes it easy to build, train, and deploy ML models using geospatial data.
+
+-[Monitoring Lake Drought with SageMaker Geospatial Capabilities](sagemaker-geospatial/lake-mead-drought-monitoring) shows how to monitor Lake Mead drought using SageMaker geospatial capabilities.
+
 ### Introduction to Ground Truth Labeling Jobs
 
 These examples provide quick walkthroughs to get you up and running with the labeling job workflow for Amazon SageMaker Ground Truth.
@@ -263,6 +269,7 @@ These examples show you how to build Machine Learning models with frameworks lik
 These examples show how to use Amazon SageMaker for model training, hosting, and inference through Apache Spark using [SageMaker Spark](https://github.com/aws/sagemaker-spark). SageMaker Spark allows you to interleave Spark Pipeline stages with Pipeline stages that interact with Amazon SageMaker.
 
 - [MNIST with SageMaker PySpark](sagemaker-spark/pyspark_mnist)
+- [Parameterize spark configuration in pipeline PySparkProcessor execution](sagemaker-spark/parameterize-spark-config-pysparkprocessor-pipeline) shows how you can define spark-configuration in different pipeline PysparkProcessor executions
 
 ### Using Amazon SageMaker with Amazon Keyspaces (for Apache Cassandra)
 
