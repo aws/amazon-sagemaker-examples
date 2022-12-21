@@ -21,8 +21,8 @@ OUTPUTS_S3_PREFIX_AG_ENSEMBLE = 'outputs_ag_ensemble'
 OUTPUTS_S3_PREFIX_AG_FUSION = 'outputs_ag_fusion'
 
 
-TRAINING_INSTANCE_TYPE = "ml.g4dn.2xlarge"
+TRAINING_INSTANCE_TYPE = "ml.p3.2xlarge"
 HOSTING_INSTANCE_TYPE = "ml.g4dn.2xlarge"
 
 TAG_KEY = 'sagemaker-soln'
-SOLUTION_PREFIX = 'sagemaker-soln-example-churn'
+SOLUTION_PREFIX = 'sagemaker-soln-churn-js-'
