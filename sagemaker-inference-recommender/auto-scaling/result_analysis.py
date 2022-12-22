@@ -14,6 +14,10 @@ cloudwatch = boto3.client('cloudwatch', region_name=region)
 
 
 def analysis_inference_recommender_result(job_name, index=0, upper_threshold=55.0, lower_threshold=45.0):
+    """
+    This function visualizes the benchmarking and derives the target for scaling bases in
+    input thresholds.
+    """
     inference_recommender_job = sm_client.describe_inference_recommendations_job(JobName=job_name)
     endpoint_name = inference_recommender_job['InferenceRecommendations'][index][
         'EndpointConfiguration']['EndpointName']
@@ -25,6 +29,9 @@ def analysis_inference_recommender_result(job_name, index=0, upper_threshold=55.
 
 
 def analysis_evaluation_result(endpoint_name, variant_name, job_name):
+    """
+    Visualize the evaluation job result and get the max invocations.
+    """
     inference_recommender_job = sm_client.describe_inference_recommendations_job(JobName=job_name)
     start_time = (inference_recommender_job['CreationTime'] + timedelta(minutes=5)).strftime('%Y-%m-%dT%H:%M:%S.000Z')
     end_time = (inference_recommender_job['LastModifiedTime'] - timedelta(minutes=6)).strftime('%Y-%m-%dT%H:%M:%S.000Z')
@@ -74,8 +81,13 @@ def analysis_evaluation_result(endpoint_name, variant_name, job_name):
 
     return max_value
 
+
 def analysis_and_visualize(endpoint_name, variant_name, start_time, end_time, upper_threshold=55.0,
                            lower_threshold=45.0, visualize=True):
+    """
+    This function visualizes the benchmarking and derives the target for scaling bases in
+    input thresholds.
+    """
     stats_response = cloudwatch.get_metric_statistics(
         Period=30,
         StartTime=start_time,
@@ -88,14 +100,13 @@ def analysis_and_visualize(endpoint_name, variant_name, start_time, end_time, up
     )
 
     max_value = 0
-    InvocationsList = []  
+    invocations_list = []
     for each in stats_response['Datapoints']:
-        InvocationsList.append(each)
+        invocations_list.append(each)
         if max_value < each['Sum']:
             max_value = each['Sum']
-            
-            
-    InvocationsList = sorted(InvocationsList, key=itemgetter('Timestamp'))
+
+    invocations_list = sorted(invocations_list, key=itemgetter('Timestamp'))
 
     print("Maximum Invocation seen in benchmarking = {}".format(max_value))
     upper_limit = math.floor(max_value * upper_threshold / 100)
@@ -108,7 +119,7 @@ def analysis_and_visualize(endpoint_name, variant_name, start_time, end_time, up
     min_diff = math.inf
     timestamp_upper = datetime.strptime(end_time, '%Y-%m-%dT%H:%M:%S.000Z')
     timestamp_lower = datetime.strptime(start_time, '%Y-%m-%dT%H:%M:%S.000Z')
-    for each in InvocationsList:
+    for each in invocations_list:
         if abs(each['Sum'] - lower_limit) < min_diff:
             min_diff = abs(each['Sum'] - lower_limit)
             timestamp_lower = each['Timestamp']
