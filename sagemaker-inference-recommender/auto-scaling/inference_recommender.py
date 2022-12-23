@@ -8,6 +8,10 @@ sm_client = boto3.client("sagemaker", region_name=region)
 def trigger_inference_recommender_job(model_url, payload_url, container_url, instance_type, execution_role, framework,
                                       framework_version, domain="MACHINE_LEARNING", task="OTHER", model_name="classifier",
                                       mime_type="text/csv"):
+    """
+    This function creates model package, and starts an inference recommender default job.
+    Then it waits for the job to be completed.
+    """
     model_package_arn = create_model_package(model_url, payload_url, container_url, instance_type,
                                              framework, framework_version, domain, task, model_name, mime_type)
     job_name = create_inference_recommender_job(model_package_arn, execution_role)
@@ -17,6 +21,9 @@ def trigger_inference_recommender_job(model_url, payload_url, container_url, ins
 
 def create_model_package(model_url, payload_url, container_url, instance_type, framework, framework_version,
                          domain, task, model_name, mime_type):
+    """
+    This function create a model package with provided input.
+    """
     model_package_group_name = "{}-model-".format(framework) + str(round(time.time()))
     model_package_group_description = "{} models".format(task.lower())
 
@@ -67,6 +74,9 @@ def create_model_package(model_url, payload_url, container_url, instance_type, f
 
 
 def create_inference_recommender_job(model_package_arn, execution_role):
+    """
+    This function creates inference recommender default job.
+    """
     job_name = "recommender-instance-" + str(round(time.time()))
     job_description = "job to find scaling limit"
     job_type = "Default"
@@ -80,6 +90,9 @@ def create_inference_recommender_job(model_package_arn, execution_role):
 
 def trigger_inference_recommender_evaluation_job(model_package_arn, execution_role, endpoint_name, instance_type,
                                                  max_invocations, max_model_latency, spawn_rate):
+    """
+    This function create inference recommender advanced job and waits for its completion.
+    """
     job_name = "scaling-evaluation-" + str(round(time.time()))
     job_description = "evaluate scaling policy"
     job_type = "Advanced"
@@ -100,7 +113,7 @@ def trigger_inference_recommender_evaluation_job(model_package_arn, execution_ro
             "ResourceLimit": {"MaxNumberOfTests": 2, "MaxParallelOfTests": 2},
             "TrafficPattern": {
                 "TrafficType": "PHASES",
-                "Phases": [{"InitialNumberOfUsers": 1, "SpawnRate": 2, "DurationInSeconds": 3600}],
+                "Phases": [{"InitialNumberOfUsers": 1, "SpawnRate": spawn_rate, "DurationInSeconds": 3600}],
             },
         },
         StoppingConditions={
@@ -113,6 +126,9 @@ def trigger_inference_recommender_evaluation_job(model_package_arn, execution_ro
 
 
 def wait_for_job_completion(job_name):
+    """
+    This function waits for the Inference job to the in terminal state.
+    """
     finished = False
     while not finished:
         inference_recommender_job = sm_client.describe_inference_recommendations_job(JobName=job_name)
