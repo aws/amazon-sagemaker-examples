@@ -1,7 +1,7 @@
 import argparse
 import os
+import shutil
 from pprint import pprint
-
 import yaml
 from autogluon.tabular import TabularDataset, TabularPredictor
 
@@ -34,13 +34,25 @@ if __name__ == "__main__":
     parser.add_argument(
         "--output-data-dir", type=str, default=get_env_if_present("SM_OUTPUT_DATA_DIR")
     )
-    parser.add_argument("--model-dir", type=str, default=get_env_if_present("SM_MODEL_DIR"))
-    parser.add_argument("--n_gpus", type=str, default=get_env_if_present("SM_NUM_GPUS"))
-    parser.add_argument("--training_dir", type=str, default=get_env_if_present("SM_CHANNEL_TRAIN"))
     parser.add_argument(
-        "--test_dir", type=str, required=False, default=get_env_if_present("SM_CHANNEL_TEST")
+        "--model-dir", type=str, default=get_env_if_present("SM_MODEL_DIR")
     )
-    parser.add_argument("--ag_config", type=str, default=get_env_if_present("SM_CHANNEL_CONFIG"))
+    parser.add_argument("--n_gpus", type=str, default=get_env_if_present("SM_NUM_GPUS"))
+    parser.add_argument(
+        "--train_dir", type=str, default=get_env_if_present("SM_CHANNEL_TRAIN")
+    )
+    parser.add_argument(
+        "--test_dir",
+        type=str,
+        required=False,
+        default=get_env_if_present("SM_CHANNEL_TEST"),
+    )
+    parser.add_argument(
+        "--ag_config", type=str, default=get_env_if_present("SM_CHANNEL_CONFIG")
+    )
+    parser.add_argument(
+        "--serving_script", type=str, default=get_env_if_present("SM_CHANNEL_SERVING")
+    )
 
     args, _ = parser.parse_known_args()
 
@@ -61,11 +73,13 @@ if __name__ == "__main__":
 
     # ---------------------------------------------------------------- Training
 
-    train_file = get_input_path(args.training_dir)
+    train_file = get_input_path(args.train_dir)
     train_data = TabularDataset(train_file)
 
+    save_path = os.path.normpath(args.model_dir)
+
     ag_predictor_args = config["ag_predictor_args"]
-    ag_predictor_args["path"] = args.model_dir
+    ag_predictor_args["path"] = save_path
     ag_fit_args = config["ag_fit_args"]
 
     predictor = TabularPredictor(**ag_predictor_args).fit(train_data, **ag_fit_args)
@@ -96,3 +110,15 @@ if __name__ == "__main__":
         if config.get("leaderboard", False):
             lb = predictor.leaderboard(silent=False)
             lb.to_csv(f"{args.output_data_dir}/leaderboard.csv")
+
+    if args.serving_script:
+        print("Saving serving script")
+        serving_script_saving_path = os.path.join(save_path, "code")
+        os.mkdir(serving_script_saving_path)
+        serving_script_path = get_input_path(args.serving_script)
+        shutil.move(
+            serving_script_path,
+            os.path.join(
+                serving_script_saving_path, os.path.basename(serving_script_path)
+            ),
+        )
