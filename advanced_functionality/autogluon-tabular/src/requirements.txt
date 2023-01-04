@@ -1,0 +1,5 @@
+pip
+wheel 
+setuptools
+autogluon==0.1.0
+PrettyTable
