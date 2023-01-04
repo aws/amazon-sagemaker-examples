@@ -13,6 +13,13 @@
 """
 Train JAX model and serialize as TF SavedModel
 """
+
+# Do not allow TF to take all GPU memory
+import os
+
+os.environ["TF_FORCE_GPU_ALLOW_GROWTH"] = "true"
+
+
 import argparse
 import functools
 import time
@@ -44,9 +51,7 @@ class PureJaxMNIST:
 
     @staticmethod
     def predict(params, inputs, with_classifier=True):
-        x = inputs.reshape(
-            (inputs.shape[0], np.prod(inputs.shape[1:]))
-        )  # flatten to f32[B, 784]
+        x = inputs.reshape((inputs.shape[0], np.prod(inputs.shape[1:])))  # flatten to f32[B, 784]
         for w, b in params[:-1]:
             x = jnp.dot(x, w) + b
             x = jnp.tanh(x)
@@ -70,18 +75,13 @@ class PureJaxMNIST:
             predicted_class = jnp.argmax(predict(params, inputs), axis=1)
             return jnp.mean(predicted_class == target_class)
 
-        batched = [
-            _per_batch(inputs, labels) for inputs, labels in tfds.as_numpy(dataset)
-        ]
+        batched = [_per_batch(inputs, labels) for inputs, labels in tfds.as_numpy(dataset)]
         return jnp.mean(jnp.stack(batched))
 
     @staticmethod
     def update(params, step_size, inputs, labels):
         grads = jax.grad(PureJaxMNIST.loss)(params, inputs, labels)
-        return [
-            (w - step_size * dw, b - step_size * db)
-            for (w, b), (dw, db) in zip(params, grads)
-        ]
+        return [(w - step_size * dw, b - step_size * db) for (w, b), (dw, db) in zip(params, grads)]
 
     @staticmethod
     def train(train_ds, test_ds, num_epochs, step_size, with_classifier=True):
@@ -117,14 +117,14 @@ def save_model_tf(prediction_function, params_to_save):
     tf_graph = tf.function(
         lambda inputs: tf_fun(param_vars, inputs),
         autograph=False,
-        experimental_compile=True,
+        jit_compile=False,
     )
 
     # This signature is needed for TensorFlow Serving use.
     signatures = {}
-    signatures[
-        tf.saved_model.DEFAULT_SERVING_SIGNATURE_DEF_KEY
-    ] = tf_graph.get_concrete_function(tf.TensorSpec((1, 28, 28, 1), tf.float32))
+    signatures[tf.saved_model.DEFAULT_SERVING_SIGNATURE_DEF_KEY] = tf_graph.get_concrete_function(
+        tf.TensorSpec((1, 28, 28, 1), tf.float32)
+    )
 
     wrapper = _ReusableSavedModelWrapper(tf_graph, param_vars)
     model_dir = "/opt/ml/model/1"
@@ -157,6 +157,7 @@ class _ReusableSavedModelWrapper(tf.train.Checkpoint):
 
 def _parse_args():
     parser = argparse.ArgumentParser()
+    parser.add_argument("--model_dir", type=str)
     parser.add_argument("--num_epochs", type=int, default=3)
     parser.add_argument("--batch_size", type=int, default=16)
     parser.add_argument("--learning_rate", type=float, default=0.001)
