@@ -16,3 +16,4 @@ These examples provide a gentle introduction to machine learning concepts as the
 - [Traffic violations forecasting using DeepAR](deepar_chicago_traffic_violations) is an example to use daily traffic violation data to predict pattern and seasonality to use Amazon DeepAR alogorithm.
 - [Visual Inspection Automation with Pre-trained Amazon SageMaker Models](visual_object_detection) is an example for fine-tuning pre-trained Amazon Sagemaker models on a target dataset.
 - [Create SageMaker Models Using the PyTorch Model Zoo](sagemaker_pytorch_model_zoo) contains an example notebook to create a SageMaker model leveraging the PyTorch Model Zoo and visualize the results.
+- [Fraud Detection Using Graph Neural Networks](fraud_detection_using_graph_neural_networks) is an example to identify fraudulent transactions from transaction and user identity datasets.
