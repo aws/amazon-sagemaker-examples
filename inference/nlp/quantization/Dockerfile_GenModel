@@ -22,7 +22,6 @@ RUN apt-get -y update && apt-get install -y --no-install-recommends --fix-missin
          google-perftools \
          libjemalloc-dev \
          numactl &&\
-#         python-qt4 &&\
          rm -rf /var/lib/apt/lists/*
 
 
@@ -78,7 +77,6 @@ ENV PATH="/opt/program:${PATH}"
 ENV SM_MODEL_DIR="/opt/program/model"
 
 # Set up the program in the image
-#COPY image_classification /opt/program
 COPY bert_flask /opt/program
 
 RUN chmod 755 /opt/program

@@ -22,7 +22,6 @@ RUN apt-get -y update && apt-get install -y --no-install-recommends --fix-missin
          google-perftools \
          libjemalloc-dev \
          numactl &&\
-#         python-qt4 &&\
          rm -rf /var/lib/apt/lists/*
 
 
@@ -67,9 +66,6 @@ ENV LD_PRELOAD="/usr/lib/x86_64-linux-gnu/libjemalloc.so:/usr/local/lib/libiomp5
 RUN pip install flask gevent gunicorn && \
         rm -rf /root/.cache
 
-#RUN pip install http://download.pytorch.org/whl/cpu/torch-1.0.0-cp36-cp36m-linux_x86_64.whl
-#RUN pip install fastai
-
 # Set some environment variables. PYTHONUNBUFFERED keeps Python from buffering our standard
 # output stream, which means that logs can be delivered to the user quickly. PYTHONDONTWRITEBYTECODE
 # keeps Python from writing the .pyc files which are unnecessary in this case. We also update
@@ -81,7 +77,6 @@ ENV PATH="/opt/program:${PATH}"
 ENV SM_MODEL_DIR="/opt/program/model"
 
 # Set up the program in the image
-# COPY image_classification /opt/program
 COPY bert_flask /opt/program
 
 RUN chmod 755 /opt/program
