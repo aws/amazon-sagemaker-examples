@@ -69,7 +69,7 @@ We recommend the following notebooks as a broad introduction to the capabilities
 
    sagemaker-lineage/sagemaker-lineage-multihop-queries_outputs
    sagemaker_model_monitor/introduction/SageMaker-ModelMonitoring_outputs
-   sagemaker_processing/fairness_and_explainability/fairness_and_explainability_outputs
+   sagemaker_clarify/fairness_and_explainability/fairness_and_explainability_outputs
 
 
 .. toctree::
