@@ -105,15 +105,6 @@ deepar
    ../introduction_to_amazon_algorithms/deepar_electricity/DeepAR-Electricity
    ../introduction_to_applying_machine_learning/deepar_chicago_traffic_violations/deepar_chicago_traffic_violations
 
-
-linear_learner
---------------
-
-.. toctree::
-   :maxdepth: 1
-
-   ../introduction_to_applying_machine_learning/linear_time_series_forecast/linear_time_series_forecast
-
 Supervised learning algorithms
 ====================================
 
@@ -164,7 +155,6 @@ Basic
    ../introduction_to_amazon_algorithms/xgboost_mnist/xgboost_mnist
    ../introduction_to_amazon_algorithms/xgboost_abalone/xgboost_abalone
    ../introduction_to_applying_machine_learning/xgboost_customer_churn/xgboost_customer_churn
-   ../introduction_to_applying_machine_learning/xgboost_direct_marketing/xgboost_direct_marketing_sagemaker
 
 
 Advanced

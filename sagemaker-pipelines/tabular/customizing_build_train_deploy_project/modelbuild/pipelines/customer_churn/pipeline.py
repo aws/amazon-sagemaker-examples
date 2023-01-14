@@ -31,8 +31,9 @@ from sagemaker.inputs import TrainingInput
 from sagemaker.model_metrics import MetricsSource, ModelMetrics
 from sagemaker.processing import ProcessingInput, ProcessingOutput, ScriptProcessor
 from sagemaker.sklearn.processing import SKLearnProcessor
-from sagemaker.workflow.condition_step import ConditionStep, JsonGet
+from sagemaker.workflow.condition_step import ConditionStep
 from sagemaker.workflow.conditions import ConditionGreaterThanOrEqualTo
+from sagemaker.workflow.functions import JsonGet
 from sagemaker.workflow.parameters import ParameterInteger, ParameterString
 from sagemaker.workflow.pipeline import Pipeline
 from sagemaker.workflow.properties import PropertyFile
@@ -89,9 +90,6 @@ def get_pipeline(
 
     # Parameters for pipeline execution
     processing_instance_count = ParameterInteger(name="ProcessingInstanceCount", default_value=1)
-    processing_instance_type = ParameterString(
-        name="ProcessingInstanceType", default_value="ml.m5.xlarge"
-    )
     training_instance_type = ParameterString(
         name="TrainingInstanceType", default_value="ml.m5.xlarge"
     )
@@ -106,7 +104,7 @@ def get_pipeline(
 
     # Processing step for feature engineering
     sklearn_processor = SKLearnProcessor(
-        framework_version="0.23-1",
+        framework_version="1.0-1",
         instance_type=processing_instance_type,
         instance_count=processing_instance_count,
         base_job_name=f"{base_job_prefix}/sklearn-CustomerChurn-preprocess",  # choose any name
@@ -132,7 +130,7 @@ def get_pipeline(
         region=region,
         version="1.0-1",
         py_version="py3",
-        instance_type=training_instance_type,
+        instance_type="ml.m5.xlarge",
     )
     xgb_train = Estimator(
         image_uri=image_uri,
@@ -176,7 +174,7 @@ def get_pipeline(
     script_eval = ScriptProcessor(
         image_uri=image_uri,
         command=["python3"],
-        instance_type=processing_instance_type,
+        instance_type="ml.m5.xlarge",
         instance_count=1,
         base_job_name=f"{base_job_prefix}/script-CustomerChurn-eval",
         sagemaker_session=sagemaker_session,
@@ -236,7 +234,7 @@ def get_pipeline(
     # Condition step for evaluating model quality and branching execution
     cond_lte = ConditionGreaterThanOrEqualTo(  # You can change the condition here
         left=JsonGet(
-            step=step_eval,
+            step_name=step_eval.name,
             property_file=evaluation_report,
             json_path="binary_classification_metrics.accuracy.value",  # This should follow the structure of your report_dict defined in the evaluate.py file.
         ),
@@ -253,7 +251,6 @@ def get_pipeline(
     pipeline = Pipeline(
         name=pipeline_name,
         parameters=[
-            processing_instance_type,
             processing_instance_count,
             training_instance_type,
             model_approval_status,

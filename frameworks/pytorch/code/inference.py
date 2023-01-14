@@ -1,6 +1,7 @@
 import json
 import logging
 import sys
+import os
 
 import torch
 import torch.nn as nn
@@ -32,10 +33,12 @@ class Net(nn.Module):
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-
-def model_fn(model_dir):
-    model = Net().to(device)
-    model.eval()
+# defining model and loading weights to it.
+def model_fn(model_dir): 
+    model = Net()   
+    with open(os.path.join(model_dir, "model.pth"), "rb") as f:
+        model.load_state_dict(torch.load(f))
+    model.to(device).eval()
     return model
 
 

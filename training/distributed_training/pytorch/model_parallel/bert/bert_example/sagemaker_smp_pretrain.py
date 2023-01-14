@@ -35,6 +35,7 @@ import sys
 import time
 from concurrent.futures import ProcessPoolExecutor
 
+import torch
 import amp_C
 import apex_C
 import h5py
@@ -43,7 +44,6 @@ import numpy as np
 
 # SMP: Import smp library
 import smdistributed.modelparallel.torch as smp
-import torch
 from apex import amp
 from apex.amp import _amp_state
 from apex.parallel import DistributedDataParallel as DDP

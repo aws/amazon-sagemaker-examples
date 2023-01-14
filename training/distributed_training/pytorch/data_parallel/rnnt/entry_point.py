@@ -13,19 +13,31 @@ import subprocess
 import sys
 import os
 
-exe = 'python'
+exe = "python"
 
-trainer = '/workspace/rnnt/train.py'
+trainer = "/workspace/rnnt/train.py"
 
 cmd_list = [exe] + [trainer] + sys.argv[1:]
-cmd = ' '.join(cmd_list)
+cmd = " ".join(cmd_list)
 
-cmd += ' '
-cmd += '--dataset_dir ' + os.environ['SM_CHANNEL_TRAIN'] + '/datasets/LibriSpeech/ '
-cmd += '--output_dir ' + os.environ['SM_OUTPUT_DIR'] + ' '
-cmd += '--val_manifests ' + os.environ['SM_CHANNEL_TRAIN'] + '/tokenized/librispeech-dev-clean-wav-tokenized.pkl '
-cmd += '--train_manifests ' + os.environ['SM_CHANNEL_TRAIN'] + '/tokenized/librispeech-train-clean-100-wav-tokenized.pkl ' + os.environ['SM_CHANNEL_TRAIN'] + '/tokenized/librispeech-train-clean-360-wav-tokenized.pkl ' + os.environ['SM_CHANNEL_TRAIN'] + '/tokenized/librispeech-train-other-500-wav-tokenized.pkl '
+cmd += " "
+cmd += "--dataset_dir " + os.environ["SM_CHANNEL_TRAIN"] + "/datasets/LibriSpeech/ "
+cmd += "--output_dir " + os.environ["SM_OUTPUT_DIR"] + " "
+cmd += (
+    "--val_manifests "
+    + os.environ["SM_CHANNEL_TRAIN"]
+    + "/tokenized/librispeech-dev-clean-wav-tokenized.pkl "
+)
+cmd += (
+    "--train_manifests "
+    + os.environ["SM_CHANNEL_TRAIN"]
+    + "/tokenized/librispeech-train-clean-100-wav-tokenized.pkl "
+    + os.environ["SM_CHANNEL_TRAIN"]
+    + "/tokenized/librispeech-train-clean-360-wav-tokenized.pkl "
+    + os.environ["SM_CHANNEL_TRAIN"]
+    + "/tokenized/librispeech-train-other-500-wav-tokenized.pkl "
+)
 
-print('Final command is: ', cmd)
+print("Final command is: ", cmd)
 
 subprocess.run(cmd, shell=True)

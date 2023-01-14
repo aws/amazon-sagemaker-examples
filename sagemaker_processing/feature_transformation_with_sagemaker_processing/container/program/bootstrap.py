@@ -10,7 +10,7 @@ import psutil
 
 HADOOP_CONFIG_PATH = "/opt/hadoop-config/"
 HADOOP_PATH = "/usr/hadoop-3.0.0"
-SPARK_PATH = "/usr/spark-2.4.4"
+SPARK_PATH = "/usr/spark-3.2.0"
 
 
 def copy_cluster_config():

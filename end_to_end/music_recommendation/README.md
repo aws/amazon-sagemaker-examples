@@ -54,17 +54,12 @@ For this tutorial, we'll be using our own generated track and user ratings data,
 # Approach
 
 In the following notebooks we'll take 2 different approaches with the same modeling solution to create our music recommender.
-1. Run each notebook, 02a_ to 05_, to walkthrough each data prep and modeling step
+1. Run the following notebooks in order to walkthrough each data prep and modeling step
     - 01_music_dataprep.flow: Flow file defining our data input and transformation steps; this file is created in the Sagemaker Data Wrangler GUI
-    - 02a_export_fs_tracks.ipynb: export our tracks data created in Data Wrangler to a feature store
-    - 02b_export_fs_5star_features.ipynb: export our 5-star rated tracks data created in Data Wrangler to a feature store
-    - 02c_fs_create_ratings.ipynb: export our user ratings data created in Data Wrangler to a feature store
-    - 03_train_model_lineage_registry_debugger.ipynb: train the model using xgboost to predict each song rating for each user
-    - 04_inference_explainability.ipynb: go over feature importances using SHAP values
-    - 05_model_monitor.ipynb: setup Sagemaker Model Monitor
+    - 02_export_feature_groups.ipynb: export our tracks data, 5-star rated tracks data, and user ratings data created in Data Wrangler to a feature store
+    - 03_train_deploy_debugger_explain_monitor_registry.ipynb: train and deploy the model using xgboost to predict each song rating for each user. We also go over feature importances using SHAP values and setup Sagemaker Model Monitor.
 1. Setup a Sagemaker Pipeline to do all the aformentioned steps in a single notebook so that it can be ran automatically over time
-    - 01_music_dataprep.flow: Flow file defining our data input and transformation steps; this file is created in the Sagemaker Data Wrangler GUI
-    - 06_pipeline.ipynb: setup each modeling step using sagemaker.workflow Pipeline object
+    - end_to_end_pipeline.ipynb: setup each modeling step using sagemaker.workflow Pipeline object
 
 ### Solution Architecture
 ![architecture diagram](./images/music-rec-2c-all-mlops.png)
@@ -72,4 +67,4 @@ In the following notebooks we'll take 2 different approaches with the same model
 
 # Clean Up
 
-In order to prevent ongoing charges to your AWS account, clean up any resources we spun up during this tutorial. We've also included a notebook, `07_clean_up.ipynb`, to delete all resources spun up by this demo. 
+In order to prevent ongoing charges to your AWS account, clean up any resources we spun up during this tutorial at the end of notebooks [Train, Deploy, and Monitor the Music Recommender Model using SageMaker SDK](03_train_deploy_debugger_explain_monitor_registry.ipynb) and [Train, Deploy, and Monitor the Music Recommender Model using SageMaker Pipelines](end_to_end_pipeline.ipynb).

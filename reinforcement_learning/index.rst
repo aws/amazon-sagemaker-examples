@@ -19,19 +19,6 @@ Get started with RL
 ..
    TODO: fix model deployment headings
 
-AWS DeepRacer
-=============
-
-Use RL to train an autonomous AWS DeepRacer. This is a jailbreaker for the AWS DeepRacer; it gives a glimpse at the architecture used to get the DeepRacer working.
-
-.. toctree::
-   :maxdepth: 0
-
-   rl_deepracer_robomaker_coach_gazebo/deepracer_rl
-
-..
-   TODO: add video, convert readme
-
 
 Cart pole
 =========
@@ -190,6 +177,17 @@ Play global thermonuclear war with a computer.
    rl_tic_tac_toe_coach_customEnv/rl_tic_tac_toe_coach_customEnv
 
 
+Stock Trading
+------------
+
+Try stock trading with SageMaker RL.
+
+.. toctree::
+   :maxdepth: 0
+
+   rl_stock_trading_coach_customEnv/rl_stock_trading_coach_customEnv
+
+ 
 Traveling salesman problem
 --------------------------
 
