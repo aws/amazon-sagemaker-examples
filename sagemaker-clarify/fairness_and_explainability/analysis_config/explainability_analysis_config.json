@@ -1,0 +1,27 @@
+{
+    "dataset_type": "text/csv",
+    "headers": ["Target", "Age", "Workclass", "fnlwgt", "Education", "Education-Num", "Marital Status", "Occupation", "Relationship", "Ethnic group", "Sex", "Capital Gain", "Capital Loss", "Hours per week", "Country"],
+    "label": "Target",
+    "methods": {
+        "shap": {
+            "baseline": [
+                [38.44, 2.19, 189793.83, 10.33, 10.12, 2.58, 5.96, 1.42, 3.68, 0.68, 1092, 88.37, 40.93, 36.38]
+            ],
+            "num_samples": 15,
+            "agg_method": "mean_abs",
+            "use_logit": false,
+            "save_local_shap_values": true
+        },
+        "report": {
+            "name": "report",
+            "title": "Analysis Report"
+        }
+    },
+    "predictor": {
+        "model_name": "DEMO-clarify-xgboost-model",
+        "instance_type": "ml.m5.xlarge",
+        "initial_instance_count": 1,
+        "accept_type": "text/csv",
+        "content_type": "text/csv"
+    }
+}
