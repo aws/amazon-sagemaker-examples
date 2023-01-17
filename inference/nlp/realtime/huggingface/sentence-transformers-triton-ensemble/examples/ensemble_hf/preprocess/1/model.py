@@ -5,6 +5,7 @@ import subprocess
 import sys
 
 import triton_python_backend_utils as pb_utils
+import transformers
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -16,10 +17,6 @@ class TritonPythonModel:
 
     def initialize(self, args):
         self.model_dir = args['model_repository']
-        subprocess.check_call([sys.executable, "-m", "pip", "install", '-r', f'{self.model_dir}/requirements.txt'])
-        global transformers
-        import transformers
-
         self.tokenizer = transformers.AutoTokenizer.from_pretrained('sentence-transformers/all-MiniLM-L6-v2')
         self.model_config = model_config = json.loads(args['model_config'])
 

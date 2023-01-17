@@ -23,7 +23,7 @@ if __name__ == "__main__":
         export_params=True,
         opset_version=10,
         input_names=["token_ids", "attn_mask"],
-        output_names=["output"],
+        output_names=["output","pooled_embeds"],
         dynamic_axes={"token_ids": [0, 1], "attn_mask": [0, 1], "output": [0]},
     )
 

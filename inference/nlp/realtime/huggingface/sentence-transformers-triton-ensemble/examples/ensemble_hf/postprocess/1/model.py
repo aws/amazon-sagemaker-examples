@@ -4,6 +4,7 @@ import numpy as np
 import subprocess
 import sys
 import os
+import torch
 
 import triton_python_backend_utils as pb_utils
 
@@ -24,10 +25,6 @@ class TritonPythonModel:
 
     def initialize(self, args):
         self.model_dir = args['model_repository']
-        subprocess.check_call([sys.executable, "-m", "pip", "install", '-r', f'{self.model_dir}/requirements.txt'])
-        global torch
-        import torch 
-        
         self.device_id = args['model_instance_device_id']
         self.model_config = model_config = json.loads(args['model_config'])
         self.device = torch.device(f'cuda:{self.device_id}') if torch.cuda.is_available() else torch.device('cpu')
