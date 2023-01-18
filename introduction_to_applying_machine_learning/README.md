@@ -4,6 +4,7 @@
 
 These examples provide a gentle introduction to machine learning concepts as they are applied in practical use cases across a variety of sectors.
 
+- [LightGBM_Distributed_Training_Dask](sagemaker_lightgbm_distributed_training_dask) demonstrates the distributed training of Amazon SageMaker's implementation of [LightGBM](https://lightgbm.readthedocs.io/en/latest/) using [Dask](https://www.dask.org/).
 - [Predicting Customer Churn](xgboost_customer_churn) uses customer interaction and service usage data to find those most likely to churn, and then walks through the cost/benefit trade-offs of providing retention incentives.  This uses Amazon SageMaker's implementation of [XGBoost](https://github.com/dmlc/xgboost) to create a highly predictive model.
 - [Predicting Customer Churn](lightgbm_catboost_tabtransformer_autogluon_churn) uses Amazon SageMaker's implementation of [LightGBM](https://lightgbm.readthedocs.io/en/latest/), [CatBoost](https://catboost.ai/), [TabTransformer](https://arxiv.org/abs/2012.06678), and [AutoGluon-Tabular](https://auto.gluon.ai/stable/index.html) with [SageMaker Automatic Model Tuning](https://docs.aws.amazon.com/sagemaker/latest/dg/automatic-model-tuning.html) to create four predictive models on customer churn dataset, and evaluate their performance on the same test data.
 - [Cancer Prediction](breast_cancer_prediction) predicts Breast Cancer based on features derived from images, using SageMaker's Linear Learner.
