@@ -4,6 +4,7 @@
 
 These examples provide a gentle introduction to machine learning concepts as they are applied in practical use cases across a variety of sectors.
 
+- [LightGBM_Distributed_Training_Dask](sagemaker_lightgbm_distributed_training_dask) demonstrates the distributed training of Amazon SageMaker's implementation of [LightGBM](https://lightgbm.readthedocs.io/en/latest/) using [Dask](https://www.dask.org/).
 - [Predicting Customer Churn](xgboost_customer_churn) uses customer interaction and service usage data to find those most likely to churn, and then walks through the cost/benefit trade-offs of providing retention incentives.  This uses Amazon SageMaker's implementation of [XGBoost](https://github.com/dmlc/xgboost) to create a highly predictive model.
 - [Predicting Customer Churn](lightgbm_catboost_tabtransformer_autogluon_churn) uses Amazon SageMaker's implementation of [LightGBM](https://lightgbm.readthedocs.io/en/latest/), [CatBoost](https://catboost.ai/), [TabTransformer](https://arxiv.org/abs/2012.06678), and [AutoGluon-Tabular](https://auto.gluon.ai/stable/index.html) with [SageMaker Automatic Model Tuning](https://docs.aws.amazon.com/sagemaker/latest/dg/automatic-model-tuning.html) to create four predictive models on customer churn dataset, and evaluate their performance on the same test data.
 - [Cancer Prediction](breast_cancer_prediction) predicts Breast Cancer based on features derived from images, using SageMaker's Linear Learner.
@@ -17,4 +18,5 @@ These examples provide a gentle introduction to machine learning concepts as the
 - [Visual Inspection Automation with Pre-trained Amazon SageMaker Models](visual_object_detection) is an example for fine-tuning pre-trained Amazon Sagemaker models on a target dataset.
 - [Create SageMaker Models Using the PyTorch Model Zoo](sagemaker_pytorch_model_zoo) contains an example notebook to create a SageMaker model leveraging the PyTorch Model Zoo and visualize the results.
 - [Credit Card Fraud Detector](credit_card_fraud_detector) is an example of the core of a credit card fraud detection system using SageMaker with Random Cut Forest and XGBoost.
+- [Fraud Detection Using Graph Neural Networks](fraud_detection_using_graph_neural_networks) is an example to identify fraudulent transactions from transaction and user identity datasets.
 - [Identify key insights from textual document](identify_key_insights_from_textual_document) contains comphrensive notebooks for five natural language processing tasks Document Summarization, Text Classification, Question and Answering, Name Entity Recognition, and Semantic Relation Extracion.
