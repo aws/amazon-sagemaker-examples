@@ -67,3 +67,11 @@ Joined Dataflow
    :maxdepth: 1
    
    joined-dataflow/index
+
+Explore and clean tabular data in notebook
+-----------------------------------------------------
+
+.. toctree::
+   :maxdepth: 1
+   
+   /aws_sagemaker_studio/sagemaker_data_prep_assistant/data_prep_widget
