@@ -1,0 +1,7 @@
+/opt/ml/model/code/dependencies/gluonts-0.8.1-py3-none-any.whl
+/opt/ml/model/code/dependencies/pydantic-1.7-cp37-cp37m-manylinux2014_x86_64.whl
+/opt/ml/model/code/dependencies/holidays-0.9.12.tar.gz
+/opt/ml/model/code/dependencies/typing_extensions-3.10.0.2-py3-none-any.whl
+/opt/ml/model/code/dependencies/toolz-0.11.1-py3-none-any.whl
+/opt/ml/model/code/dependencies/pandas-1.0.5-cp37-cp37m-manylinux1_x86_64.whl
+/opt/ml/model/code/dependencies/pytz-2020.1-py2.py3-none-any.whl
