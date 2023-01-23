@@ -18,6 +18,8 @@ Deep learning deployment on the edge for real-time inference is key to many appl
 6. SageMaker access to create a Notebook with instructions to launch an endpoint.
 7. Access to S3 bucket for uploading model and code. 
 
+![Architecture](img/SageMaker-c6i-Inference.png)
+
 ## Steps Involved
 1. Using an EC2 instance to build a docker image.
 2. Execute the python scripts supplied to perform the quantization and model creation.
