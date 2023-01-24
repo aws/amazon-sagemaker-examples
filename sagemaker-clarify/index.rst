@@ -11,6 +11,7 @@ SageMaker Clarify Processing
 
    fairness_and_explainability/fairness_and_explainability
    fairness_and_explainability/fairness_and_explainability_jsonlines_format
+   fairness_and_explainability/fairness_and_explainability_pdp
    fairness_and_explainability/fairness_and_explainability_byoc
    fairness_and_explainability/fairness_and_explainability_spark
    text_explainability/text_explainability
