@@ -15,7 +15,7 @@ Parameters:
 Examples:
 
 ```
-./build_image.sh image_tensorrt nvidia-tensorrt-21.08 latest Dockerfile linux/amd64
+./build_image.sh image_tensorrt nvidia-tensorrt-22.10 latest Dockerfile linux/amd64
 ```
 
 ## create_studio_image.sh
@@ -35,7 +35,7 @@ Parameters:
 Examples:
 
 ```
-./create_studio_image.sh image_tensorrt nvidia-tensorrt-21.08 nvidia-tensorrt-21-08 arn:aws:iam::<ACCOUNT_ID>:role/mlops-sagemaker-execution-role
+./create_studio_image.sh image_tensorrt nvidia-tensorrt-22.10 nvidia-tensorrt-22-10 arn:aws:iam::<ACCOUNT_ID>:role/mlops-sagemaker-execution-role
 ```
 
 ## update_studio_image.sh
@@ -55,7 +55,7 @@ Parameters:
 Examples:
 
 ```
-./update_studio_image.sh image_tensorrt nvidia-tensorrt-21.08 nvidia-tensorrt-21-08 arn:aws:iam::<ACCOUNT_ID>:role/mlops-sagemaker-execution-role
+./update_studio_image.sh image_tensorrt nvidia-tensorrt-22.10 nvidia-tensorrt-22-10 arn:aws:iam::<ACCOUNT_ID>:role/mlops-sagemaker-execution-role
 ```
 
 ## update_studio_domain.sh

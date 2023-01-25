@@ -4,8 +4,8 @@
         "KernelGatewayAppSettings": {
             "CustomImages": [
                 {
-                    "ImageName": "nvidia-tensorrt-21-08",
-                    "AppImageConfigName": "nvidia-tensorrt-21-08-config"
+                    "ImageName": "nvidia-tensorrt-22-10",
+                    "AppImageConfigName": "nvidia-tensorrt-22-10-config"
                 }
             ]
         }

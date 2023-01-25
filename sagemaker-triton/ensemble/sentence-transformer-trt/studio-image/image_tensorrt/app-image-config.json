@@ -1,5 +1,5 @@
 {
-    "AppImageConfigName": "nvidia-tensorrt-21-08-config",
+    "AppImageConfigName": "nvidia-tensorrt-22-10-config",
     "KernelGatewayImageConfig": {
         "KernelSpecs": [
             {

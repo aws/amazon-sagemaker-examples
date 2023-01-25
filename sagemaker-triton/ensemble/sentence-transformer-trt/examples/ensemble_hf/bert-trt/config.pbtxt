@@ -20,7 +20,7 @@ output [
     dims: [128, 384]
   },
   {
-    name: "854"
+    name: "pooled_embeds"
     data_type: TYPE_FP32
     dims: [384]
   }
