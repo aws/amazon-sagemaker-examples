@@ -1,0 +1,31 @@
+{
+    "dataset_type": "text/csv",
+    "headers": ["Target", "Age", "Workclass", "fnlwgt", "Education", "Education-Num", "Marital Status", "Occupation", "Relationship", "Ethnic group", "Sex", "Capital Gain", "Capital Loss", "Hours per week", "Country"],
+    "label": "Target",
+    "label_values_or_threshold": [1],
+    "facet": [{
+        "name_or_index": "Sex",
+        "value_or_threshold": [0]
+    }],
+    "group_variable": "Age",
+    "probability_threshold": 0.8,
+    "methods": {
+        "pre_training_bias": {
+            "methods": "all"
+        },
+        "post_training_bias": {
+            "methods": "all"
+        },
+        "report": {
+            "name": "report",
+            "title": "Analysis Report"
+        }
+    },
+    "predictor": {
+        "model_name": "DEMO-clarify-xgboost-model",
+        "instance_type": "ml.m5.xlarge",
+        "initial_instance_count": 1,
+        "accept_type": "text/csv",
+        "content_type": "text/csv"
+    }
+}
