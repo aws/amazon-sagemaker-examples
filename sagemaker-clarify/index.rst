@@ -30,6 +30,8 @@ SageMaker Clarify Model Monitoring
    ../sagemaker_model_monitor/fairness_and_explainability/SageMaker-Model-Monitor-Fairness-and-Explainability
    ../sagemaker_model_monitor/fairness_and_explainability_jsonlines/SageMaker-Monitoring-Bias-Drift-for-Endpoint
    ../sagemaker_model_monitor/fairness_and_explainability_jsonlines/SageMaker-Monitoring-Feature-Attribution-Drift-for-Endpoint
+   ../sagemaker_model_monitor/fairness_and_explainability_jsonlines/SageMaker-Monitoring-Bias-Drift-for-Batch-Transform
+   ../sagemaker_model_monitor/fairness_and_explainability_jsonlines/SageMaker-Monitoring-Feature-Attribution-Drift-for-Batch-Transform
    
 SageMaker Clarify Online Explainability
 ---------------------------------------
