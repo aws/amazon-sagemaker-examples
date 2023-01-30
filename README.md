@@ -62,10 +62,11 @@ These examples provide a gentle introduction to machine learning concepts as the
 - [Traffic violations forecasting using DeepAR](introduction_to_applying_machine_learning/deepar_chicago_traffic_violations) is an example to use daily traffic violation data to predict pattern and seasonality to use Amazon DeepAR alogorithm.
 - [Visual Inspection Automation with Pre-trained Amazon SageMaker Models](introduction_to_applying_machine_learning/visual_object_detection) is an example for fine-tuning pre-trained Amazon Sagemaker models on a target dataset.
 - [Create SageMaker Models Using the PyTorch Model Zoo](introduction_to_applying_machine_learning/sagemaker_pytorch_model_zoo) contains an example notebook to create a SageMaker model leveraging the PyTorch Model Zoo and visualize the results.
+- [Deep Demand Forecasting](introduction_to_applying_machine_learning/deep_demand_forecasting) provides an end-to-end solution for Demand Forecasting task using three state-of-the-art time series algorithms LSTNet, Prophet, and SageMaker DeepAR, which are available in GluonTS and Amazon SageMaker.
 - [Fraud Detection Using Graph Neural Networks](introduction_to_applying_machine_learning/fraud_detection_using_graph_neural_networks) is an example to identify fraudulent transactions from transaction and user identity datasets.
 - [Identify key insights from textual document](introduction_to_applying_machine_learning/identify_key_insights_from_textual_document) contains comphrensive notebooks for five natural language processing tasks Document Summarization, Text Classification, Question and Answering, Name Entity Recognition, and Semantic Relation Extracion.
 - [Synthetic Churn Prediction with Text](introduction_to_applying_machine_learning/synthetic_churn_prediction_with_text) contains an example notebook to train, deploy and use a churn prediction model that processed numerical, categorical and textual features to make its prediction.
-
+- [Credit Card Fraud Detector](introduction_to_applying_machine_learning/credit_card_fraud_detector) is an example of the core of a credit card fraud detection system using SageMaker with Random Cut Forest and XGBoost.
 
 ### SageMaker Automatic Model Tuning
 
