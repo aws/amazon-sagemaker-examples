@@ -36,3 +36,4 @@ SageMaker Clarify Online Explainability
 
    online_explainability/tabular/tabular_online_explainability_with_sagemaker_clarify
    online_explainability/natural_language_processing/nlp_online_explainability_with_sagemaker_clarify
+   online_explainability/tabular_multi_model_endpoint/multi_model_xgboost_with_online_explainability
