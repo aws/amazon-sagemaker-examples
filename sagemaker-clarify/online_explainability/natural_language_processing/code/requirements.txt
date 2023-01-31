@@ -1,3 +1,2 @@
 transformers==4.2.1
-torch==1.7.1
 pandas
