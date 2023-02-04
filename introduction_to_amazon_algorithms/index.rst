@@ -73,7 +73,7 @@ Text
    jumpstart_sentence_pair_classification/Amazon_JumpStart_Sentence_Pair_Classification
    jumpstart_text_classification/Amazon_JumpStart_Text_Classification
    jumpstart_text_generation/Amazon_JumpStart_Text_Generation
-
+   text_classification_huggingface/Amazon_JumpStart_HF_Text_Classification
 
 Vision
 -------------------------------------------
