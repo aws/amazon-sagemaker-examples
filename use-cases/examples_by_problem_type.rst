@@ -28,6 +28,7 @@ This section provides example notebooks for different ML problem types supported
            :maxdepth: 1
 
            ../introduction_to_amazon_algorithms/jumpstart_image_classification/Amazon_JumpStart_Image_Classification
+           ../introduction_to_amazon_algorithms/jumpstart_image_classification/Amazon_JumpStart_Image_Classification_Benchmarking.ipynb
    * - Object detection
      - Yes
      - Yes
