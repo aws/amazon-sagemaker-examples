@@ -1,4 +1,4 @@
-backend: "filgpu"
+backend: "fil"
 max_batch_size: 882352
 input [                                 
  {  
