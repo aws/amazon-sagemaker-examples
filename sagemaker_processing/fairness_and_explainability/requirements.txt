@@ -1,7 +1,0 @@
-scikit-learn
-numpy
-pandas
-sagemaker
-matplotlib
-fsspec
-s3fs
