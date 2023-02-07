@@ -14,6 +14,7 @@ SageMaker Clarify Processing
    fairness_and_explainability/fairness_and_explainability_pdp
    fairness_and_explainability/fairness_and_explainability_byoc
    fairness_and_explainability/fairness_and_explainability_spark
+   fairness_and_explainability/fairness_and_explainability_boto3
    text_explainability/text_explainability
    text_explainability_sagemaker_algorithm/byo_blazingtext_model_hosting
    computer_vision/image_classification/explainability_image_classification
@@ -36,3 +37,4 @@ SageMaker Clarify Online Explainability
 
    online_explainability/tabular/tabular_online_explainability_with_sagemaker_clarify
    online_explainability/natural_language_processing/nlp_online_explainability_with_sagemaker_clarify
+   online_explainability/tabular_multi_model_endpoint/multi_model_xgboost_with_online_explainability

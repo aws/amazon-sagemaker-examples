@@ -61,5 +61,4 @@ TensorFlow
 .. toctree::
    :maxdepth: 1
 
-   tensorflow_cifar-10_with_inference_script/tensorflow-serving-cifar10-python-sdk   
    custom_tensorflow_inference_script_csv_and_tfrecord/custom_tensorflow_inference_script_csv_and_tfrecord

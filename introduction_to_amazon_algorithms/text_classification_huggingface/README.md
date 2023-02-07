@@ -1,0 +1,2 @@
+### SageMaker JumpStart HuggingFace Text Classification Training & Deployment
+This notebook `Amazon_JumpStart_HF_Text_Classification.ipynb` for Text Classification demonstrates (a) how to use a pre-trained model available in JumpStart for inference, (b) how to fine-tune a pre-trained Transformer model on a custom dataset using JumpStart transfer learning algorithm, using AMT (Automatic Model Tuning) to search for the best hyperparameters , and how to use the fine-tuned model for inference, and (c) how to run batch inference
