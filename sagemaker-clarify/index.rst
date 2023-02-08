@@ -11,10 +11,10 @@ SageMaker Clarify Processing
 
    fairness_and_explainability/fairness_and_explainability
    fairness_and_explainability/fairness_and_explainability_jsonlines_format
-   fairness_and_explainability/fairness_and_explainability_pdp
    fairness_and_explainability/fairness_and_explainability_byoc
    fairness_and_explainability/fairness_and_explainability_spark
    fairness_and_explainability/fairness_and_explainability_boto3
+   fairness_and_explainability/explainability_with_pdp
    text_explainability/text_explainability
    text_explainability_sagemaker_algorithm/byo_blazingtext_model_hosting
    computer_vision/image_classification/explainability_image_classification
