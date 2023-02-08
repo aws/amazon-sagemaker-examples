@@ -1,6 +1,7 @@
 import json
 import logging
 import sys
+import os
 
 import torch
 import torch.nn as nn
@@ -35,6 +36,8 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 def model_fn(model_dir):
     model = Net().to(device)
+    with open(os.path.join(model_dir, 'model.pth'), 'rb') as f:
+        model.load_state_dict(torch.load(f))
     model.eval()
     return model
 
@@ -48,9 +51,9 @@ def input_fn(request_body, request_content_type):
 
 
 # inference
-def predict_fn(input_object, model):
+def predict_fn(data, model):
     with torch.no_grad():
-        prediction = model(input_object)
+        prediction = model(data)
     return prediction
 
 
