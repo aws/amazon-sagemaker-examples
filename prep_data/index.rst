@@ -20,7 +20,7 @@ Detect pre-training data bias
 .. toctree::
    :maxdepth: 1
 
-   /sagemaker_processing/fairness_and_explainability/fairness_and_explainability
+   /sagemaker-clarify/fairness_and_explainability/fairness_and_explainability
 
 
 Image data guide
