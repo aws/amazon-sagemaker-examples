@@ -22,6 +22,7 @@ from smdistributed.modelparallel.torch.nn import FusedLayerNorm as LayerNorm
 from smdistributed.modelparallel.torch.nn.huggingface.gptj import (
     translate_hf_state_dict_to_smdistributed_gptj,
     translate_state_dict_to_hf_gptj,
+    translate_hf_gptj_state_dict_to_smdistributed,
 )
 from torch import optim
 from torch.nn.parallel.distributed import DistributedDataParallel
@@ -462,7 +463,7 @@ def parse_args():
         help="batch size per dp rank, for tensor parallelism degree 8 with pipeline parallel degree 1 this means 8*this batch size per node",
     )
     opt_grp.add_argument("--val_batch_size", type=int, default=4)
-    opt_grp.add_argument("--max_steps", type=int, default=5000)
+    opt_grp.add_argument("--max_steps", type=int, default=100)
     opt_grp.add_argument("--seed", type=int, default=12345)
     opt_grp.add_argument("--same_seed", type=int, default=0)
     opt_grp.add_argument("--n_gpus", type=str, default=os.environ["SM_NUM_GPUS"])
@@ -490,9 +491,9 @@ def parse_args():
     # I/O
     io_grp = parser.add_argument_group(title="io", description="location for input and output")
     io_grp.add_argument("--use_bert_data", type=int, default=0, help="use wiki corpus data for training")
-    io_grp.add_argument("--zipped_data", type=int, default=1, help="input data is zipped files")
+    io_grp.add_argument("--zipped_data", type=int, default=0, help="input data is zipped files")
     io_grp.add_argument(
-        "--epochs", type=int, default=3, help="times of iterating over the training dataset"
+        "--epochs", type=int, default=1, help="times of iterating over the training dataset"
     )
     io_grp.add_argument("--output-data-dir", type=str, default=os.environ["SM_OUTPUT_DATA_DIR"])
     io_grp.add_argument(
@@ -542,6 +543,7 @@ def parse_args():
     model_grp.add_argument("--attn_pdrop", type=float, default=0.1)
     model_grp.add_argument("--summary_first_pdrop", type=float, default=0.1)
     model_grp.add_argument("--use_adamw", type=int, default=0, help="Use adamw optimizer")
+    model_grp.add_argument("--finetune_6b", type=int, default=0, help="Flag to enable finetune 6B GPTJ model")
     model_grp.add_argument("--use_distributed_transformer", type=int, default=1, help="Use distributed transformer")
     model_grp.add_argument("--checkpoint_sublayers", type=int, default=0, help="Apply activation checkpointing to submodules of each transformer layer")
 
@@ -790,16 +792,32 @@ def main():
     else:
         dtype = torch.get_default_dtype()
 
-    with smp.model_creation(
-        tensor_parallelism=smp.tp_size() > 1 or args.use_distributed_transformer > 0,
-        dtype=dtype,
-        attention_in_fp32=args.attention_in_fp32 > 0,
-        query_key_layer_scaling=args.query_key_layer_scaling > 0 and args.bf16 < 1,
-        fused_softmax=args.fused_softmax > 0,
-        fused_dropout=args.fused_dropout > 0,
-        fused_bias_gelu=args.fused_bias_gelu > 0,
-        ):
-            model = AutoModelForCausalLM.from_config(model_config)
+    if args.finetune_6b:
+        with smp.model_creation(
+            tensor_parallelism=smp.tp_size() > 1 or args.use_distributed_transformer > 0,
+            dtype=dtype,
+            attention_in_fp32=args.attention_in_fp32 > 0,
+            query_key_layer_scaling=args.query_key_layer_scaling > 0 and args.bf16 < 1,
+            fused_softmax=args.fused_softmax > 0,
+            fused_dropout=args.fused_dropout > 0,
+            fused_bias_gelu=args.fused_bias_gelu > 0,
+            ):
+                model = AutoModelForCausalLM.from_pretrained("EleutherAI/gpt-j-6B", revision="float16", torch_dtype=torch.float16)
+                model_config = model.config
+                # translated_state_dict = translate_hf_gptj_state_dict_to_smdistributed(model.state_dict(), max_seq_len=args.max_context_width)
+    else:
+        
+        with smp.model_creation(
+            tensor_parallelism=smp.tp_size() > 1 or args.use_distributed_transformer > 0,
+            dtype=dtype,
+            attention_in_fp32=args.attention_in_fp32 > 0,
+            query_key_layer_scaling=args.query_key_layer_scaling > 0 and args.bf16 < 1,
+            fused_softmax=args.fused_softmax > 0,
+            fused_dropout=args.fused_dropout > 0,
+            fused_bias_gelu=args.fused_bias_gelu > 0,
+            ):
+                model = AutoModelForCausalLM.from_config(model_config)
+            
     if args.enable_memory_profiling > 0:
         memory_status_cpu(msg="after model creation")
 
@@ -823,14 +841,22 @@ def main():
     if args.enable_memory_profiling > 0:
         memory_status_cpu(msg="before dist model creation")
     model = smp.DistributedModel(model, trace_device="gpu", backward_passes_per_step=args.gradient_accumulation)
+    
+    # if args.finetune_6b:
+    #     model.load_state_dict(translated_state_dict)
+    
     if args.enable_memory_profiling > 0:
         memory_status_cpu(msg="after dist model creation")
-
-    m = model.get_module()
-    if args.use_distributed_transformer > 0:
-        transformer_layers = m.transformer.seq_layers
+    
+    if args.fp16:
+        m = model.module
     else:
-        transformer_layers = m.transformer.h
+        m = model
+    
+    if args.use_distributed_transformer > 0:
+        transformer_layers = m.module.module.transformer.seq_layers
+    else:
+        transformer_layers = m.module.module.transformer.h
 
     if args.manual_partition:
         print(f"Manual partition enabled")
