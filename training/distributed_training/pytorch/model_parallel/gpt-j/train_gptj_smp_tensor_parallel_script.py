@@ -95,10 +95,14 @@ def get_param_groups_by_weight_decay(module):
 @smp.step
 def train_step(model, optimizer, input_ids, attention_mask, args):
     if args.logits_output:
-        output = model(input_ids=input_ids, attention_mask=attention_mask, labels=input_ids)
+        output = model(
+            input_ids=input_ids, attention_mask=attention_mask, labels=input_ids
+        )
         loss = output["loss"]
     else:
-        loss = model(input_ids=input_ids, attention_mask=attention_mask, labels=input_ids)["loss"]
+        loss = model(
+            input_ids=input_ids, attention_mask=attention_mask, labels=input_ids
+        )["loss"]
 
     model.backward(loss)
 
@@ -111,7 +115,9 @@ def train_step(model, optimizer, input_ids, attention_mask, args):
 # smdistributed: Define smp.step. Return any tensors needed outside.
 @smp.step
 def test_step(model, input_ids, attention_mask):
-    loss = model(input_ids=input_ids, attention_mask=attention_mask, labels=input_ids)["loss"]
+    loss = model(input_ids=input_ids, attention_mask=attention_mask, labels=input_ids)[
+        "loss"
+    ]
     return loss
 
 
@@ -171,7 +177,8 @@ def train(
             [
                 os.path.join(args.training_dir, p)
                 for p in os.listdir(args.training_dir)
-                if os.path.isfile(os.path.join(args.training_dir, p)) and "training" in p
+                if os.path.isfile(os.path.join(args.training_dir, p))
+                and "training" in p
             ]
         )
     else:
@@ -283,9 +290,13 @@ def train(
 
         if smp.rank() == 0:
             if args.use_bert_data:
-                print(f"Reading data from training path {train_dataloader.dataset.input_file}")
+                print(
+                    f"Reading data from training path {train_dataloader.dataset.input_file}"
+                )
             else:
-                print(f"Reading data from training path {train_dataloader.dataset.input_paths}")
+                print(
+                    f"Reading data from training path {train_dataloader.dataset.input_paths}"
+                )
 
         for batch_idx, input_data in enumerate(train_dataloader):
             if batch_idx < start_batch_index:
@@ -315,7 +326,9 @@ def train(
                 optimizer.zero_grad(set_to_none=True)
 
             if args.logits_output:
-                train_output = train_step(model, optimizer, input_ids, attention_mask, args)
+                train_output = train_step(
+                    model, optimizer, input_ids, attention_mask, args
+                )
                 loss_mb = train_output["loss"]
                 logits_mb = train_output["logits"]
                 if smp.tp_size() > 1:
@@ -330,7 +343,7 @@ def train(
             loss = loss_mb.reduce_mean()
             if not args.validation_freq:
                 loss_metric = loss.item()
-            
+
             if args.enable_memory_profiling > 0:
                 memory_status_cpu("After_train_step_cpu")
                 memory_status(msg="After_train_step")
@@ -339,11 +352,10 @@ def train(
                 # empty the cache to avoid OOM
                 torch.cuda.empty_cache()
 
-
             if grad_accumulation_boundary(batch_idx):
                 if args.fp16:
                     optimizer.clip_master_grads(args.grad_clip)
-                    
+
                 optimizer.step()
                 if not (args.fp16 and optimizer.overflow):
                     lr_scheduler.step()
@@ -394,20 +406,22 @@ def train(
                     "total_steps": total_steps,
                     "start_train_path_index": curr_train_path_index,
                     "model_config": model_config,
-                    "start_batch_index": batch_idx+1,
+                    "start_batch_index": batch_idx + 1,
                 }
                 # to reconstruct the full model
                 if args.sharded_data_parallel_degree > 1:
                     user_content["buffer_names"] = get_buffer_names(model)
                     user_content["param_shapes"] = get_param_shapes(model, optimizer)
                 user_content["lr_scheduler"] = lr_scheduler.state_dict()
-                smp.save_checkpoint(args.checkpoint_dir,
+                smp.save_checkpoint(
+                    args.checkpoint_dir,
                     tag=f"total_steps{total_steps}",
                     partial=True,
                     model=model,
                     optimizer=optimizer,
                     user_content=user_content,
-                    num_kept_partial_checkpoints=args.num_kept_checkpoints)
+                    num_kept_partial_checkpoints=args.num_kept_checkpoints,
+                )
 
             if args.logits_output:
                 to_save["loss"].append(loss.item())
@@ -417,7 +431,9 @@ def train(
                 to_save["logits"] = logits.detach().cpu()
                 output_file = f"rank_{smp.rank()}_" + args.logits_output
                 torch.save(to_save, os.path.join(args.model_dir, output_file))
-                print(f"logits and loss saved at {os.path.join(args.model_dir, output_file)}")
+                print(
+                    f"logits and loss saved at {os.path.join(args.model_dir, output_file)}"
+                )
             break
 
         del train_dataloader
@@ -467,11 +483,19 @@ def parse_args():
     opt_grp.add_argument("--seed", type=int, default=12345)
     opt_grp.add_argument("--same_seed", type=int, default=0)
     opt_grp.add_argument("--n_gpus", type=str, default=os.environ["SM_NUM_GPUS"])
-    opt_grp.add_argument("--fp16", default=0, type=int, help="automatic mixed precision training")
-    opt_grp.add_argument("--bf16", default=0, type=int, help="automatic mixed precision training")
+    opt_grp.add_argument(
+        "--fp16", default=0, type=int, help="automatic mixed precision training"
+    )
+    opt_grp.add_argument(
+        "--bf16", default=0, type=int, help="automatic mixed precision training"
+    )
     opt_grp.add_argument("--sharded_data_parallel_degree", default=1, type=int)
-    opt_grp.add_argument("--grad_clip", default=1.0, type=float, help="gradient clipping")
-    opt_grp.add_argument("--weight_decay", default=0.01, type=float, help="weight decay")
+    opt_grp.add_argument(
+        "--grad_clip", default=1.0, type=float, help="gradient clipping"
+    )
+    opt_grp.add_argument(
+        "--weight_decay", default=0.01, type=float, help="weight decay"
+    )
     opt_grp.add_argument(
         "--beta1", default=0.9, type=float, help="beta1 parameter for Adam optimizer"
     )
@@ -485,17 +509,31 @@ def parse_args():
         help="enable gradient checkpointing to reduce memory consumption",
     )
     parser.add_argument(
-        "--logging_freq", type=int, default=1, help="number of iterations between logging"
+        "--logging_freq",
+        type=int,
+        default=1,
+        help="number of iterations between logging",
     )
 
     # I/O
-    io_grp = parser.add_argument_group(title="io", description="location for input and output")
-    io_grp.add_argument("--use_bert_data", type=int, default=0, help="use wiki corpus data for training")
-    io_grp.add_argument("--zipped_data", type=int, default=0, help="input data is zipped files")
-    io_grp.add_argument(
-        "--epochs", type=int, default=1, help="times of iterating over the training dataset"
+    io_grp = parser.add_argument_group(
+        title="io", description="location for input and output"
     )
-    io_grp.add_argument("--output-data-dir", type=str, default=os.environ["SM_OUTPUT_DATA_DIR"])
+    io_grp.add_argument(
+        "--use_bert_data", type=int, default=0, help="use wiki corpus data for training"
+    )
+    io_grp.add_argument(
+        "--zipped_data", type=int, default=0, help="input data is zipped files"
+    )
+    io_grp.add_argument(
+        "--epochs",
+        type=int,
+        default=1,
+        help="times of iterating over the training dataset",
+    )
+    io_grp.add_argument(
+        "--output-data-dir", type=str, default=os.environ["SM_OUTPUT_DATA_DIR"]
+    )
     io_grp.add_argument(
         "--checkpoint-dir",
         type=str,
@@ -508,7 +546,9 @@ def parse_args():
         default=os.environ["SM_MODEL_DIR"],
         help="Saves full model for inference to this dir. Also used if load_full is given to load the model. Note the lack of optimizer state here.",
     )
-    io_grp.add_argument("--training-dir", type=str, default=os.environ["SM_CHANNEL_TRAIN"])
+    io_grp.add_argument(
+        "--training-dir", type=str, default=os.environ["SM_CHANNEL_TRAIN"]
+    )
     io_grp.add_argument("--test-dir", type=str, default=os.environ["SM_CHANNEL_TEST"])
     io_grp.add_argument(
         "--parallel_proc_data_processing",
@@ -522,12 +562,18 @@ def parse_args():
         default=0,
         help="Enabling this will save a combined model only at the end",
     )
-    io_grp.add_argument("--load_partial", type=int, default=0, help="Load from partial checkpoints")
-    io_grp.add_argument("--load_full", type=int, default=0, help="Load from full checkpoints")
+    io_grp.add_argument(
+        "--load_partial", type=int, default=0, help="Load from partial checkpoints"
+    )
+    io_grp.add_argument(
+        "--load_full", type=int, default=0, help="Load from full checkpoints"
+    )
     io_grp.add_argument(
         "--logits_output", type=str, default="", help="Path to save logits and loss"
     )
-    io_grp.add_argument("--prescaled_batch", type=int, default=1, help="use prescaled batch")
+    io_grp.add_argument(
+        "--prescaled_batch", type=int, default=1, help="use prescaled batch"
+    )
 
     # configure model size
     model_grp = parser.add_argument_group(
@@ -542,10 +588,27 @@ def parse_args():
     model_grp.add_argument("--embd_pdrop", type=float, default=0.1)
     model_grp.add_argument("--attn_pdrop", type=float, default=0.1)
     model_grp.add_argument("--summary_first_pdrop", type=float, default=0.1)
-    model_grp.add_argument("--use_adamw", type=int, default=0, help="Use adamw optimizer")
-    model_grp.add_argument("--finetune_6b", type=int, default=0, help="Flag to enable finetune 6B GPTJ model")
-    model_grp.add_argument("--use_distributed_transformer", type=int, default=1, help="Use distributed transformer")
-    model_grp.add_argument("--checkpoint_sublayers", type=int, default=0, help="Apply activation checkpointing to submodules of each transformer layer")
+    model_grp.add_argument(
+        "--use_adamw", type=int, default=0, help="Use adamw optimizer"
+    )
+    model_grp.add_argument(
+        "--finetune_6b",
+        type=int,
+        default=0,
+        help="Flag to enable finetune 6B GPTJ model",
+    )
+    model_grp.add_argument(
+        "--use_distributed_transformer",
+        type=int,
+        default=1,
+        help="Use distributed transformer",
+    )
+    model_grp.add_argument(
+        "--checkpoint_sublayers",
+        type=int,
+        default=0,
+        help="Apply activation checkpointing to submodules of each transformer layer",
+    )
 
     smp_grp = parser.add_argument_group(title="smp", description="smp")
     smp_grp.add_argument("--tensor_parallel_degree", type=int, default=1)
@@ -630,7 +693,9 @@ def parse_args():
         default=0,
         help="Clean torch reserved memory at he end of every step",
     )
-    parser.add_argument("--use_fsx", type=int, default=0, help="Using FSx for checkpointing")
+    parser.add_argument(
+        "--use_fsx", type=int, default=0, help="Using FSx for checkpointing"
+    )
     parser.add_argument(
         "--enable_memory_profiling", type=int, default=0, help="Enable memory profile"
     )
@@ -651,13 +716,15 @@ def parse_args():
         "--lr_decay_iters",
         type=int,
         default=None,
-        help="number of iterations to decay learning rate over," " If None defaults to train iters",
+        help="number of iterations to decay learning rate over,"
+        " If None defaults to train iters",
     )
     lr_grp.add_argument(
         "--min_lr",
         type=float,
         default=0.0,
-        help="Minumum value for learning rate. The scheduler" "clip values below this threshold.",
+        help="Minumum value for learning rate. The scheduler"
+        "clip values below this threshold.",
     )
     lr_grp.add_argument(
         "--warmup",
@@ -674,12 +741,15 @@ def parse_args():
     )
 
     ci_grp = parser.add_argument_group(title="ci", description="ci related settings")
-    ci_grp.add_argument("--ci", default=False, action="store_true", help="Whether enable ci")
+    ci_grp.add_argument(
+        "--ci", default=False, action="store_true", help="Whether enable ci"
+    )
     ci_grp.add_argument("--time_to_train", type=int, help="time to train threshold")
     ci_grp.add_argument("--throughput", type=float, help="throughput threshold")
     ci_grp.add_argument("--loss", type=float, help="loss threshold")
     args, _ = parser.parse_known_args()
     return args
+
 
 def compute_num_params(model):
     num_params = 0
@@ -688,11 +758,12 @@ def compute_num_params(model):
         if p not in seen:
             seen.add(p)
             if hasattr(p, "ds_shape"):
-                num_params += np.prod(p.ds_shape) 
+                num_params += np.prod(p.ds_shape)
             else:
                 num_params += np.prod(p.size())
-    
-    return num_params 
+
+    return num_params
+
 
 def main():
     args = parse_args()
@@ -731,7 +802,9 @@ def main():
     if smp.rank() == 0:
         print("Arguments:", args.__dict__)
         print(f"Transformers version: {transformers.__version__}")
-        print(f"smdistributed.modelparallel version: {smdistributed.modelparallel.__version__}")
+        print(
+            f"smdistributed.modelparallel version: {smdistributed.modelparallel.__version__}"
+        )
         print(f"smdistributed config: {smp_config}")
 
     if args.save_final_full_model and smp.rank() == 0:
@@ -772,7 +845,7 @@ def main():
 
     # the following improves start-up time by skipping proper initialization
     # of weights in the original model. this is not a problem because DistributedModel
-    # will override those weights anyway when we use distributed transformer. 
+    # will override those weights anyway when we use distributed transformer.
     if args.use_distributed_transformer > 0:
         from transformers.modeling_utils import PreTrainedModel
 
@@ -794,30 +867,34 @@ def main():
 
     if args.finetune_6b:
         with smp.model_creation(
-            tensor_parallelism=smp.tp_size() > 1 or args.use_distributed_transformer > 0,
+            tensor_parallelism=smp.tp_size() > 1
+            or args.use_distributed_transformer > 0,
             dtype=dtype,
             attention_in_fp32=args.attention_in_fp32 > 0,
             query_key_layer_scaling=args.query_key_layer_scaling > 0 and args.bf16 < 1,
             fused_softmax=args.fused_softmax > 0,
             fused_dropout=args.fused_dropout > 0,
             fused_bias_gelu=args.fused_bias_gelu > 0,
-            ):
-                model = AutoModelForCausalLM.from_pretrained("EleutherAI/gpt-j-6B", revision="float16", torch_dtype=torch.float16)
-                model_config = model.config
-                # translated_state_dict = translate_hf_gptj_state_dict_to_smdistributed(model.state_dict(), max_seq_len=args.max_context_width)
+        ):
+            model = AutoModelForCausalLM.from_pretrained(
+                "EleutherAI/gpt-j-6B", revision="float16", torch_dtype=torch.float16
+            )
+            model_config = model.config
+            # translated_state_dict = translate_hf_gptj_state_dict_to_smdistributed(model.state_dict(), max_seq_len=args.max_context_width)
     else:
-        
+
         with smp.model_creation(
-            tensor_parallelism=smp.tp_size() > 1 or args.use_distributed_transformer > 0,
+            tensor_parallelism=smp.tp_size() > 1
+            or args.use_distributed_transformer > 0,
             dtype=dtype,
             attention_in_fp32=args.attention_in_fp32 > 0,
             query_key_layer_scaling=args.query_key_layer_scaling > 0 and args.bf16 < 1,
             fused_softmax=args.fused_softmax > 0,
             fused_dropout=args.fused_dropout > 0,
             fused_bias_gelu=args.fused_bias_gelu > 0,
-            ):
-                model = AutoModelForCausalLM.from_config(model_config)
-            
+        ):
+            model = AutoModelForCausalLM.from_config(model_config)
+
     if args.enable_memory_profiling > 0:
         memory_status_cpu(msg="after model creation")
 
@@ -840,19 +917,21 @@ def main():
     # the model provided for DistributedModel class instantiation.
     if args.enable_memory_profiling > 0:
         memory_status_cpu(msg="before dist model creation")
-    model = smp.DistributedModel(model, trace_device="gpu", backward_passes_per_step=args.gradient_accumulation)
-    
+    model = smp.DistributedModel(
+        model, trace_device="gpu", backward_passes_per_step=args.gradient_accumulation
+    )
+
     # if args.finetune_6b:
     #     model.load_state_dict(translated_state_dict)
-    
+
     if args.enable_memory_profiling > 0:
         memory_status_cpu(msg="after dist model creation")
-    
+
     if args.fp16:
         m = model.module
     else:
         m = model
-    
+
     if args.use_distributed_transformer > 0:
         transformer_layers = m.module.module.transformer.seq_layers
     else:
@@ -862,7 +941,9 @@ def main():
         print(f"Manual partition enabled")
         if args.partition_assignment != "":
             get_num_layers = lambda x: int(partition_assignment[x])
-            total_layers = sum([get_num_layers(pp_rank) for pp_rank in range(smp.pp_size())])
+            total_layers = sum(
+                [get_num_layers(pp_rank) for pp_rank in range(smp.pp_size())]
+            )
             assert (
                 total_layers == args.num_layers
             ), f"partition_assignment must have the same total transformer layers as model, but getting {total_layers} vs {args.num_layers}"
@@ -883,11 +964,17 @@ def main():
 
     if args.use_adamw > 0:
         optimizer = optim.AdamW(
-            param_groups, betas=(args.beta1, args.beta2), lr=args.lr, weight_decay=args.weight_decay
+            param_groups,
+            betas=(args.beta1, args.beta2),
+            lr=args.lr,
+            weight_decay=args.weight_decay,
         )
     else:
         optimizer = optim.Adam(
-            param_groups, betas=(args.beta1, args.beta2), lr=args.lr, weight_decay=args.weight_decay
+            param_groups,
+            betas=(args.beta1, args.beta2),
+            lr=args.lr,
+            weight_decay=args.weight_decay,
         )
 
     if args.activation_checkpointing:
@@ -897,7 +984,9 @@ def main():
                     smp.set_activation_checkpointing(c.attention)
                     smp.set_activation_checkpointing(c.output)
             else:
-                smp.set_activation_checkpointing(transformer_layers, strategy=args.activation_strategy)
+                smp.set_activation_checkpointing(
+                    transformer_layers, strategy=args.activation_strategy
+                )
         else:
             for c in transformer_layers.children():
                 if args.checkpoint_sublayers:
@@ -907,11 +996,11 @@ def main():
                     smp.set_activation_checkpointing(c)
 
     optimizer = smp.DistributedOptimizer(
-        optimizer, 
-        static_loss_scale=None, 
+        optimizer,
+        static_loss_scale=None,
         dynamic_loss_scale=True,
         dynamic_loss_args={"scale_window": 1000, "min_scale": 1, "delayed_shift": 2},
-        )
+    )
     lr_scheduler = get_learning_rate_scheduler(optimizer, args)
 
     if args.enable_memory_profiling > 0:
@@ -981,14 +1070,22 @@ def main():
             # Note: the shared parameter will not be reflected so during loading you might need to load with strict=False
             user_content["buffer_names"] = get_buffer_names(model)
             user_content["param_shapes"] = get_param_shapes(model, optimizer)
-            smp.save_checkpoint(args.model_dir,
+            smp.save_checkpoint(
+                args.model_dir,
                 tag=f"sharded_data_parallel_final_full_{num_params}",
                 partial=True,
                 model=model,
                 optimizer=optimizer,
-                user_content=user_content)
+                user_content=user_content,
+            )
         else:
-            smp.save_checkpoint(args.model_dir, tag="fullmodel.pt", partial=False, model=model, user_content=user_content)
+            smp.save_checkpoint(
+                args.model_dir,
+                tag="fullmodel.pt",
+                partial=False,
+                model=model,
+                user_content=user_content,
+            )
 
     smp.barrier()
     if smp.rank() == 0:
