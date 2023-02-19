@@ -106,7 +106,9 @@ class CustomTrainingArguments(TrainingArguments):
     )
     plateau: float = field(
         default=0.4,
-        metadata={"help": "Percentage of total iterations to keep at max if using plateau lr"},
+        metadata={
+            "help": "Percentage of total iterations to keep at max if using plateau lr"
+        },
     )
 
 
@@ -139,11 +141,15 @@ class ModelArguments:
     )
     config_name: Optional[str] = field(
         default=None,
-        metadata={"help": "Pretrained config name or path if not the same as model_name"},
+        metadata={
+            "help": "Pretrained config name or path if not the same as model_name"
+        },
     )
     tokenizer_name: Optional[str] = field(
         default=None,
-        metadata={"help": "Pretrained tokenizer name or path if not the same as model_name"},
+        metadata={
+            "help": "Pretrained tokenizer name or path if not the same as model_name"
+        },
     )
     cache_dir: Optional[str] = field(
         default=None,
@@ -159,7 +165,9 @@ class ModelArguments:
     )
     load_from_s3: bool = field(
         default=False,
-        metadata={"help": "Whether to load the model from a S3 location or from_pretrained."},
+        metadata={
+            "help": "Whether to load the model from a S3 location or from_pretrained."
+        },
     )
     model_revision: str = field(
         default="main",
@@ -250,7 +258,9 @@ class DataTrainingArguments:
         default=True,
         metadata={"help": "Whether to keep line breaks when using TXT files or not."},
     )
-    train_file: Optional[str] = field(default=None, metadata={"help": "Local path to train file."})
+    train_file: Optional[str] = field(
+        default=None, metadata={"help": "Local path to train file."}
+    )
     validation_file: Optional[str] = field(
         default=None, metadata={"help": "Local path to validation file."}
     )
@@ -268,7 +278,9 @@ class SMPArguments:
 
     microbatches: Optional[int] = field(default=1, metadata={"help": "Microbatches"})
 
-    active_microbatches: Optional[int] = field(default=None, metadata={"help": "Microbatches"})
+    active_microbatches: Optional[int] = field(
+        default=None, metadata={"help": "Microbatches"}
+    )
 
     optimize: Optional[str] = field(
         default="speed",
@@ -299,7 +311,9 @@ class SMPArguments:
     )
     trace_device: Optional[str] = field(
         default="cpu",
-        metadata={"help": "The device ('cpu' or 'gpu') that you want load model to for tracing."},
+        metadata={
+            "help": "The device ('cpu' or 'gpu') that you want load model to for tracing."
+        },
     )
     match_weights: Optional[int] = field(
         default=0,
