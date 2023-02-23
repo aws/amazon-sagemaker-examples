@@ -67,6 +67,7 @@ These examples provide a gentle introduction to machine learning concepts as the
 - [Identify key insights from textual document](introduction_to_applying_machine_learning/identify_key_insights_from_textual_document) contains comphrensive notebooks for five natural language processing tasks Document Summarization, Text Classification, Question and Answering, Name Entity Recognition, and Semantic Relation Extracion.
 - [Synthetic Churn Prediction with Text](introduction_to_applying_machine_learning/synthetic_churn_prediction_with_text) contains an example notebook to train, deploy and use a churn prediction model that processed numerical, categorical and textual features to make its prediction.
 - [Credit Card Fraud Detector](introduction_to_applying_machine_learning/credit_card_fraud_detector) is an example of the core of a credit card fraud detection system using SageMaker with Random Cut Forest and XGBoost.
+- [Churn Prediction Multimodality of Text and Tabular](introduction_to_applying_machine_learning/churn_prediction_multimodality_of_text_and_tabular) is an example notebook to train and deploy a churn prediction model that uses state-of-the-art natural language processing model to find useful signals in text. In addition to textual inputs, this model uses traditional structured data inputs such as numerical and categorical fields.
 
 ### SageMaker Automatic Model Tuning
 
@@ -180,7 +181,7 @@ More examples for models such as BERT and YOLOv5 can be found in [distributed_tr
 
 These examples provide an introduction to SageMaker Clarify which provides machine learning developers with greater visibility into their training data and models so they can identify and limit bias and explain predictions.
 
-* [Fairness and Explainability with SageMaker Clarify](sagemaker_clarify/fairness_and_explainability) shows how to use SageMaker Clarify Processor API to measure the pre-training bias of a dataset and post-training bias of a model, and explain the importance of the input features on the model's decision.
+* [Fairness and Explainability with SageMaker Clarify](sagemaker-clarify/fairness_and_explainability) shows how to use SageMaker Clarify Processor API to measure the pre-training bias of a dataset and post-training bias of a model, and explain the importance of the input features on the model's decision.
 * [Amazon SageMaker Clarify Model Monitors](sagemaker_model_monitor/fairness_and_explainability) shows how to use SageMaker Clarify Model Monitor API to schedule bias monitor to monitor predictions for bias drift on a regular basis, and schedule explainability monitor to monitor predictions for feature attribution drift on a regular basis.
 
 ### Publishing content from RStudio on Amazon SageMaker to RStudio Connect
