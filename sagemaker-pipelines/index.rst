@@ -17,6 +17,8 @@ Amazon SageMaker Model Building Pipelines is a tool for building machine learnin
    sagemaker-pipelines/tabular/model-monitor-clarify-pipelines/sagemaker-pipeline-model-monitor-clarify-steps
    sagemaker-pipelines/tabular/customizing_build_train_deploy_project/sagemaker-pipelines-customized-project
    sagemaker-pipelines/tabular/train-register-deploy-pipeline-model/train register and deploy a pipeline model
+   sagemaker-pipelines/tabular/emr-step/sagemaker-pipelines-emr-step-with-running-emr-cluster
+   sagemaker-pipelines/tabular/emr-step/sagemaker-pipelines-emr-step-with-cluster-lifecycle-management
 
 
 Pipeline Parameterization
@@ -52,4 +54,5 @@ Launch AutoML with Pipelines
    :maxdepth: 1
 
    tabular/automl-step/sagemaker_autopilot_pipelines_native_auto_ml_step
+
 
