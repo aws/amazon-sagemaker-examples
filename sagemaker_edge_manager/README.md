@@ -1,3 +1,7 @@
+| :rotating_light: **ALERT**: We are retiring Amazon Sagemaker Edge on February 28th, 2024. Use this [step-by-step guide]( https://docs.aws.amazon.com/sagemaker/latest/dg/edge-eol.html) to learn about how to continue deploying your models to edge devices. :rotating_light:|
+| --- |
+
+
 # Amazon SageMaker Edge Manager
 
 SageMaker Edge Manager is a new service from Amazon SageMaker that lets you:
