@@ -1,2 +1,3 @@
 transformers == 4.25.1
 datasets
+torch
