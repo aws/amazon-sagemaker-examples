@@ -1,0 +1,6 @@
+engine=DeepSpeed
+option.entryPoint=djl_python.deepspeed
+option.s3url={{ s3url }}
+option.tensor_parallel_degree=1
+option.task=text-generation
+option.dtype=fp16
