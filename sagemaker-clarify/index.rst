@@ -15,7 +15,7 @@ SageMaker Clarify Processing
    fairness_and_explainability/fairness_and_explainability_spark
    fairness_and_explainability/fairness_and_explainability_boto3
    fairness_and_explainability/explainability_with_pdp
-   fairness_and_explainability/bias_detection_with_predicted_labels
+   fairness_and_explainability/bias_detection_with_predicted_label_and_facet_datasets
    text_explainability/text_explainability
    text_explainability_sagemaker_algorithm/byo_blazingtext_model_hosting
    computer_vision/image_classification/explainability_image_classification
