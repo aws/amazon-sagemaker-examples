@@ -117,7 +117,7 @@ def process_response(response, filename):
     for detected_label in response["Labels"]:
         instances = len(detected_label["Instances"])
 
-        if instances > 0:
+        if instances:
             name = detected_label["Name"]
             confidence = detected_label["Confidence"]
             labels.append(name)
