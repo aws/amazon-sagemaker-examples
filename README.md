@@ -38,6 +38,7 @@ These examples introduce SageMaker geospatial capabilities which makes it easy t
 - [Digital Farming with Amazon SageMaker Geospatial Capabilities](sagemaker-geospatial/digital-farming-pipelines) shows how geospatial capabilities can help accelerating, optimizing, and easing the processing of the geospatial data for the Digital Farming use cases.
 - [Assess wildfire damage with Amazon SageMaker Geospatial Capabilities](sagemaker-geospatial/dixie-wildfire-damage-assessment/dixie-wildfire-damage-assessment.ipynb) demonstrates how Amazon SageMaker geospatial capabilities can be used to identify and assess vegetation loss caused by the Dixie wildfire in Northern California.
 - [How to use Vector Enrichment Jobs for Map Matching](sagemaker-geospatial/vector-enrichment-map-matching/vector-enrichment-map-matching.ipynb) shows how to use vector enrichtment operations with Amazon SageMaker Geospatial capabilities to snap GPS coordinates to road segments.
+- [How to use Vector Enrichment Jobs for Reverse Geocoding](sagemaker-geospatial/vector-enrichment-reverse-geocoding/vector-enrichment-reverse-geocoding.ipynb) shows how to use Amazon SageMaker Geospatial capabilities for reverse geocoding to obtain human readable addresses from data with latitude/longitude information.
 - [Monitoring Glacier Melting with SageMaker Geospatial Capabilities](sagemaker-geospatial/mount-shasta-glacier-melting-monitoring) shows how to monitor glacier melting at Mount Shasta using SageMaker geospatial capabilities.
 
 ### Introduction to Ground Truth Labeling Jobs
