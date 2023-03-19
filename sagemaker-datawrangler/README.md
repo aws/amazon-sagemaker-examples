@@ -37,5 +37,9 @@ This example provide quick walkthrough of how to aggregate and prepare data for 
 
 This example provide quick walkthrough of how to aggregate and prepare data for Machine Learning using Amazon SageMaker Data Wrangler for Joined dataset.
 
+### **[Timeseries Quantile Selection DataFlow](timeseries-quantile-selection-dataflow/README.md)**
+
+This example demonstrates how to select quantiles likely to maximize business profitability when using probabilistic time-series forecasting use cases.
+
 
 
