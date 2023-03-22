@@ -38,6 +38,7 @@ These examples introduce SageMaker geospatial capabilities which makes it easy t
 - [Digital Farming with Amazon SageMaker Geospatial Capabilities](sagemaker-geospatial/digital-farming-pipelines) shows how geospatial capabilities can help accelerating, optimizing, and easing the processing of the geospatial data for the Digital Farming use cases.
 - [Assess wildfire damage with Amazon SageMaker Geospatial Capabilities](sagemaker-geospatial/dixie-wildfire-damage-assessment/dixie-wildfire-damage-assessment.ipynb) demonstrates how Amazon SageMaker geospatial capabilities can be used to identify and assess vegetation loss caused by the Dixie wildfire in Northern California.
 - [How to use Vector Enrichment Jobs for Map Matching](sagemaker-geospatial/vector-enrichment-map-matching/vector-enrichment-map-matching.ipynb) shows how to use vector enrichtment operations with Amazon SageMaker Geospatial capabilities to snap GPS coordinates to road segments.
+- [How to use Vector Enrichment Jobs for Reverse Geocoding](sagemaker-geospatial/vector-enrichment-reverse-geocoding/vector-enrichment-reverse-geocoding.ipynb) shows how to use Amazon SageMaker Geospatial capabilities for reverse geocoding to obtain human readable addresses from data with latitude/longitude information.
 - [Monitoring Glacier Melting with SageMaker Geospatial Capabilities](sagemaker-geospatial/mount-shasta-glacier-melting-monitoring) shows how to monitor glacier melting at Mount Shasta using SageMaker geospatial capabilities.
 
 ### Introduction to Ground Truth Labeling Jobs
@@ -130,6 +131,7 @@ These examples provide quick walkthroughs to get you up and running with Amazon 
 - [JumpStart Named Entity Recognition](introduction_to_amazon_algorithms/jumpstart_named_entity_recognition) demonstrates how to identify named entities such as names, locations etc. in the text in JumpStart.
 - [JumpStart Text to Image](introduction_to_amazon_algorithms/jumpstart_text_to_image) demonstrates how to generate image conditioned on text in JumpStart.
 - [JumpStart Upscaling](introduction_to_amazon_algorithms/jumpstart_upscaling) demonstrates how to enhance image quality with Stable Diffusion models in JumpStart.
+- [JumpStart Inpainting](introduction_to_amazon_algorithms/jumpstart_inpainting) demonstrates how to inpaint an image with Stable Diffusion models in JumpStart.
 - [In-context learning with AlexaTM 20B](introduction_to_amazon_algorithms/jumpstart_alexatm20b) demonstrates how to use AlexaTM 20B for in-context-learning in JumpStart.
 ### Amazon SageMaker RL
 
