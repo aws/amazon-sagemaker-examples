@@ -32,6 +32,7 @@ In the second part of the notebook we'll extract the three inference containers 
 - To determine the optimal configuration for your serverless endpoint from a cost and performance perspective, we encourage you to explore our Serverless Inference Benchmarking Toolkit. For more information, refer to [Introducing the Amazon SageMaker Serverless Inference Benchmarking Toolkit](https://aws.amazon.com/blogs/machine-learning/introducing-the-amazon-sagemaker-serverless-inference-benchmarking-toolkit/).
 - To learn more about Autopilot training modes, refer to [Amazon SageMaker Autopilot is up to eight times faster with new ensemble training mode powered by AutoGluon](https://aws.amazon.com/blogs/machine-learning/amazon-sagemaker-autopilot-is-up-to-eight-times-faster-with-new-ensemble-training-mode-powered-by-autogluon/).
 - Refer to [Inference container definitions for regression and classification problem types](https://docs.aws.amazon.com/sagemaker/latest/dg/autopilot-automate-model-development-container-output.html#autopilot-problem-type-container-output).
+- Refer to [Configure inference output in generated containers](https://docs.aws.amazon.com/sagemaker/latest/dg/autopilot-automate-model-development-container-output.html#autopilot-problem-type-container-output)
 - For an overview on how to deploy an XGBoost model to a serverless inference endpoint, we encourage you to refer to this [example notebook](https://github.com/aws/amazon-sagemaker-examples/blob/main/serverless-inference/Serverless-Inference-Walkthrough.ipynb).
 
 ## Security
