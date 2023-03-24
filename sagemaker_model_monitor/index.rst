@@ -44,3 +44,5 @@ Model Bias and Model Explainability
    /sagemaker_model_monitor/fairness_and_explainability/SageMaker-Monitoring-Feature-Attribution-Drift-for-Batch-Transform.ipynb
    /sagemaker_model_monitor/fairness_and_explainability_jsonlines/SageMaker-Monitoring-Bias-Drift-for-Endpoint
    /sagemaker_model_monitor/fairness_and_explainability_jsonlines/SageMaker-Monitoring-Feature-Attribution-Drift-for-Endpoint
+   /sagemaker_model_monitor/fairness_and_explainability_jsonlines/SageMaker-Monitoring-Bias-Drift-for-Batch-Transform
+   /sagemaker_model_monitor/fairness_and_explainability_jsonlines/SageMaker-Monitoring-Feature-Attribution-Drift-for-Batch-Transform
