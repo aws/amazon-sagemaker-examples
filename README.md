@@ -132,6 +132,7 @@ These examples provide quick walkthroughs to get you up and running with Amazon 
 - [JumpStart Named Entity Recognition](introduction_to_amazon_algorithms/jumpstart_named_entity_recognition) demonstrates how to identify named entities such as names, locations etc. in the text in JumpStart.
 - [JumpStart Text to Image](introduction_to_amazon_algorithms/jumpstart_text_to_image) demonstrates how to generate image conditioned on text in JumpStart.
 - [JumpStart Upscaling](introduction_to_amazon_algorithms/jumpstart_upscaling) demonstrates how to enhance image quality with Stable Diffusion models in JumpStart.
+- [JumpStart Inpainting](introduction_to_amazon_algorithms/jumpstart_inpainting) demonstrates how to inpaint an image with Stable Diffusion models in JumpStart.
 - [In-context learning with AlexaTM 20B](introduction_to_amazon_algorithms/jumpstart_alexatm20b) demonstrates how to use AlexaTM 20B for in-context-learning in JumpStart.
 ### Amazon SageMaker RL
 
@@ -213,6 +214,7 @@ These examples showcase unique functionality available in Amazon SageMaker. They
 - [Bring Your Own scikit Algorithm](advanced_functionality/scikit_bring_your_own) provides a detailed walkthrough on how to package a scikit learn algorithm for training and production-ready hosting.
 - [Bring Your Own MXNet Model](advanced_functionality/mxnet_mnist_byom) shows how to bring a model trained anywhere using MXNet into Amazon SageMaker.
 - [Bring Your Own TensorFlow Model](advanced_functionality/tensorflow_iris_byom) shows how to bring a model trained anywhere using TensorFlow into Amazon SageMaker.
+- [Bring Your Own Model train and deploy BERTopic](advanced_functionality/pytorch_extend_container_train_deploy_bertopic) shows how to bring a model through an external library, how to train it and deploy it into Amazon SageMaker by extending the pytorch base containers.
 - [Experiment Management Capabilities with Search](advanced_functionality/search) shows how to organize Training Jobs into projects, and track relationships between Models, Endpoints, and Training Jobs.
 - [Host Multiple Models with Your Own Algorithm](advanced_functionality/multi_model_bring_your_own) shows how to deploy multiple models to a realtime hosted endpoint with your own custom algorithm.
 - [Host Multiple Models with XGBoost](advanced_functionality/multi_model_xgboost_home_value) shows how to deploy multiple models to a realtime hosted endpoint using a multi-model enabled XGBoost container.
