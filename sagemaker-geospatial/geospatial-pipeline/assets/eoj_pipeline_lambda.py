@@ -46,7 +46,7 @@ def lambda_handler(event, context):
             response = geospatial_client.export_earth_observation_job(
                 Arn=event["eoj_arn"],
                 ExecutionRoleArn=event["role"],
-                OutputConfig=ast.literal_eval(event["eoj_output_config"]),
+                OutputConfig=ast.literal_eval(event["eoj_export_config"]),
             )
             logger.info(f'Export eoj_arn: {response["Arn"]}\n')
 
