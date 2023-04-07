@@ -1,0 +1,14 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Spring Boot-SGMLauncher<sgm-java-example>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "ro.edu.aws.sgm.inference.pmml.randomforest.app.SGMLauncher",
+            "projectName": "sgm-java-example",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}
