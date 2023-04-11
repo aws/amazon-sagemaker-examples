@@ -1,0 +1,33 @@
+import os
+import shutil
+
+ckpt = os.environ['ckpt'] if 'ckpt' in os.environ else ''
+embeddings_s3uri = os.environ['embeddings_s3uri'] if 'embeddings_s3uri' in os.environ else ''
+hypernetwork_s3uri = os.environ['hypernetwork_s3uri'] if 'hypernetwork_s3uri' in os.environ else ''
+
+cmd = "ACCELERATE=true bash webui.sh --api --listen --port 8080 --no-half --precision full --xformers --ckpt-dir /tmp/models/Stable-diffusion --controlnet-dir /tmp/models/ControlNet --lora-dir /tmp/models/Lora"
+
+if embeddings_s3uri != '':
+    cmd = '{0} --embeddings-s3uri {1}'.format(cmd, embeddings_s3uri)
+
+if hypernetwork_s3uri != '':
+    cmd = '{0} --hypernetwork-s3uri {1}'.format(cmd, hypernetwork_s3uri)
+
+if ckpt != '':
+    cmd = '{0} --ckpt {1}'.format(cmd, ckpt)
+
+os.makedirs('/tmp/cache/huggingface', exist_ok=True)
+os.makedirs('/tmp/models/Stable-diffusion', exist_ok=True)
+os.makedirs('/tmp/models/ControlNet', exist_ok=True)
+os.makedirs('/tmp/models/Lora', exist_ok=True)
+
+if os.path.isdir('/opt/ml/model/Stable-diffusion'):
+    shutil.copytree('/opt/ml/model/Stable-diffusion', '/tmp/models/Stable-diffusion')
+
+if os.path.isdir('/opt/ml/model/ControlNet'):
+    shutil.copytree('/opt/ml/model/ControlNet', '/tmp/models/ControlNet')
+
+if os.path.isdir('/opt/ml/model/Lora'):
+    shutil.copytree('/opt/ml/model/Lora', '/tmp/models/Lora')
+
+os.system(cmd)
