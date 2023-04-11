@@ -2,7 +2,7 @@
 
 from transformers import AutoModelForSequenceClassification, Trainer, TrainingArguments, AutoTokenizer
 from sklearn.metrics import accuracy_score, precision_recall_fscore_support
-from datasets import load_from_disk
+from datasets import load_from_disk, load_dataset
 import random
 import logging
 import sys
@@ -21,7 +21,9 @@ if __name__ == "__main__":
     parser.add_argument("--warmup_steps", type=int, default=500)
     parser.add_argument("--model_name", type=str)
     parser.add_argument("--learning_rate", type=str, default=5e-5)
-
+    parser.add_argument("--train_file", type=str, default="train.csv")
+    parser.add_argument("--test_file", type=str, default="test.csv")
+    
     # Data, model, and output directories
     parser.add_argument("--output_data_dir", type=str, default=os.environ["SM_OUTPUT_DATA_DIR"])
     parser.add_argument("--model_dir", type=str, default=os.environ["SM_MODEL_DIR"])
@@ -29,6 +31,7 @@ if __name__ == "__main__":
     parser.add_argument("--training_dir", type=str, default=os.environ["SM_CHANNEL_TRAIN"])
     parser.add_argument("--test_dir", type=str, default=os.environ["SM_CHANNEL_TEST"])
 
+    
     args, _ = parser.parse_known_args()
 
     # Set up logging
@@ -39,12 +42,28 @@ if __name__ == "__main__":
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     )
 
-    # load datasets
-    train_dataset = load_from_disk(args.training_dir)
-    test_dataset = load_from_disk(args.test_dir)
-    logger.info(f" loaded train_dataset length is: {len(train_dataset)}")
-    logger.info(f" loaded test_dataset length is: {len(test_dataset)}")
+    # Load datasets
+    train_dataset_path = os.path.join(args.training_dir, args.train_file)
+    test_dataset_path = os.path.join(args.test_dir, args.test_file)
+    col_names = ['Review Text', 'Sentiment']
+    
+    raw_train_dataset = load_dataset("csv", data_files=train_dataset_path, column_names=col_names)["train"]
+    raw_test_dataset = load_dataset("csv", data_files=test_dataset_path, column_names=col_names)["train"]
+    
+    logger.info(f" loaded train_dataset length is: {len(raw_train_dataset)}")
+    logger.info(f" loaded test_dataset length is: {len(raw_test_dataset)}")
+    
+    # Load tokenizer
+    tokenizer = AutoTokenizer.from_pretrained(args.model_name)
 
+    # Tokenizer helper function
+    def tokenize(batch):
+        return tokenizer(batch['Review Text'], padding=True, truncation=True)
+
+    # Tokenize the dataset
+    train_dataset = raw_train_dataset.map(tokenize, batched=True)
+    test_dataset = raw_test_dataset.map(tokenize, batched=True)
+    
     # compute metrics function for binary classification
     def compute_metrics(pred):
         labels = pred.label_ids
@@ -53,24 +72,15 @@ if __name__ == "__main__":
         acc = accuracy_score(labels, preds)
         return {"accuracy": acc, "f1": f1, "precision": precision, "recall": recall}
 
-    # download model from model hub
-    model = AutoModelForSequenceClassification.from_pretrained(args.model_name)
-    tokenizer = AutoTokenizer.from_pretrained(args.model_name)
-
-    # Tokenizer helper function
-    def tokenize(batch):
-        return tokenizer(batch['Review Text'], padding=True, truncation=True)
-
-    # Tokenize the dataset
-    train_dataset = train_dataset.map(tokenize, batched=True)
-    test_dataset = test_dataset.map(tokenize, batched=True)
-
     # Set format for PyTorch
     train_dataset = train_dataset.rename_column("Sentiment", "labels")
     train_dataset.set_format('torch', columns=['input_ids', 'attention_mask', 'labels'])
     test_dataset = test_dataset.rename_column("Sentiment", "labels")
     test_dataset.set_format('torch', columns=['input_ids', 'attention_mask', 'labels'])
-
+    
+    # download model from model hub
+    model = AutoModelForSequenceClassification.from_pretrained(args.model_name)
+    
     # define training args
     training_args = TrainingArguments(
         output_dir=args.model_dir,

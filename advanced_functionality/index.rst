@@ -74,6 +74,15 @@ Bring Your Own Algorithm Container
    multi_model_bring_your_own/multi_model_endpoint_bring_your_own
 
 
+Fine-tuning and deploying a BERTopic model on SageMaker with your own scripts and dataset, by extending existing PyTorch containers
+--------------------------------
+
+.. toctree::
+   :maxdepth: 1
+
+   pytorch_extend_container_train_deploy_bertopic/BERTtopic_extending_container
+
+
 Bring Your Own Pipe-Mode Algorithm
 -------------------------------------
 
