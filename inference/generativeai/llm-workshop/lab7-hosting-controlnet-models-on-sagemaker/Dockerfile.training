@@ -1,4 +1,4 @@
-FROM ghcr.io/allenai/pytorch:1.12.1-cuda11.3-python3.9-v1.2.0
+FROM ghcr.io/allenai/pytorch:1.13.1-cuda11.7-python3.10-v1.2.2
 
 ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get update
