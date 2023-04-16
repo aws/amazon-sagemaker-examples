@@ -66,11 +66,12 @@
 			<artifactId>jackson-annotations</artifactId>
 			<version>2.14.2</version>
 		</dependency>
-		  <dependency>
-			<groupId>org.apache.commons</groupId>
-			<artifactId>commons-compress</artifactId>
-			<version>1.20</version>
-  		</dependency>
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<version>1.18.20</version>
+		</dependency>
+
 
  </dependencies>
 	<build>

@@ -6,6 +6,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+import lombok.NonNull;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -63,7 +64,7 @@ public class SGMController {
   @PostMapping(value = "/models/{model_name}/invoke")
   public ResponseEntity<String> invoke(HttpServletRequest request, 
     @RequestHeader(value = "X-Amzn-SageMaker-Target-Model") String targetModel,
-    @PathVariable String model_name, @RequestBody InputData inputData) throws IOException {
+    @PathVariable @NonNull String model_name, @RequestBody @NonNull InputData inputData) throws IOException {
     
     System.out.println("[Invoke Model] Target model header value: "+ targetModel);  
     String predictions = null;
@@ -82,7 +83,7 @@ public class SGMController {
 
 
   @PostMapping(value = "/models")
-  public ResponseEntity <?>loadModel(@RequestBody Model model) throws Exception{
+  public ResponseEntity <?>loadModel(@RequestBody @NonNull Model model) throws Exception{
 
     String model_name = model.getModel_name();
     String url = model.getUrl();
@@ -91,19 +92,24 @@ public class SGMController {
     System.out.println("[Load Model] url: "+ url);
 
     // Throw exception when model is already present in the Map
-    if(concurrentHashMap.containsKey(model_name)){
-      throw new ModelAlreadyPresentException("Model Name: " + model_name + "already loaded in memory.");
-    }
+   // if(concurrentHashMap.containsKey(model_name)){
+    //  throw new ModelAlreadyPresentException("Model Name: " + model_name + "already loaded in memory.");
+   // }
 
-    // Throw exception when enough memory is not available to load the mmodel
+    // Throw exception when enough memory is not available to load the model
     if(!isMemoryAvailable()){
       throw new InsufficientMemoryException("Insufficient memory. Cannot load model: " + model_name);
     }
 
     File modelFile = Paths.get(url).toFile();
 
-    concurrentHashMap.put(model_name, modelFile);
+    File retVal = concurrentHashMap.putIfAbsent(model_name, modelFile);
+    if(null!= retVal){
+      throw new ModelAlreadyPresentException("Model Name: " + model_name + "already loaded in memory.");
+    }
+
     System.out.println("[Load Model] model_name: "+ model_name + " loaded in memory.");
+
 
   
     return  new ResponseEntity<>("Model: "+ model_name + " loaded in memory", HttpStatus.OK);
@@ -141,7 +147,7 @@ public class SGMController {
 
 
   @DeleteMapping("/models/{model_name}")
-  public ResponseEntity <?> deleteModel(@PathVariable String model_name){
+  public ResponseEntity <?> deleteModel(@PathVariable @NonNull String model_name){
 
     if(isModelLoaded(model_name)){
      concurrentHashMap.remove(model_name);
