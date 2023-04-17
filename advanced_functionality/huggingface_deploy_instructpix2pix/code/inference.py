@@ -22,7 +22,7 @@ def model_fn(model_dir, context):
     # distribute instantiated models among different gpus
     gpu_id = str(context.system_properties.get("gpu_id"))
     logger.debug("gpu_id:" + gpu_id)
-    pipe.to("cuda:"+ gpu_id)
+    pipe.to("cuda:" + gpu_id)
     
     pipe.scheduler = EulerAncestralDiscreteScheduler.from_config(pipe.scheduler.config)
     logger.debug("model_fn: Model created and served via GPU: " + gpu_id)
