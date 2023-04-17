@@ -91,11 +91,6 @@ public class SGMController {
     System.out.println("[Load Model] model_name: "+ model_name);
     System.out.println("[Load Model] url: "+ url);
 
-    // Throw exception when model is already present in the Map
-   // if(concurrentHashMap.containsKey(model_name)){
-    //  throw new ModelAlreadyPresentException("Model Name: " + model_name + "already loaded in memory.");
-   // }
-
     // Throw exception when enough memory is not available to load the model
     if(!isMemoryAvailable()){
       throw new InsufficientMemoryException("Insufficient memory. Cannot load model: " + model_name);
@@ -105,6 +100,7 @@ public class SGMController {
 
     File retVal = concurrentHashMap.putIfAbsent(model_name, modelFile);
     if(null!= retVal){
+      System.out.println("Error!! Model already loaded in memory");
       throw new ModelAlreadyPresentException("Model Name: " + model_name + "already loaded in memory.");
     }
 
