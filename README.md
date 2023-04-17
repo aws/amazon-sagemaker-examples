@@ -38,6 +38,9 @@ These examples introduce SageMaker geospatial capabilities which makes it easy t
 - [Digital Farming with Amazon SageMaker Geospatial Capabilities](sagemaker-geospatial/digital-farming-pipelines) shows how geospatial capabilities can help accelerating, optimizing, and easing the processing of the geospatial data for the Digital Farming use cases.
 - [Assess wildfire damage with Amazon SageMaker Geospatial Capabilities](sagemaker-geospatial/dixie-wildfire-damage-assessment/dixie-wildfire-damage-assessment.ipynb) demonstrates how Amazon SageMaker geospatial capabilities can be used to identify and assess vegetation loss caused by the Dixie wildfire in Northern California.
 - [How to use Vector Enrichment Jobs for Map Matching](sagemaker-geospatial/vector-enrichment-map-matching/vector-enrichment-map-matching.ipynb) shows how to use vector enrichtment operations with Amazon SageMaker Geospatial capabilities to snap GPS coordinates to road segments.
+- [How to use Vector Enrichment Jobs for Reverse Geocoding](sagemaker-geospatial/vector-enrichment-reverse-geocoding/vector-enrichment-reverse-geocoding.ipynb) shows how to use Amazon SageMaker Geospatial capabilities for reverse geocoding to obtain human readable addresses from data with latitude/longitude information.
+- [Monitoring Glacier Melting with SageMaker Geospatial Capabilities](sagemaker-geospatial/mount-shasta-glacier-melting-monitoring) shows how to monitor glacier melting at Mount Shasta using SageMaker geospatial capabilities.
+- [SageMaker Pipelines with Amazon SageMaker Geospatial Capabilities](sagemaker-geospatial/geospatial-pipeline/geospatial-pipelines.ipynb) shows how a geospatial data processing workflow can be automated by using an Amazon SageMaker Pipeline.
 
 ### Introduction to Ground Truth Labeling Jobs
 
@@ -84,6 +87,7 @@ These examples introduce SageMaker's hyperparameter tuning functionality which h
 - [Keras BYO Tuning](hyperparameter_tuning/keras_bring_your_own) shows how to use SageMaker hyperparameter tuning with a custom container running a Keras convolutional network on CIFAR-10 data.
 - [R BYO Tuning](hyperparameter_tuning/r_bring_your_own) shows how to use SageMaker hyperparameter tuning with the custom container from the [Bring Your Own R Algorithm](advanced_functionality/r_bring_your_own) example.
 - [Analyzing Results](hyperparameter_tuning/analyze_results) is a shared notebook that can be used after each of the above notebooks to provide analysis on how training jobs with different hyperparameters performed.
+- [Model tuning for distributed training](hyperparameter_tuning/model_tuning_for_distributed_training) shows how to use SageMaker hyperparameter tuning with Hyperband strategy for optimizing model in distributed training.
 
 ### SageMaker Autopilot
 
@@ -129,6 +133,7 @@ These examples provide quick walkthroughs to get you up and running with Amazon 
 - [JumpStart Named Entity Recognition](introduction_to_amazon_algorithms/jumpstart_named_entity_recognition) demonstrates how to identify named entities such as names, locations etc. in the text in JumpStart.
 - [JumpStart Text to Image](introduction_to_amazon_algorithms/jumpstart_text_to_image) demonstrates how to generate image conditioned on text in JumpStart.
 - [JumpStart Upscaling](introduction_to_amazon_algorithms/jumpstart_upscaling) demonstrates how to enhance image quality with Stable Diffusion models in JumpStart.
+- [JumpStart Inpainting](introduction_to_amazon_algorithms/jumpstart_inpainting) demonstrates how to inpaint an image with Stable Diffusion models in JumpStart.
 - [In-context learning with AlexaTM 20B](introduction_to_amazon_algorithms/jumpstart_alexatm20b) demonstrates how to use AlexaTM 20B for in-context-learning in JumpStart.
 ### Amazon SageMaker RL
 
@@ -210,6 +215,7 @@ These examples showcase unique functionality available in Amazon SageMaker. They
 - [Bring Your Own scikit Algorithm](advanced_functionality/scikit_bring_your_own) provides a detailed walkthrough on how to package a scikit learn algorithm for training and production-ready hosting.
 - [Bring Your Own MXNet Model](advanced_functionality/mxnet_mnist_byom) shows how to bring a model trained anywhere using MXNet into Amazon SageMaker.
 - [Bring Your Own TensorFlow Model](advanced_functionality/tensorflow_iris_byom) shows how to bring a model trained anywhere using TensorFlow into Amazon SageMaker.
+- [Bring Your Own Model train and deploy BERTopic](advanced_functionality/pytorch_extend_container_train_deploy_bertopic) shows how to bring a model through an external library, how to train it and deploy it into Amazon SageMaker by extending the pytorch base containers.
 - [Experiment Management Capabilities with Search](advanced_functionality/search) shows how to organize Training Jobs into projects, and track relationships between Models, Endpoints, and Training Jobs.
 - [Host Multiple Models with Your Own Algorithm](advanced_functionality/multi_model_bring_your_own) shows how to deploy multiple models to a realtime hosted endpoint with your own custom algorithm.
 - [Host Multiple Models with XGBoost](advanced_functionality/multi_model_xgboost_home_value) shows how to deploy multiple models to a realtime hosted endpoint using a multi-model enabled XGBoost container.
