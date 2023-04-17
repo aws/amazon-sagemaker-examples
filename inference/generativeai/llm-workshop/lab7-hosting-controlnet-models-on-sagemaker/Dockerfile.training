@@ -1,0 +1,28 @@
+FROM ghcr.io/allenai/pytorch:1.13.1-cuda11.7-python3.10-v1.2.2
+
+ENV DEBIAN_FRONTEND noninteractive
+RUN apt-get update
+RUN apt-get install --assume-yes apt-utils -y
+
+RUN apt update
+RUN apt install wget git -y
+RUN apt install libgl1-mesa-glx -y
+RUN pip install opencv-python-headless
+
+RUN mkdir -p /opt/ml/code
+COPY train.py /opt/ml/code/
+COPY stable-diffusion-webui /opt/ml/code/
+RUN git clone https://github.com/xieyongliang/sd_dreambooth_extension.git /opt/ml/code/extensions/sd_dreambooth_extension
+
+# install the SageMaker Training Toolkit 
+RUN pip install sagemaker-training
+
+# this environment variable is used by the SageMaker training toolkit to determine our program entry point
+ENV SAGEMAKER_PROGRAM train.py
+
+RUN apt install build-essential
+
+RUN pip install ninja triton
+RUN conda install xformers -c xformers -y
+
+ENTRYPOINT []
