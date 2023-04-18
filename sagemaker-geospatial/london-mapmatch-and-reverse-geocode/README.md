@@ -33,7 +33,6 @@ We will follow a route through London, from Marble Arch to Buckingham Palace, in
 ```
 
 - Launch the domain for your user
-- Upload the contents of the repo (the notebook, and 'vej-input' folder) to the 'Files' tab
 
 ## Considerations
 
