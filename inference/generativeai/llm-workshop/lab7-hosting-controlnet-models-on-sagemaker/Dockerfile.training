@@ -11,7 +11,7 @@ RUN pip install opencv-python-headless
 
 RUN mkdir -p /opt/ml/code
 COPY train.py /opt/ml/code/
-COPY stable-diffusion-webui /opt/ml/code/
+RUN git clone https://github.com/xieyongliang/stable-diffusion-webui.git -b api /opt/ml/code
 RUN git clone https://github.com/xieyongliang/sd_dreambooth_extension.git /opt/ml/code/extensions/sd_dreambooth_extension
 
 # install the SageMaker Training Toolkit 
@@ -22,7 +22,7 @@ ENV SAGEMAKER_PROGRAM train.py
 
 RUN apt install build-essential
 
-RUN pip install ninja triton
+RUN pip install triton
 RUN conda install xformers -c xformers -y
 
 ENTRYPOINT []
