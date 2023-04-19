@@ -13,7 +13,9 @@ This example notebook demonstrates how to bring your own java-based container an
 
 - Create Notebook Instance with the following details
 
+
   Notebook instance name – “sagemaker-byoc-mme-java”
+
   
   Notebook instance type – “ml.m5.xlarge”
   
@@ -26,6 +28,7 @@ This example notebook demonstrates how to bring your own java-based container an
 <img width="299" alt="Notebook-git-clone-w-url" src="https://user-images.githubusercontent.com/46861009/165638391-df060167-dac2-4872-9b08-39b49ea15775.png">
   
 - Navigate to inference->realtime->byoc->byoc-mme-java folder -> JPMML_Models_SageMaker.ipynb and follow the instructions 
+
 <img width="448" alt="image" src="https://user-images.githubusercontent.com/46861009/165638469-4e43f585-c762-4c5c-be04-84bd2617f309.png">
 
 - Select conda_python3 as the kernel in order to execute the notebook.
