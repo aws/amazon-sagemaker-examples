@@ -3,19 +3,22 @@ FROM ghcr.io/allenai/pytorch:1.13.1-cuda11.7-python3.10-v1.2.2
 RUN apt update
 RUN apt install wget git -y
 RUN apt install libgl1-mesa-glx -y
+RUN apt install build-essential
 RUN pip install opencv-python-headless
+RUN pip install boto3 huggingface_hub triton deepspeed accelerate
+RUN conda install xformers -c xformers -y
 
 RUN mkdir -p /opt/ml/code
-RUN git clone https://github.com/xieyongliang/stable-diffusion-webui.git /opt/ml/code -b api
-RUN git clone https://github.com/Mikubill/sd-webui-controlnet.git /opt/ml/code/extensions/sd-webui-controlnet
-COPY serve /opt/ml/code
 
-RUN apt install build-essential
+ADD https://api.github.com/repos/xieyongliang/stable-diffusion-webui/git/refs/heads/api webui.version.json
+RUN git clone https://github.com/xieyongliang/stable-diffusion-webui.git /opt/ml/code -b api
+
+ADD https://api.github.com/repos/xieyongliang/sd-webui-controlnet/git/refs/heads/main controlnet.version.json
+RUN git clone https://github.com/Mikubill/sd-webui-controlnet.git /opt/ml/code/extensions/sd-webui-controlnet
+
+COPY serve /opt/ml/code
 
 RUN mkdir -p /root/.cache/huggingface/accelerate
 COPY default_config.yaml /root/.cache/huggingface/accelerate/
-
-RUN pip install boto3 huggingface_hub triton deepspeed accelerate
-RUN conda install xformers -c xformers -y
 
 WORKDIR /opt/ml/code
