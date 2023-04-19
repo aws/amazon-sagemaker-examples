@@ -6,9 +6,9 @@ RUN apt install libgl1-mesa-glx -y
 RUN pip install opencv-python-headless
 
 RUN mkdir -p /opt/ml/code
-COPY serve /opt/ml/code
-RUN git clone https://github.com/xieyongliang/stable-diffusion-webui.git -b api /opt/ml/code
+RUN git clone https://github.com/xieyongliang/stable-diffusion-webui.git /opt/ml/code -b api
 RUN git clone https://github.com/Mikubill/sd-webui-controlnet.git /opt/ml/code/extensions/sd-webui-controlnet
+COPY serve /opt/ml/code
 
 RUN apt install build-essential
 

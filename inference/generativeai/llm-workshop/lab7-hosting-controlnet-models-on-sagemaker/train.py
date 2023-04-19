@@ -17,5 +17,5 @@ os.makedirs(os.path.dirname("/opt/ml/input/data/lora"), exist_ok=True)
 os.makedirs(os.path.dirname("/opt/ml/input/data/dreambooth"), exist_ok=True)
 os.makedirs(os.path.dirname("/opt/ml/input/data/models"), exist_ok=True)
 
-ret = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding="utf-8")
+ret = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding="utf-8")
 print(ret)

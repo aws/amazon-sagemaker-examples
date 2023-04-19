@@ -32,5 +32,5 @@ if os.path.isdir('/opt/ml/model/Lora'):
 if os.path.isdir('/opt/ml/model/Vae'):
     shutil.copytree('/opt/ml/model/Vae', '/tmp/models/Vae')
 
-ret = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding="utf-8")
+ret = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding="utf-8")
 print(ret)
