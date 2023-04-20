@@ -1,4 +1,4 @@
 torch
 torchvision
 scikit-learn
-sagemaker
+sagemaker>=2.148.0,<3

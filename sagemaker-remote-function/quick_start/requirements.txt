@@ -1,2 +1,2 @@
 pandas
-sagemaker
+sagemaker>=2.148.0,<3

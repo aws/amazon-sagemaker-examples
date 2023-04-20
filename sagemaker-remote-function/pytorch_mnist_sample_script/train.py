@@ -1,3 +1,4 @@
+import os
 import torch
 import torch.nn.functional as F
 import torch.optim as optim
@@ -8,6 +9,9 @@ from sagemaker.remote_function import remote
 from model import Net
 from load_data import load_data
 
+
+# Set path to config file
+os.environ["SAGEMAKER_USER_CONFIG_OVERRIDE"] = os.getcwd()
 
 def train(model, device, train_loader, optimizer, epoch, log_interval, dry_run):
     model.train()
