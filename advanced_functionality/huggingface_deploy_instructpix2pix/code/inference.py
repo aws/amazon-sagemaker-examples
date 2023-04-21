@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 JSON_CONTENT_TYPE = 'application/json'
-PLAINTEXT_CONTENT_TYPE = 'test/plain'
+PLAINTEXT_CONTENT_TYPE = 'text/plain'
 
 
 def model_fn(model_dir, context):
@@ -54,7 +54,7 @@ def output_fn(prediction_output, accept):
     logger.debug('output_fn: Got output image: {}'.format(prediction_output))
     logger.debug('output_fn: Accept: {}'.format(accept))
     
-    if accept != PLAINTEXT_CONTENT_TYPE:
+    if accept != PLAINTEXT_CONTENT_TYPE and accept != JSON_CONTENT_TYPE:
         raise ValueError('Requested unsupported ContentType in Accept: ' + accept)
 
     buffered = BytesIO()
@@ -63,4 +63,10 @@ def output_fn(prediction_output, accept):
     base64_string = img_str.decode('latin1')
 
     logger.debug('output_fn: Response base64 string (partial): {}...'.format(base64_string[:32]))
-    return base64_string
+
+    if accept == PLAINTEXT_CONTENT_TYPE:
+        return base64_string
+
+    return {
+        'output': base64_string
+    }
