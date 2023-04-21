@@ -13,6 +13,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 JSON_CONTENT_TYPE = 'application/json'
+PLAINTEXT_CONTENT_TYPE = 'test/plain'
 
 
 def model_fn(model_dir, context):
@@ -34,7 +35,7 @@ def input_fn(serialized_input_data, content_type=JSON_CONTENT_TYPE):
         input_data = json.loads(serialized_input_data)
         return input_data
     else:
-        raise Exception('Requested unsupported ContentType in Accept: ' + content_type)
+        raise ValueError('Requested unsupported ContentType in Accept: ' + content_type)
 
 
 def predict_fn(input_data, model):
@@ -52,6 +53,9 @@ def predict_fn(input_data, model):
 def output_fn(prediction_output, accept):
     logger.debug('output_fn: Got output image: {}'.format(prediction_output))
     logger.debug('output_fn: Accept: {}'.format(accept))
+    
+    if accept != PLAINTEXT_CONTENT_TYPE:
+        raise ValueError('Requested unsupported ContentType in Accept: ' + accept)
 
     buffered = BytesIO()
     prediction_output.save(buffered, format="PNG")
