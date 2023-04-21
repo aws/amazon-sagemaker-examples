@@ -5,4 +5,4 @@ dependencies:
   - python=3.10
   - pandas
   - pip:
-      - sagemaker
+      - sagemaker>=2.148.0,<3
