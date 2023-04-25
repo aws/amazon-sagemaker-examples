@@ -1,0 +1,4 @@
+torch
+torchvision
+scikit-learn
+sagemaker>=2.148.0,<3
