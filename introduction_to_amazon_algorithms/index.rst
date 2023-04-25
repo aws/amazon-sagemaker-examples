@@ -74,6 +74,7 @@ Text
    jumpstart_text_classification/Amazon_JumpStart_Text_Classification
    jumpstart_text_generation/Amazon_JumpStart_Text_Generation
    jumpstart_text_classification/Amazon_JumpStart_HuggingFace_Text_Classification
+   jumpstart-foundation-models/text2text-generation-flan-t5-Batch-Transform
 
 Vision
 -------------------------------------------
