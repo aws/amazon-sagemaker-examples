@@ -44,7 +44,7 @@ aws ecr set-repository-policy \
 # Build the docker image locally with the image name and then push it to ECR
 # with the full name.
 
-docker build -t ${inference_image} -f Dockerfile.inference . 
+docker build -t ${inference_image} -f Dockerfile.inference --build-arg REGION=${region} .
 
 docker tag ${inference_image} ${inference_fullname}
 
