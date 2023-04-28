@@ -1,0 +1,3 @@
+engine=Python
+option.tensor_parallel_degree=1
+option.s3url={{ s3url }}
