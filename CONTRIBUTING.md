@@ -58,6 +58,7 @@ If your PR does not pass CI, you can view the logs to understand how to fix your
 Our [CI system](https://github.com/aws/sagemaker-example-notebooks-testing) tests each notebook in this repo everyday to see if it is fully functional. We provide badges to display the results of these daily tests so you and your customers can see if your notebook is working or needs to be fixed. **It is required that all notebooks have these badges.**
 
 The badges should be added using the following steps:
+
 1. Insert the following markdown underneath your notebook's title. Substitute NOTEBOOK_PATH with the path of your notebook relative to the root of the repo and all "/" are replaced with "|" (i.e. sagemaker-pipeline-parameterization|parameterized-pipeline.ipynb)
 ```
 ---
