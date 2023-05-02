@@ -58,11 +58,11 @@ If your PR does not pass CI, you can view the logs to understand how to fix your
 Our [CI system](https://github.com/aws/sagemaker-example-notebooks-testing) tests each notebook in this repo everyday to see if it is fully functional. We provide badges to display the results of these daily tests so you and your customers can see if your notebook is working or needs to be fixed. **It is required that all notebooks have these badges.**
 
 The badges should be added using the following steps:
-1. Insert the following markdown underneath your notebook's title.
+1. Insert the following markdown underneath your notebook's title. Substitute NOTEBOOK_PATH with the path of your notebook relative to the root of the repo and all "/" are replaced with "|" (i.e. sagemaker-pipeline-parameterization|parameterized-pipeline.ipynb)
 ```
 ---
 
-This notebook's CI test result for us-west-2 is as follows. CI test results in other regions can be found at the end of the notebook. Substitute NOTEBOOK_PATH with the path of your notebook relative to the root of the repo and all "/" are replaced with "|" (i.e. sagemaker-pipeline-parameterization|parameterized-pipeline.ipynb)
+This notebook's CI test result for us-west-2 is as follows. CI test results in other regions can be found at the end of the notebook.
 
 ![This badge failed to load. Check your device's internet connectivity, otherwise the service is currently unavailable](https://h75twx4l60.execute-api.us-west-2.amazonaws.com/sagemaker-nb/us-west-2/NOTEBOOK_PATH)
 
