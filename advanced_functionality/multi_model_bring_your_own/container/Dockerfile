@@ -1,4 +1,4 @@
-FROM ubuntu:18.04
+FROM public.ecr.aws/ubuntu/ubuntu:18.04_stable
 
 # Set a docker label to advertise multi-model support on the container
 LABEL com.amazonaws.sagemaker.capabilities.multi-models=true
