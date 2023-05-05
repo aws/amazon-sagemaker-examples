@@ -22,6 +22,8 @@ then
     exit 255
 fi
 
+aws ecr get-login-password --region $region | docker login --username AWS --password-stdin 763104351884.dkr.ecr.$region.amazonaws.com
+
 inference_image=all-in-one-ai-stable-diffusion-webui-inference-api
 inference_fullname=${account}.dkr.ecr.${region}.amazonaws.com/${inference_image}:latest
 
