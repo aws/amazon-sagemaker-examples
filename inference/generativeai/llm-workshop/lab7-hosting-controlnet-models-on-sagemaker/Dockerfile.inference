@@ -4,7 +4,9 @@ FROM 763104351884.dkr.ecr.$REGION.amazonaws.com/djl-inference:0.21.0-fastertrans
 RUN apt update
 RUN apt install wget git -y
 RUN apt install libgl1-mesa-glx -y
-RUN apt install build-essential
+RUN apt install build-essential -y
+RUN apt install pkg-config -y
+RUN apt install libcairo2-dev -y
 RUN pip install opencv-python-headless
 RUN pip install boto3 huggingface_hub triton deepspeed accelerate
 ADD https://repo.anaconda.com/archive/Anaconda3-2023.03-1-Linux-x86_64.sh /tmp/Anaconda3-2023.03-1-Linux-x86_64.sh
