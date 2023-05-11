@@ -18,7 +18,7 @@ def deploy_jumpstart_model(
     """Create and deploy a SageMaker JumpStart model."""
     aws_role = sagemaker_session.get_caller_identity_arn()
     region = sagemaker_session.boto_region_name
-    
+
     endpoint_name = name_from_base(f"jumpstart-bm-{model_id.replace('huggingface', 'hf')}")
 
     instance_type = instance_types.retrieve_default(
@@ -34,9 +34,7 @@ def deploy_jumpstart_model(
         instance_type=instance_type,
     )
 
-    model_uri = model_uris.retrieve(
-        model_id=model_id, model_version=model_version, model_scope="inference"
-    )
+    model_uri = model_uris.retrieve(model_id=model_id, model_version=model_version, model_scope="inference")
 
     env_vars = environment_variables.retrieve_default(
         model_id=model_id,
@@ -66,5 +64,5 @@ def deploy_jumpstart_model(
         deserializer=deserializer,
     )
     print(f"\n(Model {model_id}): Successfully deployed endpoint {endpoint_name} ...")
-    
+
     return predictor
