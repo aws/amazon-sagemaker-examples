@@ -14,6 +14,9 @@ fi
 
 region=$1
 
+# Get the login command from ECR and execute it directly
+aws ecr get-login-password --region $region | docker login --username AWS --password-stdin 763104351884.dkr.ecr.$region.amazonaws.com
+
 # Get the account number associated with the current IAM credentials
 account=$(aws sts get-caller-identity --query Account --output text)
 
@@ -44,7 +47,7 @@ aws ecr set-repository-policy \
 # Build the docker image locally with the image name and then push it to ECR
 # with the full name.
 
-docker build -t ${inference_image} -f Dockerfile.inference . 
+docker build -t ${inference_image} -f Dockerfile.inference . --build-arg REGION=${region}
 
 docker tag ${inference_image} ${inference_fullname}
 
