@@ -6,7 +6,7 @@ ckpt = os.environ.get('ckpt', None)
 embeddings_s3uri = os.environ.get('embeddings_s3uri', None)
 hypernetwork_s3uri = os.environ.get('hypernetwork_s3uri', None)
 
-cmd = "ACCELERATE=true bash webui.sh --api --listen --port 8080 --no-half --precision full --xformers --ckpt-dir /tmp/models/Stable-diffusion --controlnet-dir /tmp/models/ControlNet --lora-dir /tmp/models/Lora --vae-dir /tmp/models/Vae"
+cmd = "ACCELERATE=true bash webui.sh --api --listen --port 8080 --xformers --ckpt-dir /tmp/models/Stable-diffusion --controlnet-dir /tmp/models/ControlNet --lora-dir /tmp/models/Lora --vae-dir /tmp/models/Vae"
 
 if embeddings_s3uri:
     cmd = '{0} --embeddings-s3uri {1} --embeddings-dir /tmp/embeddings'.format(cmd, embeddings_s3uri)
