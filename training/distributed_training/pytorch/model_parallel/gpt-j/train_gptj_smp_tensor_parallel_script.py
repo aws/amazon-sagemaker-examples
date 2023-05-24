@@ -877,7 +877,7 @@ def main():
             fused_bias_gelu=args.fused_bias_gelu > 0,
         ):
             model = AutoModelForCausalLM.from_pretrained(
-                "EleutherAI/gpt-j-6B", revision="float16", torch_dtype=torch.float16
+                "EleutherAI/gpt-j-6b", revision="float16", torch_dtype=torch.float16
             )
             model_config = model.config
             # translated_state_dict = translate_hf_gptj_state_dict_to_smdistributed(model.state_dict(), max_seq_len=args.max_context_width)
