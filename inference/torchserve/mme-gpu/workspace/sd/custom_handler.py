@@ -34,7 +34,8 @@ class DiffuserHandler(BaseHandler, ABC):
         )
         self.pipeline = StableDiffusionInpaintPipeline.from_pretrained(model_dir, torch_dtype=torch.float16)
 
-        self.pipeline.to(self.device)
+        #self.pipeline.to(self.device)
+        self.pipeline.to('cuda')
         self.pipeline.enable_xformers_memory_efficient_attention()
 
         self.initialized = True
@@ -44,6 +45,9 @@ class DiffuserHandler(BaseHandler, ABC):
         requests = []
         for row in data:
             request = row.get("data") or row.get("body")
+
+            if isinstance(request, (bytearray, bytes)):
+                request = json.loads(request.decode('utf-8'))
 
             if isinstance(request, dict) and \
                     "image" in request and \
@@ -91,8 +95,8 @@ class DiffuserHandler(BaseHandler, ABC):
         for request in data:
             gen_args = request["gen_args"]
             gen_args_decoded = json.loads(gen_args)
-            #generator = [torch.Generator(device="cuda").manual_seed(gen_args_decoded['seed'])]
-            generator = [torch.Generator(device=self.device).manual_seed(gen_args_decoded['seed'])]
+            generator = [torch.Generator(device="cuda").manual_seed(gen_args_decoded['seed'])]
+            #generator = [torch.Generator(device=self.device).manual_seed(gen_args_decoded['seed'])]
 
             img_crop, mask_crop = crop_for_filling_pre(request["image"], request["mask_image"])
             with torch.no_grad():

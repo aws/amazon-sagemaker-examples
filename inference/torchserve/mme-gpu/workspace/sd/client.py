@@ -1,6 +1,5 @@
 import base64
 import json
-from json import JSONEncoder
 import io
 import numpy as np
 from PIL import Image
@@ -41,5 +40,5 @@ response = httpx.post(url, json=payload, timeout=None)
 encoded_masks_string = response.json()['generated_image']
 base64_bytes_masks = base64.b64decode(encoded_masks_string)
 print(base64_bytes_masks)
-#generated_image_rgb=Image.open(io.BytesIO(base64_bytes_masks)).convert("RGB")
-#generated_image_rgb.show()
+generated_image_rgb=Image.open(io.BytesIO(base64_bytes_masks)).convert("RGB")
+generated_image_rgb.show()

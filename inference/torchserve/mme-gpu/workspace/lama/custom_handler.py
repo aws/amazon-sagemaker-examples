@@ -16,7 +16,6 @@ from io import BytesIO
 from ts.context import Context
 from ts.torch_handler.base_handler import BaseHandler
 
-#sys.path.insert(0, str(Path(__file__).resolve().parent))
 from saicinpainting.evaluation.utils import move_to_device
 from saicinpainting.training.trainers import load_checkpoint
 from saicinpainting.evaluation.data import pad_tensor_to_modulo
@@ -28,11 +27,6 @@ os.environ['VECLIB_MAXIMUM_THREADS'] = '1'
 os.environ['NUMEXPR_NUM_THREADS'] = '1'
 
 class LamaHandler(BaseHandler, ABC):
-
-#    sys.path.insert(0, str(Path(__file__).resolve().parent / "lama"))
-#    from saicinpainting.evaluation.utils import move_to_device
-#    from saicinpainting.training.trainers import load_checkpoint
-#    from saicinpainting.evaluation.data import pad_tensor_to_modulo
 
     def __init__(self):
         super().__init__()
@@ -75,6 +69,9 @@ class LamaHandler(BaseHandler, ABC):
         requests = []
         for row in data:
             request = row.get("data") or row.get("body")
+
+            if isinstance(request, (bytearray, bytes)):
+                request = json.loads(request.decode('utf-8'))            
 
             if isinstance(request, dict) and \
                     "image" in request and \

@@ -38,6 +38,9 @@ class SAMHandler(BaseHandler):
         for row in data:
             request = row.get("data") or row.get("body")
 
+            if isinstance(request, (bytearray, bytes)):
+                request = json.loads(request.decode('utf-8'))
+
             if isinstance(request, dict) and \
                     "image" in request and \
                     "gen_args" in request:
@@ -52,7 +55,7 @@ class SAMHandler(BaseHandler):
                     request["image"] = img_np_array
                     requests.append(request)
             else:
-                raise RuntimeError("Dict request must include image and gen_args" )
+                raise RuntimeError(f'Dict request must include image and gen_args, type={type(request)}')
 
         return requests 
 
