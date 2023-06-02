@@ -2,7 +2,7 @@
 # This is a Python 3 image that uses the nginx, gunicorn, flask stack
 # for serving inferences in a stable way.
 
-FROM ubuntu:16.04
+FROM ubuntu:20.04
 
 MAINTAINER Amazon AI <sage-learner@amazon.com>
 
@@ -11,13 +11,13 @@ RUN apt-get install -y software-properties-common
 RUN add-apt-repository ppa:deadsnakes/ppa
 RUN apt-get update
 
-RUN apt-get install -y build-essential python3.6 python3.6-dev python3-pip python3.6-venv
-RUN python3.6 -m pip install pip --upgrade
+RUN apt-get install -y build-essential python3.9 python3.9-dev python3-pip python3.9-venv
+RUN python3.9 -m pip install pip --upgrade
 
 RUN apt-get -y update && apt-get install -y --no-install-recommends \
          wget \
          nginx \
-         libgcc-5-dev \ 
+         libgcc-7-dev \ 
          ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
@@ -26,11 +26,9 @@ RUN apt-get -y update && apt-get install -y --no-install-recommends \
 # linking them together. Likewise, pip leaves the install caches populated which uses
 # a significant amount of space. These optimizations save a fair amount of space in the
 # image, which reduces start up time.
-RUN wget https://bootstrap.pypa.io/get-pip.py && python3.6 get-pip.py && \
+RUN wget https://bootstrap.pypa.io/get-pip.py && python3.9 get-pip.py && \
     pip install --upgrade pip && \
-    pip install smdebug numpy==1.16.2 scipy==1.2.1 scikit-learn==0.19.1 xgboost==0.90 pandas==0.22.0 flask gevent gunicorn && \
-        (cd /usr/local/lib/python3.6/dist-packages/scipy/.libs; rm *; ln ../../numpy/.libs/* .) && \
-        rm -rf /root/.cache
+    pip install smdebug numpy scipy scikit-learn xgboost pandas flask gevent gunicorn
 
 # Set some environment variables. PYTHONUNBUFFERED keeps Python from buffering our standard
 # output stream, which means that logs can be delivered to the user quickly. PYTHONDONTWRITEBYTECODE

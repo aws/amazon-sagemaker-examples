@@ -46,8 +46,21 @@ athena_database_name = customers_feature_group.describe()["OfflineStoreConfig"][
 print(f'claims_table_name: {claims_table_name}')
 print(f'customers_table_name: {customers_table_name}')
 
-claims_feature_group_s3_prefix = f'{args.bucket_prefix}/{account_id}/sagemaker/{region}/offline-store/{claims_table_name}/data/year={now.year}/month={now.strftime("%m")}/day={now.strftime("%d")}'
-customers_feature_group_s3_prefix = f'{args.bucket_prefix}/{account_id}/sagemaker/{region}/offline-store/{customers_table_name}/data/year={now.year}/month={now.strftime("%m")}/day={now.strftime("%d")}'
+claims_feature_group_s3_prefix = "/".join(
+    claims_feature_group.describe()
+    .get("OfflineStoreConfig")
+    .get("S3StorageConfig")
+    .get("ResolvedOutputS3Uri")
+    .split("/")[3:]
+)
+
+customers_feature_group_s3_prefix = "/".join(
+    customers_feature_group.describe()
+    .get("OfflineStoreConfig")
+    .get("S3StorageConfig")
+    .get("ResolvedOutputS3Uri")
+    .split("/")[3:]
+)
 
 print(f'claims_feature_group_s3_prefix: {claims_feature_group_s3_prefix}')
 print(f'customers_feature_group_s3_prefix: {customers_feature_group_s3_prefix}')
