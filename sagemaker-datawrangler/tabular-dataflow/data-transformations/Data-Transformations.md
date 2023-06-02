@@ -8,7 +8,7 @@ Data Wrangler includes built-in transforms, which you can use to transform colum
 
 In order to apply an action on the imported data, select the **Add Transform** option on right clicking the the **Data Types** block. In the displayed window, select **Add Steps** to display **Add Transform** window.
 
- ![add-transform](https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/add-transform.png)
+ ![add-transform](https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/tabular-dataflow/add-transform.png)
 
 
 
@@ -28,7 +28,7 @@ In order to apply an action on the imported data, select the **Add Transform** o
 Please select the the column names we want to drop as shown in the image below and hit **Preview**.  
  
  
- ![drop-columns](https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/drop-columns.png)
+ ![drop-columns](https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/tabular-dataflow/drop-columns.png)
  
 If the Preview is OK, click **Add** to add the transform in the data flow. 
 
@@ -36,7 +36,7 @@ Further, based on the multi-colinearity analysis results, we can also drop the c
 
 
 
- ![drop-more-columns](https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/drop-more-cols.png)
+ ![drop-more-columns](https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/tabular-dataflow/drop-more-cols.png)
  
  If the Preview is OK, click **Add** to add the transform in the data flow. 
 
@@ -45,7 +45,7 @@ Further, based on the multi-colinearity analysis results, we can also drop the c
 To drop the duplicate rows that we identified based on the analysis we did in the previous section. To drop columns, choose **Manage rows** transform from the **Add Transform** window.  Then select the **Drop duplicates** option from **Manage rows** transform and hit **Preview**.  
 
 
- ![drop-duplicates](https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/drop-duplicates.png)
+ ![drop-duplicates](https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/tabular-dataflow/drop-duplicates.png)
 
   If the Preview is OK, click **Add** to add the transform in the data flow. 
 
@@ -63,7 +63,7 @@ Please select the following parameters and hit **Preview**.
     
 
 
-![outliers](https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/handle-outliers.png)
+![outliers](https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/tabular-dataflow/handle-outliers.png)
 
 
  If the Preview is OK, click **Add** to add the transform in the data flow. 
@@ -75,20 +75,20 @@ To handle outliers, choose **Handle missing values** transform from the **Add Tr
 
  - Missing values in **Children** column : Majority of the visitors were not accompanied by children and hence missing data can be replaced by number of children = 0.
  
-![fill-missing-children](https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/fill-missing-children-val.png)
+![fill-missing-children](https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/tabular-dataflow/fill-missing-children-val.png)
 
  Please hit **Preview** to look at the transform preview, and if it is OK, click **Add** to add the transform in the data flow. 
  
 - Missing values in **Country** column 
 Iterating through the country column reveals that most of the clients are from Europe. Therefore, all the missing values in the country column are replaced with the country of maximum occurrence - Portugal (PRT). Fill missing country column with `PRT` based on value counts 
  
-![fill-missing-country](https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/fill-missing-country-val.png)
+![fill-missing-country](https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/tabular-dataflow/fill-missing-country-val.png)
 
 Please hit **Preview** to look at the transform preview, and if it is OK, click **Add** to add the transform in the data flow. 
 
 - Custom Transform - Meal type has Undefined category, changing the Undefined value to the most used which is BB by implementing a custom pyspark transform with two simple lines of code. This can be done by choosing **Custom transform** transform from the **Add Transform** window. Specify the name of the transform, and paste following code in the transform as shown in figure below. 
  
- ![custom-pyspark](https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/custom-pyspark-code.png)
+ ![custom-pyspark](https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/tabular-dataflow/custom-pyspark-code.png)
  
  
 ```python
@@ -113,7 +113,7 @@ From Data Wrangler's list of pre-built transforms, choose **Process numeric**. P
 - `Input columns`:  `lead_time`,`stays_in_weekend_nights`, `stays_in_weekday_nights`, `is_repeated_guest`, `prev_cancellations`,  `prev_bookings_not_canceled`, `booking_changes`, `adr`, `total_of_specical_requests`, `required_car_parking_spaces`
     
 
- ![scale-numeric](https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/min-max.png)
+ ![scale-numeric](https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/tabular-dataflow/min-max.png)
 
 
  If the Preview is OK, click **Add** to add the transform in the data flow. 
@@ -132,7 +132,7 @@ From Data Wrangler's list of pre-built transforms, choose **Encode Categorical**
     
 
 
- ![scale-categorical](https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/categorical-one-hot.png)
+ ![scale-categorical](https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/tabular-dataflow/categorical-one-hot.png)
 
 
  If the Preview is OK, click **Add** to add the transform in the data flow. 
@@ -156,7 +156,7 @@ From the Data Wrangler's transform pane, choose **Balance Data** as the transfor
 - `Desiered ratio` : `1`
 - `Transform`: `Random oversample`
 
- ![random-oversample](https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/random-oversample.png)
+ ![random-oversample](https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/tabular-dataflow/random-oversample.png)
 
 
  If the Preview is OK, click **Add** to add the transform in the data flow. 
@@ -165,11 +165,11 @@ The state of the classes before and after balancing is as follows:
 
 The ratio of positive to negative case = ~0.38 
 
-![pre-balance](https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/class-before-balance.png)
+![pre-balance](https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/tabular-dataflow/class-before-balance.png)
 
 
 After balancing, the ratio is 1 
-![post-balance](https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/class-after-balance.png)
+![post-balance](https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/tabular-dataflow/class-after-balance.png)
 
 ### Quick Model
 Given, we have applied most of the needed transformations on our feature columns, we can now create a Quick Model again using the transformed features to identify the predictive ability of our features and take a look at their attribution towards prediction.
@@ -186,7 +186,7 @@ The below figure shows the results of the newly run Quick Model created using th
 
 Craete a quick model, similar to one we created in the **[Exploratory Data Analysis](./Data-Exploration.md)** step. 
 
-![post-quick-model](https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/quick-model-post.png)
+![post-quick-model](https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/tabular-dataflow/quick-model-post.png)
 
 Compare the model with the one created in Exploratory Data Analysis step.  
 
