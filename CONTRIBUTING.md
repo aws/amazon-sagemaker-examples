@@ -292,7 +292,7 @@ If you determine that sequential notebooks are the most suitable format to write
 * *Each notebook in the series must independently run end-to-end so that it can be tested in the daily CI (i.e. the CI test amazon-sagemaker-example-pr must pass).*
     * This may include generating intermediate artifacts which can be immediately loaded up for use in later notebooks, etc. Depending on the situation, intermediate artifacts can be stored in the following places: 
         * The repo in the same folder where your notebook is stored: This is possible for very small files (on the order of KB)
-        * The sagemaker-sample-files S3 bucket: This is for larger files (on or above the order of MB).
+        * The sagemaker-example-files-prod-REGION S3 bucket: This is for larger files (on or above the order of MB).
 * Each notebook must have a 'Background Section' clearly stating that the notebook is part of a notebook sequence. It must contain the following elements below. You can look at the 'Background' section in [Music Recommender Data Exploration](https://github.com/aws/amazon-sagemaker-examples/blob/main/end_to_end/music_recommendation/01_data_exploration.ipynb) for an example.
     * The objective and/or short summary of the notebook series.
     * A statement that the notebook is part of a notebook series.
