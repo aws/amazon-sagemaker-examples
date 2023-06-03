@@ -41,11 +41,11 @@ This set of data is meant to illustrate capability and is placed on S3 for purpo
 ## Getting your files ready
 
 1. Download the following Data Wrangler flow file to your laptop. You can also `git clone` to obtain the file, if you prefer. In a next step, you will upload this file to your SageMaker Studio environment.
-	- [Quantile-Selector.flow](https://s3.amazonaws.com/sagemaker-sample-files/datasets/tabular/timeseries-quantile-selection-dataflow/Quantile-Selector.flow)
+	- [Quantile-Selector.flow](https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/datasets/tabular/timeseries-quantile-selection-dataflow/Quantile-Selector.flow)
 
 2. Start SageMaker Studio and upload the flow file to your SageMaker Studio by clicking on the upload icon highlighted in red.
 
-![upload-file](https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-quantile-selection-dataflow/upload.jpg)
+![upload-file](https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/timeseries-quantile-selection-dataflow/upload.jpg)
 
 ## Adjust transform: filter to last N-periods
 In the Data Wrangler flow, you will see a transform labeled `filter to last N-periods`.  Double-click the transform to edit it.
@@ -76,7 +76,7 @@ Once you have made any coding adjustments, click Preview. If the Preview is OK a
 ## Adjust transform: compute-quantile-financial
 As with the prior transform, you may decide to edit the quantile computation logic.  This is located in a transform titled `compute-quantile-financial`. Here, we see an example of a dataset that shows backtest forecasted values, financial profit and loss measures, and the winner quantile (including customer override), among quantiles tested.
 
-![tabular-view](https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-quantile-selection-dataflow/tabluar-view.jpg)
+![tabular-view](https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/timeseries-quantile-selection-dataflow/tabluar-view.jpg)
 
 As delivered, this transform makes use of a standard set of columns in the customer provided input file.  The transform also uses five quantiles, p50 through p90 in increments of 10.
 
@@ -132,15 +132,15 @@ Once you have made any coding adjustments, click Preview. If the Preview is OK a
 ## Create your S3 output destinations
 As delivered, the solution has no S3 destinations. As shown in the picture below, you can setup S3 locations where the results of each transform can be saved for subsequent use in your data pipeline.  In this section, the goal is to add S3 destinations, which ultimately, will write data to your own S3 bucket. In this example, the goal is to add multiple destinations to your sample Data Wrangler workflow as follows.
 
-![output-destinations](https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-quantile-selection-dataflow/output-destinations.jpg)
+![output-destinations](https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/timeseries-quantile-selection-dataflow/output-destinations.jpg)
 
 1. Click the (+) on the transform titled `compute-quantile-financials`, then click Add Destination and choose Amazon S3.
 
-![output-destination1](https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-quantile-selection-dataflow/export-1.jpg)
+![output-destination1](https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/timeseries-quantile-selection-dataflow/export-1.jpg)
 
 2. At the next screen, provide a meaningful dataset name then use the browse button to locate where you want the output file written in your AWS environment.  In this step, be sure to select your own S3 bucket else you might have a failure.
 
-![output-destination2](https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-quantile-selection-dataflow/export-2.jpg)
+![output-destination2](https://s3.amazonaws.com/ssagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/timeseries-quantile-selection-dataflow/export-2.jpg)
 
 3. The CSV output files per quantile are also designed to be written to S3 as a list of `item_id` and `region` values. You may not need the quantile based output files and can delete these, if appropriate.  The purpose of these distinct files is to use them to drive Amazon Forecast such that it produces future forecasts, at specific quantiles, for named items as a cost efficiency measure.  Please read our blog for more information at [Choose specific timeseries to forecast with Amazon Forecast](https://aws.amazon.com/blogs/machine-learning/choose-specific-timeseries-to-forecast-with-amazon-forecast/).
 
@@ -151,31 +151,31 @@ Next, this process demonstrates how to execute the transformation. Ideally, in f
 
 1. Locate the blue Create Job button on the top-right of the screen as shown.
 
-![scheduling-1](https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-quantile-selection-dataflow/scheduling-1.jpg)
+![scheduling-1](https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/timeseries-quantile-selection-dataflow/scheduling-1.jpg)
 
 2. You may provide a unique job name here, or unselect destinations if applicable.
 
 3. Click click the blue box at the bottom to proceed forward.
 
-![scheduling-2](https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-quantile-selection-dataflow/scheduling-2.jpg)
+![scheduling-2](https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/timeseries-quantile-selection-dataflow/scheduling-2.jpg)
 
 4. At the Create Job step, change instance count to 1, until you find your task is too big to fit on single nodes.
 
 5. Click Create to proceed.
 
-![scheduling-3](https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-quantile-selection-dataflow/scheduling-3.jpg)
+![scheduling-3](https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/timeseries-quantile-selection-dataflow/scheduling-3.jpg)
 
 6. This provides you with confirmation the processing job has started. Click on the URL here to monitor the job.
 
-![scheduling-4](https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-quantile-selection-dataflow/scheduling-4.jpg)
+![scheduling-4](https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/timeseries-quantile-selection-dataflow/scheduling-4.jpg)
 
 7. Once the processing job completes, the status will become "Complete".  You can view the output files created at the S3 locations described in the transformation job.
 
-![scheduling-5](https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-quantile-selection-dataflow/scheduling-5.jpg)
+![scheduling-5](https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/timeseries-quantile-selection-dataflow/scheduling-5.jpg)
 
 ## Conclusion
 Once you have completed the process, you should take care to stop the SageMaker Data Wranger instance from SageMaker Studio.  In the screenshot provided, click on the power button icon beside the list of SageMaker Data Wrangler instances.  Ongoing you do not need to use the user interface, unless you want to alter a flow.  If you want to transform data on a recurring basis, you may reuse the flow file, which now resides on S3.  
 
-![shutdown](https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/timeseries-quantile-selection-dataflow/shutdown.jpg)
+![shutdown](https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/timeseries-quantile-selection-dataflow/shutdown.jpg)
 
 Please let your AWS account team or your AWS solution architect know if you have any questions about this end-to-end process.
