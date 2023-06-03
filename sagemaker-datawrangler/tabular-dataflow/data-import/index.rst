@@ -13,22 +13,22 @@ by Data Wrangler
 Option 1 : Use the Sage Maker Launcher screen
 --------------------------------------------
 
-.. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/image-1.png
+.. figure:: https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/tabular-dataflow/image-1.png
 
 
 Option 2 : You can use the SageMaker resources menu on the left, selecting Data Wrangler, and new flow
 ----------------------------------------------------------------------------
 
-.. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/image-1-1.png
+.. figure:: https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/tabular-dataflow/image-1-1.png
 
 
 
-.. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/image-1-2.png
+.. figure:: https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/tabular-dataflow/image-1-2.png
 
 
 Option 3. : You can also use the File -> New -> DataWrangler option as shown here
 --------------------------------------------------------------------------------
-.. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/image-1-3.png
+.. figure:: https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/tabular-dataflow/image-1-3.png
 
 
 2. Data Wrangler takes a few minutes to load.
@@ -38,14 +38,14 @@ Option 3. : You can also use the File -> New -> DataWrangler option as shown her
 3. Once Data Wrangler is loaded, you should be able to see it
 under running instances and apps as shown below.
 
-.. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/image-3.png
+.. figure:: https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/tabular-dataflow/image-3.png
 
 
 4. Once Data Wrangler is up and running, you can see the following data
    flow interface with options for import, creating data flows and
    export as shown below.
 
-.. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/image-4.png
+.. figure:: https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/tabular-dataflow/image-4.png
 
 
 5. Make sure to rename the untitled.flow to your preference (for e.g.,
@@ -56,7 +56,7 @@ under running instances and apps as shown below.
    URL for the hotel-bookings.csv file into the search box below and hit
    go.
 
-.. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/image-5.png
+.. figure:: https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/tabular-dataflow/image-5.png
    
 
 7. Data Wrangler will show you a preview of the data. Select the CSV
@@ -66,7 +66,7 @@ under running instances and apps as shown below.
    set. If you have a large data set, consider using sampling. Finally
    select *Import* to import this dataset to Data Wrangler.
 
-.. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/image-6.png
+.. figure:: https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/tabular-dataflow/image-6.png
    
 
 8. Once the dataset is imported, Data Wrangler automatically validates
@@ -75,7 +75,7 @@ under running instances and apps as shown below.
    types recognized. You are also allowed to edit the data types if
    needed.
 
-.. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/image-7.png
+.. figure:: https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/tabular-dataflow/image-7.png
    
 
 Next Steps
