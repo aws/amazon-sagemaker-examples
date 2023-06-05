@@ -25,7 +25,7 @@ You will also need to have permission to use [Amazon SageMaker Studio](https://d
 
 # Data
 
-Example track (track.csv) and user ratings (ratings.csv) data is provided on a publicly available S3 bucket found here: **s3://sagemaker-sample-files/datasets/tabular/synthetic-music**
+Example track (track.csv) and user ratings (ratings.csv) data is provided on a publicly available S3 bucket found here: **s3://sagemaker-example-files-prod-{region}/datasets/tabular/synthetic-music**
 We'll be running a notebook to download the data in the demo so no need to manually download it from here just yet.
 
 **tracks.csv**  
