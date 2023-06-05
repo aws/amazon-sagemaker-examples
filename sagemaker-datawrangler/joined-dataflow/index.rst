@@ -39,7 +39,7 @@ Dataset
 
 Example track (track.csv) and user ratings (ratings.csv) data is
 provided on a publicly available S3 bucket found here:
-**s3://sagemaker-sample-files/datasets/tabular/synthetic-music** We’ll
+**s3://sagemaker-example-files-prod-us-east-1/datasets/tabular/synthetic-music** We’ll
 be running a notebook to download the data in the demo so no need to
 manually download it from here just yet.
 
@@ -299,7 +299,7 @@ Copy and paste below formula and put **danceability** to the
 
 0.3*valence + 0.1*liveness + 0.1*energy
 
-.. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/joined-dataflow/image-16.png
+.. figure:: https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/joined-dataflow/image-16.png
 
 
 
@@ -394,7 +394,7 @@ custom script to the window.
    agg_obj = [F.avg(feat_col).alias(feat_col+"_5star") for feat_col in num_feat_cols]
    df = df.filter(F.col('Rating')==5).groupBy('userId').agg(*agg_obj)
 
--  .. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/joined-dataflow/image-25.png
+-  .. figure:: https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/joined-dataflow/image-25.png
       
 
 
@@ -419,7 +419,7 @@ listed as below
 *itemInSession*
 *ratingEventId*
 
-.. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/joined-dataflow/image-27.png
+.. figure:: https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/joined-dataflow/image-27.png
 
 
 image
@@ -427,14 +427,14 @@ image
 we can drop multiple columns by selecting each column from the
 drop down manual.
 
-.. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/joined-dataflow/image-28.png
+.. figure:: https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/joined-dataflow/image-28.png
 
 
 
 Once all the columns are selected, hit **Preview** first and then
 **Add**.
 
-.. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/joined-dataflow/image-29.png
+.. figure:: https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/joined-dataflow/image-29.png
 
 
 
@@ -511,7 +511,7 @@ Create Job button on the top right, this will open a window.
 
 Set the Job name to something like generate-train-test-data
 
-.. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/joined-dataflow/image-42.png
+.. figure:: https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/joined-dataflow/image-42.png
 
 
 
@@ -520,7 +520,7 @@ Hit the **Configure Job** button at the bottom
 Leave the default instance type, and press the Run button at the
 bottom.
 
-.. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/joined-dataflow/image-43.png
+.. figure:: https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/joined-dataflow/image-43.png
 
 
 
@@ -529,7 +529,7 @@ Note that your job has been created successfully and if you want to
 see the progress of the job you can do so by following the link to
 the generate-train-test-data process.
 
-.. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/joined-dataflow/image-44.png
+.. figure:: https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/joined-dataflow/image-44.png
 
 
    
@@ -537,7 +537,7 @@ the generate-train-test-data process.
 Follow the link to see the status of your job. This processing job
 takes around 5-10 mins.
 
-.. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/joined-dataflow/image-45.png
+.. figure:: https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/joined-dataflow/image-45.png
 
 
    
@@ -546,7 +546,7 @@ When the job is complete the train and test output files will be
 available in the corresponding S3 output folders. You can find the
 output location from the processing job configurations.
 
-.. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/joined-dataflow/image-processing-job-output.png
+.. figure:: https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/joined-dataflow/image-processing-job-output.png
    
 
    
@@ -649,53 +649,53 @@ job output.
 
 |image49|
 
-.. |image| image:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/joined-dataflow/dl-image-3.png
-.. |image1| image:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/joined-dataflow/dl-image-4.png
-.. |image2| image:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/joined-dataflow/dl-image-5.png
-.. |image3| image:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/joined-dataflow/dl-image-6.png
-.. |image4| image:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/joined-dataflow/dl-image-7.png
-.. |image5| image:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/joined-dataflow/image-1.png
-.. |image6| image:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/joined-dataflow/image-1-1.png
-.. |image7| image:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/joined-dataflow/image-1-2.png
-.. |image8| image:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/joined-dataflow/image-2.png
-.. |image9| image:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/joined-dataflow/image-3.png
-.. |image10| image:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/joined-dataflow/image-4.png
-.. |image11| image:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/joined-dataflow/image-5.png
-.. |image12| image:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/joined-dataflow/image-6.png
-.. |image13| image:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/joined-dataflow/image-7.png
-.. |image14| image:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/joined-dataflow/image-8.png
-.. |image15| image:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/joined-dataflow/image-9.png
-.. |image16| image:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/joined-dataflow/image-10.png
-.. |image17| image:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/joined-dataflow/image-11.png
-.. |image18| image:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/joined-dataflow/image-12.png
-.. |image19| image:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/joined-dataflow/image-13.png
-.. |image20| image:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/joined-dataflow/image-14.png
-.. |image21| image:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/joined-dataflow/image-15.png
-.. |image22| image:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/joined-dataflow/image-17.png
-.. |image23| image:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/joined-dataflow/image-18.png
-.. |image24| image:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/joined-dataflow/image-19.png
-.. |image25| image:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/joined-dataflow/image-20.png
-.. |image26| image:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/joined-dataflow/image-21.png
-.. |image27| image:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/joined-dataflow/image-22.png
-.. |image28| image:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/joined-dataflow/image-23.png
-.. |image29| image:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/joined-dataflow/image-24.png
-.. |image30| image:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/joined-dataflow/image-26.png
-.. |image31| image:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/joined-dataflow/image-30.png
-.. |image32| image:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/joined-dataflow/image-31.png
-.. |image33| image:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/joined-dataflow/image-32.png
-.. |image34| image:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/joined-dataflow/image-33.png
-.. |image35| image:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/joined-dataflow/image-34.png
-.. |image36| image:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/joined-dataflow/image-35.png
-.. |image37| image:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/joined-dataflow/image-36.png
-.. |image38| image:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/joined-dataflow/image-37.png
-.. |image39| image:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/joined-dataflow/image-38.png
-.. |image40| image:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/joined-dataflow/image-39.png
-.. |image41| image:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/joined-dataflow/image-40.png
-.. |image42| image:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/joined-dataflow/image-41.png
-.. |image43| image:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/joined-dataflow/image-46.png
-.. |image44| image:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/joined-dataflow/image-47.png
-.. |image45| image:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/joined-dataflow/image-48.png
-.. |image46| image:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/joined-dataflow/image-49.png
-.. |image47| image:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/joined-dataflow/image-50.png
-.. |image48| image:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/joined-dataflow/image-51.png
-.. |image49| image:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/joined-dataflow/image-52.png
+.. |image| image:: https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/joined-dataflow/dl-image-3.png
+.. |image1| image:: https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/joined-dataflow/dl-image-4.png
+.. |image2| image:: https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/joined-dataflow/dl-image-5.png
+.. |image3| image:: https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/joined-dataflow/dl-image-6.png
+.. |image4| image:: https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/joined-dataflow/dl-image-7.png
+.. |image5| image:: https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/joined-dataflow/image-1.png
+.. |image6| image:: https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/joined-dataflow/image-1-1.png
+.. |image7| image:: https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/joined-dataflow/image-1-2.png
+.. |image8| image:: https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/joined-dataflow/image-2.png
+.. |image9| image:: https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/joined-dataflow/image-3.png
+.. |image10| image:: https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/joined-dataflow/image-4.png
+.. |image11| image:: https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/joined-dataflow/image-5.png
+.. |image12| image:: https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/joined-dataflow/image-6.png
+.. |image13| image:: https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/joined-dataflow/image-7.png
+.. |image14| image:: https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/joined-dataflow/image-8.png
+.. |image15| image:: https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/joined-dataflow/image-9.png
+.. |image16| image:: https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/joined-dataflow/image-10.png
+.. |image17| image:: https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/joined-dataflow/image-11.png
+.. |image18| image:: https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/joined-dataflow/image-12.png
+.. |image19| image:: https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/joined-dataflow/image-13.png
+.. |image20| image:: https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/joined-dataflow/image-14.png
+.. |image21| image:: https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/joined-dataflow/image-15.png
+.. |image22| image:: https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/joined-dataflow/image-17.png
+.. |image23| image:: https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/joined-dataflow/image-18.png
+.. |image24| image:: https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/joined-dataflow/image-19.png
+.. |image25| image:: https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/joined-dataflow/image-20.png
+.. |image26| image:: https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/joined-dataflow/image-21.png
+.. |image27| image:: https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/joined-dataflow/image-22.png
+.. |image28| image:: https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/joined-dataflow/image-23.png
+.. |image29| image:: https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/joined-dataflow/image-24.png
+.. |image30| image:: https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/joined-dataflow/image-26.png
+.. |image31| image:: https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/joined-dataflow/image-30.png
+.. |image32| image:: https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/joined-dataflow/image-31.png
+.. |image33| image:: https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/joined-dataflow/image-32.png
+.. |image34| image:: https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/joined-dataflow/image-33.png
+.. |image35| image:: https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/joined-dataflow/image-34.png
+.. |image36| image:: https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/joined-dataflow/image-35.png
+.. |image37| image:: https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/joined-dataflow/image-36.png
+.. |image38| image:: https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/joined-dataflow/image-37.png
+.. |image39| image:: https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/joined-dataflow/image-38.png
+.. |image40| image:: https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/joined-dataflow/image-39.png
+.. |image41| image:: https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/joined-dataflow/image-40.png
+.. |image42| image:: https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/joined-dataflow/image-41.png
+.. |image43| image:: https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/joined-dataflow/image-46.png
+.. |image44| image:: https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/joined-dataflow/image-47.png
+.. |image45| image:: https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/joined-dataflow/image-48.png
+.. |image46| image:: https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/joined-dataflow/image-49.png
+.. |image47| image:: https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/joined-dataflow/image-50.png
+.. |image48| image:: https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/joined-dataflow/image-51.png
+.. |image49| image:: https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/joined-dataflow/image-52.png
