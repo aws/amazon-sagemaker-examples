@@ -1,9 +1,10 @@
+import boto3
 from torchvision import datasets, transforms
 
 
 def load_data():
     datasets.MNIST.mirrors = [
-        "https://sagemaker-sample-files.s3.amazonaws.com/datasets/image/MNIST/"
+        f"https://sagemaker-example-files-prod-{boto3.session.Session().region_name}.s3.amazonaws.com/datasets/image/MNIST/"
     ]
 
     train_set = datasets.MNIST(
