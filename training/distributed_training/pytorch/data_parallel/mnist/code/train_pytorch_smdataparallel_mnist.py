@@ -35,35 +35,6 @@ from model_def import Net
 import smdistributed.dataparallel.torch.torch_smddp
 
 
-# override dependency on mirrors provided by torch vision package
-# from torchvision 0.9.1, 2 candidate mirror website links will be added before "resources" items automatically
-# Reference PR: https://github.com/pytorch/vision/pull/3559
-TORCHVISION_VERSION = "0.9.1"
-if Version(torchvision.__version__) < Version(TORCHVISION_VERSION):
-    # Set path to data source and include checksum key to make sure data isn't corrupted
-    datasets.MNIST.resources = [
-        (
-            "https://sagemaker-sample-files.s3.amazonaws.com/datasets/image/MNIST/train-images-idx3-ubyte.gz",
-            "f68b3c2dcbeaaa9fbdd348bbdeb94873",
-        ),
-        (
-            "https://sagemaker-sample-files.s3.amazonaws.com/datasets/image/MNIST/train-labels-idx1-ubyte.gz",
-            "d53e105ee54ea40749a09fcbcd1e9432",
-        ),
-        (
-            "https://sagemaker-sample-files.s3.amazonaws.com/datasets/image/MNIST/t10k-images-idx3-ubyte.gz",
-            "9fb629c4189551a2d022fa330f9573f3",
-        ),
-        (
-            "https://sagemaker-sample-files.s3.amazonaws.com/datasets/image/MNIST/t10k-labels-idx1-ubyte.gz",
-            "ec29112dd5afa0611ce80d1b7f02629c",
-        ),
-    ]
-else:
-    # Set path to data source
-    datasets.MNIST.mirrors = ["https://sagemaker-sample-files.s3.amazonaws.com/datasets/image/MNIST/"]
-
-
 class CUDANotFoundException(Exception):
     pass
 
@@ -169,6 +140,11 @@ def main():
         default="/tmp/data",
         help="Path for downloading " "the MNIST dataset",
     )
+    parser.add_argument(
+        "--region",
+        type=str,
+        help="aws region",
+    )
 
     dist.init_process_group(backend="smddp")
     args = parser.parse_args()
@@ -179,6 +155,34 @@ def main():
     args.batch_size //= args.world_size // 8
     args.batch_size = max(args.batch_size, 1)
     data_path = args.data_path
+    
+    # override dependency on mirrors provided by torch vision package
+    # from torchvision 0.9.1, 2 candidate mirror website links will be added before "resources" items automatically
+    # Reference PR: https://github.com/pytorch/vision/pull/3559
+    TORCHVISION_VERSION = "0.9.1"
+    if Version(torchvision.__version__) < Version(TORCHVISION_VERSION):
+        # Set path to data source and include checksum key to make sure data isn't corrupted
+        datasets.MNIST.resources = [
+            (
+                f"https://sagemaker-example-files-prod-{args.region}.s3.amazonaws.com/datasets/image/MNIST/train-images-idx3-ubyte.gz",
+                "f68b3c2dcbeaaa9fbdd348bbdeb94873",
+            ),
+            (
+                f"https://sagemaker-example-files-prod-{args.region}.s3.amazonaws.com/datasets/image/MNIST/train-labels-idx1-ubyte.gz",
+                "d53e105ee54ea40749a09fcbcd1e9432",
+            ),
+            (
+                f"https://sagemaker-example-files-prod-{args.region}.s3.amazonaws.com/datasets/image/MNIST/t10k-images-idx3-ubyte.gz",
+                "9fb629c4189551a2d022fa330f9573f3",
+            ),
+            (
+                f"https://sagemaker-example-files-prod-{args.region}.s3.amazonaws.com/datasets/image/MNIST/t10k-labels-idx1-ubyte.gz",
+                "ec29112dd5afa0611ce80d1b7f02629c",
+            ),
+        ]
+    else:
+        # Set path to data source
+        datasets.MNIST.mirrors = [f"https://sagemaker-example-files-prod-{args.region}.s3.amazonaws.com/datasets/image/MNIST/"]
 
     if args.verbose:
         print(
