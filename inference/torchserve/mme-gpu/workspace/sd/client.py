@@ -16,8 +16,9 @@ def encode_image(img):
     return base64.b64encode(img_bytes).decode('utf8')
 
 img_file = 'sample1.png'
-img = Image.open(img_file)
-img_bytes = encode_image(img)
+img_bytes = None
+with Image.open(img_file) as f:
+    img_bytes = encode_image(f)
 
 mask_file = 'sample1_mask.jpg'
 mask = Image.open(mask_file)
@@ -40,5 +41,6 @@ response = httpx.post(url, json=payload, timeout=None)
 encoded_masks_string = response.json()['generated_image']
 base64_bytes_masks = base64.b64decode(encoded_masks_string)
 print(base64_bytes_masks)
-generated_image_rgb=Image.open(io.BytesIO(base64_bytes_masks)).convert("RGB")
-generated_image_rgb.show()
+with Image.open(io.BytesIO(base64_bytes_masks)) as f:
+    generated_image_rgb=f.convert("RGB")
+    generated_image_rgb.show()
