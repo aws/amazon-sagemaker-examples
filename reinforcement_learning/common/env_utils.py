@@ -39,8 +39,7 @@ class VectoredGymEnvironment:
             environment_id = "environment_" + str(i)
             environment = gym.make(registered_gym_env)
             environment = environment.unwrapped
-            environment.seed(i)
-            self.env_states[environment_id] = environment.reset()
+            self.env_states[environment_id] = environment.reset(seed=i)[0]
             self.env_reset_counter[environment_id] = 0
             self.initialized_envs[environment_id] = environment
         self.envs_initialized = True
@@ -61,7 +60,9 @@ class VectoredGymEnvironment:
 
         with open(file_path, "w") as outfile:
             for state in self.env_states.values():
-                json.dump(list(state), outfile)
+                state_dump = list(state)
+                state_dump = [float(x) for x in state_dump]
+                json.dump(state_dump, outfile)
                 outfile.write("\n")
 
     def get_environment_ids(self):
@@ -69,13 +70,13 @@ class VectoredGymEnvironment:
 
     def step(self, environment_id, action):
         local_env = self.initialized_envs[environment_id]
-        observation, reward, done, info = local_env.step(action)
+        observation, reward, done, truncated, info = local_env.step(action)
 
         self.env_states[environment_id] = observation
         return observation, reward, done, info
 
     def reset(self, environment_id):
-        self.env_states[environment_id] = self.initialized_envs[environment_id].reset()
+        self.env_states[environment_id] = self.initialized_envs[environment_id].reset()[0]
         return self.env_states[environment_id]
 
     def reset_all_envs(self):
