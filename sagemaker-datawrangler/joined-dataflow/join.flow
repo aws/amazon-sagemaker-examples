@@ -17,7 +17,7 @@
           "description": null,
           "s3ExecutionContext": {
             "__typename": "S3ExecutionContext",
-            "s3Uri": "s3://sagemaker-sample-files/datasets/tabular/synthetic-music/tracks.csv",
+            "s3Uri": "s3://sagemaker-example-files-prod-us-east-1/datasets/tabular/synthetic-music/tracks.csv",
             "s3ContentType": "csv",
             "s3HasHeader": true,
             "s3FieldDelimiter": ",",
@@ -77,7 +77,7 @@
           "description": null,
           "s3ExecutionContext": {
             "__typename": "S3ExecutionContext",
-            "s3Uri": "s3://sagemaker-sample-files/datasets/tabular/synthetic-music/ratings.csv",
+            "s3Uri": "s3://sagemaker-example-files-prod-us-east-1/datasets/tabular/synthetic-music/ratings.csv",
             "s3ContentType": "csv",
             "s3HasHeader": true,
             "s3FieldDelimiter": ",",
