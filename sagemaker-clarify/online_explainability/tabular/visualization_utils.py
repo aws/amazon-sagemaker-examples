@@ -1,3 +1,11 @@
+import io
+from collections import OrderedDict
+
+import numpy as np
+import pandas as pd
+import shap
+
+
 def force_plot(expected_value, shap_values, feature_data, feature_headers):
     """
     Visualize the given SHAP values with an additive force layout.

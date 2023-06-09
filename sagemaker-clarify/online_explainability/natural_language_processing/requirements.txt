@@ -1,6 +1,7 @@
 sagemaker
 boto3
 botocore
+datasets
+transformers
+torch
 captum
-datasets[s3]==1.6.2
-transformers==4.6.1
