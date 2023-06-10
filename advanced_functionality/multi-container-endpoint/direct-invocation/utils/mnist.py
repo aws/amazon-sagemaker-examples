@@ -8,9 +8,6 @@ import numpy as np
 
 dirname = os.path.dirname(os.path.abspath(__file__))
 
-with open(os.path.join(dirname, "config.json"), "r") as f:
-    CONFIG = json.load(f)
-
 
 def mnist_to_numpy(data_dir="/tmp/data", train=True):
     """Download MNIST dataset and convert it to numpy array
@@ -33,7 +30,7 @@ def mnist_to_numpy(data_dir="/tmp/data", train=True):
 
     # download objects
     s3 = boto3.client("s3")
-    bucket = CONFIG["public_bucket"]
+    bucket = f"sagemaker-example-files-prod-{boto3.session.Session().region_name}"
     for obj in [images_file, labels_file]:
         key = os.path.join("datasets/image/MNIST", obj)
         dest = os.path.join(data_dir, obj)
