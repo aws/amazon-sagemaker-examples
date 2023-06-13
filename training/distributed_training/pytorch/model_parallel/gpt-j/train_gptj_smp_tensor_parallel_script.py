@@ -910,8 +910,6 @@ def main():
     if not args.same_seed:
         # Set seed by tp_rank to prevent weights from being the same on different tp_ranks
         set_seed(args.seed + smp.tp_rank())
-        
-    model.config.to_json_file(os.path.join(args.model_dir, "config.json"))
 
     # smdistributed: Use the DistributedModel container to provide the model
     # to be partitioned across different ranks. For the rest of the script,
