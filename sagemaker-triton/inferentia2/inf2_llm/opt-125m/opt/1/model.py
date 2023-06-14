@@ -178,7 +178,7 @@ class TritonPythonModel:
                 batched_tensor = torch.cat((batched_tensor, tensor), dim=0)
             inputs.append(batched_tensor)
         
-        batched_results = self.model_neuron.sample(batched_tensor, 2048)
+        batched_results = self.model_neuron.sample(batched_tensor, 512)
         
         chunky_batched_results = []
         for i in self.output_dict.keys():
