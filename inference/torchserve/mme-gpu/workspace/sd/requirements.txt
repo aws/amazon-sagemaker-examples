@@ -1,0 +1,8 @@
+transformers
+ftfy
+scipy
+accelerate
+diffusers==0.13.0
+opencv-python-headless==4.7.0.68
+xformers
+

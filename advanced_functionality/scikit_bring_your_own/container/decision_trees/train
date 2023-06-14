@@ -44,7 +44,7 @@ def train():
                               'This usually indicates that the channel ({}) was incorrectly specified,\n' +
                               'the data specification in S3 was incorrectly specified or the role specified\n' +
                               'does not have permission to access the data.').format(training_path, channel_name))
-        raw_data = [ pd.read_csv(file, header=None) for file in input_files ]
+        raw_data = [ pd.read_csv(file, header=None) for file in input_files if file.endswith(".csv")]
         train_data = pd.concat(raw_data)
 
         # labels are in the first column

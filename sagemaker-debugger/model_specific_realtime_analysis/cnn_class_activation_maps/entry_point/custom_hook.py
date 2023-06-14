@@ -10,7 +10,7 @@ class CustomHook(smd.Hook):
         image.register_hook(self.backward_hook("image"))
 
     def forward_hook(self, module, inputs, outputs):
-        module_name = self.module_maps[module]
+        module_name = module._module_name
         self._write_inputs(module_name, inputs)
 
         # register outputs for backward pass. this is expensive, so we will only do it during EVAL mode

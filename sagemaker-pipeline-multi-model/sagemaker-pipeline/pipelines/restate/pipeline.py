@@ -103,9 +103,9 @@ def get_pipeline(
     sagemaker_project_arn=None,
     role=None,
     default_bucket=None,
-    model_package_group_name="restatePackageGroup",  # Choose any name
-    pipeline_name="restate-p-XXXXXXXXX",  # You can find your pipeline name in the Studio UI (project -> Pipelines -> name)
-    base_job_prefix="restate",  # Choose any name
+    model_package_group_name="",
+    pipeline_name="",
+    base_job_prefix="",
 ):
     """Gets a SageMaker ML Pipeline instance working with on RE data.
     Args:
@@ -136,31 +136,12 @@ def get_pipeline(
         default_value=f"",  # Change this to point to the s3 location of your raw input data.
     )
 
-    data_sources = []
     # Sagemaker session
     sess = sagemaker_session
 
     # You can configure this with your own bucket name, e.g.
     # bucket = "my-bucket"
     bucket = sess.default_bucket()
-
-    data_sources.append(
-        ProcessingInput(
-            input_name="restate-california",
-            dataset_definition=DatasetDefinition(
-                local_path="/opt/ml/processing/restate-california",
-                data_distribution_type="FullyReplicated",
-                # You can override below to point to other database or use different queries
-                athena_dataset_definition=AthenaDatasetDefinition(
-                    catalog="AwsDataCatalog",
-                    database="restate",
-                    query_string="SELECT * FROM restate.california_10",
-                    output_s3_uri=f"s3://{bucket}/athena/",
-                    output_format="PARQUET",
-                ),
-            ),
-        )
-    )
 
     print(f"Data Wrangler export storage bucket: {bucket}")
 
@@ -204,7 +185,6 @@ def get_pipeline(
 
     print(f"Data Wrangler flow {flow_file_name} uploaded to {flow_s3_uri}")
 
-    ## Input - Flow: restate-athena-russia.flow
     flow_input = ProcessingInput(
         source=flow_s3_uri,
         destination="/opt/ml/processing/flow",
@@ -263,7 +243,7 @@ def get_pipeline(
     data_wrangler_step = ProcessingStep(
         name="DataWranglerProcess",
         processor=processor,
-        inputs=[flow_input] + data_sources,
+        inputs=[flow_input],
         outputs=[processing_job_output],
         job_arguments=[f"--output-config '{json.dumps(output_config)}'"],
     )
@@ -326,15 +306,7 @@ def get_pipeline(
         role=role,
     )
     xgb_train.set_hyperparameters(
-        #    #objective="binary:logistic",
-        #    objective="reg:linear",
         num_round=50,
-        #    max_depth=5,
-        #    eta=0.2,
-        #    gamma=4,
-        #    min_child_weight=6,
-        #    subsample=0.7,
-        #    silent=0,
     )
 
     xgb_train.set_hyperparameters(grow_policy="lossguide")
@@ -374,7 +346,6 @@ def get_pipeline(
         cache_config=cache_config,
     )
 
-    # dtree_image_uri = '625467769535.dkr.ecr.ap-southeast-1.amazonaws.com/sagemaker-decision-tree:latest'
     dtree_image_uri = sagemaker_session.sagemaker_client.describe_image_version(
         ImageName="restate-dtree"
     )["ContainerImage"]

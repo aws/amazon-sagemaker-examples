@@ -38,7 +38,6 @@ from args import CustomTrainingArguments as TrainingArguments
 from preprocess import Preprocess
 from smp_trainer import SMPTrainer
 
-from fp16 import FP16_Module, FP16_Optimizer, load_fp16_optimizer, save_fp16_optimizer
 from learning_rates import AnnealingLR
 
 from smdistributed.modelparallel.torch.nn import FusedLayerNorm as LayerNorm
@@ -100,7 +99,6 @@ def save(
     seq_length=1024,
     batch_idx=0,
 ):
-    save_fn = save_fp16_optimizer_megatron if args.megatron else save_fp16_optimizer
     save_dict = {
         "cli_args": args.__dict__,
         "num_params": num_params,
@@ -125,28 +123,24 @@ def save(
                 else model_state_dict
             )
 
-    if args.fp16:
-        if not partial and args.skip_full_optimizer:
-            print("Skipping saving the final optimizer state")
-        else:
-            if args.shard_optimizer_state == 0 or partial:
-                save_dict["optimizer"] = save_fn(args, model, optimizer, partial=partial)
-            else:
-                print(
-                    "Saving the full optimizer state does not work with shard_optimizer_state > 0! Skipping..."
-                )
+    if partial:
+        save_dict["optimizer"] = optimizer.local_state_dict(
+            gather_if_shard=args.gather_if_shard
+        )
     else:
-        # fp32
-        if partial:
-            save_dict["optimizer"] = optimizer.local_state_dict()
+        if args.skip_full_optimizer:
+            print("Skipping saving the final optimizer state")
+        elif args.shard_optimizer_state > 0:
+            print(
+                "Saving the full optimizer state does not work with shard_optimizer_state > 0! Skipping..."
+            )
         else:
-            if not args.skip_full_optimizer:
-                save_dict["optimizer"] = optimizer.state_dict()
-            else:
-                print("Skipping saving of full optimizer state")
+            save_dict["optimizer"] = optimizer.state_dict()
 
     if not args.gather_if_shard or (smp.rdp_rank() == 0 and partial) or smp.rank() == 0:
-        smp.save(save_dict, output_save_file, partial=partial, v3=not args.gather_if_shard)
+        smp.save(
+            save_dict, output_save_file, partial=partial, v3=not args.gather_if_shard
+        )
 
     print(f"Finished checkpointing after {total_steps} steps: {output_save_file}")
 
@@ -243,10 +237,14 @@ def initialize_model_and_tokenizer(model_args):
     }
 
     if model_args.tokenizer_name:
-        tokenizer = AutoTokenizer.from_pretrained(model_args.tokenizer_name, **tokenizer_kwargs)
+        tokenizer = AutoTokenizer.from_pretrained(
+            model_args.tokenizer_name, **tokenizer_kwargs
+        )
 
     elif model_args.model_name_or_path:
-        tokenizer = AutoTokenizer.from_pretrained(model_args.model_name_or_path, **tokenizer_kwargs)
+        tokenizer = AutoTokenizer.from_pretrained(
+            model_args.model_name_or_path, **tokenizer_kwargs
+        )
     else:
         raise ValueError(
             "You are instantiating a new tokenizer from scratch. This is not supported by this script. "
@@ -280,7 +278,9 @@ def initialize_smp(smp_args, training_args):
     if smp.rank() == 0:
         print("Arguments:", smp_args.__dict__)
         print(f"Transformers version: {transformers.__version__}")
-        print(f"smdistributed.modelparallel version: {smdistributed.modelparallel.__version__}")
+        print(
+            f"smdistributed.modelparallel version: {smdistributed.modelparallel.__version__}"
+        )
         print(f"smdistributed config: {smp_config}")
 
     set_seed(training_args.seed)
@@ -292,7 +292,9 @@ def main():
     model, tokenizer = initialize_model_and_tokenizer(model_args)
 
     # Get datasets
-    train_dataset, eval_dataset = Preprocess.datasets(model_args, data_args, training_args)
+    train_dataset, eval_dataset = Preprocess.datasets(
+        model_args, data_args, training_args
+    )
 
     if is_sagemaker_mp_enabled():
         initialize_smp(smp_args, training_args)
@@ -316,10 +318,7 @@ def main():
 
         torch.set_default_dtype(torch.float32)
 
-        iter_model = model
-        # Build parameter groups (weight decay and non-decay).
-        while isinstance(iter_model, (DistributedDataParallel, FP16_Module)):
-            iter_model = iter_model.module
+        iter_model = model.get_module()
 
         param_groups = get_param_groups_by_weight_decay(iter_model)
 
@@ -376,7 +375,9 @@ def main():
         if training_args.save_final_full_model:
             # saves full model at the end
 
-            base_path = f"trained_gpt_nparams-{num_params}_steps-{training_args.max_steps}.pt"
+            base_path = (
+                f"trained_gpt_nparams-{num_params}_steps-{training_args.max_steps}.pt"
+            )
             out_path = os.path.join(training_args.model_dir, base_path)
             #             if args.save_or_verify_ckptsum:
             #                 # Save optimizer and model tensor sums and scalars before saving

@@ -8,10 +8,10 @@ ag_predictor_args:
 # - see https://github.com/awslabs/autogluon/blob/ef3a5312dc2eaa0c6afde042d671860ac42cbafb/tabular/src/autogluon/tabular/predictor/predictor.py#L280-L651
 ag_fit_args:
   hyperparameters:
-#     GBM:
-#       num_boost_round: 20
-#     NN:
-#       num_epochs: 2
+#    GBM:
+#      num_boost_round: 20
+#    NN_TORCH:
+#      num_epochs: 2
   presets: "medium_quality_faster_train"
   num_bag_folds: 2
   num_bag_sets: 1
