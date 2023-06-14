@@ -171,7 +171,6 @@ class TritonPythonModel:
                                                             name).as_numpy())
             request_batch_sizes.append(first_tensor.size(dim=0))
             batched_tensor = first_tensor
-            logger.log_info(f"batched_tensor: {batched_tensor}")
             for j in range(1, num_requests):
                 tensor = torch.as_tensor(pb_utils.get_input_tensor_by_name(requests[j],
                                                             name).as_numpy())
