@@ -1,12 +1,6 @@
-<<<<<<< HEAD
 import os
 
 import psutil
-=======
-import psutil
-import os
-
->>>>>>> 0419b268f0fef90f2b821ab60296e5054e1d46f9
 import smdistributed.modelparallel.torch as smp
 import torch
 
@@ -91,13 +85,7 @@ def memory_status_cpu(msg=""):
     gc.collect()
     gc.collect()
     objects = gc.get_objects()
-<<<<<<< HEAD
     tensors = [obj for obj in objects if isinstance(obj, torch.Tensor) and not obj.is_cuda]
-=======
-    tensors = [
-        obj for obj in objects if isinstance(obj, torch.Tensor) and not obj.is_cuda
-    ]
->>>>>>> 0419b268f0fef90f2b821ab60296e5054e1d46f9
     torch_usage = 0
     for t in tensors:
         torch_usage += t.numel() * dtype_to_bit[t.dtype]
