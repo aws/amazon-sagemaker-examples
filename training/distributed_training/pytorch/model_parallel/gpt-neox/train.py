@@ -1134,9 +1134,9 @@ def main():  # pylint: disable=too-many-branches,too-many-locals,too-many-statem
     )
     time_to_train = time.time() - start
     if args.ci:
-        logging.info("[SMP_METRIC]__GPT2__Time_to_train__%s", time_to_train)
-        logging.info("[SMP_METRIC]__GPT2__samples/second__%s", throughput)
-        logging.info("[SMP_METRIC]__GPT2__Loss__%s", loss)
+        logging.info("[SMP_METRIC]__GPT-Neox__Time_to_train__%s", time_to_train)
+        logging.info("[SMP_METRIC]__GPT-Neox__samples/second__%s", throughput)
+        logging.info("[SMP_METRIC]__GPT-Neox__Loss__%s", loss)
         if not args.load_partial and not args.load_full:
             if time_to_train >= args.time_to_train:
                 msg = f"Time to train ({time_to_train}) >= threshold ({args.time_to_train})"
