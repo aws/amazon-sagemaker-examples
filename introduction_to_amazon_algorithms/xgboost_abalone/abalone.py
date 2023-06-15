@@ -35,6 +35,9 @@ def _xgb_train(params, dtrain, evals, num_boost_round, model_dir, is_master):
                         or is running single node training job.
                         Note that rabit_run will include this argument.
     """
+
+    logging.basicConfig(level=logging.DEBUG) 
+    
     booster = xgb.train(params=params, dtrain=dtrain, evals=evals, num_boost_round=num_boost_round)
 
     if is_master:
@@ -52,8 +55,8 @@ if __name__ == "__main__":
         type=int,
     )
     parser.add_argument("--eta", type=float)
-    parser.add_argument("--gamma", type=int)
-    parser.add_argument("--min_child_weight", type=int)
+    parser.add_argument("--gamma", type=float)
+    parser.add_argument("--min_child_weight", type=float)
     parser.add_argument("--subsample", type=float)
     parser.add_argument("--verbosity", type=int)
     parser.add_argument("--objective", type=str)

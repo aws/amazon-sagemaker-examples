@@ -1,0 +1,23 @@
+# copied from: https://github.com/aws/amazon-sagemaker-examples/tree/main/advanced_functionality/autogluon-tabular-containers
+# AutoGluon Predictor constructor arguments
+# - see https://github.com/awslabs/autogluon/blob/ef3a5312dc2eaa0c6afde042d671860ac42cbafb/tabular/src/autogluon/tabular/predictor/predictor.py#L51-L159
+ag_predictor_args:
+  eval_metric: root_mean_squared_error
+  label: rings
+
+# AutoGluon Predictor.fit arguments
+# - see https://github.com/awslabs/autogluon/blob/ef3a5312dc2eaa0c6afde042d671860ac42cbafb/tabular/src/autogluon/tabular/predictor/predictor.py#L280-L651
+ag_fit_args:
+  hyperparameters:
+#     GBM:
+#       num_boost_round: 20
+#     NN:
+#       num_epochs: 2
+  presets: "medium_quality_faster_train"
+  num_bag_folds: 2
+  num_bag_sets: 1
+  num_stack_levels: 0
+
+output_prediction_format: csv  # predictions output format: csv or parquet
+feature_importance: true       # calculate and save feature importance if true
+leaderboard: true              # save leaderboard output if true

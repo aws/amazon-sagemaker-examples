@@ -14,16 +14,34 @@ import smdistributed.modelparallel.torch as smp
 import torch
 import torch.utils.data
 import transformers
+<<<<<<< HEAD:training/distributed_training/pytorch/model_parallel/gpt-j/train.py
 from data_pipeline import create_pretraining_dataloader  # pylint: disable=wrong-import-order
 from learning_rates import AnnealingLR  # pylint: disable=wrong-import-order
 from memory_tracker import memory_status, memory_status_cpu  # pylint: disable=wrong-import-order
 from sdp_utils import build_param_id_to_buffer, build_param_id_to_offset, log_param_norms
 from smdistributed.modelparallel.torch.nn import FusedLayerNorm  # pylint: disable=import-error
+=======
+from data_pipeline import create_pretraining_dataloader
+from learning_rates import AnnealingLR
+from memory_tracker import memory_status, memory_status_cpu
+from sharded_data_parallel_checkpoint import get_buffer_names, get_param_shapes
+from smdistributed.modelparallel.torch.nn import FusedLayerNorm as LayerNorm
+from smdistributed.modelparallel.torch.nn.huggingface.gptj import (
+    translate_hf_state_dict_to_smdistributed_gptj,
+    translate_state_dict_to_hf_gptj,
+    translate_hf_gptj_state_dict_to_smdistributed,
+)
+>>>>>>> 0419b268f0fef90f2b821ab60296e5054e1d46f9:training/distributed_training/pytorch/model_parallel/gpt-j/train_gptj_smp_tensor_parallel_script.py
 from torch import optim
 from transformers import AutoModelForCausalLM, set_seed
 from transformers.trainer_utils import is_main_process
 
+<<<<<<< HEAD:training/distributed_training/pytorch/model_parallel/gpt-j/train.py
 # pylint: enable=import-error
+=======
+logging.getLogger("torch.distributed.distributed_c10d").setLevel(logging.ERROR)
+logger = logging.getLogger(__name__)
+>>>>>>> 0419b268f0fef90f2b821ab60296e5054e1d46f9:training/distributed_training/pytorch/model_parallel/gpt-j/train_gptj_smp_tensor_parallel_script.py
 
 
 logging.getLogger("torch.distributed.distributed_c10d").setLevel(logging.ERROR)
@@ -95,11 +113,22 @@ def get_param_groups_by_weight_decay(module):
 def train_step(model, input_ids, attention_mask, args):
     """Train step."""
     if args.logits_output:
-        output = model(input_ids=input_ids, attention_mask=attention_mask, labels=input_ids)
+        output = model(
+            input_ids=input_ids, attention_mask=attention_mask, labels=input_ids
+        )
         loss = output["loss"]
     else:
+<<<<<<< HEAD:training/distributed_training/pytorch/model_parallel/gpt-j/train.py
         loss = model(input_ids=input_ids, attention_mask=attention_mask, labels=input_ids)["loss"]
     model.backward(loss)
+=======
+        loss = model(
+            input_ids=input_ids, attention_mask=attention_mask, labels=input_ids
+        )["loss"]
+
+    model.backward(loss)
+
+>>>>>>> 0419b268f0fef90f2b821ab60296e5054e1d46f9:training/distributed_training/pytorch/model_parallel/gpt-j/train_gptj_smp_tensor_parallel_script.py
     if args.logits_output:
         return output
 
@@ -109,8 +138,14 @@ def train_step(model, input_ids, attention_mask, args):
 # smdistributed: Define smp.step. Return any tensors needed outside.
 @smp.step
 def test_step(model, input_ids, attention_mask):
+<<<<<<< HEAD:training/distributed_training/pytorch/model_parallel/gpt-j/train.py
     """Test step."""
     loss = model(input_ids=input_ids, attention_mask=attention_mask, labels=input_ids)["loss"]
+=======
+    loss = model(input_ids=input_ids, attention_mask=attention_mask, labels=input_ids)[
+        "loss"
+    ]
+>>>>>>> 0419b268f0fef90f2b821ab60296e5054e1d46f9:training/distributed_training/pytorch/model_parallel/gpt-j/train_gptj_smp_tensor_parallel_script.py
     return loss
 
 
@@ -157,10 +192,15 @@ def train(  # pylint: disable=too-many-arguments,too-many-branches,too-many-loca
     args,
     param_id_to_buffer,
 ):
+<<<<<<< HEAD:training/distributed_training/pytorch/model_parallel/gpt-j/train.py
     """Eval model."""
     if args.enable_memory_profiling > 0:
         memory_status_cpu(msg="before train step")
 
+=======
+    if args.enable_memory_profiling > 0:
+        memory_status_cpu(msg="before train step")
+>>>>>>> 0419b268f0fef90f2b821ab60296e5054e1d46f9:training/distributed_training/pytorch/model_parallel/gpt-j/train_gptj_smp_tensor_parallel_script.py
     model.train()
     if args.parallel_proc_data_processing:
         pool = ProcessPoolExecutor(1)
@@ -174,7 +214,8 @@ def train(  # pylint: disable=too-many-arguments,too-many-branches,too-many-loca
             [
                 os.path.join(args.training_dir, p)
                 for p in os.listdir(args.training_dir)
-                if os.path.isfile(os.path.join(args.training_dir, p)) and "training" in p
+                if os.path.isfile(os.path.join(args.training_dir, p))
+                and "training" in p
             ]
         )
     else:
@@ -286,12 +327,21 @@ def train(  # pylint: disable=too-many-arguments,too-many-branches,too-many-loca
 
         if smp.rank() == 0:
             if args.use_bert_data:
+<<<<<<< HEAD:training/distributed_training/pytorch/model_parallel/gpt-j/train.py
                 logging.info(
                     "Reading data from training path %s.", train_dataloader.dataset.input_file
                 )
             else:
                 logging.info(
                     "Reading data from training path %s.", train_dataloader.dataset.input_paths
+=======
+                print(
+                    f"Reading data from training path {train_dataloader.dataset.input_file}"
+                )
+            else:
+                print(
+                    f"Reading data from training path {train_dataloader.dataset.input_paths}"
+>>>>>>> 0419b268f0fef90f2b821ab60296e5054e1d46f9:training/distributed_training/pytorch/model_parallel/gpt-j/train_gptj_smp_tensor_parallel_script.py
                 )
 
         for batch_idx, input_data in enumerate(train_dataloader):
@@ -325,7 +375,13 @@ def train(  # pylint: disable=too-many-arguments,too-many-branches,too-many-loca
                 optimizer.zero_grad(set_to_none=True)
 
             if args.logits_output:
+<<<<<<< HEAD:training/distributed_training/pytorch/model_parallel/gpt-j/train.py
                 train_output = train_step(model, input_ids, attention_mask, args)
+=======
+                train_output = train_step(
+                    model, optimizer, input_ids, attention_mask, args
+                )
+>>>>>>> 0419b268f0fef90f2b821ab60296e5054e1d46f9:training/distributed_training/pytorch/model_parallel/gpt-j/train_gptj_smp_tensor_parallel_script.py
                 loss_mb = train_output["loss"]
                 logits_mb = train_output["logits"]
                 if smp.tp_size() > 1:
@@ -350,6 +406,7 @@ def train(  # pylint: disable=too-many-arguments,too-many-branches,too-many-loca
                 torch.cuda.empty_cache()
 
             if grad_accumulation_boundary(batch_idx):
+<<<<<<< HEAD:training/distributed_training/pytorch/model_parallel/gpt-j/train.py
                 if args.sharded_data_parallel_degree < 1:
                     # as SDP does its own clipping through sdp_gradient_clipping arg in init config
                     optimizer.clip_master_grads(args.grad_clip)
@@ -358,6 +415,15 @@ def train(  # pylint: disable=too-many-arguments,too-many-branches,too-many-loca
                 if not (args.fp16 and optimizer.overflow):
                     lr_scheduler.step()
 
+=======
+                if args.fp16:
+                    optimizer.clip_master_grads(args.grad_clip)
+
+                optimizer.step()
+                if not (args.fp16 and optimizer.overflow):
+                    lr_scheduler.step()
+
+>>>>>>> 0419b268f0fef90f2b821ab60296e5054e1d46f9:training/distributed_training/pytorch/model_parallel/gpt-j/train_gptj_smp_tensor_parallel_script.py
                 if args.enable_memory_profiling > 0:
                     memory_status(msg="After_opt_step")
 
@@ -369,6 +435,7 @@ def train(  # pylint: disable=too-many-arguments,too-many-branches,too-many-loca
             step_time = time.time() - step_start
             sample_processed = input_ids.shape[0] * dp_size
             throughput = sample_processed / step_time
+<<<<<<< HEAD:training/distributed_training/pytorch/model_parallel/gpt-j/train.py
             throughputs.append(throughput)
 
             # Based on the formula in
@@ -397,6 +464,15 @@ def train(  # pylint: disable=too-many-arguments,too-many-branches,too-many-loca
                     throughput,
                     tflops_per_gpu,
                     gradnorm_str,
+=======
+            tokens_per_gpu = input_ids.shape[0] * input_ids.shape[1]
+
+            # Based on the formula in https://developer.nvidia.com/blog/scaling-language-model-training-to-a-trillion-parameters-using-megatron/
+            tflops_per_gpu = 8 * num_params * tokens_per_gpu / step_time / 1e12
+            if smp.rank() == 0 and not total_steps % args.logging_freq:
+                print(
+                    f"({int(time_elapsed)}s), Batch {total_steps - 1} Loss: {loss.item()}, Speed: {throughput} samples/sec, TFLOPS/GPU: {tflops_per_gpu}"
+>>>>>>> 0419b268f0fef90f2b821ab60296e5054e1d46f9:training/distributed_training/pytorch/model_parallel/gpt-j/train_gptj_smp_tensor_parallel_script.py
                 )
 
                 # Compute average throughput and tflops after 30 steps to remove
@@ -441,7 +517,11 @@ def train(  # pylint: disable=too-many-arguments,too-many-branches,too-many-loca
                     np.random.set_state(cur_state)
 
             # checkpoint
+<<<<<<< HEAD:training/distributed_training/pytorch/model_parallel/gpt-j/train.py
             if not total_steps % args.checkpoint_freq:
+=======
+            if not (total_steps % args.checkpoint_freq):
+>>>>>>> 0419b268f0fef90f2b821ab60296e5054e1d46f9:training/distributed_training/pytorch/model_parallel/gpt-j/train_gptj_smp_tensor_parallel_script.py
                 user_content = {
                     "cli_args": args.__dict__,
                     "num_params": num_params,
@@ -450,11 +530,19 @@ def train(  # pylint: disable=too-many-arguments,too-many-branches,too-many-loca
                     "model_config": model_config,
                     "start_batch_index": batch_idx + 1,
                 }
+<<<<<<< HEAD:training/distributed_training/pytorch/model_parallel/gpt-j/train.py
 
                 user_content["lr_scheduler"] = lr_scheduler.state_dict()
                 # buffer_names and param_shapes used to reconstruct the full model
                 # are automatically saved by smp.save_checkpoint() in user_content
                 # for partial checkpoints
+=======
+                # to reconstruct the full model
+                if args.sharded_data_parallel_degree > 1:
+                    user_content["buffer_names"] = get_buffer_names(model)
+                    user_content["param_shapes"] = get_param_shapes(model, optimizer)
+                user_content["lr_scheduler"] = lr_scheduler.state_dict()
+>>>>>>> 0419b268f0fef90f2b821ab60296e5054e1d46f9:training/distributed_training/pytorch/model_parallel/gpt-j/train_gptj_smp_tensor_parallel_script.py
                 smp.save_checkpoint(
                     args.checkpoint_dir,
                     tag=f"total_steps{total_steps}",
@@ -473,8 +561,13 @@ def train(  # pylint: disable=too-many-arguments,too-many-branches,too-many-loca
                 to_save["logits"] = logits.detach().cpu()
                 output_file = f"rank_{smp.rank()}_" + args.logits_output
                 torch.save(to_save, os.path.join(args.model_dir, output_file))
+<<<<<<< HEAD:training/distributed_training/pytorch/model_parallel/gpt-j/train.py
                 logging.info(
                     "logits and loss saved at %s", os.path.join(args.model_dir, output_file)
+=======
+                print(
+                    f"logits and loss saved at {os.path.join(args.model_dir, output_file)}"
+>>>>>>> 0419b268f0fef90f2b821ab60296e5054e1d46f9:training/distributed_training/pytorch/model_parallel/gpt-j/train_gptj_smp_tensor_parallel_script.py
                 )
             break
 
@@ -527,6 +620,7 @@ def parse_args():  # pylint: disable=too-many-statements
         help="batch size per dp rank, for tensor parallelism degree 8 with pipeline parallel degree 1 this means 8*this batch size per node",  # pylint: disable=line-too-long
     )
     opt_grp.add_argument("--val_batch_size", type=int, default=4)
+<<<<<<< HEAD:training/distributed_training/pytorch/model_parallel/gpt-j/train.py
     opt_grp.add_argument("--max_steps", "--max_training_steps", type=int, default=5000)
     opt_grp.add_argument("--seed", type=int, default=12345)
     opt_grp.add_argument("--same_seed", type=int, default=0)
@@ -537,6 +631,25 @@ def parse_args():  # pylint: disable=too-many-statements
     opt_grp.add_argument("--ddp_dist_backend", type=str, default="auto")
     opt_grp.add_argument("--grad_clip", default=1.0, type=float, help="gradient clipping")
     opt_grp.add_argument("--weight_decay", default=0.01, type=float, help="weight decay")
+=======
+    opt_grp.add_argument("--max_steps", type=int, default=100)
+    opt_grp.add_argument("--seed", type=int, default=12345)
+    opt_grp.add_argument("--same_seed", type=int, default=0)
+    opt_grp.add_argument("--n_gpus", type=str, default=os.environ["SM_NUM_GPUS"])
+    opt_grp.add_argument(
+        "--fp16", default=0, type=int, help="automatic mixed precision training"
+    )
+    opt_grp.add_argument(
+        "--bf16", default=0, type=int, help="automatic mixed precision training"
+    )
+    opt_grp.add_argument("--sharded_data_parallel_degree", default=1, type=int)
+    opt_grp.add_argument(
+        "--grad_clip", default=1.0, type=float, help="gradient clipping"
+    )
+    opt_grp.add_argument(
+        "--weight_decay", default=0.01, type=float, help="weight decay"
+    )
+>>>>>>> 0419b268f0fef90f2b821ab60296e5054e1d46f9:training/distributed_training/pytorch/model_parallel/gpt-j/train_gptj_smp_tensor_parallel_script.py
     opt_grp.add_argument(
         "--beta1", default=0.9, type=float, help="beta1 parameter for Adam optimizer"
     )
@@ -550,7 +663,10 @@ def parse_args():  # pylint: disable=too-many-statements
         help="enable gradient checkpointing to reduce memory consumption",
     )
     parser.add_argument(
-        "--logging_freq", type=int, default=1, help="number of iterations between logging"
+        "--logging_freq",
+        type=int,
+        default=1,
+        help="number of iterations between logging",
     )
     parser.add_argument(
         "--log_param_norms",
@@ -566,13 +682,32 @@ def parse_args():  # pylint: disable=too-many-statements
     )
 
     # I/O
+<<<<<<< HEAD:training/distributed_training/pytorch/model_parallel/gpt-j/train.py
     io_grp = parser.add_argument_group(title="io", description="location for input and output")
     io_grp.add_argument("--use_bert_data", type=int, default=0, help="use bert data for training")
     io_grp.add_argument("--zipped_data", type=int, default=1, help="input data is zipped files")
     io_grp.add_argument(
         "--epochs", type=int, default=3, help="times of iterating over the training dataset"
+=======
+    io_grp = parser.add_argument_group(
+        title="io", description="location for input and output"
     )
-    io_grp.add_argument("--output-data-dir", type=str, default=os.environ["SM_OUTPUT_DATA_DIR"])
+    io_grp.add_argument(
+        "--use_bert_data", type=int, default=0, help="use wiki corpus data for training"
+    )
+    io_grp.add_argument(
+        "--zipped_data", type=int, default=0, help="input data is zipped files"
+    )
+    io_grp.add_argument(
+        "--epochs",
+        type=int,
+        default=1,
+        help="times of iterating over the training dataset",
+    )
+    io_grp.add_argument(
+        "--output-data-dir", type=str, default=os.environ["SM_OUTPUT_DATA_DIR"]
+>>>>>>> 0419b268f0fef90f2b821ab60296e5054e1d46f9:training/distributed_training/pytorch/model_parallel/gpt-j/train_gptj_smp_tensor_parallel_script.py
+    )
     io_grp.add_argument(
         "--checkpoint-dir",
         type=str,
@@ -585,7 +720,9 @@ def parse_args():  # pylint: disable=too-many-statements
         default=os.environ["SM_MODEL_DIR"],
         help="Saves full model for inference to this dir. Also used if load_full is given to load the model. Note the lack of optimizer state here.",  # pylint: disable=line-too-long
     )
-    io_grp.add_argument("--training-dir", type=str, default=os.environ["SM_CHANNEL_TRAIN"])
+    io_grp.add_argument(
+        "--training-dir", type=str, default=os.environ["SM_CHANNEL_TRAIN"]
+    )
     io_grp.add_argument("--test-dir", type=str, default=os.environ["SM_CHANNEL_TEST"])
     io_grp.add_argument(
         "--parallel_proc_data_processing",
@@ -599,12 +736,28 @@ def parse_args():  # pylint: disable=too-many-statements
         default=0,
         help="Enabling this will save a combined model only at the end",
     )
+<<<<<<< HEAD:training/distributed_training/pytorch/model_parallel/gpt-j/train.py
     io_grp.add_argument("--load_partial", type=int, default=0, help="Load from partial checkpoints")
     io_grp.add_argument("--load_full", type=int, default=0, help="Load from full checkpoints")
     io_grp.add_argument(
         "--logits_output", type=str, default="", help="Path to save logits and loss"
     )
     io_grp.add_argument("--prescaled_batch", type=int, default=1, help="use prescaled batch")
+=======
+    io_grp.add_argument(
+        "--load_partial", type=int, default=0, help="Load from partial checkpoints"
+    )
+    io_grp.add_argument(
+        "--load_full", type=int, default=0, help="Load from full checkpoints"
+    )
+    io_grp.add_argument(
+        "--logits_output", type=str, default="", help="Path to save logits and loss"
+    )
+    io_grp.add_argument(
+        "--prescaled_batch", type=int, default=1, help="use prescaled batch"
+    )
+
+>>>>>>> 0419b268f0fef90f2b821ab60296e5054e1d46f9:training/distributed_training/pytorch/model_parallel/gpt-j/train_gptj_smp_tensor_parallel_script.py
     # configure model size
     model_grp = parser.add_argument_group(
         title="model", description="arguments to describe model configuration"
@@ -627,9 +780,26 @@ def parse_args():  # pylint: disable=too-many-statements
     model_grp.add_argument("--attn_pdrop", type=float, default=0.1)
     model_grp.add_argument("--alibi", type=float, default=0)
     model_grp.add_argument("--summary_first_pdrop", type=float, default=0.1)
+<<<<<<< HEAD:training/distributed_training/pytorch/model_parallel/gpt-j/train.py
     model_grp.add_argument("--use_adamw", type=int, default=0, help="Use adamw optimizer")
     model_grp.add_argument(
         "--use_distributed_transformer", type=int, default=1, help="Use distributed transformer"
+=======
+    model_grp.add_argument(
+        "--use_adamw", type=int, default=0, help="Use adamw optimizer"
+    )
+    model_grp.add_argument(
+        "--finetune_6b",
+        type=int,
+        default=0,
+        help="Flag to enable finetune 6B GPTJ model",
+    )
+    model_grp.add_argument(
+        "--use_distributed_transformer",
+        type=int,
+        default=1,
+        help="Use distributed transformer",
+>>>>>>> 0419b268f0fef90f2b821ab60296e5054e1d46f9:training/distributed_training/pytorch/model_parallel/gpt-j/train_gptj_smp_tensor_parallel_script.py
     )
     model_grp.add_argument(
         "--checkpoint_sublayers",
@@ -637,7 +807,10 @@ def parse_args():  # pylint: disable=too-many-statements
         default=0,
         help="Apply activation checkpointing to submodules of each transformer layer",
     )
+<<<<<<< HEAD:training/distributed_training/pytorch/model_parallel/gpt-j/train.py
     model_grp.add_argument("--initializer_range", type=float, default=0.02)
+=======
+>>>>>>> 0419b268f0fef90f2b821ab60296e5054e1d46f9:training/distributed_training/pytorch/model_parallel/gpt-j/train_gptj_smp_tensor_parallel_script.py
 
     smp_grp = parser.add_argument_group(title="smp", description="smp")
     smp_grp.add_argument("--tensor_parallel_degree", type=int, default=1)
@@ -669,6 +842,7 @@ def parse_args():  # pylint: disable=too-many-statements
     smp_grp.add_argument("--skip_tracing", type=int, default=0)
     smp_grp.add_argument("--query_key_layer_scaling", type=int, default=0)
     smp_grp.add_argument("--fused_softmax", type=int, default=1)
+<<<<<<< HEAD:training/distributed_training/pytorch/model_parallel/gpt-j/train.py
     smp_grp.add_argument("--flash_attention", type=int, default=1)
     smp_grp.add_argument("--fused_dropout", type=int, default=0)
     smp_grp.add_argument("--fused_bias_gelu", type=int, default=1)
@@ -676,6 +850,11 @@ def parse_args():  # pylint: disable=too-many-statements
     smp_grp.add_argument("--model_type", type=str, default="gpt2")
     smp_grp.add_argument("--rotary_pct", type=float, default=0.25)
     smp_grp.add_argument("--rotary_emb_base", type=int, default=10000)
+=======
+    smp_grp.add_argument("--fused_dropout", type=int, default=0)
+    smp_grp.add_argument("--fused_bias_gelu", type=int, default=1)
+    smp_grp.add_argument("--gradient_accumulation", type=int, default=1)
+>>>>>>> 0419b268f0fef90f2b821ab60296e5054e1d46f9:training/distributed_training/pytorch/model_parallel/gpt-j/train_gptj_smp_tensor_parallel_script.py
 
     parser.add_argument(
         "--num_kept_checkpoints",
@@ -737,7 +916,9 @@ def parse_args():  # pylint: disable=too-many-statements
         default=0,
         help="Clean torch reserved memory at he end of every step",
     )
-    parser.add_argument("--use_fsx", type=int, default=0, help="Using FSx for checkpointing")
+    parser.add_argument(
+        "--use_fsx", type=int, default=0, help="Using FSx for checkpointing"
+    )
     parser.add_argument(
         "--enable_memory_profiling", type=int, default=0, help="Enable memory profile"
     )
@@ -758,13 +939,15 @@ def parse_args():  # pylint: disable=too-many-statements
         "--lr_decay_iters",
         type=int,
         default=None,
-        help="number of iterations to decay learning rate over," " If None defaults to train iters",
+        help="number of iterations to decay learning rate over,"
+        " If None defaults to train iters",
     )
     lr_grp.add_argument(
         "--min_lr",
         type=float,
         default=0.0,
-        help="Minumum value for learning rate. The scheduler" "clip values below this threshold.",
+        help="Minumum value for learning rate. The scheduler"
+        "clip values below this threshold.",
     )
     lr_grp.add_argument(
         "--warmup",
@@ -781,7 +964,9 @@ def parse_args():  # pylint: disable=too-many-statements
     )
 
     ci_grp = parser.add_argument_group(title="ci", description="ci related settings")
-    ci_grp.add_argument("--ci", default=False, action="store_true", help="Whether enable ci")
+    ci_grp.add_argument(
+        "--ci", default=False, action="store_true", help="Whether enable ci"
+    )
     ci_grp.add_argument("--time_to_train", type=int, help="time to train threshold")
     ci_grp.add_argument("--throughput", type=float, help="throughput threshold")
     ci_grp.add_argument("--loss", type=float, help="loss threshold")
@@ -790,16 +975,23 @@ def parse_args():  # pylint: disable=too-many-statements
 
 
 def compute_num_params(model):
+<<<<<<< HEAD:training/distributed_training/pytorch/model_parallel/gpt-j/train.py
     """Get num params."""
     num_params = 0
     seen = set()
     for p in model.parameters():  # pylint: disable=invalid-name
+=======
+    num_params = 0
+    seen = set()
+    for p in model.parameters():
+>>>>>>> 0419b268f0fef90f2b821ab60296e5054e1d46f9:training/distributed_training/pytorch/model_parallel/gpt-j/train_gptj_smp_tensor_parallel_script.py
         if p not in seen:
             seen.add(p)
             if hasattr(p, "ds_shape"):
                 num_params += np.prod(p.ds_shape)
             else:
                 num_params += np.prod(p.size())
+<<<<<<< HEAD:training/distributed_training/pytorch/model_parallel/gpt-j/train.py
 
     return num_params
 
@@ -829,6 +1021,15 @@ def main():  # pylint: disable=too-many-branches,too-many-locals,too-many-statem
     """Main function to train GPT."""
     args = parse_args()
 
+=======
+
+    return num_params
+
+
+def main():
+    args = parse_args()
+
+>>>>>>> 0419b268f0fef90f2b821ab60296e5054e1d46f9:training/distributed_training/pytorch/model_parallel/gpt-j/train_gptj_smp_tensor_parallel_script.py
     if args.partition_assignment != "" and args.manual_partition == 0:
         logging.warning("Partition_assignment is set, enable manual_partition.")
         args.manual_partition = 1
@@ -854,9 +1055,12 @@ def main():  # pylint: disable=too-many-branches,too-many-locals,too-many-statem
         "static_mode": args.static_mode > 0,
         "fast_mode": args.fast_mode > 0,
         "sharded_data_parallel_degree": args.sharded_data_parallel_degree,
+<<<<<<< HEAD:training/distributed_training/pytorch/model_parallel/gpt-j/train.py
         "ddp_dist_backend": args.ddp_dist_backend,
         "sdp_hierarchical_allgather": False,
         "sdp_gradient_clipping": args.grad_clip,
+=======
+>>>>>>> 0419b268f0fef90f2b821ab60296e5054e1d46f9:training/distributed_training/pytorch/model_parallel/gpt-j/train_gptj_smp_tensor_parallel_script.py
     }
     if args.active_microbatches is not None:
         smp_config["active_microbatches"] = args.active_microbatches
@@ -869,12 +1073,21 @@ def main():  # pylint: disable=too-many-branches,too-many-locals,too-many-statem
     _show_env_vars(0)
 
     if smp.rank() == 0:
+<<<<<<< HEAD:training/distributed_training/pytorch/model_parallel/gpt-j/train.py
         logging.info("Arguments: %s", args.__dict__)
         logging.info("Transformers version: %s", transformers.__version__)
         logging.info(
             "smdistributed.modelparallel version: %s", smdistributed.modelparallel.__version__
         )
         logging.info("smdistributed config: %s", smp_config)
+=======
+        print("Arguments:", args.__dict__)
+        print(f"Transformers version: {transformers.__version__}")
+        print(
+            f"smdistributed.modelparallel version: {smdistributed.modelparallel.__version__}"
+        )
+        print(f"smdistributed config: {smp_config}")
+>>>>>>> 0419b268f0fef90f2b821ab60296e5054e1d46f9:training/distributed_training/pytorch/model_parallel/gpt-j/train_gptj_smp_tensor_parallel_script.py
 
     if args.save_final_full_model and smp.rank() == 0:
         logging.warning(
@@ -886,6 +1099,7 @@ def main():  # pylint: disable=too-many-branches,too-many-locals,too-many-statem
 
     if args.partition_assignment != "":
         partition_assignment = args.partition_assignment.split(",")
+<<<<<<< HEAD:training/distributed_training/pytorch/model_parallel/gpt-j/train.py
         msg = (
             f"partition_assignment must have the same size as pipeline parallel degree, "
             f"but getting {len(partition_assignment)} vs {smp.pp_size()}"
@@ -895,15 +1109,48 @@ def main():  # pylint: disable=too-many-branches,too-many-locals,too-many-statem
 
     model_config, args = model_config_lib.get_model_config_from_args(
         args.model_type, args.model_name, args, log=(smp.rank() == 0)
+=======
+        assert (
+            len(partition_assignment) == smp.pp_size()
+        ), f"partition_assignment must have the same size as pipeline parallel degree, but getting {len(partition_assignment)} vs {smp.pp_size()}"
+
+    model_config = GPTJConfig(
+        vocab_size=args.vocab_size,
+        n_positions=args.max_context_width,
+        n_embd=args.hidden_width,
+        n_layer=args.num_layers,
+        n_head=args.num_heads,
+        n_inner=None,
+        activation_function="gelu_new",
+        resid_pdrop=args.resid_pdrop,
+        embd_pdrop=args.embd_pdrop,
+        attn_pdrop=args.attn_pdrop,
+        layer_norm_epsilon=1e-05,
+        initializer_range=0.02,
+        summary_type="cls_index",
+        summary_use_proj=True,
+        summary_activation=None,
+        summary_proj_to_labels=True,
+        summary_first_dropout=args.summary_first_pdrop,
+        # gradient_checkpointing=args.gradient_checkpointing > 0,
+        use_cache=False,
+        bos_token_id=50256,
+        eos_token_id=50256,
+        return_dict=True,
+>>>>>>> 0419b268f0fef90f2b821ab60296e5054e1d46f9:training/distributed_training/pytorch/model_parallel/gpt-j/train_gptj_smp_tensor_parallel_script.py
     )
 
     # the following improves start-up time by skipping proper initialization
     # of weights in the original model. this is not a problem because DistributedModel
     # will override those weights anyway when we use distributed transformer.
     if args.use_distributed_transformer > 0:
+<<<<<<< HEAD:training/distributed_training/pytorch/model_parallel/gpt-j/train.py
         from transformers.modeling_utils import (  # pylint: disable=import-error,import-outside-toplevel
             PreTrainedModel,
         )
+=======
+        from transformers.modeling_utils import PreTrainedModel
+>>>>>>> 0419b268f0fef90f2b821ab60296e5054e1d46f9:training/distributed_training/pytorch/model_parallel/gpt-j/train_gptj_smp_tensor_parallel_script.py
 
         PreTrainedModel.init_weights = lambda x: None
 
@@ -914,6 +1161,7 @@ def main():  # pylint: disable=too-many-branches,too-many-locals,too-many-statem
 
     if args.fp16 and args.bf16:
         raise ValueError("FP16 and BF16 cannot be simultaneously enabled.")
+<<<<<<< HEAD:training/distributed_training/pytorch/model_parallel/gpt-j/train.py
 
     if args.fp16:
         dtype = torch.float16  # pylint: disable=no-member
@@ -953,6 +1201,51 @@ def main():  # pylint: disable=too-many-branches,too-many-locals,too-many-statem
 
     if args.enable_memory_profiling > 0:
         memory_status_cpu(msg="after model creation")
+=======
+    elif args.fp16:
+        dtype = torch.float16
+    elif args.bf16:
+        dtype = torch.bfloat16
+    else:
+        dtype = torch.get_default_dtype()
+
+    if args.finetune_6b:
+        with smp.model_creation(
+            tensor_parallelism=smp.tp_size() > 1
+            or args.use_distributed_transformer > 0,
+            dtype=dtype,
+            attention_in_fp32=args.attention_in_fp32 > 0,
+            query_key_layer_scaling=args.query_key_layer_scaling > 0 and args.bf16 < 1,
+            fused_softmax=args.fused_softmax > 0,
+            fused_dropout=args.fused_dropout > 0,
+            fused_bias_gelu=args.fused_bias_gelu > 0,
+        ):
+            model = AutoModelForCausalLM.from_pretrained(
+                "EleutherAI/gpt-j-6b", revision="float16", torch_dtype=torch.float16
+            )
+            model_config = model.config
+            # translated_state_dict = translate_hf_gptj_state_dict_to_smdistributed(model.state_dict(), max_seq_len=args.max_context_width)
+    else:
+
+        with smp.model_creation(
+            tensor_parallelism=smp.tp_size() > 1
+            or args.use_distributed_transformer > 0,
+            dtype=dtype,
+            attention_in_fp32=args.attention_in_fp32 > 0,
+            query_key_layer_scaling=args.query_key_layer_scaling > 0 and args.bf16 < 1,
+            fused_softmax=args.fused_softmax > 0,
+            fused_dropout=args.fused_dropout > 0,
+            fused_bias_gelu=args.fused_bias_gelu > 0,
+        ):
+            model = AutoModelForCausalLM.from_config(model_config)
+
+    if args.enable_memory_profiling > 0:
+        memory_status_cpu(msg="after model creation")
+
+    num_params = compute_num_params(model)
+    if smp.rank() == 0:
+        print(f"# total parameters: {num_params}")
+>>>>>>> 0419b268f0fef90f2b821ab60296e5054e1d46f9:training/distributed_training/pytorch/model_parallel/gpt-j/train_gptj_smp_tensor_parallel_script.py
 
     # smdistributed: Set the device to the GPU ID used by the current process.
     # Input tensors should be transferred to this device.
@@ -968,6 +1261,18 @@ def main():  # pylint: disable=too-many-branches,too-many-locals,too-many-statem
     # the model provided for DistributedModel class instantiation.
     if args.enable_memory_profiling > 0:
         memory_status_cpu(msg="before dist model creation")
+<<<<<<< HEAD:training/distributed_training/pytorch/model_parallel/gpt-j/train.py
+=======
+    model = smp.DistributedModel(
+        model, trace_device="gpu", backward_passes_per_step=args.gradient_accumulation
+    )
+
+    # if args.finetune_6b:
+    #     model.load_state_dict(translated_state_dict)
+
+    if args.enable_memory_profiling > 0:
+        memory_status_cpu(msg="after dist model creation")
+>>>>>>> 0419b268f0fef90f2b821ab60296e5054e1d46f9:training/distributed_training/pytorch/model_parallel/gpt-j/train_gptj_smp_tensor_parallel_script.py
 
     model = smp.DistributedModel(
         model, trace_device="gpu", backward_passes_per_step=args.gradient_accumulation
@@ -982,7 +1287,11 @@ def main():  # pylint: disable=too-many-branches,too-many-locals,too-many-statem
         logging.info("# total parameters: %s", num_params)
 
     if args.use_distributed_transformer > 0:
+<<<<<<< HEAD:training/distributed_training/pytorch/model_parallel/gpt-j/train.py
         transformer_layers = m.transformer.seq_layers
+=======
+        transformer_layers = m.module.module.transformer.seq_layers
+>>>>>>> 0419b268f0fef90f2b821ab60296e5054e1d46f9:training/distributed_training/pytorch/model_parallel/gpt-j/train_gptj_smp_tensor_parallel_script.py
     else:
         if args.model_type in ["gpt2", "bloom"]:
             transformer_layers = m.transformer.h
@@ -992,6 +1301,7 @@ def main():  # pylint: disable=too-many-branches,too-many-locals,too-many-statem
     if args.manual_partition:
         logging.debug("Manual partition enabled")
         if args.partition_assignment != "":
+<<<<<<< HEAD:training/distributed_training/pytorch/model_parallel/gpt-j/train.py
             get_num_layers = lambda x: int(  # pylint: disable=unnecessary-lambda-assignment
                 partition_assignment[x]
             )
@@ -1010,10 +1320,20 @@ def main():  # pylint: disable=too-many-branches,too-many-locals,too-many-statem
             div + 1 if x >= smp.pp_size() - rem else div
         )
 
+=======
+            get_num_layers = lambda x: int(partition_assignment[x])
+            total_layers = sum(
+                [get_num_layers(pp_rank) for pp_rank in range(smp.pp_size())]
+            )
+            assert (
+                total_layers == args.num_layers
+            ), f"partition_assignment must have the same total transformer layers as model, but getting {total_layers} vs {args.num_layers}"
+        else:
+            # evenly distribute layers across all partitions
+            div, rem = divmod(args.num_layers, smp.pp_size())
+            get_num_layers = lambda x: (div + 1 if x >= smp.pp_size() - rem else div)
+>>>>>>> 0419b268f0fef90f2b821ab60296e5054e1d46f9:training/distributed_training/pytorch/model_parallel/gpt-j/train_gptj_smp_tensor_parallel_script.py
         assignments = []
-        # (TODO) This is required for 175B otherwise a hang for partition "8,17,17,18,18,18"
-        # Need further investigation
-        # for pp_rank in reversed(range(smp.pp_size())):
         for pp_rank in range(smp.pp_size()):
             nl = get_num_layers(pp_rank)  # pylint: disable=invalid-name
             logging.debug("%s layers assigned to partition %d", nl, pp_rank)
@@ -1026,17 +1346,30 @@ def main():  # pylint: disable=too-many-branches,too-many-locals,too-many-statem
 
     if args.use_adamw > 0:
         optimizer = optim.AdamW(
-            param_groups, betas=(args.beta1, args.beta2), lr=args.lr, weight_decay=args.weight_decay
+            param_groups,
+            betas=(args.beta1, args.beta2),
+            lr=args.lr,
+            weight_decay=args.weight_decay,
         )
     else:
         optimizer = optim.Adam(
-            param_groups, betas=(args.beta1, args.beta2), lr=args.lr, weight_decay=args.weight_decay
+            param_groups,
+            betas=(args.beta1, args.beta2),
+            lr=args.lr,
+            weight_decay=args.weight_decay,
         )
 
+<<<<<<< HEAD:training/distributed_training/pytorch/model_parallel/gpt-j/train.py
     if args.activation_checkpointing:  # pylint: disable=too-many-nested-blocks
         if args.use_distributed_transformer or smp.tp_size() > 1:
             if args.checkpoint_sublayers:
                 for c in transformer_layers.children():  # pylint: disable=invalid-name
+=======
+    if args.activation_checkpointing:
+        if args.use_distributed_transformer or smp.tp_size() > 1:
+            if args.checkpoint_sublayers:
+                for c in transformer_layers.children():
+>>>>>>> 0419b268f0fef90f2b821ab60296e5054e1d46f9:training/distributed_training/pytorch/model_parallel/gpt-j/train_gptj_smp_tensor_parallel_script.py
                     smp.set_activation_checkpointing(c.attention)
                     smp.set_activation_checkpointing(c.output)
             else:
@@ -1044,6 +1377,7 @@ def main():  # pylint: disable=too-many-branches,too-many-locals,too-many-statem
                     transformer_layers, strategy=args.activation_strategy
                 )
         else:
+<<<<<<< HEAD:training/distributed_training/pytorch/model_parallel/gpt-j/train.py
             for c in transformer_layers.children():  # pylint: disable=invalid-name
                 if args.checkpoint_sublayers:
                     if args.model_type == "gpt2":
@@ -1080,6 +1414,23 @@ def main():  # pylint: disable=too-many-branches,too-many-locals,too-many-statem
 
     lr_scheduler = get_learning_rate_scheduler(optimizer, args)
 
+=======
+            for c in transformer_layers.children():
+                if args.checkpoint_sublayers:
+                    smp.set_activation_checkpointing(c.attn)
+                    smp.set_activation_checkpointing(c.mlp)
+                else:
+                    smp.set_activation_checkpointing(c)
+
+    optimizer = smp.DistributedOptimizer(
+        optimizer,
+        static_loss_scale=None,
+        dynamic_loss_scale=True,
+        dynamic_loss_args={"scale_window": 1000, "min_scale": 1, "delayed_shift": 2},
+    )
+    lr_scheduler = get_learning_rate_scheduler(optimizer, args)
+
+>>>>>>> 0419b268f0fef90f2b821ab60296e5054e1d46f9:training/distributed_training/pytorch/model_parallel/gpt-j/train_gptj_smp_tensor_parallel_script.py
     if args.enable_memory_profiling > 0:
         model.register_post_partition_hook(
             lambda model, optimizer: memory_status(msg="After partition")
@@ -1153,6 +1504,7 @@ def main():  # pylint: disable=too-many-branches,too-many-locals,too-many-statem
             "total_steps": total_steps,
             "model_config": model_config,
         }
+<<<<<<< HEAD:training/distributed_training/pytorch/model_parallel/gpt-j/train.py
         # pylint: disable=line-too-long
         # You can also get the full model from the SDP checkpoint, by using the following API
         # > from smp.sharded_data_parallel_checkpoint import get_full_state_dict_from_sharded_data_parallel_checkpoint
@@ -1168,6 +1520,34 @@ def main():  # pylint: disable=too-many-branches,too-many-locals,too-many-statem
             model=model,
             user_content=user_content,
         )
+=======
+        if args.sharded_data_parallel_degree > 1:
+            # When sharded_data_parallel_degree > 1, saving full model is not supported, saving partial instead
+            # To get the full model, one can use the following API
+            # > from sharded_data_parallel_checkpoint import get_full_state_dict_from_sharded_data_parallel_checkpoint
+            # > full_model = get_full_state_dict_from_sharded_data_parallel_checkpoint(args.model_dir, tag=f"sharded_data_parallel_final_full_{num_params}", dtype=torch.float32)
+            # > if args.use_distributed_transformer > 0: # translate the state_dict to hf format if distributed transformer is used
+            # >     full_model = smp.nn.huggingface.gpt2.translate_state_dict_to_hf_gpt2(full_model, max_seq_len=args.max_context_width)
+            # Note: the shared parameter will not be reflected so during loading you might need to load with strict=False
+            user_content["buffer_names"] = get_buffer_names(model)
+            user_content["param_shapes"] = get_param_shapes(model, optimizer)
+            smp.save_checkpoint(
+                args.model_dir,
+                tag=f"sharded_data_parallel_final_full_{num_params}",
+                partial=True,
+                model=model,
+                optimizer=optimizer,
+                user_content=user_content,
+            )
+        else:
+            smp.save_checkpoint(
+                args.model_dir,
+                tag="fullmodel.pt",
+                partial=False,
+                model=model,
+                user_content=user_content,
+            )
+>>>>>>> 0419b268f0fef90f2b821ab60296e5054e1d46f9:training/distributed_training/pytorch/model_parallel/gpt-j/train_gptj_smp_tensor_parallel_script.py
 
     smp.barrier()
     if smp.rank() == 0:
