@@ -1,1 +1,0 @@
-You can write data to be sent to a batch-transform job in this directory.
