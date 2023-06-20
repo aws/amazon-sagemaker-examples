@@ -52,8 +52,13 @@ for name in feature_group_names:
 
 feature_group_s3_prefixes = []
 for feature_group in feature_groups:
-    feature_group_table_name = feature_group.describe().get("OfflineStoreConfig").get("DataCatalogConfig").get("TableName")
-    feature_group_s3_prefix = f'{account_id}/sagemaker/{region}/offline-store/{feature_group_table_name}'
+    feature_group_s3_prefix = "/".join(
+        feature_group.describe()
+        .get("OfflineStoreConfig")
+        .get("S3StorageConfig")
+        .get("ResolvedOutputS3Uri")
+        .split("/")[3:]
+    )
     feature_group_s3_prefixes.append(feature_group_s3_prefix)
 
 # wait for data to be added to offline feature store

@@ -1,0 +1,162 @@
+name: "ensemble"
+platform: "ensemble"
+max_batch_size: 882352
+input [
+    {
+        name: "User"
+        data_type: TYPE_FP32
+        dims: [ 1 ]
+    },
+    {
+        name: "Card"
+        data_type: TYPE_FP32
+        dims: [ 1 ]
+    },
+    {
+        name: "Year"
+        data_type: TYPE_FP32
+        dims: [ 1 ]
+    },
+    {
+        name: "Month"
+        data_type: TYPE_FP32
+        dims: [ 1 ]
+    },
+    {
+        name: "Day"
+        data_type: TYPE_FP32
+        dims: [ 1 ]
+    },
+    {
+        name: "Time"
+        data_type: TYPE_STRING
+        dims: [ 1 ]
+    },
+    {
+        name: "Amount"
+        data_type: TYPE_STRING
+        dims: [ 1 ]
+    },
+    {
+        name: "Use Chip"
+        data_type: TYPE_STRING
+        dims: [ 1 ]
+    },
+    {
+        name: "Merchant Name"
+        data_type: TYPE_STRING
+        dims: [ 1 ]
+    },
+    {
+        name: "Merchant City"
+        data_type: TYPE_STRING
+        dims: [ 1 ]
+    },
+    {
+        name: "Merchant State"
+        data_type: TYPE_STRING
+        dims: [ 1 ]
+    },
+    {
+        name: "Zip"
+        data_type: TYPE_STRING
+        dims: [ 1 ]
+    },
+    {
+        name: "MCC"
+        data_type: TYPE_STRING
+        dims: [ 1 ]
+    },
+    {
+        name: "Errors?"
+        data_type: TYPE_STRING
+        dims: [ 1 ]
+    }  
+]
+output [
+  {
+    name: "predictions"
+    data_type: TYPE_FP32
+    dims: [ 1 ]
+  }
+]
+ensemble_scheduling {
+  step [
+    {
+      model_name: "preprocessinggpu"
+      model_version: 1
+      input_map {
+        key: "User"
+        value: "User"
+      }
+      input_map {
+        key: "Card"
+        value: "Card"
+      }
+      input_map {
+        key: "Year"
+        value: "Year"
+      }
+      input_map {
+        key: "Month"
+        value: "Month"
+      }
+      input_map {
+        key: "Day"
+        value: "Day"
+      }
+      input_map {
+        key: "Time"
+        value: "Time"
+      }
+      input_map {
+        key: "Amount"
+        value: "Amount"
+      }
+      input_map {
+        key: "Use Chip"
+        value: "Use Chip"
+      }
+      input_map {
+        key: "Merchant Name"
+        value: "Merchant Name"
+      }
+      input_map {
+        key: "Merchant City"
+        value: "Merchant City"
+      }
+      input_map {
+        key: "Merchant State"
+        value: "Merchant State"
+      }
+      input_map {
+        key: "Zip"
+        value: "Zip"
+      }
+      input_map {
+        key: "MCC"
+        value: "MCC"
+      }
+      input_map {
+        key: "Errors?"
+        value: "Errors?"
+      }
+      output_map {
+        key: "OUTPUT"
+        value: "preprocessed_data"
+      }
+    },
+    {
+      model_name: "filgpu"
+      model_version: 1
+      input_map {
+        key: "input__0"
+        value: "preprocessed_data"
+      }
+      output_map {
+        key: "output__0"
+        value: "predictions"
+      }
+    }
+  ]
+}

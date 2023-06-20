@@ -1,0 +1,102 @@
+{
+  "version": "1.0",
+  "explanations": {
+    "kernel_shap": {
+      "label0": {
+        "global_shap_values": {
+          "Marital Status": 0.028630413807559794,
+          "Occupation": 0.02663187314914846,
+          "Relationship": 0.036107264188470226,
+          "Ethnic group": 0.01974161417121363,
+          "Capital Gain": 0.033577342651290996,
+          "Capital Loss": 0.019363293576206416,
+          "Hours per week": 0.021494553921674837,
+          "Country": 0.04632862084382646
+        },
+        "expected_value": 0.0006380207487381995,
+        "global_top_shap_text": {
+          "[feature_name_1]": {
+            "charming": 0.04089221769072609,
+            "magnificent": 0.03013490694249078
+          },
+          "[feature_name_2]": {
+            "charming": 0.04089221769072609,
+            "magnificent": 0.03013490694249078
+          }     
+        }
+      },
+      "label1": {
+        "global_shap_values": {
+          "Age": 0.036556198315954205,
+          "Workclass": 0.01819397618827644,
+          "fnlwgt": 0.02137033320407158,
+          "Education": 0.018644355523796074,
+          "Education-Num": 0.037243930827630646
+        },
+        "expected_value": 0.0006380207487381995,
+        "global_top_shap_text": {
+          "[feature_name_1]": {
+            "charming": 0.04089221769072609,
+            "magnificent": 0.03013490694249078
+          },
+          "[feature_name_2]": {
+            "charming": 0.04089221769072609,
+            "magnificent": 0.03013490694249078
+          }
+        }
+      }
+    },
+    "pdp": [
+      {
+        "feature_name": "Age",
+        "data_type": "numerical",
+        "data_distribution": [
+          0.05,
+          0.165,
+          0.15,
+          0.095 ],
+        "feature_values": [ 
+           20.866666666666667,
+           24.6,
+           28.333366666666667,
+           32.06666666666666 ],
+         "model_predictions": [
+           [
+             0.7029578701406717,
+             0.6787781745567918,
+             0.7008252082392573,
+             0.733054383918643 
+          ]
+         ],
+        "label_headers": [
+          "label0"
+        ] 
+       },
+       {
+         "feature_name": "Animal",
+          "data_type": "categorical", 
+          "data_distribution": [
+            0.1,
+             0.11,
+             0.245,
+             0.06 ],
+           "feature_values": [
+             "Cat",
+             "Dog",
+             "Horse",
+             "Bird" ],
+           "model_predictions": [
+             [
+               0.8154899527132511,
+                0.787026209384203,
+                0.7409455917775631,
+                0.7098744075372815
+              ]
+            ],
+         "label_headers": [
+          "label0"
+         ]  
+       }
+    ]  
+  }
+}

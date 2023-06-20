@@ -1,0 +1,13 @@
+{
+    "DomainId": "$DOMAIN_ID",
+    "DefaultUserSettings": {
+        "KernelGatewayAppSettings": {
+            "CustomImages": [
+                {
+                    "ImageName": "nvidia-tensorrt-22-10",
+                    "AppImageConfigName": "nvidia-tensorrt-22-10-config"
+                }
+            ]
+        }
+    }
+}

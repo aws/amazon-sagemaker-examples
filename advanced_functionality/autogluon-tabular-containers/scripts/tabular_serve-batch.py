@@ -1,9 +1,6 @@
 from autogluon.tabular import TabularPredictor
-import os
-import json
 from io import StringIO
 import pandas as pd
-import numpy as np
 
 
 def model_fn(model_dir):
@@ -14,7 +11,9 @@ def model_fn(model_dir):
     return model
 
 
-def transform_fn(model, request_body, input_content_type, output_content_type="application/json"):
+def transform_fn(
+    model, request_body, input_content_type, output_content_type="application/json"
+):
     if input_content_type == "text/csv":
         buf = StringIO(request_body)
         data = pd.read_csv(buf, header=None)

@@ -1,0 +1,14 @@
+endpoint_name = append_iso8601_utc("torchpippy-test-")
+model.deploy(
+    initial_instance_count=1,
+    instance_type="ml.g5.24xlarge",
+    endpoint_name=endpoint_name,
+    model_data_download_timeout=3600,
+    container_startup_health_check_timeout=1800,
+    serializer=sagemaker.serializers.JSONSerializer(),
+    deserializer=sagemaker.deserializers.JSONDeserializer(),
+)minWorkers: 2
+maxWorkers: 2
+batchSize: 1
+maxBatchDelay: 200
+responseTimeout: 300

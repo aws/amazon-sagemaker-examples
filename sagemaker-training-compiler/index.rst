@@ -19,7 +19,7 @@ For single-node single-GPU training:
    huggingface/pytorch_single_gpu_single_node/albert-base-v2/albert-base-v2
    huggingface/pytorch_single_gpu_single_node/bert-base-cased/bert-base-cased-single-node-single-gpu
    huggingface/pytorch_single_gpu_single_node/roberta-base/roberta-base
-
+   tensorflow/single_gpu_single_node/vision-transformer
 
 For single-node multi-GPU training:
 
@@ -27,7 +27,7 @@ For single-node multi-GPU training:
    :maxdepth: 1
 
    huggingface/pytorch_multiple_gpu_single_node/language-modeling-multi-gpu-single-node
-
+   tensorflow/multiple_gpu_single_node/vision-transformer
 
 For multi-node multi-GPU training:
 

@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.6
+#!/usr/bin/env python3.9
 
 # A sample training component that trains a simple scikit-learn decision tree model.
 # This implementation works in File mode and makes no assumptions about the input file names.
@@ -50,8 +50,8 @@ def train():
         train_data = pd.concat(raw_data)
 
         # labels are in the first column
-        train_y = train_data.ix[:,0]
-        train_X = train_data.ix[:,1:]
+        train_y = train_data.iloc[:,0]
+        train_X = train_data.iloc[:,1:]
 
         # Here we only support a single hyperparameter. Note that hyperparameters are always passed in as
         # strings, so we need to do any necessary conversions. Here we specify a few hyperparameters. Refer to the open source
