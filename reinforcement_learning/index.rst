@@ -177,6 +177,17 @@ Play global thermonuclear war with a computer.
    rl_tic_tac_toe_coach_customEnv/rl_tic_tac_toe_coach_customEnv
 
 
+Stock Trading
+------------
+
+Try stock trading with SageMaker RL.
+
+.. toctree::
+   :maxdepth: 0
+
+   rl_stock_trading_coach_customEnv/rl_stock_trading_coach_customEnv
+
+ 
 Traveling salesman problem
 --------------------------
 

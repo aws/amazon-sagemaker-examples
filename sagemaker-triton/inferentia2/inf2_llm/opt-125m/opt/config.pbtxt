@@ -1,0 +1,34 @@
+name: "opt"
+backend: "python"
+max_batch_size: 128
+
+input [
+  {
+    name: "INPUT__0"
+    data_type: TYPE_INT64
+    dims: [128]
+  }
+]
+
+output [
+  {
+    name: "OUTPUT__0"
+    data_type: TYPE_INT64
+    dims: [2048]
+  }
+]
+
+instance_group [
+    {
+        kind: KIND_MODEL
+        count: 1
+    }
+]
+dynamic_batching {
+  preferred_batch_size: 128
+}
+parameters: {key: "COMPILED_MODEL", value: {string_value: "opt-125m-model"}} 
+parameters: {key: "NEURON_CORE_START_INDEX", value: {string_value: "0"}} 
+parameters: {key: "NEURON_CORE_END_INDEX", value: {string_value: "11"}} 
+parameters: {key: "NUM_THREADS_PER_CORE", value: {string_value: "1"}} 
+

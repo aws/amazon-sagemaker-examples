@@ -81,6 +81,7 @@ def train_model(epochs, batch_size_train, batch_size_val):
     # create custom hook that has a customized forward function, so that we can get gradients of outputs
     hook = custom_hook.CustomHook.create_from_json_file()
     hook.register_module(model)
+    hook.register_loss(loss_function)
 
     # get the dataloaders for train and test data
     train_loader, val_loader = get_dataloaders(batch_size_train, batch_size_val)

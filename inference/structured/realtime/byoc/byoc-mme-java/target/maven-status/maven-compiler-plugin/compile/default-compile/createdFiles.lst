@@ -1,0 +1,13 @@
+ro/edu/aws/sgm/inference/pmml/randomforest/pojo/InputData.class
+ro/edu/aws/sgm/inference/pmml/randomforest/entrypoint/SGMController.class
+ro/edu/aws/sgm/inference/pmml/randomforest/handler/InferenceHandlerInf.class
+ro/edu/aws/sgm/inference/pmml/randomforest/exception/InsufficientMemoryException.class
+ro/edu/aws/sgm/inference/pmml/randomforest/exception/ModelNotFoundException.class
+ro/edu/aws/sgm/inference/pmml/randomforest/exception/ErrorDetails.class
+ro/edu/aws/sgm/inference/pmml/randomforest/pojo/Features.class
+ro/edu/aws/sgm/inference/pmml/randomforest/exception/ModelAlreadyPresentException.class
+ro/edu/aws/sgm/inference/pmml/randomforest/exception/CustomizedResponseEntityExceptionHandler.class
+ro/edu/aws/sgm/inference/pmml/randomforest/pojo/Model.class
+ro/edu/aws/sgm/inference/pmml/randomforest/pojo/MemoryStats.class
+ro/edu/aws/sgm/inference/pmml/randomforest/handler/JPMMLInferenceHandlerImpl.class
+ro/edu/aws/sgm/inference/pmml/randomforest/app/SGMLauncher.class

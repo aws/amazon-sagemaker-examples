@@ -62,6 +62,18 @@ Elastic inference
    ../sagemaker-python-sdk/mxnet_onnx_eia/mxnet_onnx_eia
 
 
+Inference-Recommender
+----------------------
+
+.. toctree::
+   :maxdepth: 1
+
+   ../sagemaker-inference-recommender/inference-recommender
+   ../sagemaker-inference-recommender/xgboost/xgboost-inference-recommender
+   ../sagemaker-inference-recommender/sklearn-inference-recommender/sklearn-inference-recommender
+   ../sagemaker-inference-recommender/tensorflow-cloudwatch/tf-cloudwatch-inference-recommender
+   ../sagemaker-inference-recommender/huggingface-inference-recommender/huggingface-inference-recommender
+
 Endpoints
 ---------
 
