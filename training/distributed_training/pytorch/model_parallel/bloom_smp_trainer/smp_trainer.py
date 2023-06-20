@@ -211,9 +211,6 @@ class SMPTrainer(Trainer):
     def _wrap_model(self, *args, **kwargs):
         return super()._wrap_model(*args, **kwargs)
 
-    def _inner_training_loop(self, *args, **kwargs):
-        return super()._inner_training_loop(*args, **kwargs)
-    
     def _inner_training_loop(
         self, batch_size=None, args=None, resume_from_checkpoint=None, trial=None, ignore_keys_for_eval=None
     ):
