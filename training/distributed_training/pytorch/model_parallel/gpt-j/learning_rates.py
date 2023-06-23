@@ -1,6 +1,5 @@
 # coding=utf-8
-# Copyright (c) 2022, NVIDIA CORPORATION.  All rights reserved.
-# Modifications Copyright 2022 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,6 +16,7 @@
 """Learning rate decay functions."""
 
 import math
+
 import smdistributed.modelparallel.torch as smp
 
 
@@ -81,11 +81,7 @@ class AnnealingLR(object):
                     / (self.end_iter - self.plateau_iter)
                 )
         elif self.decay_style == "cosine":
-            lr = (
-                self.start_lr
-                / 2.0
-                * (math.cos(math.pi * num_iters_ / self.end_iter) + 1)
-            )
+            lr = self.start_lr / 2.0 * (math.cos(math.pi * num_iters_ / self.end_iter) + 1)
         elif self.decay_style == "exponential":
             # exp(-0.693) = 1/2
             lr = self.start_lr * math.exp(-0.693 * num_iters_ / self.end_iter)
@@ -122,9 +118,10 @@ class AnnealingLR(object):
             return cls_value
 
         if not self.use_checkpoint_lr_scheduler:
-            assert cls_value == sd_value, (
-                "AnnealingLR: class input value "
-                "and checkpoint values for {} do not match".format(name)
+            assert (
+                cls_value == sd_value
+            ), "AnnealingLR: class input value" "and checkpoint values for {} do not match".format(
+                name
             )
         if smp.rank() == 0:
             print(" > using checkpoint value {} for {}".format(sd_value, name))
@@ -132,21 +129,15 @@ class AnnealingLR(object):
 
     def load_state_dict(self, sd):
 
-        self.start_lr = self._check_and_set(
-            self.start_lr, sd["start_lr"], "learning rate"
-        )
-        self.min_lr = self._check_and_set(
-            self.min_lr, sd["min_lr"], "minimum learning rate"
-        )
+        self.start_lr = self._check_and_set(self.start_lr, sd["start_lr"], "learning rate")
+        self.min_lr = self._check_and_set(self.min_lr, sd["min_lr"], "minimum learning rate")
         self.warmup_iter = self._check_and_set(
             self.warmup_iter, sd["warmup_iter"], "warmup iterations"
         )
         self.end_iter = self._check_and_set(
             self.end_iter, sd["end_iter"], "total number of iterations"
         )
-        self.decay_style = self._check_and_set(
-            self.decay_style, sd["decay_style"], "decay style"
-        )
+        self.decay_style = self._check_and_set(self.decay_style, sd["decay_style"], "decay style")
 
         self.num_iters = sd["num_iters"]
         self.step(self.num_iters)
