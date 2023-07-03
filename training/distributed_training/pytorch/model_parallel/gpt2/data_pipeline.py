@@ -1,16 +1,14 @@
 import gzip
 import json
-import os
-import h5py
 from typing import List, Tuple
-import random
 
+import h5py
 import numpy as np
 import smdistributed.modelparallel.torch as smp
 import torch
 
 
-class WikiPretrainingDataset(torch.utils.data.Dataset):
+class BertPretrainingDataset(torch.utils.data.Dataset):
     def __init__(self, input_file, max_pred_length):
         self.input_file = input_file
         self.max_pred_length = max_pred_length
@@ -56,9 +54,15 @@ class WikiPretrainingDataset(torch.utils.data.Dataset):
         return [input_ids, segment_ids, input_mask, masked_lm_labels, next_sentence_labels]
 
 
-###### Load Openwebtext pretraining data ######
-class OpenwebtextPretrainingDataset(torch.utils.data.Dataset):
-    def __init__(self, input_paths: List[str], max_sequence_length=None, zipped=True, use_last_file_only=False):
+###### Load GPT pretraining data ######
+class GPTPretrainingDataset(torch.utils.data.Dataset):
+    def __init__(
+        self,
+        input_paths: List[str],
+        max_sequence_length=None,
+        zipped=True,
+        use_last_file_only=False,
+    ):
         self.input_paths = input_paths
         self.max_sequence_length = max_sequence_length
         self.zipped = zipped
@@ -79,11 +83,11 @@ class OpenwebtextPretrainingDataset(torch.utils.data.Dataset):
                         self.input_data.extend([ln for _, ln in enumerate(f, 1)])
         else:
             if self.use_last_file_only:
-                with open (paths[-1], "r") as f:
+                with open(paths[-1], "r") as f:
                     self.input_data = [ln for ln in f]
             else:
                 for path in paths:
-                    with open (path, "r") as f:
+                    with open(path, "r") as f:
                         self.input_data.extend([ln for ln in f])
 
         # print(f'__Finished building pretraining dataset with {self.iids.shape[0]} rows__')
@@ -102,15 +106,27 @@ class OpenwebtextPretrainingDataset(torch.utils.data.Dataset):
             e_idx = s_idx + self.max_sequence_length
             iids = iids[s_idx:e_idx]
             attns = attns[s_idx:e_idx]
+
+        # Hack to use 4096 seqlen with our existing synthetic data for benchmarking purposes only
+        # iids = iids.repeat(1,2).flatten()
+        # attns = attns.repeat(1,2).flatten()
+        # assert iids.shape[0] == 4096, iids.shape
+
         return iids, attns
 
 
 class DummyDataset(torch.utils.data.dataset.Dataset):
-    def __init__(self, length, data_type="openwebtext"):
-        if data_type == "openwebtext":
+    def __init__(self, length, data_type="GPT"):
+        if data_type == "GPT":
             self.batch = (torch.Tensor(0), torch.Tensor(0))
-        elif data_type == "wiki":
-            self.batch = (torch.Tensor(0), torch.Tensor(0), torch.Tensor(0), torch.Tensor(0), torch.Tensor(0))
+        elif data_type == "BERT":
+            self.batch = (
+                torch.Tensor(0),
+                torch.Tensor(0),
+                torch.Tensor(0),
+                torch.Tensor(0),
+                torch.Tensor(0),
+            )
         self.length = length
 
     def __getitem__(self, index):
@@ -130,26 +146,30 @@ def create_pretraining_dataloader(
     shuffle: bool = False,
     zipped: bool = True,
     use_last_file_only: bool = False,
-    data_type: str = "openwebtext",
+    data_type: str = "GPT",
 ):
     if smp.pp_rank() == 0:
-        if data_type == "openwebtext":
-            data = OpenwebtextPretrainingDataset(
-                input_paths=input_paths, max_sequence_length=max_sequence_length, zipped=zipped, use_last_file_only=use_last_file_only
+        if data_type == "GPT":
+            data = GPTPretrainingDataset(
+                input_paths=input_paths,
+                max_sequence_length=max_sequence_length,
+                zipped=zipped,
+                use_last_file_only=use_last_file_only,
             )
-        elif data_type == "wiki":
+        elif data_type == "BERT":
             if len(input_paths) > 1:
-                print(f"Wiki data only support single file when calling create_pretraining_dataloader, reading the first file instead..")
-            data = WikiPretrainingDataset(input_file=input_paths[0], max_pred_length=max_sequence_length)
+                print(
+                    f"BERT data only support single file when calling create_pretraining_dataloader, reading the first file instead.."
+                )
+            data = BertPretrainingDataset(
+                input_file=input_paths[0], max_pred_length=max_sequence_length
+            )
         else:
             raise ValueError(f"Unsupported data type {data_type}")
+        # TODO: set sampler.epoch to correctly shuffle across epochs, else same order will be used for all epochs
+        # not relevant now as we have no epochs
         sampler = torch.utils.data.DistributedSampler(
-            data,
-            shuffle=shuffle,
-            seed=seed,
-            rank=dp_rank,
-            num_replicas=dp_size,
-            drop_last=True,
+            data, shuffle=shuffle, seed=seed, rank=dp_rank, num_replicas=dp_size, drop_last=True
         )
         dataloader = torch.utils.data.DataLoader(
             data,
