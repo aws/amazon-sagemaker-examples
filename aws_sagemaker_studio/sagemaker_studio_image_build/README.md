@@ -4,14 +4,6 @@ This repository contains example notebooks that show how to utilize the [Amazon 
 
 The SageMaker Studio Image Build CLI offers data scientists and developers the ability to build SageMaker compatible docker images directly from their Amazon SageMaker Studio environments without the need to setup and connect to secondary docker build environments. Using the simple CLI, customers now have the ability to easily create container images directly from Amazon SageMaker Studio. 
 
-## Examples
-
-## Tensorflow Bring Your Own
-
-These examples provide quick walkthroughs to get you up and running with the labeling job workflow for Amazon SageMaker Ground Truth.
-
-- [tensorflow_bring_your_own](/tensorflow_bring_your_own): This example is based on an [existing](https://github.com/awslabs/amazon-sagemaker-examples/tree/master/advanced_functionality/tensorflow_bring_your_own) example notebook targeted to run on SageMaker Notebook Instances.  However, this example has been modified to run on Amazon SageMaker Studio using the new CLI to locally build a docker image. We show how to package a custom TensorFlow container using the CLI with a Python example which works with the CIFAR-10 dataset and uses TensorFlow Serving for inference. A Dockerfile is included along with code, in the cifar10 directory, that is used for building the image. The utils folder contains a script for converting CIFAR-10 records into TFRecords. The [tensorflow_bring_your_own.ipynb notebook](./tensorflow_bring_your_own/tensorflow_bring_your_own.ipynb) notebooks covers each step in detail. 
-
 
 ## XGBoost Bring Your Own 
 
