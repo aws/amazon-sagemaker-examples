@@ -21,8 +21,6 @@ SageMaker uses a `default bucket <https://sagemaker.readthedocs.io/en/stable/api
    :maxdepth: 1
 
    ingest-data-types/ingest_tabular_data
-   ingest-data-types/ingest_text_data
-   ingest-data-types/ingest_image_data
 
 
 Athena
@@ -38,17 +36,6 @@ This example runs the California housing dataset and uses PyAthena, a Python cli
    ingest-with-aws-services/ingest_data_with_Athena
 
 
-EMR
-=========
-
-You can use Amazon EMR as a data source for SageMaker.
-While EMR supports is used for processing large amounts of data from a variety of sources, SageMaker-EMR examples focus on Apache Spark.
-This example runs the California housing dataset.
-
-.. toctree::
-   :maxdepth: 1
-
-   ingest-with-aws-services/ingest_data_with_EMR
 
 
 Redshift
@@ -65,17 +52,3 @@ This example runs the California housing dataset and uses `awswrangler`, a Panda
    ingest-with-aws-services/ingest_data_with_Redshift
 
 
-Amazon Keyspaces (for Apache Cassandra)
-==================
-   In this notebook we will provide step-by-step instruction to use SageMaker to ingest customer data from Amazon Keyspaces
-   and train a ML Model
-
-   Amazon Keyspaces (for Apache Cassandra) is a scalable, highly available, and managed Apache Cassandra–compatible database service.
-   With Amazon Keyspaces, you can run your Cassandra workloads on AWS using the same Cassandra application code and developer tools that you use today.
-   You don’t have to provision, patch, or manage servers, and you don’t have to install, maintain, or operate software.
-   Amazon Keyspaces is serverless, so you pay for only the resources you use and the service can automatically scale tables up and down in response to application traffic.
-
-   .. toctree::
-      :maxdepth: 1
-
-      sagemaker-keyspaces/SageMaker_Keyspaces_ml_example
