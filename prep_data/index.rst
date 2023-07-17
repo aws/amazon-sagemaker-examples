@@ -23,15 +23,6 @@ Detect pre-training data bias
    /sagemaker-clarify/fairness_and_explainability/fairness_and_explainability
 
 
-Image data guide
-================
-
-.. toctree::
-   :maxdepth: 1
-
-   image_data_guide/index
-
-
 Tabular data guide
 ==================
 
@@ -41,13 +32,8 @@ Tabular data guide
    tabular_data/train_featurize_train_tabular_data
 
 
-Text data guide
-==================
 
-.. toctree::
-   :maxdepth: 1
 
-   text_data/preprocessing_text_data
 
 Explore and clean tabular data in notebook
 -----------------------------------------------------
