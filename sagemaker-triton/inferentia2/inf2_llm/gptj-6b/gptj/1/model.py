@@ -126,11 +126,12 @@ class TritonPythonModel:
         cores_range = '{}-{}'.format(
             adjusted_nc_start_idx,
             (adjusted_nc_start_idx + cores_per_instance - 1))
+
         os.environ["NEURON_RT_VISIBLE_CORES"] = cores_range
 
-        consumed_cores_list = [i for i in range(cores_per_instance)]
-
-        #self.model_neuron = torch.jit.load(compiled_model)
+        os.environ["NEURONX_DUMP_TO"] = params['NEURONX_DUMP_TO']['string_value']
+        os.enviorn["NEURON_CACHE"] = "on"
+        
         batch_size = 1
         tp_degree = 4
         n_positions = 2048
