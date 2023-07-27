@@ -1,0 +1,10 @@
+FROM public.ecr.aws/docker/library/r-base:4.1.2
+
+# Install tidyverse
+RUN apt update && apt-get install -y --no-install-recommends \
+    r-cran-tidyverse
+    
+RUN R -e "install.packages(c('rjson'))"
+
+
+ENTRYPOINT ["Rscript"]
