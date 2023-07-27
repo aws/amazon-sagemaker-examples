@@ -4,6 +4,6 @@ sagemaker
 sagemaker-experiments
 scipy
 torchnet
-transformers==4.21.0
+transformers==4.30.0
 smdebug
 humanize
