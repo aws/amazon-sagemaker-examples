@@ -1,0 +1,70 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+
+Description: Creates an S3 Bucket, IAM Policies, and SageMaker Notebook.
+
+Parameters:
+
+  BucketName:
+    Type: String
+    Default: scriptmodedemofirstnamelastname
+    Description: The name of the S3 Bucket to create, use only characters and numbers, no special characters or spaces.
+
+  NotebookName:
+    Type: String
+    Default: ScriptModeDemoLab
+    Description: Enter the name of the SageMaker notebook instance. Deafault is ScriptModeDemoLab.
+
+  VolumeSize:
+    Type: Number
+    Default: 10
+    MinValue: 5
+    MaxValue: 16384
+    ConstraintDescription: Must be an integer between 5 (GB) and 16384 (16 TB).
+    Description: Enter the size of the EBS volume in GB.
+
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterLabels:
+      BucketName:
+        default: S3 Bucket Name
+
+Resources:
+  # S3 First
+  S3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref BucketName
+  # SageMaker Execution Role
+  SageMakerIamRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          -
+            Effect: Allow
+            Principal:
+              Service: sagemaker.amazonaws.com
+            Action: sts:AssumeRole
+      Path: "/"
+      ManagedPolicyArns:
+        - "arn:aws:iam::aws:policy/AmazonSageMakerFullAccess"
+        - "arn:aws:iam::aws:policy/AmazonS3FullAccess"
+        - "arn:aws:iam::aws:policy/IAMFullAccess"
+
+  # SageMaker notebook
+  NotebookInstance:
+    Type: "AWS::SageMaker::NotebookInstance"
+    Properties:
+      InstanceType: "ml.t2.medium"
+      NotebookInstanceName: !Ref NotebookName
+      RoleArn: !GetAtt SageMakerIamRole.Arn
+      VolumeSizeInGB: !Ref VolumeSize
+      DefaultCodeRepository: https://github.com/aws/amazon-sagemaker-examples.git
+
+Outputs:
+  S3Bucket:
+    Value: !Ref BucketName
+    Description: S3 Bucket for object storage
