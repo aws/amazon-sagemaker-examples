@@ -26,7 +26,7 @@ import torch.nn.functional as F
 import accelerate
 
 from sampling import SmallSearchSpace
-from mask import mask_bert, mask_gpt
+from mask import mask_bert 
 
 accelerator = accelerate.Accelerator()
 
