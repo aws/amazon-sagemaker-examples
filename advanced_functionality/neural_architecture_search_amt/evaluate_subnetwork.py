@@ -43,7 +43,7 @@ from evaluate import load
 
 from estimate_efficency import compute_parameters
 from task_data import TASKINFO
-from mask import mask_bert, mask_gpt
+from mask import mask_bert
 from hf_args import DataTrainingArguments, ModelArguments
 from load_glue_datasets import load_glue_datasets
 
