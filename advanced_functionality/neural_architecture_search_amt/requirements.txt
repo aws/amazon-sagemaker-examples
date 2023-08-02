@@ -4,4 +4,3 @@ numpy
 pandas
 evaluate
 git+https://github.com/aaronkl/transformers.git
-accelerate

@@ -23,12 +23,8 @@ from torch.optim import AdamW
 from torch import nn
 import torch.nn.functional as F
 
-import accelerate
-
 from sampling import SmallSearchSpace
 from mask import mask_bert 
-
-accelerator = accelerate.Accelerator()
 
 logger = logging.getLogger(__name__)
 
@@ -63,18 +59,10 @@ def train_supernetwork(model, train_dataloader, eval_dataloader, metric, trainin
         )
 
     model_type = model.config._name_or_path
-    if model_type.startswith("gpt2"):
-        mask = mask_gpt
-    elif model_type.startswith("bert"):
+    if model_type.startswith("bert"):
         mask = mask_bert
-
-    if training_args.use_accelerate:
-        (
-            train_dataloader,
-            eval_dataloader,
-            model,
-            optimizer,
-        ) = accelerator.prepare(train_dataloader, eval_dataloader, model, optimizer)
+    else:
+        raise Exception(f'Model {model_type} is not supported at this point!')
 
     sampler = SmallSearchSpace(
         model.config, rng=np.random.RandomState(seed=training_args.seed)
@@ -91,9 +79,7 @@ def train_supernetwork(model, train_dataloader, eval_dataloader, metric, trainin
             outputs = model(**batch)
             loss = outputs.loss
             y_teacher = outputs.logits.detach()
-            accelerator.backward(
-                loss
-            ) if training_args.use_accelerate else loss.backward()
+            loss.backward()
 
             # update smallest sub-network
             head_mask, ffn_mask = sampler.get_smallest_sub_network()
@@ -106,9 +92,7 @@ def train_supernetwork(model, train_dataloader, eval_dataloader, metric, trainin
                 handle.remove()
 
             loss = distillation_loss(outputs.logits, y_teacher)
-            accelerator.backward(
-                loss
-            ) if training_args.use_accelerate else loss.backward()
+            loss.backward()
 
             # update random sub-network
             head_mask, ffn_mask = sampler()
@@ -121,9 +105,7 @@ def train_supernetwork(model, train_dataloader, eval_dataloader, metric, trainin
                 handle.remove()
 
             loss = distillation_loss(outputs.logits, y_teacher)
-            accelerator.backward(
-                loss
-            ) if training_args.use_accelerate else loss.backward()
+            loss.backward()
 
             # update random sub-network
             head_mask, ffn_mask = sampler()
@@ -137,9 +119,7 @@ def train_supernetwork(model, train_dataloader, eval_dataloader, metric, trainin
                 handle.remove()
 
             loss = distillation_loss(outputs.logits, y_teacher)
-            accelerator.backward(
-                loss
-            ) if training_args.use_accelerate else loss.backward()
+            loss.backward()
 
             step += 1
 
@@ -178,14 +158,4 @@ def train_supernetwork(model, train_dataloader, eval_dataloader, metric, trainin
         if training_args.save_strategy == "epoch":
             os.makedirs(training_args.output_dir, exist_ok=True)
             logger.info(f"Store checkpoint in: {training_args.output_dir}")
-            if training_args.use_accelerate:
-                accelerator.wait_for_everyone()
-                unwrapped_model = accelerator.unwrap_model(model)
-                unwrapped_model.save_pretrained(
-                    training_args.output_dir,
-                    is_main_process=accelerator.is_main_process,
-                    save_function=accelerator.save,
-                    state_dict=accelerator.get_state_dict(model),
-                )
-            else:
-                model.save_pretrained(training_args.output_dir)
+            model.save_pretrained(training_args.output_dir)

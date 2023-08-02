@@ -29,13 +29,9 @@ import torch
 import datasets
 
 from transformers import (
-    AutoTokenizer,
     AutoModelForSequenceClassification,
-    DataCollatorWithPadding,
     HfArgumentParser,
-    AutoConfig,
     TrainingArguments,
-    default_data_collator,
     set_seed,
 )
 
@@ -78,7 +74,6 @@ class SearchArguments:
 
 
 def main():
-    start_time = time.time()
     parser = HfArgumentParser(
         (ModelArguments, DataTrainingArguments, TrainingArguments, SearchArguments)
     )
@@ -143,27 +138,8 @@ def main():
         )
         n_params_classifier += n_params_pooler
 
-    elif model_type.startswith("gpt2"):
-        model.config.pad_token_id = model.config.eos_token_id
-        mask = mask_gpt
-
-        num_attention_heads = config.n_head
-        attention_size = config.hidden_size
-        attention_head_size = int(attention_size / num_attention_heads)
-        num_layers = config.n_layer
-        intermediate_size = (
-            config.n_inner if config.n_inner is not None else 4 * config.hidden_size
-        )
-        wte = sum(
-            p.numel() for p in model.transformer.wte.parameters() if p.requires_grad
-        )
-        wpe = sum(
-            p.numel() for p in model.transformer.wpe.parameters() if p.requires_grad
-        )
-        n_params_emb = wte + wpe
-        n_params_classifier = sum(
-            p.numel() for p in model.score.parameters() if p.requires_grad
-        )
+    else:
+        raise Exception(f'Model {model_type} is not supported at this point!')
 
     device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
     model.to(device)
@@ -173,10 +149,10 @@ def main():
     head_mask = torch.ones((num_layers, num_attention_heads))
     neuron_mask = torch.ones((num_layers, intermediate_size))
 
-    head_mask[search_args.num_layers :, :] = 0
-    head_mask[: search_args.num_layers :, search_args.num_heads :] = 0
-    neuron_mask[search_args.num_layers :, :] = 0
-    neuron_mask[: search_args.num_layers :, search_args.num_units :] = 0
+    head_mask[search_args.num_layers:, :] = 0
+    head_mask[: search_args.num_layers:, search_args.num_heads:] = 0
+    neuron_mask[search_args.num_layers:, :] = 0
+    neuron_mask[: search_args.num_layers:, search_args.num_units:] = 0
 
     head_mask = head_mask.to(device)
     neuron_mask = neuron_mask.to(device)
