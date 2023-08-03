@@ -92,7 +92,6 @@ def main():
 
     if int(training_args.seed) == -1:
         training_args.seed = np.random.randint(2**32 - 1)
-    print(training_args.seed)
     set_seed(training_args.seed)
 
     model_type = model_args.model_name_or_path
