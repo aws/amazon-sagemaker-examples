@@ -88,8 +88,7 @@ def main():
     logger.setLevel(log_level)
     datasets.utils.logging.set_verbosity(log_level)
 
-    # Set seed before initializing model.
-
+    # Set seed before initializing model
     if int(training_args.seed) == -1:
         training_args.seed = np.random.randint(2**32 - 1)
     set_seed(training_args.seed)
