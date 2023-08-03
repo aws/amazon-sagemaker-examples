@@ -88,7 +88,7 @@ These examples introduce SageMaker's hyperparameter tuning functionality which h
 - [R BYO Tuning](hyperparameter_tuning/r_bring_your_own) shows how to use SageMaker hyperparameter tuning with the custom container from the [Bring Your Own R Algorithm](advanced_functionality/r_bring_your_own) example.
 - [Analyzing Results](hyperparameter_tuning/analyze_results) is a shared notebook that can be used after each of the above notebooks to provide analysis on how training jobs with different hyperparameters performed.
 - [Model tuning for distributed training](hyperparameter_tuning/model_tuning_for_distributed_training) shows how to use SageMaker hyperparameter tuning with Hyperband strategy for optimizing model in distributed training.
-- [Neural Architecture Search for Large Language Models](hyperparameter_tuning/neural_architecture_search_llm) shows to prune fine-tuned large language models via neural architecture search.
+- [Neural Architecture Search for Large Language Models](hyperparameter_tuning/neural_architecture_search_llm) shows how to prune fine-tuned large language models via neural architecture search.
 
 ### SageMaker Autopilot
 
