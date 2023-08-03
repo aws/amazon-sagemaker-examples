@@ -12,10 +12,10 @@
 # permissions and limitations under the License.
 from collections import OrderedDict
 
-import torch
 import torch.nn as nn
 
 from transformers import AutoModelForSequenceClassification
+
 
 def copy_linear_layer(new_layer, old_layer, weight_shape, bias_shape):
     old_state = old_layer.state_dict()

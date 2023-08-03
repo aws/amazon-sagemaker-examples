@@ -14,18 +14,6 @@ from dataclasses import dataclass, field
 from typing import Optional
 
 
-def parse_model_name(model_args):
-    if model_args.model_name_or_path in ["bert-small", "bert-medium", "bert-tiny"]:
-        model_type = "prajjwal1/" + model_args.model_name_or_path
-    elif model_args.model_name_or_path in ["electra-base"]:
-        model_type = "google/electra-base-discriminator"
-    elif model_args.model_name_or_path in ["electra-small"]:
-        model_type = "google/electra-small-discriminator"
-    else:
-        model_type = model_args.model_name_or_path
-    return model_type
-
-
 @dataclass
 class DataTrainingArguments:
     """
