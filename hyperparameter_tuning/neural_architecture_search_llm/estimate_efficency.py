@@ -78,7 +78,6 @@ def compute_parameters(dmodel, dhead, num_heads_per_layer, num_neurons_per_layer
 
 
 def compute_latency(model, tokenizer, batch, device):
-    # train_dataset[0][sentence1_key],
     starter, ender = torch.cuda.Event(enable_timing=True), torch.cuda.Event(
         enable_timing=True
     )
@@ -87,7 +86,7 @@ def compute_latency(model, tokenizer, batch, device):
     # warm-up GPU
     for _ in range(10):
         _ = model(**tokenizer(batch, return_tensors="pt").to(device))
-    # measure latency
+    # Measure latency
     with torch.no_grad():
         for rep in range(repetitions):
             starter.record()
