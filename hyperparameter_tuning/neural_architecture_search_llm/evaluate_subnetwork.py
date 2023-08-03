@@ -95,11 +95,12 @@ def main():
 
     model_type = model_args.model_name_or_path
 
-    # Labels
     is_regression = data_args.task_name == "stsb"
 
+    # Evaluation metric
     metric = load("glue", data_args.task_name)
 
+    # Load data
     _, eval_dataloader, test_dataloader = load_glue_datasets(
         training_args=training_args, model_args=model_args, data_args=data_args
     )
