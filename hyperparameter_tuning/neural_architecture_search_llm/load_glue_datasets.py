@@ -22,8 +22,6 @@ from transformers import (
     default_data_collator,
 )
 
-from hf_args import parse_model_name
-
 logger = logging.getLogger(__name__)
 
 
@@ -46,7 +44,7 @@ def load_glue_datasets(training_args, model_args, data_args):
     )
 
     # Load tokenizer
-    model_type = parse_model_name(model_args)
+    model_type = model_args.model_name_or_path
 
     tokenizer = AutoTokenizer.from_pretrained(
         model_type,
