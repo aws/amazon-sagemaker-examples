@@ -12,24 +12,115 @@
 # permissions and limitations under the License.
 import os
 import time
-import torch
 import logging
 import numpy as np
+import torch
+import torch.nn.functional as F
+import evaluate
 
 from tqdm.auto import tqdm
 
-from transformers import get_scheduler
+from torch.utils.data import DataLoader
 from torch.optim import AdamW
 from torch import nn
-import torch.nn.functional as F
+
+from transformers import (
+    AutoTokenizer,
+    default_data_collator,
+    TrainingArguments,
+    AutoModelForSequenceClassification,
+    AutoConfig,
+    get_scheduler,
+    HfArgumentParser
+)
+
+from datasets import load_dataset
 
 from sampling import SmallSearchSpace
 from mask import mask_bert 
+from hf_args import DataTrainingArguments, ModelArguments
+from task_data import TASKINFO
 
 logger = logging.getLogger(__name__)
 
 
-def train_supernetwork(model, train_dataloader, eval_dataloader, metric, training_args):
+def main():
+    parser = HfArgumentParser(
+        (ModelArguments, DataTrainingArguments, TrainingArguments)
+    )
+
+    (
+        model_args,
+        data_args,
+        training_args,
+    ) = parser.parse_args_into_dataclasses()
+
+    model_type = model_args.model_name_or_path
+    task_name = data_args.task_name
+    seed = training_args.seed
+    per_device_train_batch_size = training_args.per_device_train_batch_size
+    per_device_eval_batch_size = training_args.per_device_eval_batch_size
+
+    tokenizer = AutoTokenizer.from_pretrained(model_type)
+
+    padding = "max_length"
+
+    max_seq_length = min(data_args.max_seq_length, tokenizer.model_max_length)
+
+    def preprocess_function(examples):
+        args = (
+            (examples[sentence1_key],)
+            if sentence2_key is None
+            else (examples[sentence1_key], examples[sentence2_key])
+        )
+        result = tokenizer(*args, padding=padding, max_length=max_seq_length, truncation=True)
+
+        return result
+
+    raw_datasets = load_dataset("glue", task_name)
+    sentence1_key, sentence2_key = ("sentence1", "sentence2")
+
+    metric = evaluate.load("glue", task_name)
+
+    preproc_datasets = raw_datasets.map(
+        preprocess_function,
+        batched=True,
+        desc="Running tokenizer on dataset",
+    )
+
+    label_list = preproc_datasets["train"].features["label"].names
+    num_labels = len(label_list)
+
+    train_dataset = preproc_datasets["train"]
+    train_dataset = train_dataset.remove_columns(["idx"])
+
+    split = train_dataset.train_test_split(train_size=0.7, seed=seed)
+    train_dataset = split["train"]
+    valid_dataset = split["test"]
+
+    data_collator = default_data_collator
+
+    train_dataloader = DataLoader(
+        train_dataset,
+        shuffle=True,
+        batch_size=per_device_train_batch_size,
+        collate_fn=data_collator,
+    )
+    eval_dataloader = DataLoader(
+        valid_dataset,
+        batch_size=per_device_eval_batch_size,
+        collate_fn=data_collator,
+    )
+
+    config = AutoConfig.from_pretrained(
+        model_type,
+        num_labels=num_labels,
+        finetuning_task=task_name,
+    )
+    model = AutoModelForSequenceClassification.from_pretrained(
+        model_type,
+        config=config,
+    )
 
     optimizer = AdamW(model.parameters(), lr=training_args.learning_rate)
 
@@ -50,7 +141,7 @@ def train_supernetwork(model, train_dataloader, eval_dataloader, metric, trainin
     start_time = time.time()
     step = 0
 
-    if training_args.is_regression:
+    if data_args.is_regression:
         distillation_loss = nn.MSELoss()
     else:
         kl_loss = nn.KLDivLoss(reduction="batchmean", log_target=True)
@@ -72,8 +163,7 @@ def train_supernetwork(model, train_dataloader, eval_dataloader, metric, trainin
         model.train()
         train_loss = 0
         for batch in train_dataloader:
-            if not training_args.use_accelerate:
-                batch = {k: v.to(device) for k, v in batch.items()}
+            batch = {k: v.to(device) for k, v in batch.items()}
 
             # update largest sub-network (i.e super-network)
             outputs = model(**batch)
@@ -132,8 +222,7 @@ def train_supernetwork(model, train_dataloader, eval_dataloader, metric, trainin
 
         model.eval()
         for batch in eval_dataloader:
-            if not training_args.use_accelerate:
-                batch = {k: v.to(device) for k, v in batch.items()}
+            batch = {k: v.to(device) for k, v in batch.items()}
 
             outputs = model(**batch)
 
@@ -141,7 +230,7 @@ def train_supernetwork(model, train_dataloader, eval_dataloader, metric, trainin
             # predictions = torch.argmax(logits, dim=-1)
             predictions = (
                 torch.squeeze(logits)
-                if training_args.is_regression
+                if data_args.is_regression
                 else torch.argmax(logits, dim=-1)
             )
 
@@ -149,13 +238,21 @@ def train_supernetwork(model, train_dataloader, eval_dataloader, metric, trainin
 
         eval_metric = metric.compute()
         runtime = time.time() - start_time
+        metric_name = TASKINFO[data_args.task_name]["metric"]
+        # logger.info(
+        #     f"epoch {epoch}: training loss = {train_loss / len(train_dataloader)}, "
+        #     f"evaluation metrics = {eval_metric[metric_name]}, "
+        #     f"runtime = {runtime}"
+        # )
         logger.info(
-            f"epoch {epoch}: training loss = {train_loss / len(train_dataloader)}, "
-            f"evaluation metrics = {eval_metric}, "
-            f"runtime = {runtime}"
+            f"epoch {epoch}: {metric_name} = {eval_metric[metric_name]}"
         )
 
         if training_args.save_strategy == "epoch":
             os.makedirs(training_args.output_dir, exist_ok=True)
-            logger.info(f"Store checkpoint in: {training_args.output_dir}")
+            logging.info(f"Store checkpoint in: {training_args.output_dir}")
             model.save_pretrained(training_args.output_dir)
+
+
+if __name__ == "__main__":
+    main()

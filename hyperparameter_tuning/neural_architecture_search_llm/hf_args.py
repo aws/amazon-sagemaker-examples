@@ -47,6 +47,13 @@ class DataTrainingArguments:
         },
     )
 
+    is_regression: bool = field(
+        default=False,
+        metadata={
+            "help": "Specifies if dataset is a regression dataset."
+        },
+    )
+
 
 @dataclass
 class ModelArguments:
