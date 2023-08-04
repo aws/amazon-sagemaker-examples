@@ -130,7 +130,7 @@ def main():
         n_params_classifier += n_params_pooler
 
     else:
-        raise Exception(f'Model {model_type} is not supported at this point!')
+        raise AttributeError(f'Model {model_type} is not supported at this point!')
 
     device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
     model.to(device)

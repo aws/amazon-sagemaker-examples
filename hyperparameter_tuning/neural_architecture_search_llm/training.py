@@ -62,7 +62,7 @@ def train_supernetwork(model, train_dataloader, eval_dataloader, metric, trainin
     if model_type.startswith("bert"):
         mask = mask_bert
     else:
-        raise Exception(f'Model {model_type} is not supported at this point!')
+        raise AttributeError(f'Model {model_type} is not supported at this point!')
 
     sampler = SmallSearchSpace(
         model.config, rng=np.random.RandomState(seed=training_args.seed)
