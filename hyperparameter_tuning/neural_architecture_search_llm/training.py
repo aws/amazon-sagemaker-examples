@@ -227,7 +227,6 @@ def main():
             outputs = model(**batch)
 
             logits = outputs.logits
-            # predictions = torch.argmax(logits, dim=-1)
             predictions = (
                 torch.squeeze(logits)
                 if data_args.is_regression
@@ -239,13 +238,10 @@ def main():
         eval_metric = metric.compute()
         runtime = time.time() - start_time
         metric_name = TASKINFO[data_args.task_name]["metric"]
-        # logger.info(
-        #     f"epoch {epoch}: training loss = {train_loss / len(train_dataloader)}, "
-        #     f"evaluation metrics = {eval_metric[metric_name]}, "
-        #     f"runtime = {runtime}"
-        # )
         logger.info(
-            f"epoch {epoch}: {metric_name} = {eval_metric[metric_name]}"
+            f"epoch {epoch}: training loss = {train_loss / len(train_dataloader)}, "
+            f"evaluation metrics = {eval_metric[metric_name]}, "
+            f"runtime = {runtime}"
         )
 
         if training_args.save_strategy == "epoch":
