@@ -298,7 +298,7 @@ choose ``Add destination`` → ``Amazon S3``. Assign a name for your
 output data and choose the S3 location where you want the data to be
 stored and click Add destination button at the bottom as shown below.
 
-.. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/add-destination.png
+.. figure:: https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/tabular-dataflow/add-destination.png
 
 
 
@@ -306,7 +306,7 @@ stored and click Add destination button at the bottom as shown below.
 This adds a destination node to our data flow. The destination node acts
 as a sink to your data flow.
 
-.. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/destination.png
+.. figure:: https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/tabular-dataflow/destination.png
 
 
 
@@ -316,7 +316,7 @@ about to create, choose the Instance type and Instance count for our
 processing cluster. Advance configuration is optional, where you can
 assign tags as needed and choose the appropriate Volume Size.
 
-.. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/configure-job.png
+.. figure:: https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/tabular-dataflow/configure-job.png
 
 
  
@@ -324,7 +324,7 @@ assign tags as needed and choose the appropriate Volume Size.
 Select ``Run`` to start the export job. The job created will have Job
 Name and Job ARN which can be used to search for the job status.
 
-.. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/create-job.png
+.. figure:: https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/tabular-dataflow/create-job.png
 
 
  
@@ -332,7 +332,7 @@ Name and Job ARN which can be used to search for the job status.
 The job created in the previous step will be available in the monitoring
 page for ``SageMaker Processing job`` as shown in the figure below.
 
-.. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/processing-job.png
+.. figure:: https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/tabular-dataflow/processing-job.png
 
 
  
@@ -341,7 +341,7 @@ After a certain time, the job will be complete. The image below shows
 the completed job. Exported data should be available in the output S3
 bucket.
 
-.. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/complete-job.png
+.. figure:: https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/tabular-dataflow/complete-job.png
 
 
 
