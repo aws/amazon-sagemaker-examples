@@ -83,8 +83,8 @@ def train_supernetwork(model, train_dataloader, eval_dataloader, metric, trainin
 
             # update smallest sub-network
             head_mask, ffn_mask = sampler.get_smallest_sub_network()
-            head_mask = head_mask.to(device="cuda", dtype=model.dtype)
-            ffn_mask = ffn_mask.to(device="cuda", dtype=model.dtype)
+            head_mask = head_mask.to(device=device, dtype=model.dtype)
+            ffn_mask = ffn_mask.to(device=device, dtype=model.dtype)
             handles = mask(model, ffn_mask, head_mask)
             outputs = model(head_mask=head_mask, **batch)
 
@@ -96,8 +96,8 @@ def train_supernetwork(model, train_dataloader, eval_dataloader, metric, trainin
 
             # update random sub-network
             head_mask, ffn_mask = sampler()
-            head_mask = head_mask.to(device="cuda", dtype=model.dtype)
-            ffn_mask = ffn_mask.to(device="cuda", dtype=model.dtype)
+            head_mask = head_mask.to(device=device, dtype=model.dtype)
+            ffn_mask = ffn_mask.to(device=device, dtype=model.dtype)
 
             handles = mask(model, ffn_mask, head_mask)
             outputs = model(head_mask=head_mask, **batch)
@@ -109,8 +109,8 @@ def train_supernetwork(model, train_dataloader, eval_dataloader, metric, trainin
 
             # update random sub-network
             head_mask, ffn_mask = sampler()
-            head_mask = head_mask.to(device="cuda", dtype=model.dtype)
-            ffn_mask = ffn_mask.to(device="cuda", dtype=model.dtype)
+            head_mask = head_mask.to(device=device, dtype=model.dtype)
+            ffn_mask = ffn_mask.to(device=device, dtype=model.dtype)
 
             handles = mask(model, ffn_mask, head_mask)
             outputs = model(head_mask=head_mask, **batch)
