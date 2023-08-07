@@ -19,7 +19,7 @@ perform an analysis, add a destination sink or export the steps as
 Jupyter notebook. You can also join and concatenate on the imported
 dataset with other datasets.
 
-.. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/image-8.png
+.. figure:: https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/tabular-dataflow/image-8.png
    
 
 
@@ -50,7 +50,7 @@ Get Insights
 You can get the Data Insights report by selecting **Get Insights**
 option for the **Data Types** block as shown in the figure.
 
-.. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/get-insights.png
+.. figure:: https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/tabular-dataflow/get-insights.png
    
 
 
@@ -63,7 +63,7 @@ After the report is generated, it outlines findings about statistics,
 duplicate rows, warnings, confusion matrix and feature summary. This can
 be a useful report before we start our detailed analysis.
 
-.. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/get-insights-report.png
+.. figure:: https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/tabular-dataflow/get-insights-report.png
    
 
 
@@ -78,7 +78,7 @@ Select **Table Summary** Analysis in the **Add Analysis** window.
 Overall details of the data for various columsn is displayed as depicted
 in figure below.
 
-.. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/table-information.png
+.. figure:: https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/tabular-dataflow/table-information.png
    
 
 
@@ -123,7 +123,7 @@ indicate the feature is redundant.
   ``Target column``: ``is-cancelled`` - ``Problem type``:
   ``Classification``
 
-.. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/target-leakage-pre.png
+.. figure:: https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/tabular-dataflow/target-leakage-pre.png
    
 
    image
@@ -141,7 +141,7 @@ identified as redundant.
 The identified features can be fairly omitted as part of the
 transformations we will apply post this initial analysis.
 
-.. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/target-leakage.png
+.. figure:: https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/tabular-dataflow/target-leakage.png
 
 
 Select **Save** to save the analysis.
@@ -176,13 +176,13 @@ Features that are not either numeric or categorical are ignored. The
 table below lists for each feature what is the most correlated feature
 to it.
 
-.. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/linear-pre.png
+.. figure:: https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/tabular-dataflow/linear-pre.png
 
 Based on the correlation values, we can see the top 6 feature pairs (as
 listed below) are strongly correlating with one another. Also, some of
 these features also showed up in the target analysis we did previously.
 
-.. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/linear-strongly-correlated.png
+.. figure:: https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/tabular-dataflow/linear-strongly-correlated.png
 
 
 P.S.: A limit of 100,000 rows is used for this analysis.
@@ -218,7 +218,7 @@ The table below lists for each feature what is the most correlated
 feature to it. You can see most of the top correlated feature pairs
 overlap with the previous two analyses.
 
-.. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/non-linear-pre.png
+.. figure:: https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/tabular-dataflow/non-linear-pre.png
 
 
 Select **Save** to save the analysis.
@@ -254,7 +254,7 @@ features.
 -  ``arrival_date_week_number``
 -  ``stays_in_week_nights``
 
-.. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/vif-pre.png
+.. figure:: https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/tabular-dataflow/vif-pre.png
 
 
 Select **Save** to save the analysis.
@@ -283,7 +283,7 @@ As per the above rule, it is evident the numbers (variances) are not
 uniform hence confirming that the data has multicolinearies to fix. This
 has already been confirmed by our previous analysis.
 
-.. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/pca-pre.png
+.. figure:: https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/tabular-dataflow/pca-pre.png
 
 Select **Save** to save the analysis.
 
@@ -314,7 +314,7 @@ avoid a skewed importance score due to different scales.
 
 The classifier obtained a roc_auc score: ``0.639269142214666``.
 
-.. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/lasso-pre.png
+.. figure:: https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/tabular-dataflow/lasso-pre.png
 
 
 Select **Save** to save the analysis.
@@ -329,7 +329,7 @@ analysis, choose **Duplicate rows** for Analysis type.
 From the figure bwlow, we can see almost ~33% of the rows in the dataset
 are duplicates.
 
-.. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/duplicate-rows.png
+.. figure:: https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/tabular-dataflow/duplicate-rows.png
 
 
 Quick Model
@@ -377,7 +377,7 @@ with in Data Wrangler’s Quick Model option.
 
 This analysis will take a few minutes to complete.
 
-.. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/create-quick-model.png
+.. figure:: https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/tabular-dataflow/create-quick-model.png
 
 
 
@@ -393,7 +393,7 @@ or redundant based on high colinearity. This is justified in the results
 below where the column ``reservation_status`` which is a target leakage
 ranked as the most important feature.
 
-.. figure:: https://s3.amazonaws.com/sagemaker-sample-files/images/sagemaker-datawrangler/tabular-dataflow/quick-model-pre.png
+.. figure:: https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/tabular-dataflow/quick-model-pre.png
 
 
 
