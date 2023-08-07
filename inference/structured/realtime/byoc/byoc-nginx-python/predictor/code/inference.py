@@ -2,7 +2,7 @@ from io import StringIO
 import os
 import json
 import flask
-import pickle
+import joblib
 import numpy as np
 import pandas as pd
 import xgboost as xgb
@@ -25,7 +25,7 @@ def load_model():
 
     # Load the model from the file
     with open(xgb_model_path, "rb") as f:
-        model = pickle.load(f)
+        model = joblib.load(f)
 
     return model
 

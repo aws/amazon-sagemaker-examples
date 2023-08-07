@@ -42,7 +42,9 @@ RUN pip3 --no-cache-dir install \
     gevent \
     numpy \
     pandas \
+    joblib \
     xgboost
+
 
 # Set some environment variables. PYTHONUNBUFFERED keeps Python from buffering our standard
 # output stream, which means that logs can be delivered to the user quickly. PYTHONDONTWRITEBYTECODE
