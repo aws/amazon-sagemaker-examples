@@ -45,7 +45,7 @@ def load_model():
 
 
 # sagemaker inference.py script
-def transform_fn(input_data, request_content_type):
+def transform_fn(request_body, request_content_type):
     """
     Transform the request body into a usable numpy array for the model.
 
@@ -54,7 +54,7 @@ def transform_fn(input_data, request_content_type):
     prediction model.
 
     Parameters:
-        input_data (str): The request body containing the input data.
+        request_body (str): The request body containing the input data.
         request_content_type (str): The content type of the request body.
 
     Returns:
@@ -85,7 +85,7 @@ def transform_fn(input_data, request_content_type):
             print(f"Featurizer model loaded", flush=True)
 
         # Read the input data from the request body as a CSV file
-        df = pd.read_csv(StringIO(input_data), header=None)
+        df = pd.read_csv(StringIO(request_body), header=None)
 
         # Assign column names based on the number of columns in the input data
         if len(df.columns) == len(feature_columns_names) + 1:

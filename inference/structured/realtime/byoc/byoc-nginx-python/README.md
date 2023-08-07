@@ -1,11 +1,11 @@
 # Build and Deploy an ML Application from scratch to SageMaker
 
-We demonstrate building a ML application to predict the rings of Abalone.
+We demonstrate building a ML inference application to predict the rings of Abalone.
 
-After the model is hosted for Inference, the payload will be sent as a raw (untransformed) csv string to a real-time endpoint.
-The raw payload is first received by the featurizer container. The raw payload is then transformed (feature-engineering) by the featurizer, and the transformed record (float values) are returned as a csv string by the featurizer.
+Payload will be sent as a raw (untransformed) csv string to the inference application hosted as a serial-inference-pipeline on a real-time endpoint.
+The raw payload is first received by the featurizer container. The payload is then transformed by the featurizer, and the transformed record (float values) is returned as a csv string by the featurizer.
 
-The transformed record is then passed to the predictor container (XGBoost model). The predictor then converts the transformed record into XGBMatrix format, loads the model, calls `booster.predict(input_data)` and returns the predictions (Rings) in a JSON format.
+The transformed record is then passed to the predictor container (XGBoost model). The predictor then converts the transformed record into XGBMatrix format, loads the model and calls `booster.predict(input_data)` and returns the predictions (Rings) in a JSON format.
 
 >Note: We use a pretrained XGBoost model trained on [Abalone Data Set](https://archive.ics.uci.edu/ml/datasets/abalone).
 
