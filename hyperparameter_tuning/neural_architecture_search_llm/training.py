@@ -242,7 +242,7 @@ def main():
         print(f"epoch: {epoch}")
         print(f"training loss: {train_loss / len(train_dataloader)}")
         print(f"number of parameters: {n_params}")
-        print(f"validation error: {eval_metric[metric_name]}")
+        print(f"validation error: {1 - eval_metric[metric_name]}")
 
         if training_args.save_strategy == "epoch":
             os.makedirs(training_args.output_dir, exist_ok=True)
