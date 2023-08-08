@@ -1,0 +1,2 @@
+datasets==2.4.0
+seqeval==1.2.2

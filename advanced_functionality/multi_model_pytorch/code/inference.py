@@ -4,6 +4,7 @@
 import json
 import logging
 import sys
+import os
 
 # External Dependencies:
 import torch
@@ -20,7 +21,9 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 def model_fn(model_dir):
     """Load saved model from file"""
+    file_path = os.path.join(model_dir, "model.pth")
     model = MNISTNet().to(device)
+    model.load_state_dict(torch.load(file_path))
     model.eval()
     return model
 

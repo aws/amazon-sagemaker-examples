@@ -39,6 +39,7 @@ Use AWS Data Exchange products
    :maxdepth: 0
 
    using_data/image_classification_with_shutterstock_image_datasets/image-classification-with-shutterstock-datasets
+   using_data/using_data_with_ml_model/using-dataset-product-from-aws-data-exchange-with-ml-model-from-aws-marketplace
 
 
 Use AWS Marketplace algorithms
