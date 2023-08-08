@@ -11,7 +11,7 @@
 # express or implied. See the License for the specific language governing
 # permissions and limitations under the License.
 import os
-import time
+import shutil
 import logging
 import numpy as np
 import torch
@@ -138,7 +138,6 @@ def main():
     device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
     model.to(device)
 
-    start_time = time.time()
     step = 0
 
     if data_args.is_regression:
@@ -158,6 +157,8 @@ def main():
     sampler = SmallSearchSpace(
         model.config, rng=np.random.RandomState(seed=training_args.seed)
     )
+
+    n_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
 
     for epoch in range(int(training_args.num_train_epochs)):
         model.train()
@@ -236,28 +237,24 @@ def main():
             metric.add_batch(predictions=predictions, references=batch["labels"])
 
         eval_metric = metric.compute()
-        runtime = time.time() - start_time
         metric_name = TASKINFO[data_args.task_name]["metric"]
-        logger.info(
-            f"epoch {epoch}: training loss = {train_loss / len(train_dataloader)}, "
-            f"evaluation metrics = {eval_metric[metric_name]}, "
-            f"runtime = {runtime}"
-        )
+
+        print(f"epoch: {epoch}")
+        print(f"training loss: {train_loss / len(train_dataloader)}")
+        print(f"number of parameters: {n_params}")
+        print(f"validation error: {eval_metric[metric_name]}")
 
         if training_args.save_strategy == "epoch":
             os.makedirs(training_args.output_dir, exist_ok=True)
-            # os.makedirs(training_args.output_dir + '/checkpoint', exist_ok=True)
 
             logging.info(f"Store checkpoint in: {training_args.output_dir}")
             model.save_pretrained('checkpoint')
-            import shutil
 
-            compressed_file = shutil.make_archive(
-                base_name=training_args.output_dir + '/model',  # archive file name w/o extension
-                format='gztar',  # available formats: zip, gztar, bztar, xztar, tar
-                root_dir='checkpoint'  # directory to compress
+            shutil.make_archive(
+                base_name=training_args.output_dir + '/model',
+                format='gztar',
+                root_dir='checkpoint'
             )
-            logging.info(compressed_file)
 
 
 if __name__ == "__main__":

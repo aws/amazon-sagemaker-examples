@@ -181,11 +181,7 @@ def main():
     eval_metric = metric.compute()
 
     print(f"number of parameters: {n_params}")
-    print(f"validation score: {eval_metric[metric_name]}")
-
-    logger.info("validation score: {:.4f}\n".format(eval_metric[metric_name]))
-
-    logger.info("number of parameters: {:.4f}\n".format(n_params))
+    print(f"validation error: {eval_metric[metric_name]}")
 
 
 if __name__ == "__main__":
