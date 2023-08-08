@@ -13,6 +13,7 @@
 import os
 import logging
 import sys
+import tarfile
 
 from dataclasses import dataclass, field
 
@@ -93,6 +94,11 @@ def main():
         training_args.seed = np.random.randint(2**32 - 1)
     set_seed(training_args.seed)
 
+    # Extract tar ball
+    tar = tarfile.open(search_args.checkpoint_dir_model + '/model.tar.gz')
+    tar.extractall(training_args.output_dir)
+    tar.close()
+    
     model_type = model_args.model_name_or_path
 
     is_regression = data_args.task_name == "stsb"
@@ -106,7 +112,7 @@ def main():
     )
 
     model = AutoModelForSequenceClassification.from_pretrained(
-        search_args.checkpoint_dir_model
+        training_args.output_dir
     )
 
     config = model.config
