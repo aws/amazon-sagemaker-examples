@@ -246,8 +246,18 @@ def main():
 
         if training_args.save_strategy == "epoch":
             os.makedirs(training_args.output_dir, exist_ok=True)
-            logging.info(f"Store checkpoint in: {training_args.output_dir}")
-            model.save_pretrained(training_args.output_dir)
+            os.makedirs(training_args.output_dir + '/checkpoint', exist_ok=True)
+
+            logging.info(f"Store checkpoint in: {training_args.output_dir + '/checkpoint'}")
+            model.save_pretrained(training_args.output_dir + '/checkpoint')
+            import shutil
+
+            compressed_file = shutil.make_archive(
+                base_name=training_args.output_dir + '/model',  # archive file name w/o extension
+                format='gztar',  # available formats: zip, gztar, bztar, xztar, tar
+                root_dir=training_args.output_dir + '/checkpoint'  # directory to compress
+            )
+            logging.info(compressed_file)
 
 
 if __name__ == "__main__":
