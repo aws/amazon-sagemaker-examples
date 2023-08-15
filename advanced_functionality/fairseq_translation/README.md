@@ -5,8 +5,6 @@
 In the following examples, we will show how to integrate Fairseq into Amazon SageMaker by creating your own container and using it to train and serve predictions. 
 
 ## Example notebooks
-* `fairseq_sagemaker_translate_de2en.ipynb`: end-to-end training example of training a German-English translation model
-* `fairseq_sagemaker_distributed_translate_de2en.ipynb`: end-to-end **multi-machine** example of training a German-English translation model 
 * `fairseq_sagemaker_pretrained_en2fr.ipynb`: example of using a pre-trained English-French model to serve predictions and test the inference experience
 * `fairseq_sagemaker_translate_en2fr.ipynb`: end-to-end example of training an English-French translation model
 
