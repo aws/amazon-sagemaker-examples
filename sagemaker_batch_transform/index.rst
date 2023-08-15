@@ -12,14 +12,6 @@ Get started with Batch Transform
    batch_transform_associate_predictions_with_input/Batch Transform - breast cancer prediction with lowel level SDK
 
 
-Apache MXNet
-============
-
-
-.. toctree::
-   :maxdepth: 1
-
-   ../sagemaker-python-sdk/mxnet_mnist/mxnet_mnist_with_batch_transform
 
 
 Data types
@@ -32,21 +24,10 @@ jpg
    :maxdepth: 1
 
    tensorflow_open-images_jpg/tensorflow-serving-jpg-python-sdk
-   tensorflow_open-images_jpg/tensorflow-serving-jpg-cli
-
-
-tfrecord
---------
-
-.. toctree::
-   :maxdepth: 1
-
-   tensorflow_open-images_tfrecord/tensorflow-serving-tfrecord-python-sdk
-   tensorflow_open-images_tfrecord/tensorflow-serving-tfrecord.cli
-   working_with_tfrecords/working-with-tfrecords
 
 
 PyTorch
+
 =======
 
 .. toctree::
