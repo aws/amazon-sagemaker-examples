@@ -314,7 +314,7 @@ with left_column:
                 sanity_chain = load_qa_chain(llm=llm, prompt=sanity_prompt)
                 sanity_check = sanity_chain({"input_documents": contexts, "statement": output},
                                return_only_outputs=True)['output_text']
-                if len(contexts)==0 or (sanity_check[0] == 'N'):
+                if not contexts or (sanity_check[0] == 'N'):
                     output = "Sorry. There is not enough information in the knowledge base for me to answer this question. Please try to ask another queston."
             else:
                 output = chatchain(user_input)["response"]
@@ -331,7 +331,7 @@ with left_column:
             st.session_state['past'].append("I have uploaded a file. Please confirm that you have read that file.")
             st.session_state['generated'].append(output)
             
-        if len(source) != 0:
+        if source:
             df = pd.DataFrame(source, columns=['knowledge source'])
             st.data_editor(df)
             source = []    
