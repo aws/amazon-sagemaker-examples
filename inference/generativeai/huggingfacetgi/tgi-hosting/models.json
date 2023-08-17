@@ -1,4 +1,13 @@
 {
+    "bloom-560m": {
+        "instance type": "ml.g5.12xlarge",
+        "env": {
+                "HF_MODEL_ID":"bigscience/bloom-560m",
+                "HF_TASK":"text-generation",
+                "SM_NUM_GPUS":"4"
+        },
+        "sample_input": "What is the weather forecast for Seattle today?"
+    },
     "gpt-neox-20b": {
         "instance type": "ml.g5.12xlarge",
         "env": {
@@ -54,15 +63,6 @@
                 "SM_NUM_GPUS":"1"
         },
         "sample_input": "Hey Falcon! Any recommendations for my holidays in Abu Dhabi?"
-    },
-    "bloom-560m": {
-        "instance type": "ml.g5.12xlarge",
-        "env": {
-                "HF_MODEL_ID":"bigscience/bloom-560m",
-                "HF_TASK":"text-generation",
-                "SM_NUM_GPUS":"4"
-        },
-        "sample_input": "What is the weather forecast for Seattle today?"
     },
     "bloom-7b1": {
         "instance type": "ml.g5.12xlarge",
