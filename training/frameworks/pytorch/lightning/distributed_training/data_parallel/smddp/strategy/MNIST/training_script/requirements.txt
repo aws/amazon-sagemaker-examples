@@ -1,0 +1,2 @@
+pytorch-lightning == 1.6.3
+lightning-bolts == 0.5.0

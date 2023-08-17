@@ -1,0 +1,3 @@
+datasets
+pytorch-lightning == 1.6.3
+transformers
