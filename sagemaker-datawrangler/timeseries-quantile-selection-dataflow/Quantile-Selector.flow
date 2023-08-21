@@ -18,7 +18,7 @@
           "description": null,
           "s3ExecutionContext": {
             "__typename": "S3ExecutionContext",
-            "s3Uri": "s3://sagemaker-sample-files/datasets/tabular/timeseries-quantile-selection-dataflow/forecasted-values-dummy.csv",
+            "s3Uri": "s3://sagemaker-example-files-prod-us-east-1/datasets/tabular/timeseries-quantile-selection-dataflow/forecasted-values-dummy.csv",
             "s3ContentType": "csv",
             "s3HasHeader": true,
             "s3FieldDelimiter": ",",
@@ -94,7 +94,7 @@
           "description": null,
           "s3ExecutionContext": {
             "__typename": "S3ExecutionContext",
-            "s3Uri": "s3://sagemaker-sample-files/datasets/tabular/timeseries-quantile-selection-dataflow/item-financial-metadata-dummy.csv",
+            "s3Uri": "s3://sagemaker-example-files-prod-us-east-1/datasets/tabular/timeseries-quantile-selection-dataflow/item-financial-metadata-dummy.csv",
             "s3ContentType": "csv",
             "s3HasHeader": true,
             "s3FieldDelimiter": ",",

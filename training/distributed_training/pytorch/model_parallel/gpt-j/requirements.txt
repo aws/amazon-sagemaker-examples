@@ -7,5 +7,3 @@ torchnet
 transformers==4.21.0
 smdebug
 humanize
-smart-open>=5.2.1
-urllib3>=1.23
