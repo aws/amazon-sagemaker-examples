@@ -1,0 +1,25 @@
+max_batch_size: 0
+backend: "python"
+
+input [
+    {
+        name: "TEXT"
+        data_type: TYPE_STRING
+        dims: [ -1 ]
+    }
+]
+
+output [
+    {
+    name: "conda_env_path"
+    data_type: TYPE_STRING
+    dims: [ -1 ]
+    }
+]
+
+instance_group [
+    {
+      count: 1
+      kind: KIND_CPU
+    }
+]

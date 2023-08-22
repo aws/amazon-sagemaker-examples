@@ -1,0 +1,7 @@
+sagemaker
+boto3
+botocore
+datasets
+transformers
+torch
+captum
