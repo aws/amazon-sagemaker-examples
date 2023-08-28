@@ -1,5 +1,5 @@
 ARG REGION
-FROM 763104351884.dkr.ecr.$REGION.amazonaws.com/pytorch-training:2.0.1-gpu-py310-cu118-ubuntu20.04-ec2
+FROM 763104351884.dkr.ecr.$REGION.amazonaws.com/pytorch-inference:2.0.1-gpu-py310-cu118-ubuntu20.04-sagemaker
 
 RUN apt update && apt install wget git libgl1-mesa-glx libcairo2-dev -y
 RUN rm -rf /opt/conda/lib/python3.10/site-packages/opencv_python-4.6.0.dist-info/
