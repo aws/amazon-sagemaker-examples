@@ -122,13 +122,7 @@ SageMaker distributed model parallel (SMP)
    pytorch/model_parallel/gpt2/smp-train-gpt-simple
 
 
-Horovod
--------
 
-.. toctree::
-   :maxdepth: 1
-
-   /sagemaker-python-sdk/pytorch_horovod_mnist/pytorch_mnist_horovod
 
 
 .. _tensorflow-distributed:
