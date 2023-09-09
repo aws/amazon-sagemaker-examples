@@ -292,7 +292,7 @@ if __name__ == "__main__":
         "related_dataset_arn": related_dataset_arn,
         "related_import_job_arn": related_import_job_arn,
         "meta_dataset_arn": meta_dataset_arn,
-        "alogrithm_name": forecast_algorithm,
+        "algorithm_name": forecast_algorithm,
         "algorithms_arn_dict": algorithms_arn_dict[forecast_algorithm],
         "forecast_arn_predictor": forecast_arn_predictor,
         "role_arn": role_arn,
