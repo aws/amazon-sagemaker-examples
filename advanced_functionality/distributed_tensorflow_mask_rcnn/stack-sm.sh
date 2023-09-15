@@ -40,8 +40,8 @@ GIT_TOKEN=
 # Git Hub repo url
 GIT_URL=
 
-# EBS volume size 100 - 500 GB
-EBS_VOLUME_SIZE=100
+# EBS volume size 200 - 500 GB
+EBS_VOLUME_SIZE=200
 
 aws cloudformation create-stack --region $AWS_REGION  --stack-name $STACK_NAME \
 --template-body file://$CFN_TEMPLATE \
