@@ -66,7 +66,7 @@ def train():
         mode_mask = "True"
 
     try:
-        eval_period = hyperparamters["eval_period"]
+        eval_period = int(hyperparamters["eval_period"])
     except KeyError:
         eval_period = 1
 
@@ -74,16 +74,6 @@ def train():
         lr_schedule = hyperparamters["lr_schedule"]
     except KeyError:
         lr_schedule = "[240000, 320000, 360000]"
-
-    try:
-        horovod_cycle_time = hyperparamters["horovod_cycle_time"]
-    except KeyError:
-        horovod_cycle_time = 0.5
-
-    try:
-        horovod_fusion_threshold = hyperparamters["horovod_fusion_threshold"]
-    except KeyError:
-        horovod_fusion_threshold = 67108864
 
     try:
         data_train = hyperparamters["data_train"]
@@ -96,7 +86,7 @@ def train():
         data_val = "coco_val2017"
 
     try:
-        images_per_epoch = hyperparamters["images_per_epoch"]
+        images_per_epoch = int(hyperparamters["images_per_epoch"])
     except KeyError:
         images_per_epoch = 120000
 
@@ -126,7 +116,9 @@ def train():
 
     steps_per_epoch = int(images_per_epoch / numprocesses)
 
-    _cmd = f"""/usr/bin/python3 /tensorpack/examples/FasterRCNN/train.py \
+    trainer = 'horovod' if len(all_hosts) > 1 else 'replicated'
+    
+    _cmd = f"""python3 /tensorpack/examples/FasterRCNN/train.py \
 --logdir {log_dir} \
 --config DATA.BASEDIR={train_data_dir} \
 MODE_FPN={mode_fpn} \
@@ -139,7 +131,7 @@ DATA.VAL='("{data_val}",)' \
 TRAIN.STEPS_PER_EPOCH={steps_per_epoch} \
 TRAIN.EVAL_PERIOD={eval_period} \
 TRAIN.LR_SCHEDULE='{lr_schedule}' \
-TRAINER=horovod"""
+TRAINER={trainer}"""
 
     for key, item in hyperparamters.items():
         if key.startswith("config:"):
