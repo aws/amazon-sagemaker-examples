@@ -486,11 +486,9 @@ Resources:
                 Action: 
                   - "s3:ListBucket*"
                   - "s3:GetBucket*"
-                Resource: 
-                  Fn::Join:
-                    - ''
-                    - - "arn:aws:s3:::"
-                      - !Ref S3BucketName
+                Resource:
+                  - !Sub 'arn:aws:s3:::${S3BucketName}'
+                  - !Sub 'arn:aws:s3:::sagemaker-${AWS::Region}-${AWS::AccountId}'
               - 
                 Effect: "Allow"
                 Action: 
@@ -499,18 +497,11 @@ Resources:
                   - "s3:PutObject*"
                   - "s3:DeleteObject*"
                   - "s3:GetObject*"
-                Resource: 
-                  -
-                    Fn::Join:
-                      - ''
-                      - - "arn:aws:s3:::"
-                        - !Ref S3BucketName
-                  -
-                    Fn::Join:
-                      - ''
-                      - - "arn:aws:s3:::"
-                        - !Ref S3BucketName
-                        - "/*"
+                Resource:
+                  - !Sub 'arn:aws:s3:::${S3BucketName}'
+                  - !Sub 'arn:aws:s3:::${S3BucketName}/*'
+                  - !Sub 'arn:aws:s3:::sagemaker-${AWS::Region}-${AWS::AccountId}'
+                  - !Sub 'arn:aws:s3:::sagemaker-${AWS::Region}-${AWS::AccountId}/*'
 Outputs:
   SageMakerExecutionRoleArn:
     Value: !GetAtt ExecutionRole.Arn
