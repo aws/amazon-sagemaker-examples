@@ -11,7 +11,7 @@
 
 In this tutorial, our focus is distributed [TensorFlow](https://github.com/tensorflow/tensorflow) training using [Amazon SageMaker](https://aws.amazon.com/sagemaker/).
 
-Concretely, we will discuss distributed TensorFlow training for [TensorPack Mask/Faster-RCNN](https://github.com/tensorpack/tensorpack/tree/master/examples/FasterRCNN) and [AWS Samples Mask R-CNN](https://github.com/aws-samples/mask-rcnn-tensorflow) algorithms using [COCO 2017 dataset](http://cocodataset.org/#home).
+Concretely, we will discuss distributed TensorFlow training for [TensorPack Mask/Faster-RCNN](https://github.com/tensorpack/tensorpack/tree/master/examples/FasterRCNN) and [AWS Samples Mask R-CNN](https://github.com/aws-samples/mask-rcnn-tensorflow) models using [COCO 2017 dataset](http://cocodataset.org/#home).
 
 This tutorial has two key steps:
 
@@ -48,8 +48,6 @@ The estimated time for creating this CloudFormation stack is 9 minutes. The stac
    4. A [SageMaker Notebook instance](https://docs.aws.amazon.com/en_pv/sagemaker/latest/dg/nbi.html) in the VPC:
       * The EFS file-system is mounted on the SageMaker notebook instance
       * The SageMaker execution role attached to the notebook instance provides appropriate IAM access to AWS resources
-      
-*Save the summary output of the script. You will need it later. You can also view the output under CloudFormation Stack Outputs tab in AWS Management Console.*
 
 #### Create SageMaker notebook instance in an existing VPC
 
@@ -58,78 +56,12 @@ This option is only recommended for advanced AWS users. Make sure your existing 
   * One or more private subnets with NAT Gateway access and existing EFS file-system mount targets
   * Endpoint gateway to S3
   
- [Create a SageMaker notebook instance](https://docs.aws.amazon.com/en_pv/sagemaker/latest/dg/howitworks-create-ws.html) in a VPC using AWS SageMaker console. When you are creating the SageMaker notebook instance, add at least 100 GB of local EBS volume under advanced configuration options. You will also need to [mount your EFS file-system on the SageMaker notebook instanxce](https://aws.amazon.com/blogs/machine-learning/mount-an-efs-file-system-to-an-amazon-sagemaker-notebook-with-lifecycle-configurations/).
+ [Create a SageMaker notebook instance](https://docs.aws.amazon.com/en_pv/sagemaker/latest/dg/howitworks-create-ws.html) in a VPC using AWS SageMaker console. When you are creating the SageMaker notebook instance, add at least 200 GB of local EBS volume under advanced configuration options. You will also need to [mount your EFS file-system on the SageMaker notebook instanxce](https://aws.amazon.com/blogs/machine-learning/mount-an-efs-file-system-to-an-amazon-sagemaker-notebook-with-lifecycle-configurations/).
 
-### Launch SageMaker tranining jobs
+### Launch SageMaker training jobs
 
-In SageMaker console, open  the Juypter Lab notebook server you created in the previous step. In this Juypter Lab instance, there are three Jupyter notebooks for training Mask R-CNN. All three notebooks use [SageMaker TensorFlow Estimator](https://sagemaker.readthedocs.io/en/stable/frameworks/tensorflow/sagemaker.tensorflow.html) in Script Mode, whereby we can keep the SageMaker entry point script outside the Docker container, and pass it as a parameter to SageMaker TensorFlow Estimator. The SageMaker TensorFlow Estimator also allows us to specify the ```distribution``` type, which means we don't have to write code in the entry point script for managing SageMaker distributed training, which greatly simplifies the entry point script. 
+Jupyter notebooks for training Mask R-CNN are listed below:
 
-The three SageMaker Script Mode notebooks for training Mask R-CNN are listed below:
-
-- Mask R-CNN notebook that uses S3 bucket as data source: [```mask-rcnn-scriptmode-s3.ipynb```](mask-rcnn-scriptmode-s3.ipynb)
-- Mask R-CNN notebook that uses EFS file-system as data source: [```mask-rcnn-scriptmode-efs.ipynb```](mask-rcnn-scriptmode-efs.ipynb)
-- Mask R-CNN notebook that uses FSx Lustre file-system as data source: [```mask-rcnn-scriptmode-fsx.ipynb```](mask-rcnn-scriptmode-fsx.ipynb)
-
-
-Below, we compare the three options, [Amazon S3](https://aws.amazon.com/s3/), [Amazon EFS](https://aws.amazon.com/efs/) and [Amazon FSx Lustre](https://aws.amazon.com/fsx/):
-
-<table>
-   <tr>
-      <th>Data Source</th>
-      <th>Description</th>
-   </tr>
-   <tr>
-      <td>Amazon S3</td>
-      <td>Each time the SageMaker training job is launched, it takes approximately 20 minutes to download COCO 2017 dataset from your S3 bucket to the <i>Amazon EBS volume</i> attached to each training instance. During training, data is input to the training data pipeline from the EBS volume attached to each training instance. 
-      </td>
-   </tr>
-    <tr>
-      <td>Amazon EFS</td>
-      <td>It takes approximately 46 minutes to copy COCO 2017 dataset from your S3 bucket to your EFS file-system. You only need to copy this data once. During tranining, data is input from the shared <i>Amazon EFS file-system</i> mounted on all the training instances. 
-      </td>
-   </tr>
-    <tr>
-      <td>Amazon FSx Lustre</td>
-      <td>It takes approximately 10 minutes to create a new FSx Lustre file-system and import COCO 2017 dataset from your S3 bucket to the new FSx Lustre file-system. You only need to do this once. During training, data is input from the shared <i>Amazon FSx Lustre file-system</i> mounted on all the training instances. 
-      </td>
-   </tr>
-<table>
-
-In all three cases, the logs and model checkpoints output during training are written to the EBS volume attached to each training instance, and uploaded to your S3 bucket when training completes. The logs are also fed into CloudWatch as training progresses and can be reviewed during training.  
-
-System and model training metrics are fed into Amazon CloudWatch metrics during training and can be visualized in SageMaker console.
-
-### Training samples results
-
-Below are sample experiment results for the two algorithms, after training for 24 epochs on COCO 2017 dataset:
-
-1. [TensorPack Mask/Faster-RCNN algorithm](https://github.com/tensorpack/tensorpack/tree/master/examples/FasterRCNN)
-
-    * coco_val2017-mAP(bbox)/IoU=0.5: 0.59231
-    * coco_val2017-mAP(bbox)/IoU=0.5:0.95: 0.3844
-    * coco_val2017-mAP(bbox)/IoU=0.75: 0.41564
-    * coco_val2017-mAP(bbox)/large: 0.51084
-    * coco_val2017-mAP(bbox)/medium: 0.41643
-    * coco_val2017-mAP(bbox)/small: 0.21634
-    * coco_val2017-mAP(segm)/IoU=0.5: 0.56011
-    * coco_val2017-mAP(segm)/IoU=0.5:0.95: 0.34917
-    * coco_val2017-mAP(segm)/IoU=0.75: 0.37312
-    * coco_val2017-mAP(segm)/large: 0.48118
-    * coco_val2017-mAP(segm)/medium: 0.37815
-    * coco_val2017-mAP(segm)/small: 0.18192
-    
-2. [AWS Samples Mask R-CNN algorithm](https://github.com/aws-samples/mask-rcnn-tensorflow)
-
-    * mAP(bbox)/IoU=0.5: 0.5983
-    * mAP(bbox)/IoU=0.5:0.95: 0.38296
-    * mAP(bbox)/IoU=0.75: 0.41296
-    * mAP(bbox)/large: 0.50688
-    * mAP(bbox)/medium: 0.41901
-    * mAP(bbox)/small: 0.21421
-    * mAP(segm)/IoU=0.5: 0.56733
-    * mAP(segm)/IoU=0.5:0.95: 0.35262
-    * mAP(segm)/IoU=0.75: 0.37365
-    * mAP(segm)/large: 0.48337
-    * mAP(segm)/medium: 0.38459
-    * mAP(segm)/small: 0.18244
+- Mask R-CNN notebook that uses S3 bucket, or EFS, as data source: [mask-rcnn-scriptmode-experiment-trials.ipynb](mask-rcnn-scriptmode-experiment-trials.ipynb)
+- Mask R-CNN notebook that uses S3 bucker, or FSx Lustre file-system as data source: [```mask-rcnn-scriptmode-fsx.ipynb```](mask-rcnn-scriptmode-fsx.ipynb)
    
