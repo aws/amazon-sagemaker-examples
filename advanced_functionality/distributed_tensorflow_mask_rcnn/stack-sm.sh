@@ -29,7 +29,7 @@ EFS_ID=
 NOTEBOOK_INSTANCE_TYPE='ml.m5.2xlarge'
 
 # Code repository name
-CODE_REPO_NAME="code-repo-$DATE"
+CODE_REPO_NAME="sagemaker-repo-$DATE"
 
 # Git hub user name
 GIT_USER=
@@ -38,7 +38,10 @@ GIT_USER=
 GIT_TOKEN=
 
 # Git Hub repo url
-GIT_URL=
+GIT_URL="https://github.com/aws/amazon-sagemaker-examples.git"
+
+# Git hub repo branch
+GIT_BRANCH="main"
 
 # EBS volume size 200 - 500 GB
 EBS_VOLUME_SIZE=200
@@ -55,9 +58,10 @@ ParameterKey=CodeRepoName,ParameterValue=$CODE_REPO_NAME \
 ParameterKey=GitHubUsername,ParameterValue=$GIT_USER \
 ParameterKey=GitHubToken,ParameterValue=$GIT_TOKEN \
 ParameterKey=GitHubRepoUrl,ParameterValue=$GIT_URL \
+ParameterKey=GitHubRepoBranch,ParameterValue=$GIT_BRANCH \
 ParameterKey=EbsVolumeSize,ParameterValue=$EBS_VOLUME_SIZE
 
-echo "Creating stack [ eta 600 seconds ]"
+echo "Creating stack [ ETA 30 minutes ]"
 sleep 30
 
 progress=$(aws --region $AWS_REGION cloudformation list-stacks --stack-status-filter 'CREATE_IN_PROGRESS' | grep $STACK_NAME | wc -l)

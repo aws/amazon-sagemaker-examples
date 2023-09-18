@@ -52,7 +52,7 @@ Parameters:
     ConstraintDescription: Subset of supported SageMaker Notebook instance types
   EFSFileSystemId:
     Description: >-
-      Existing Amazon EFS File System Id, or leave it blank to create a new EFS
+      (Advanced) Existing Amazon EFS File System Id, or leave it blank to create a new EFS
       File System.
     Type: String
     AllowedPattern: '(^fs-[0-9a-f]{8,8})$|()$'
@@ -83,10 +83,11 @@ Parameters:
   GitHubRepoUrl:
     Description: GitHub Repository Url
     Type: String
+    Default: ''
   GitHubRepoBranch:
     Description: GitHub Repository branch
     Type: String
-    Default: 'master'
+    Default: ''
   NotebookInstanceName:
     Description: SageMaker Notebook instance name
     Type: String
@@ -94,9 +95,32 @@ Parameters:
   S3BucketName:
     Description: SageMaker S3 Bucket Name
     Type: String
+    AllowedPattern: '[a-zA-Z0-9][a-zA-Z0-9-\.]{2,62}'
+
+  FSxStorageCapacityGiB:
+    Description: FSx for Lustre Storage capacity in multiples of 2400 GiB
+    Type: Number
+    Default: 1200
+    AllowedValues:
+      - 1200
+      - 2400
+      - 4800
+      - 7200
+
+  FSxS3ImportPrefix:
+    Description: (Optional) FSx for Lustre S3 prefix for importing data
+    Type: String
+    Default: ""
+
+  FSxMountPoint:
+    Description: >-
+      FSx for Lustre local file-system mount point
+    Type: String
+    Default: '/home/ec2-user/fsx'
+    ConstraintDescription: Should be a valid local file-system absolute directory path
 
 Conditions:
-  CreateNewFileSystem: !Equals [ !Ref EFSFileSystemId, '']
+  CreateNewEFS: !Equals [ !Ref EFSFileSystemId, '']
   CreateCodeRepo: !Not [!Equals [ !Ref GitHubRepoUrl, ''] ]
   CreateGitHubRepoSecret: !And 
     - !Not [ !Equals [!Ref GitHubToken, ''] ]
@@ -264,9 +288,9 @@ Resources:
         - !Ref PrivateRouteTable
       ServiceName: !Sub com.amazonaws.${AWS::Region}.s3
       VpcId: !Ref Vpc
-  FileSystem:
+  EFSFileSystem:
     Type: 'AWS::EFS::FileSystem'
-    Condition: CreateNewFileSystem
+    Condition: CreateNewEFS
     DeletionPolicy: Retain
     UpdateReplacePolicy: Retain
     Properties:
@@ -295,8 +319,8 @@ Resources:
     DependsOn: [ PrivateSubnet1RouteAssociation, VpcSecurityGroupIngress ]
     Properties:
       FileSystemId: !If 
-        - CreateNewFileSystem
-        - !Ref FileSystem
+        - CreateNewEFS
+        - !Ref EFSFileSystem
         - !Ref EFSFileSystemId
       SubnetId: !Ref PrivateSubnet1
       SecurityGroups:
@@ -306,8 +330,8 @@ Resources:
     DependsOn: [ PrivateSubnet2RouteAssociation, VpcSecurityGroupIngress ]
     Properties:
       FileSystemId: !If 
-        - CreateNewFileSystem
-        - !Ref FileSystem
+        - CreateNewEFS
+        - !Ref EFSFileSystem
         - !Ref EFSFileSystemId
       SubnetId: !Ref PrivateSubnet2
       SecurityGroups:
@@ -317,12 +341,33 @@ Resources:
     DependsOn: [ PrivateSubnet3RouteAssociation, VpcSecurityGroupIngress ]
     Properties:
       FileSystemId: !If 
-        - CreateNewFileSystem
-        - !Ref FileSystem
+        - CreateNewEFS
+        - !Ref EFSFileSystem
         - !Ref EFSFileSystemId
       SubnetId: !Ref PrivateSubnet3
       SecurityGroups:
         - !Ref VpcSecurityGroup
+
+  FSxFileSystem:
+    Type: AWS::FSx::FileSystem
+    DependsOn: [ PrivateSubnet1RouteAssociation, VpcSecurityGroupIngress ]
+    Properties: 
+      FileSystemType: 'LUSTRE'
+      LustreConfiguration: 
+        ImportPath: !Sub 's3://${S3BucketName}/${FSxS3ImportPrefix}'
+        DeploymentType: SCRATCH_2
+        ImportedFileChunkSize: 512000
+        AutoImportPolicy: "NEW_CHANGED"
+      SecurityGroupIds: 
+        - !GetAtt VpcSecurityGroup.GroupId
+      StorageCapacity: !Ref FSxStorageCapacityGiB
+      StorageType: 'SSD'
+      SubnetIds: 
+        - Ref: PrivateSubnet1
+      Tags:
+        - Key: Name
+          Value: !Ref 'AWS::StackName'
+
   GitHubRepoSecret:
     Type: 'AWS::SecretsManager::Secret'
     Condition: CreateGitHubRepoSecret
@@ -360,29 +405,45 @@ Resources:
         - Content: !Base64 
             'Fn::Join':
             - ''
-            - - '#!/bin/bash'
-              - |+
-          
-              - set -e 
+            - - '#!/bin/bash -xe'
               - |+
 
-              - mkdir -p 
-              - ' '
+              - AWS_REGION=
+              - !Ref AWS::Region
+              - |+
+
+              - EFS_FS_ID=
+              - !If [CreateNewEFS, !Ref 'EFSFileSystem', !Ref 'EFSFileSystemId' ]
+              - |+
+
+              - EFS_MOUNT_PATH=
               - !Ref EFSMountPoint
               - |+
 
-              - sudo mount -t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2
-              - ' '
-              - !If 
-                - CreateNewFileSystem
-                - !Ref FileSystem
-                - !Ref EFSFileSystemId
-              - .efs.
-              - !Ref 'AWS::Region'
-              - '.amazonaws.com:'
+              - EFS_SHARED_PATH=
               - !Ref EFSSharedDir
-              - ' '
-              - !Ref EFSMountPoint 
+              - |+
+
+              - FSX_FS_ID=
+              - !Ref 'FSxFileSystem'
+              - |+
+
+              - FSX_MOUNT_NAME=
+              - !GetAtt 'FSxFileSystem.LustreMountName'
+              - |+
+
+              - FSX_MOUNT_PATH=
+              - !Ref FSxMountPoint
+              - |+
+
+              - |
+                mkdir -p $EFS_MOUNT_PATH && \
+                sudo mount -t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2 $EFS_FS_ID.efs.$AWS_REGION.amazonaws.com:$EFS_SHARED_PATH $EFS_MOUNT_PATH 
+
+                mkdir -p $FSX_MOUNT_PATH && \
+                sudo amazon-linux-extras install -y lustre && \
+                sudo mount -t lustre -o noatime,flock $FSX_FS_ID.fsx.$AWS_REGION.amazonaws.com@tcp:/$FSX_MOUNT_NAME $FSX_MOUNT_PATH 
+
   NotebookInstance:
     Type: "AWS::SageMaker::NotebookInstance"
     DependsOn: [ MountTarget1, MountTarget2, MountTarget3, VpcS3Endpoint ]
