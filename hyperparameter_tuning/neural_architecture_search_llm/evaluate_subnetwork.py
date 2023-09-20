@@ -11,9 +11,9 @@
 # express or implied. See the License for the specific language governing
 # permissions and limitations under the License.
 """
-Script evaluate a single sub-network given the shared weights of a fine-tuned
-super-network. This script is meant to be executed by Automated Model tuner.
-For more information about the neural architecture search methods see:
+Script to evaluate a single sub-network given the shared weights of a fine-tuned
+super-network. This script is meant to be executed by Automated Model Tuner.
+For more information about the neural architecture search method see:
 
 Structural Pruning of Large Language Models via Neural Architecture Search
 Aaron Klein Jacek Golebiowski Xingchen Ma Valerio Perrone Cedric Archambeau
