@@ -15,7 +15,11 @@ from collections import OrderedDict
 import torch.nn as nn
 
 from transformers import AutoModelForSequenceClassification
-from transformers.models.bert.modeling_bert import BertForSequenceClassification, BertForMultipleChoice, BertConfig
+from transformers.models.bert.modeling_bert import (
+    BertForSequenceClassification,
+    BertForMultipleChoice,
+    BertConfig,
+)
 
 
 def copy_linear_layer(new_layer, old_layer, weight_shape, bias_shape):
@@ -35,21 +39,24 @@ def copy_layer_norm(new_layer, old_layer):
 
 
 def get_final_bert_model(original_model, new_model_config):
-    assert isinstance(original_model, (BertForSequenceClassification,
-                                       AutoModelForSequenceClassification,
-                                       BertForMultipleChoice)), f"Make sure to pass a valid BERT model for" \
-                                                                f" sequence classification or multiple choice Q/A"
+    assert isinstance(
+        original_model,
+        (BertForSequenceClassification, AutoModelForSequenceClassification, BertForMultipleChoice),
+    ), (
+        f"Make sure to pass a valid BERT model for"
+        f" sequence classification or multiple choice Q/A"
+    )
 
-    assert isinstance(new_model_config, BertConfig), f"Make sure to pass a valid BERT model for" \
-                                                                f" sequence classification or multiple choice Q/A"
+    assert isinstance(new_model_config, BertConfig), (
+        f"Make sure to pass a valid BERT model for"
+        f" sequence classification or multiple choice Q/A"
+    )
 
     original_model.eval()
     new_model = AutoModelForSequenceClassification.from_config(new_model_config)
     new_model.eval()
 
-    new_model.bert.embeddings.load_state_dict(
-        original_model.bert.embeddings.state_dict()
-    )
+    new_model.bert.embeddings.load_state_dict(original_model.bert.embeddings.state_dict())
     new_model.bert.pooler.load_state_dict(original_model.bert.pooler.state_dict())
     new_model.classifier.load_state_dict(original_model.classifier.state_dict())
 

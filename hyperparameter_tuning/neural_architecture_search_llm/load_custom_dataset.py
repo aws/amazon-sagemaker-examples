@@ -27,25 +27,55 @@ from task_data import GLUE_TASK_INFO
 logger = logging.getLogger(__name__)
 
 
-def load_glue_datasets(training_args, model_args, data_args):
-    raw_datasets = load_dataset("glue", data_args.task_name, cache_dir=model_args.cache_dir)
+def load_custom_dataset(training_args, model_args, data_args):
 
-    # Load tokenizer
-    model_type = model_args.model_name_or_path
+    # Loading a dataset from your local files.
+    # CSV/JSON training and evaluation files are needed.
+    data_files = {"train": data_args.train_file, "test": data_args.test_file}
 
+    if data_args.validation_file is not None:
+        data_files["valid"] = data_args.validation_file
+
+    for key in data_files.keys():
+        logger.info(f"load a local file for {key}: {data_files[key]}")
+
+    if data_args.train_file.endswith(".csv"):
+        # Loading a dataset from local csv files
+        raw_datasets = load_dataset(
+            "csv",
+            data_files=data_files,
+            cache_dir=model_args.cache_dir,
+            token=model_args.token,
+        )
+    else:
+        # Loading a dataset from local json files
+        raw_datasets = load_dataset(
+            "json",
+            data_files=data_files,
+            cache_dir=model_args.cache_dir,
+            token=model_args.token,
+        )
+
+    # Labels
     tokenizer = AutoTokenizer.from_pretrained(
-        model_type,
+        model_args.tokenizer_name if model_args.tokenizer_name else model_args.model_name_or_path,
         cache_dir=model_args.cache_dir,
         use_fast=model_args.use_fast_tokenizer,
         revision=model_args.model_revision,
-        use_auth_token=True if model_args.use_auth_token else None,
+        trust_remote_code=model_args.trust_remote_code,
     )
 
-    if model_type.startswith("gpt2"):
-        tokenizer.pad_token = tokenizer.eos_token
-
     # Preprocessing the raw_datasets
-    sentence1_key, sentence2_key = GLUE_TASK_INFO[data_args.task_name]["keys"]
+    non_label_column_names = [
+        name for name in raw_datasets["train"].column_names if name != "label"
+    ]
+    if "sentence1" in non_label_column_names and "sentence2" in non_label_column_names:
+        sentence1_key, sentence2_key = "sentence1", "sentence2"
+    else:
+        if len(non_label_column_names) >= 2:
+            sentence1_key, sentence2_key = non_label_column_names[:2]
+        else:
+            sentence1_key, sentence2_key = non_label_column_names[0], None
 
     # Padding strategy
     if data_args.pad_to_max_length:
@@ -79,27 +109,19 @@ def load_glue_datasets(training_args, model_args, data_args):
             load_from_cache_file=not data_args.overwrite_cache,
             desc="Running tokenizer on dataset",
         )
-
     train_dataset = raw_datasets["train"]
-    test_dataset = raw_datasets[
-        "validation_matched" if data_args.task_name == "mnli" else "validation"
-    ]
+    test_dataset = raw_datasets["test"]
 
-    train_dataset = train_dataset.remove_columns(["idx"])
-    test_dataset = test_dataset.remove_columns(["idx"])
+    if "valid" in raw_datasets:
+        valid_dataset = raw_datasets["valid"]
+    else:
 
-    # Split training dataset in training / validation
-    split = train_dataset.train_test_split(
-        train_size=0.7, seed=training_args.seed
-    )  # fix seed, all trials have the same data split
-    train_dataset = split["train"]
-    valid_dataset = split["test"]
-
-    if data_args.task_name in ["sst2", "qqp", "qnli", "mnli"]:
-        valid_dataset = Subset(
-            valid_dataset,
-            np.random.choice(len(valid_dataset), 2048).tolist(),
-        )
+        # Split training dataset in training / validation
+        split = train_dataset.train_test_split(
+            train_size=0.7, seed=training_args.seed
+        )  # fix seed, all trials have the same data split
+        train_dataset = split["train"]
+        valid_dataset = split["test"]
 
     if data_args.pad_to_max_length:
         data_collator = default_data_collator

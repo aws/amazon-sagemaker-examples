@@ -19,7 +19,7 @@ class SearchSpace(object):
     Setting the mask to 1 means we keep the corresponding head / unit
     """
 
-    def __init__(self, config, rng=None):
+    def __init__(self, config, seed=None):
         self.config = config
 
         if config.model_type == "gpt2":
@@ -34,10 +34,10 @@ class SearchSpace(object):
             self.num_layers = config.num_hidden_layers
             self.intermediate_size = config.intermediate_size
 
-        if rng is None:
+        if seed is None:
             self.rng = np.random.RandomState(np.random.randint(2**32 - 1))
         else:
-            self.rng = rng
+            self.rng = np.random.RandomState(seed)
 
     def __call__(self, *args, **kwargs):
         raise NotImplementedError
@@ -49,7 +49,9 @@ class SearchSpace(object):
 class SmallSearchSpace(SearchSpace):
     def __call__(self, *args, **kwargs):
         num_layers = self.rng.randint(self.num_layers)
-        num_heads = self.rng.choice([int(self.num_heads / 2 ** i) for i in range(int(np.log2(self.num_heads)) + 1)])
+        num_heads = self.rng.choice(
+            [int(self.num_heads / 2**i) for i in range(int(np.log2(self.num_heads)) + 1)]
+        )
         num_units = self.rng.randint(1, self.intermediate_size)
 
         return self._create_mask(num_layers, num_heads, num_units)
