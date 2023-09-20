@@ -310,10 +310,41 @@ Resources:
     Type: 'AWS::EC2::SecurityGroupIngress'
     Properties:
       GroupId: !GetAtt VpcSecurityGroup.GroupId
-      IpProtocol: tcp
+      IpProtocol: "-1"
       FromPort: 0
       ToPort: 65535
       SourceSecurityGroupId: !GetAtt VpcSecurityGroup.GroupId
+
+  VpcSecurityGroupEgress: 
+    Type: 'AWS::EC2::SecurityGroupEgress'
+    Properties:
+      Description: Egress to self security group
+      GroupId: !GetAtt VpcSecurityGroup.GroupId
+      IpProtocol: "-1"
+      FromPort: 0
+      ToPort: 65535
+      DestinationSecurityGroupId: !GetAtt VpcSecurityGroup.GroupId
+
+  VpcSecurityGroupCIDREgressHttps: 
+    Type: 'AWS::EC2::SecurityGroupEgress'
+    Properties:
+      Description: Egress rule for out bound traffic for HTTPS
+      GroupId: !GetAtt VpcSecurityGroup.GroupId
+      IpProtocol: tcp
+      FromPort: 443
+      ToPort: 443
+      CidrIp: '0.0.0.0/0'
+
+  VpcSecurityGroupCIDREgressHttp: 
+    Type: 'AWS::EC2::SecurityGroupEgress'
+    Properties:
+      Description: Egress rule for out bound traffic for HTTP
+      GroupId: !GetAtt VpcSecurityGroup.GroupId
+      IpProtocol: tcp
+      FromPort: 80
+      ToPort: 80
+      CidrIp: '0.0.0.0/0'
+
   MountTarget1:
     Type: 'AWS::EFS::MountTarget'
     DependsOn: [ PrivateSubnet1RouteAssociation, VpcSecurityGroupIngress ]
