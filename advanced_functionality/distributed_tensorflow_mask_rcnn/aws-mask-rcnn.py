@@ -67,7 +67,7 @@ def train():
         mode_mask = "True"
 
     try:
-        eval_period = hyperparamters["eval_period"]
+        eval_period = int(hyperparamters["eval_period"])
     except KeyError:
         eval_period = 1
 
@@ -76,15 +76,6 @@ def train():
     except KeyError:
         lr_epoch_schedule = "[(16, 0.1), (20, 0.01), (24, None)]"
 
-    try:
-        horovod_cycle_time = hyperparamters["horovod_cycle_time"]
-    except KeyError:
-        horovod_cycle_time = 0.5
-
-    try:
-        horovod_fusion_threshold = hyperparamters["horovod_fusion_threshold"]
-    except KeyError:
-        horovod_fusion_threshold = 67108864
 
     try:
         data_train = hyperparamters["data_train"]
@@ -97,17 +88,12 @@ def train():
         data_val = "val2017"
 
     try:
-        nccl_min_rings = hyperparamters["nccl_min_rings"]
-    except KeyError:
-        nccl_min_rings = 8
-
-    try:
-        batch_size_per_gpu = hyperparamters["batch_size_per_gpu"]
+        batch_size_per_gpu = int(hyperparamters["batch_size_per_gpu"])
     except KeyError:
         batch_size_per_gpu = 4
 
     try:
-        images_per_epoch = hyperparamters["images_per_epoch"]
+        images_per_epoch = int(hyperparamters["images_per_epoch"])
     except KeyError:
         images_per_epoch = 120000
 
@@ -135,9 +121,10 @@ def train():
     all_hosts = json.loads(os.environ["SM_HOSTS"])
     numprocesses = len(all_hosts) * int(gpus_per_host)
 
-    _cmd = f"""/usr/bin/python3 /mask-rcnn-tensorflow/MaskRCNN/train.py \
+    trainer = 'horovod' if len(all_hosts) > 1 else 'replicated'
+    
+    _cmd = f"""python3 /mask-rcnn-tensorflow/MaskRCNN/train.py \
 --logdir {log_dir} \
---fp16 \
 --throughput_log_freq=2000 \
 --images_per_epoch {images_per_epoch} \
 --config \
@@ -152,10 +139,9 @@ DATA.VAL='("{data_val}",)' \
 TRAIN.BATCH_SIZE_PER_GPU={batch_size_per_gpu} \
 TRAIN.EVAL_PERIOD={eval_period} \
 TRAIN.LR_EPOCH_SCHEDULE='{lr_epoch_schedule}' \
-RPN.TOPK_PER_IMAGE=True \
 PREPROC.PREDEFINED_PADDING=True \
-TRAIN.GRADIENT_CLIP=0 \
-TRAINER=horovod"""
+TRAIN.GRADIENT_CLIP=0.36 \
+TRAINER={trainer}"""
 
     for key, item in hyperparamters.items():
         if key.startswith("config:"):
