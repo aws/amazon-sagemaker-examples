@@ -11,6 +11,9 @@ You can use Amazon SageMaker to simplify the process of building, training, and 
 
 The [SageMaker example notebooks](https://sagemaker-examples.readthedocs.io/en/latest/) are Jupyter notebooks that demonstrate the usage of Amazon SageMaker.
 
+The [Sagemaker Example Community repository](https://github.com/aws/amazon-sagemaker-examples-community) are additional notebooks, beyond those critical for showcasing key SageMaker functionality, can be shared and explored by the commmunity.
+
+
 ## :hammer_and_wrench: Setup
 
 The quickest setup to run example notebooks includes:
@@ -40,6 +43,7 @@ These examples introduce SageMaker geospatial capabilities which makes it easy t
 - [How to use Vector Enrichment Jobs for Map Matching](sagemaker-geospatial/vector-enrichment-map-matching/vector-enrichment-map-matching.ipynb) shows how to use vector enrichtment operations with Amazon SageMaker Geospatial capabilities to snap GPS coordinates to road segments.
 - [How to use Vector Enrichment Jobs for Reverse Geocoding](sagemaker-geospatial/vector-enrichment-reverse-geocoding/vector-enrichment-reverse-geocoding.ipynb) shows how to use Amazon SageMaker Geospatial capabilities for reverse geocoding to obtain human readable addresses from data with latitude/longitude information.
 - [Monitoring Glacier Melting with SageMaker Geospatial Capabilities](sagemaker-geospatial/mount-shasta-glacier-melting-monitoring) shows how to monitor glacier melting at Mount Shasta using SageMaker geospatial capabilities.
+- [SageMaker Pipelines with Amazon SageMaker Geospatial Capabilities](sagemaker-geospatial/geospatial-pipeline/geospatial-pipelines.ipynb) shows how a geospatial data processing workflow can be automated by using an Amazon SageMaker Pipeline.
 
 ### Introduction to Ground Truth Labeling Jobs
 
@@ -87,6 +91,7 @@ These examples introduce SageMaker's hyperparameter tuning functionality which h
 - [R BYO Tuning](hyperparameter_tuning/r_bring_your_own) shows how to use SageMaker hyperparameter tuning with the custom container from the [Bring Your Own R Algorithm](advanced_functionality/r_bring_your_own) example.
 - [Analyzing Results](hyperparameter_tuning/analyze_results) is a shared notebook that can be used after each of the above notebooks to provide analysis on how training jobs with different hyperparameters performed.
 - [Model tuning for distributed training](hyperparameter_tuning/model_tuning_for_distributed_training) shows how to use SageMaker hyperparameter tuning with Hyperband strategy for optimizing model in distributed training.
+- [Neural Architecture Search for Large Language Models](hyperparameter_tuning/neural_architecture_search_llm) shows how to prune fine-tuned large language models via neural architecture search.
 
 ### SageMaker Autopilot
 
@@ -219,6 +224,7 @@ These examples showcase unique functionality available in Amazon SageMaker. They
 - [Host Multiple Models with Your Own Algorithm](advanced_functionality/multi_model_bring_your_own) shows how to deploy multiple models to a realtime hosted endpoint with your own custom algorithm.
 - [Host Multiple Models with XGBoost](advanced_functionality/multi_model_xgboost_home_value) shows how to deploy multiple models to a realtime hosted endpoint using a multi-model enabled XGBoost container.
 - [Host Multiple Models with SKLearn](advanced_functionality/multi_model_sklearn_home_value) shows how to deploy multiple models to a realtime hosted endpoint using a multi-model enabled SKLearn container.
+- [Host Multimodal HuggingFace Model](advanced_functionality/huggingface_deploy_instructpix2pix) shows how to host an instruction based image editing model from HuggingFace as a SageMaker endpoint using single core or multi-core GPU based instances. Inference Recommender is used to run load tests and compare the performance of instances.
 - [SageMaker Training and Inference with Script Mode](sagemaker-script-mode) shows how to use custom training and inference scripts, similar to those you would use outside of SageMaker, with SageMaker's prebuilt containers for various frameworks like Scikit-learn, PyTorch, and XGBoost.
 - [Host Models with NVidia Triton Server](sagemaker-triton) shows how to deploy models to a realtime hosted endpoint using [Triton](https://developer.nvidia.com/nvidia-triton-inference-server) as the model inference server.
 - [Heterogenous Clusters Training in TensorFlow or PyTorch ](training/heterogeneous-clusters/README.md) shows how to train using TensorFlow tf.data.service (distributed data pipeline) or Pytorch (with gRPC) on top of Amazon SageMaker Heterogenous clusters to overcome CPU bottlenecks by including different instance types (GPU/CPU) in the same training job.

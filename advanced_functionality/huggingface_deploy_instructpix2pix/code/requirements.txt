@@ -1,0 +1,5 @@
+# Requirements taken from https://huggingface.co/timbrooks/instruct-pix2pix
+diffusers
+accelerate
+#safetensors  # not needed in this example
+transformers

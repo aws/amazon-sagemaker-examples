@@ -1,3 +1,0 @@
-gluonnlp
-pandas
-spacy 

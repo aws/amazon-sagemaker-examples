@@ -163,6 +163,7 @@ def read_args():
                         help="No. of gRPC server workers",)
     parser.add_argument("--pin-memory", type=bool, default=1, 
         help="pin to GPU memory (default: True)",)
+    parser.add_argument("--region", type=str, help="aws region")
     parser.add_argument("--first_data_host", type=str)
     args, unknown = parser.parse_known_args()
     return args

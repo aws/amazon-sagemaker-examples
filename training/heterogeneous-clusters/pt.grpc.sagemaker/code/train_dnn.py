@@ -172,6 +172,7 @@ def read_args():
     #parser.add_argument("--test", type=str, default=os.environ["SM_CHANNEL_TESTING"])
     parser.add_argument("--num-gpus", type=int, default=os.environ["SM_NUM_GPUS"])
     parser.add_argument("--dispatcher_host", type=str)
+    parser.add_argument("--region", type=str, help="aws region")
     return parser.parse_args()
 
 
