@@ -36,5 +36,9 @@ This example provide quick walkthrough of how to aggregate and prepare data for 
 
 This example demonstrates how to select quantiles likely to maximize business profitability when using probabilistic time-series forecasting use cases.
 
+### **[Automatically redact PII for machine learning DataFlow](redact-pii/README.md)**
+
+This example provides a walkthrough of how to use Amazon Data Wrangler and Amazon Comprehend to redact personally identifiable information (PII) from tabular datasets.
+
 
 
