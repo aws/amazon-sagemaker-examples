@@ -140,7 +140,7 @@ As delivered, the solution has no S3 destinations. As shown in the picture below
 
 2. At the next screen, provide a meaningful dataset name then use the browse button to locate where you want the output file written in your AWS environment.  In this step, be sure to select your own S3 bucket else you might have a failure.
 
-![output-destination2](https://s3.amazonaws.com/ssagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/timeseries-quantile-selection-dataflow/export-2.jpg)
+![output-destination2](https://s3.amazonaws.com/sagemaker-example-files-prod-us-east-1/images/sagemaker-datawrangler/timeseries-quantile-selection-dataflow/export-2.jpg)
 
 3. The CSV output files per quantile are also designed to be written to S3 as a list of `item_id` and `region` values. You may not need the quantile based output files and can delete these, if appropriate.  The purpose of these distinct files is to use them to drive Amazon Forecast such that it produces future forecasts, at specific quantiles, for named items as a cost efficiency measure.  Please read our blog for more information at [Choose specific timeseries to forecast with Amazon Forecast](https://aws.amazon.com/blogs/machine-learning/choose-specific-timeseries-to-forecast-with-amazon-forecast/).
 

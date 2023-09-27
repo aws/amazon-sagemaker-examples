@@ -296,7 +296,7 @@ with left_column:
                 contexts = []
                 for doc, score in docs:
                     print(f"Content: {doc.page_content}, Metadata: {doc.metadata}, Score: {score}")
-                    if score <= 1.5:
+                    if score <= 0.9:
                         contexts.append(doc)
                         source.append(doc.metadata['source'])
                 print(f"\n INPUT CONTEXT:{contexts}")

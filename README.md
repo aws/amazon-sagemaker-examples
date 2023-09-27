@@ -11,6 +11,9 @@ You can use Amazon SageMaker to simplify the process of building, training, and 
 
 The [SageMaker example notebooks](https://sagemaker-examples.readthedocs.io/en/latest/) are Jupyter notebooks that demonstrate the usage of Amazon SageMaker.
 
+The [Sagemaker Example Community repository](https://github.com/aws/amazon-sagemaker-examples-community) are additional notebooks, beyond those critical for showcasing key SageMaker functionality, can be shared and explored by the commmunity.
+
+
 ## :hammer_and_wrench: Setup
 
 The quickest setup to run example notebooks includes:
