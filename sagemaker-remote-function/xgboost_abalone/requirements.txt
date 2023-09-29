@@ -1,0 +1,4 @@
+scikit-learn
+xgboost
+s3fs==0.4.2
+sagemaker>=2.156.0,<3

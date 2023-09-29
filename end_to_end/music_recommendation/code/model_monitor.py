@@ -3,7 +3,7 @@ import argparse
 import subprocess
 import sys
 
-subprocess.check_call([sys.executable, "-m", "pip", "install", "sagemaker"])
+subprocess.check_call([sys.executable, "-m", "pip", "install", "sagemaker==2.45.0"])
 import sagemaker
 from sagemaker.model_monitor import DataCaptureConfig
 from sagemaker.predictor import Predictor

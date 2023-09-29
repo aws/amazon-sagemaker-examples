@@ -13,37 +13,9 @@ from torch.optim.lr_scheduler import StepLR
 import torchvision
 from packaging.version import Version
 
-# =======================================#
-# 0. Set data source for MNIST dataset. #
-# =======================================#
-
-TORCHVISION_VERSION = "0.9.1"
-if Version(torchvision.__version__) < Version(TORCHVISION_VERSION):
-    # Set path to data source and include checksum to make sure data isn't corrupted
-    datasets.MNIST.resources = [
-        (
-            "https://sagemaker-sample-files.s3.amazonaws.com/datasets/image/MNIST/train-images-idx3-ubyte.gz",
-            "f68b3c2dcbeaaa9fbdd348bbdeb94873",
-        ),
-        (
-            "https://sagemaker-sample-files.s3.amazonaws.com/datasets/image/MNIST/train-labels-idx1-ubyte.gz",
-            "d53e105ee54ea40749a09fcbcd1e9432",
-        ),
-        (
-            "https://sagemaker-sample-files.s3.amazonaws.com/datasets/image/MNIST/t10k-images-idx3-ubyte.gz",
-            "9fb629c4189551a2d022fa330f9573f3",
-        ),
-        (
-            "https://sagemaker-sample-files.s3.amazonaws.com/datasets/image/MNIST/t10k-labels-idx1-ubyte.gz",
-            "ec29112dd5afa0611ce80d1b7f02629c",
-        ),
-    ]
-else:
-    # Set path to data source
-    datasets.MNIST.mirrors = ["https://sagemaker-sample-files.s3.amazonaws.com/datasets/image/MNIST/"]
 
 # ====================================#
-# 1. Import SMDebug framework class. #
+# 0. Import SMDebug framework class. #
 # ====================================#
 import smdebug.pytorch as smd
 
@@ -74,22 +46,22 @@ class Net(nn.Module):
         return output
 
 
-def train(args, model, device, train_loader, optimizer, epoch, hook):
+def train(args, model, loss_fn, device, train_loader, optimizer, epoch, hook):
     model.train()
     # =================================================#
-    # 2. Set the SMDebug hook for the training phase. #
+    # 1. Set the SMDebug hook for the training phase. #
     # =================================================#
     hook.set_mode(smd.modes.TRAIN)
     for batch_idx, (data, target) in enumerate(train_loader):
         data, target = data.to(device), target.to(device)
         optimizer.zero_grad()
         output = model(data)
-        loss = F.nll_loss(output, target)
+        loss = loss_fn(output, target)
         loss.backward()
         optimizer.step()
         if batch_idx % args.log_interval == 0:
             print(
-                "Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}".format(
+                "Train Epoch: {} [{}/{} ({:.0f}%)]\t Loss: {:.6f}".format(
                     epoch,
                     batch_idx * len(data),
                     len(train_loader.dataset),
@@ -101,10 +73,10 @@ def train(args, model, device, train_loader, optimizer, epoch, hook):
                 break
 
 
-def test(model, device, test_loader, hook):
+def test(model, loss_fn, device, test_loader, hook):
     model.eval()
     # ===================================================#
-    # 3. Set the SMDebug hook for the validation phase. #
+    # 2. Set the SMDebug hook for the validation phase. #
     # ===================================================#
     hook.set_mode(smd.modes.EVAL)
     test_loss = 0
@@ -113,7 +85,7 @@ def test(model, device, test_loader, hook):
         for data, target in test_loader:
             data, target = data.to(device), target.to(device)
             output = model(data)
-            test_loss += F.nll_loss(output, target, reduction="sum").item()  # sum up batch loss
+            test_loss += loss_fn(output, target).item()  # sum up batch loss
             pred = output.argmax(dim=1, keepdim=True)  # get the index of the max log-probability
             correct += pred.eq(target.view_as(pred)).sum().item()
 
@@ -178,6 +150,9 @@ def main():
     parser.add_argument(
         "--save-model", action="store_true", default=False, help="For Saving the current Model"
     )
+    parser.add_argument(
+        "--region", type=str, help="aws region"
+    )
     args = parser.parse_args()
     use_cuda = not args.no_cuda and torch.cuda.is_available()
 
@@ -191,6 +166,35 @@ def main():
         cuda_kwargs = {"num_workers": args.num_workers, "pin_memory": True, "shuffle": True}
         train_kwargs.update(cuda_kwargs)
         test_kwargs.update(cuda_kwargs)
+    
+    # =======================================#
+    # 3. Set data source for MNIST dataset. #
+    # =======================================#
+
+    TORCHVISION_VERSION = "0.9.1"
+    if Version(torchvision.__version__) < Version(TORCHVISION_VERSION):
+        # Set path to data source and include checksum to make sure data isn't corrupted
+        datasets.MNIST.resources = [
+            (
+                f"https://sagemaker-example-files-prod-{args.region}.s3.amazonaws.com/datasets/image/MNIST/train-images-idx3-ubyte.gz",
+                "f68b3c2dcbeaaa9fbdd348bbdeb94873",
+            ),
+            (
+                f"https://sagemaker-example-files-prod-{args.region}.s3.amazonaws.com/datasets/image/MNIST/train-labels-idx1-ubyte.gz",
+                "d53e105ee54ea40749a09fcbcd1e9432",
+            ),
+            (
+                f"https://sagemaker-example-files-prod-{args.region}.s3.amazonaws.com/datasets/image/MNIST/t10k-images-idx3-ubyte.gz",
+                "9fb629c4189551a2d022fa330f9573f3",
+            ),
+            (
+                f"https://sagemaker-example-files-prod-{args.region}.s3.amazonaws.com/datasets/image/MNIST/t10k-labels-idx1-ubyte.gz",
+                "ec29112dd5afa0611ce80d1b7f02629c",
+            ),
+        ]
+    else:
+        # Set path to data source
+        datasets.MNIST.mirrors = ["https://sagemaker-sample-files.s3.amazonaws.com/datasets/image/MNIST/"]
 
     transform = transforms.Compose(
         [transforms.ToTensor(), transforms.Normalize((0.1307,), (0.3081,))]
@@ -201,12 +205,14 @@ def main():
     test_loader = torch.utils.data.DataLoader(dataset2, **test_kwargs)
 
     model = Net().to(device)
+    loss_fn = nn.NLLLoss()
 
     # ======================================================#
     # 4. Register the SMDebug hook to save output tensors. #
     # ======================================================#
     hook = smd.Hook.create_from_json_file()
     hook.register_hook(model)
+    hook.register_loss(loss_fn)
 
     optimizer = optim.Adadelta(model.parameters(), lr=args.lr)
 
@@ -215,8 +221,8 @@ def main():
         # ===========================================================#
         # 5. Pass the SMDebug hook to the train and test functions. #
         # ===========================================================#
-        train(args, model, device, train_loader, optimizer, epoch, hook)
-        test(model, device, test_loader, hook)
+        train(args, model, loss_fn, device, train_loader, optimizer, epoch, hook)
+        test(model, loss_fn, device, test_loader, hook)
         scheduler.step()
 
     if args.save_model:

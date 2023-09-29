@@ -18,8 +18,8 @@ class Visualizer:
                 label = None
             lineage_type = vertex["LineageType"]
             name = self.get_name(arn)
-            title = self.get_title(arn, label, lineage_type)
-            net.add_node(vertex["Arn"], label=name, title=title, shape="ellipse")
+            title = self.get_title(arn)
+            net.add_node(vertex["Arn"], label=label+"\n"+lineage_type, title=title, shape="circle")
 
         for edge in query_lineage_response["Edges"]:
             source = edge["SourceArn"]
@@ -28,8 +28,8 @@ class Visualizer:
 
         return net.show(f"{self.directory}/{scenario_name}.html")
 
-    def get_title(self, arn, label, lineage_type):
-        return f"Arn: {arn}\nType: {label}\nLineage Type: {lineage_type}"
+    def get_title(self, arn):
+        return f"Arn: {arn}"
 
     def get_name(self, arn):
         name = arn.split("/")[1]

@@ -1,0 +1,6 @@
+engine=Python
+option.entryPoint=djl_python.huggingface
+option.s3url={{ s3url }}
+option.task=text-generation
+option.device_map=auto
+option.load_in_8bit=TRUE

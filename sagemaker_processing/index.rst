@@ -9,7 +9,8 @@ Processing
    feature_transformation_with_sagemaker_processing/feature_transformation_with_sagemaker_processing
    scikit_learn_data_processing_and_model_evaluation/scikit_learn_data_processing_and_model_evaluation
    spark_distributed_data_processing/sagemaker-spark-processing
-   fairness_and_explainability/fairness_and_explainability
-   fairness_and_explainability/fairness_and_explainability_jsonlines_format
-   fairness_and_explainability/fairness_and_explainability_byoc
-   fairness_and_explainability/fairness_and_explainability_spark
+   local_pyspark/local_pyspark_example
+   pytorch_bert/deploy_bert
+   sklearn/sklearn_byom
+   sagemaker_processing/basic_sagemaker_data_processing/basic_sagemaker_processing
+

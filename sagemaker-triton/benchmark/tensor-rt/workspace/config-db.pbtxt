@@ -1,0 +1,30 @@
+name: "bert"
+platform: "tensorrt_plan"
+max_batch_size: 16
+input [
+  {
+    name: "token_ids"
+    data_type: TYPE_INT32
+    dims: [512]
+  },
+  {
+    name: "attn_mask"
+    data_type: TYPE_INT32
+    dims: [512]
+  }
+]
+output [
+  {
+    name: "output"
+    data_type: TYPE_FP32
+    dims: [512, 1024]
+  },
+  {
+    name: "3194"
+    data_type: TYPE_FP32
+    dims: [1024]
+  }
+]
+dynamic_batching {
+
+  }

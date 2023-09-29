@@ -14,15 +14,20 @@
 Train JAX model using purely functional code and serialize as TF SavedModel
 """
 
+# Do not allow TF to take all GPU memory
+import os
+
+os.environ["TF_FORCE_GPU_ALLOW_GROWTH"] = "true"
+
+
 import argparse
 import time
 from itertools import count
 
 from jax import random, grad, jit, numpy as jnp
 
-from jax.experimental import optimizers
-from jax.experimental import stax
-from jax.experimental.stax import Conv, Dense, Relu, LogSoftmax, Flatten
+from jax.example_libraries import optimizers
+from jax.example_libraries.stax import Conv, Dense, Relu, LogSoftmax, Flatten, serial
 import tensorflow as tf
 import tensorflow_datasets as tfds
 from jax.experimental import jax2tf
@@ -56,7 +61,7 @@ def init_nn():
         LogSoftmax,
     ]
 
-    return stax.serial(*layers)
+    return serial(*layers)
 
 
 def get_acc_loss_and_update_fns(predict_fn, opt_update, get_params):
@@ -101,9 +106,7 @@ def train(train_ds, test_ds, num_epochs, step_size):
     opt_state = opt_init(init_params)
     itercount = count()
 
-    accuracy, loss, update = get_acc_loss_and_update_fns(
-        predict_fn, opt_update, get_params
-    )
+    accuracy, loss, update = get_acc_loss_and_update_fns(predict_fn, opt_update, get_params)
 
     for epoch in range(num_epochs):
         start_time = time.time()
@@ -130,14 +133,14 @@ def save_model_tf(prediction_function, params_to_save):
     tf_graph = tf.function(
         lambda inputs: tf_fun(param_vars, inputs),
         autograph=False,
-        experimental_compile=True,
+        jit_compile=False,
     )
 
     # This signature is needed for TensorFlow Serving use.
     signatures = {}
-    signatures[
-        tf.saved_model.DEFAULT_SERVING_SIGNATURE_DEF_KEY
-    ] = tf_graph.get_concrete_function(tf.TensorSpec((1, 28, 28, 1), tf.float32))
+    signatures[tf.saved_model.DEFAULT_SERVING_SIGNATURE_DEF_KEY] = tf_graph.get_concrete_function(
+        tf.TensorSpec((1, 28, 28, 1), tf.float32)
+    )
 
     wrapper = _ReusableSavedModelWrapper(tf_graph, param_vars)
     model_dir = "/opt/ml/model/1"
@@ -170,6 +173,7 @@ class _ReusableSavedModelWrapper(tf.train.Checkpoint):
 
 def _parse_args():
     parser = argparse.ArgumentParser()
+    parser.add_argument("--model_dir", type=str)
     parser.add_argument("--num_epochs", type=int, default=3)
     parser.add_argument("--batch_size", type=int, default=16)
     parser.add_argument("--learning_rate", type=float, default=0.001)
@@ -183,9 +187,7 @@ if __name__ == "__main__":
     train_ds = load_fashion_mnist(tfds.Split.TRAIN, batch_size=args.batch_size)
     test_ds = load_fashion_mnist(tfds.Split.TEST, batch_size=args.batch_size)
 
-    predict_fn, final_params = train(
-        train_ds, test_ds, args.num_epochs, args.learning_rate
-    )
+    predict_fn, final_params = train(train_ds, test_ds, args.num_epochs, args.learning_rate)
 
     print("finished training")
 
