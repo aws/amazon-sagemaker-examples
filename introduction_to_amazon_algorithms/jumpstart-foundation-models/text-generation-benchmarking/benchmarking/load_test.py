@@ -1,6 +1,7 @@
 from concurrent import futures
 import datetime
 from copy import deepcopy
+import json
 from typing import Any, Dict, List, NamedTuple, Optional, Union
 import math
 import time
@@ -93,20 +94,28 @@ class BatchInvocationStatistics(NamedTuple):
     def throughput(self) -> float:
         """Computes the number of invocation responses per second."""
         return self.num_invocations / self.duration_seconds()
+    
+    def throughput_robust(self, values: List[int]) -> float:
+        """Computes the median throughput of result values in units values per second to eliminate outliers."""
+        throughput_values = [
+            sum(values[:(i + 1)]) / (result.time_utc_end - self.time_utc_start).total_seconds()
+            for i, result in enumerate(self.results)
+        ]
+        return self._collect_statistics(throughput_values)["p50"]
 
     def get_statistics(self, tokenizer: Optional[PreTrainedTokenizerBase] = None) -> Dict[str, Any]:
         """Collect statistics on the number of input/output sequence words, the latency, and the latency per word."""
         latency_per_word = self._collect_statistics(
             [x.client_latency() / x.num_words() for x in self.results if x.num_words() > 0]
         )
-        word_throughput = sum([x.num_words() for x in self.results]) / self.duration_seconds()
+        word_throughput = self.throughput_robust([x.num_words() for x in self.results])
         statistics: Dict[str, Any] = {
             "InputSequenceWords": self._collect_statistics([x.input_sequence_num_words() for x in self.results]),
             "OutputSequenceWords": self._collect_statistics([x.num_words() for x in self.results]),
             "Latency": self._collect_statistics([x.client_latency() for x in self.results]),
             "LatencyPerWord": latency_per_word,
             "TestDuration": self.duration_seconds(),
-            "RequestThroughput": self.throughput(),
+            "RequestThroughput": self.throughput_robust([1 for _ in self.results]),
             "WordThroughput": word_throughput,
             "TimeToGenerate1MWords": 1e6 / word_throughput / 3600,
         }
@@ -115,7 +124,7 @@ class BatchInvocationStatistics(NamedTuple):
             latency_per_token = self._collect_statistics(
                 [x.client_latency() / x.num_tokens(tokenizer) for x in self.results if x.num_tokens(tokenizer) > 0]
             )
-            token_throughput = sum(output_sequence_tokens) / self.duration_seconds()
+            token_throughput = self.throughput_robust(output_sequence_tokens)
             statistics.update({
                 "OutputSequenceTokens": self._collect_statistics([output_sequence_tokens for x in self.results]),
                 "LatencyPerToken": latency_per_token,
@@ -175,7 +184,7 @@ class LoadTester:
                     results.append(future.result())
                 except Exception as e:
                     error = e
-                    
+
         if error is not None:
             raise error
         time_utc_end = datetime.datetime.utcnow()

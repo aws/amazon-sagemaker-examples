@@ -16,12 +16,12 @@ from sagemaker.utils import name_from_base
 from benchmarking.constants import MAX_CONCURRENT_BENCHMARKS, SAVE_METRICS_FILE_PATH
 from benchmarking.constants import MAX_CONCURRENT_INVOCATIONS_PER_MODEL
 from benchmarking.constants import MAX_TOTAL_RETRY_TIME_SECONDS
-from benchmarking.constants import MODEL_ID_TO_HF_REPO_ID
 from benchmarking.constants import NUM_INVOCATIONS
 from benchmarking.constants import RETRY_WAIT_TIME_SECONDS
 from benchmarking.constants import SM_SESSION
 from benchmarking.load_test import LoadTester
 from benchmarking.load_test import logging_prefix
+from benchmarking.pricing_client import PricingClient
 
 
 class Benchmarker:
@@ -51,10 +51,12 @@ class Benchmarker:
         self.run_throughput_load_test = run_throughput_load_test
         self.run_concurrency_probe = run_concurrency_probe
         self.clean_up = clean_up
+        self._pricing_client = PricingClient()
 
     def _run_benchmarking_tests(self, tester: LoadTester) -> Dict[str, Any]:
         metrics_latency: Dict[str, Any] = {}
         metrics_throughput: Dict[str, Any] = {}
+        metrics_concurrency: Dict[str, Any] = {}
 
         if self.run_latency_load_test:
             metrics_latency = tester.run_latency_load_test(self.num_invocations)
@@ -65,25 +67,23 @@ class Benchmarker:
 
         endpoint_config = describe_endpoint_config(tester.predictor.endpoint_name)
         instance_type = endpoint_config["ProductionVariants"][0]["InstanceType"]
+        price_per_unit = self._pricing_client.get_price_per_unit(instance_type, SM_SESSION._region_name)
 
         return {
             **metrics_latency,
             **metrics_throughput,
             **metrics_concurrency,
             "InstanceType": instance_type,
+            "PricePerUnit": price_per_unit
         }
     
-    def run_single_predictor(self, model_id: str, predictor: Predictor) -> List[Dict[str, Any]]:
+    def run_single_predictor(
+        self, model_id: str, predictor: Predictor, tokenizer_model_id: Optional[str] = None
+    ) -> List[Dict[str, Any]]:
         metrics = []
         try:
             for payload_name, payload in self.payloads.items():
-                tester = LoadTester(
-                    predictor,
-                    payload,
-                    model_id,
-                    payload_name,
-                    tokenizer_model_id=MODEL_ID_TO_HF_REPO_ID.get(model_id),
-                )
+                tester = LoadTester(predictor, payload, model_id, payload_name, tokenizer_model_id)
                 metrics_payload = self._run_benchmarking_tests(tester)
                 metrics.append(metrics_payload)
         finally:
@@ -96,27 +96,31 @@ class Benchmarker:
 
         return metrics
 
-    def run_single_model_id(self, model_id: str, endpoint_name: Optional[str] = None) -> Tuple[List[Dict[str, Any]], Predictor]:
+    def run_single_model_id(
+        self, model_id: str, model_args: Dict[str, Any], endpoint_name: Optional[str] = None
+    ) -> Tuple[List[Dict[str, Any]], Predictor]:
+        jumpstart_args = model_args["jumpstart_args"]
         if endpoint_name is not None:
             try:
                 predictor = retrieve_default(
                     endpoint_name=endpoint_name,
-                    model_id=model_id,
+                    model_id=jumpstart_args["model_id"],
                     model_version="*",
                     sagemaker_session=self.sagemaker_session
                 )
                 print(f"{logging_prefix(model_id)} Predictor successfully retrieved from endpoint name")
             except Exception as e:
                 print(f"{logging_prefix(model_id)} Failed to retrieve predictor, re-deploying model: {e}")
-                predictor = self.deploy_single_model_id(model_id)
+                predictor = self.deploy_single_model_id(model_id, jumpstart_args)
         else:
             pass
-            predictor = self.deploy_single_model_id(model_id)
-        metrics = self.run_single_predictor(model_id, predictor)
+            predictor = self.deploy_single_model_id(model_id, jumpstart_args)
+
+        metrics = self.run_single_predictor(model_id, predictor, model_args["huggingface_model_id"])
         return metrics, predictor
     
-    def deploy_single_model_id(self, model_id: str) -> Predictor:
-        model = JumpStartModel(model_id=model_id, sagemaker_session=self.sagemaker_session)
+    def deploy_single_model_id(self, model_id: str, model_args: Dict[str, Any]) -> Predictor:
+        model = JumpStartModel(sagemaker_session=self.sagemaker_session, **model_args)
         endpoint_name = name_from_base(f"bm-{model_id.replace('huggingface', 'hf')}")
         print(f"{logging_prefix(model_id)} Deploying endpoint {endpoint_name} ...")
         predictor = model.deploy(endpoint_name=endpoint_name)
@@ -124,7 +128,7 @@ class Benchmarker:
 
     def run_multiple_model_ids(
         self,
-        models: List[str],
+        models: Dict[str, Dict[str, Any]],
         attempt_retrieve_predictor: bool = True,
         save_file_path: Path = SAVE_METRICS_FILE_PATH
     ) -> Dict[str, Any]:
@@ -137,7 +141,9 @@ class Benchmarker:
 
         with futures.ThreadPoolExecutor(max_workers=self.max_concurrent_benchmarks) as executor:
             future_to_model_id = {
-                executor.submit(self.run_single_model_id, m, endpoints_from_file.get(m)): m for m in models
+                executor.submit(
+                    self.run_single_model_id, model_id, model_args, endpoints_from_file.get(model_id)
+                ): model_id for model_id, model_args in models.items()
             }
             for future in futures.as_completed(future_to_model_id):
                 model_id = future_to_model_id[future]
@@ -164,25 +170,28 @@ class Benchmarker:
     @classmethod
     def load_metrics_pandas(cls, save_file_path: Path = SAVE_METRICS_FILE_PATH) -> pd.DataFrame:
         metrics = cls.load_metrics_json(save_file_path)
-        return pd.json_normalize(metrics, ["metrics", "ConcurrencyProbe"], [["metrics", "InstanceType"]])
+        return pd.json_normalize(metrics, ["metrics", "ConcurrencyProbe"], [["metrics", "InstanceType"], ["metrics", "PricePerUnit"]])
     
     @staticmethod
     def create_concurrency_probe_pivot_table(df: pd.DataFrame) -> pd.DataFrame:
         df_copy = df.copy()
+
+        df_copy["CostToGenerate1MTokens"] = df_copy["TimeToGenerate1MTokens"] * df_copy["metrics.PricePerUnit"].astype(float)
+
         index_cols = ["ModelID", "metrics.InstanceType", "PayloadName"]
         columns_cols = ["ConcurrentRequests"]
-        value_cols = ["TokenThroughput", "LatencyPerToken.p50", "TimeToGenerate1MTokens"]
+        value_cols = ["TokenThroughput", "LatencyPerToken.p50", "CostToGenerate1MTokens"]
 
         df_copy = df_copy.astype({"TokenThroughput": "int", "LatencyPerToken.p50": "int"})
-        df_copy["TimeToGenerate1MTokens"] = df_copy["TimeToGenerate1MTokens"].round(1)
-        df_copy = df_copy.astype({"TokenThroughput": "str", "LatencyPerToken.p50": "str", "TimeToGenerate1MTokens": "str"})
+        df_copy["CostToGenerate1MTokens"] = df_copy["CostToGenerate1MTokens"].map("${:,.2f}".format)
+        df_copy = df_copy.astype({"TokenThroughput": "str", "LatencyPerToken.p50": "str", "CostToGenerate1MTokens": "str"})
 
         df_pivot = df_copy.pivot(index=index_cols, columns=columns_cols, values=value_cols).fillna("--")
         df_pivot = df_pivot.rename(
             columns={
                 "LatencyPerToken.p50": "p50 latency (ms/token)",
                 "TokenThroughput": "throughput (tokens/s)",
-                "TimeToGenerate1MTokens": "time to generate 1M tokens (hours)",
+                "CostToGenerate1MTokens": "cost to generate 1M tokens ($)",
             }
         )
         df_pivot.index = df_pivot.index.rename(["model ID", "instance type", "payload"])
