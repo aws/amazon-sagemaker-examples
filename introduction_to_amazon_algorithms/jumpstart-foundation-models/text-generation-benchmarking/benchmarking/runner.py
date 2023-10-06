@@ -10,8 +10,12 @@ import pandas as pd
 from sagemaker.jumpstart.model import JumpStartModel
 from sagemaker.predictor import Predictor
 from sagemaker.predictor import retrieve_default
+from sagemaker.serializers import JSONSerializer
+from sagemaker.deserializers import JSONDeserializer
 from sagemaker.session import Session
 from sagemaker.utils import name_from_base
+from sagemaker import image_uris
+from sagemaker.model import Model
 
 from benchmarking.constants import MAX_CONCURRENT_BENCHMARKS, SAVE_METRICS_FILE_PATH
 from benchmarking.constants import MAX_CONCURRENT_INVOCATIONS_PER_MODEL
@@ -38,7 +42,9 @@ class Benchmarker:
         run_latency_load_test: bool = False,
         run_throughput_load_test: bool = False,
         run_concurrency_probe: bool = False,
-        clean_up: bool = False
+        clean_up: bool = False,
+        attempt_retrieve_predictor: bool = True,
+        saved_metrics_path: Path = SAVE_METRICS_FILE_PATH
     ):
         self.payloads = payloads
         self.max_concurrent_benchmarks = max_concurrent_benchmarks
@@ -52,6 +58,9 @@ class Benchmarker:
         self.run_concurrency_probe = run_concurrency_probe
         self.clean_up = clean_up
         self._pricing_client = PricingClient()
+        self.endpoints_from_file: Dict[str, str] = {}
+        if attempt_retrieve_predictor:
+            self.endpoints_from_file = self.load_metrics_json(saved_metrics_path).get("endpoints", {})
 
     def _run_benchmarking_tests(self, tester: LoadTester) -> Dict[str, Any]:
         metrics_latency: Dict[str, Any] = {}
@@ -80,6 +89,7 @@ class Benchmarker:
     def run_single_predictor(
         self, model_id: str, predictor: Predictor, tokenizer_model_id: Optional[str] = None
     ) -> List[Dict[str, Any]]:
+        """Run benchmarker given a Predictor for an in-service model endpoint."""
         metrics = []
         try:
             for payload_name, payload in self.payloads.items():
@@ -96,54 +106,91 @@ class Benchmarker:
 
         return metrics
 
-    def run_single_model_id(
-        self, model_id: str, model_args: Dict[str, Any], endpoint_name: Optional[str] = None
-    ) -> Tuple[List[Dict[str, Any]], Predictor]:
-        jumpstart_args = model_args["jumpstart_args"]
+    def run_single_model(self, model_id: str, model_args: Dict[str, Any]) -> Tuple[List[Dict[str, Any]], Predictor]:
+        """Run benchmarker for a single model.
+        
+        If an `endpoint_name` is provided either as a key in `model_args` or saved in benchmarking metrics file from
+        a previous invocation of this benchmarker, then a predictor is attempted to be attached to this endpoint. If
+        an `endpoint_name` is not provided, then the model is deployed prior to benchmarking run.
+        """
+        endpoint_name = model_args.get("endpoint_name") or self.endpoints_from_file.get(model_id)
         if endpoint_name is not None:
             try:
-                predictor = retrieve_default(
-                    endpoint_name=endpoint_name,
-                    model_id=jumpstart_args["model_id"],
-                    model_version="*",
-                    sagemaker_session=self.sagemaker_session
-                )
+                predictor = self.retrieve_predictor_from_endpoint(endpoint_name, model_args)
                 print(f"{logging_prefix(model_id)} Predictor successfully retrieved from endpoint name")
             except Exception as e:
                 print(f"{logging_prefix(model_id)} Failed to retrieve predictor, re-deploying model: {e}")
-                predictor = self.deploy_single_model_id(model_id, jumpstart_args)
+                predictor = self.deploy_model(model_id, model_args)
         else:
             pass
-            predictor = self.deploy_single_model_id(model_id, jumpstart_args)
+            predictor = self.deploy_model(model_id, model_args)
 
         metrics = self.run_single_predictor(model_id, predictor, model_args["huggingface_model_id"])
         return metrics, predictor
     
-    def deploy_single_model_id(self, model_id: str, model_args: Dict[str, Any]) -> Predictor:
-        model = JumpStartModel(sagemaker_session=self.sagemaker_session, **model_args)
+    def retrieve_predictor_from_endpoint(self, endpoint_name: str, model_args: Dict[str, Any]) -> Predictor:
+        """Obtain a predictor from an already deployed endpoint."""
+        jumpstart_model_args = model_args.get("jumpstart_model_args", None)
+        if jumpstart_model_args:
+            return retrieve_default(
+                endpoint_name=endpoint_name,
+                model_id=jumpstart_model_args["model_id"],
+                model_version="*",
+                sagemaker_session=self.sagemaker_session
+            )
+        else:
+            return Predictor(
+                endpoint_name=endpoint_name,
+                sagemaker_session=self.sagemaker_session,
+                serializer=JSONSerializer(),
+                deserializer=JSONDeserializer(),
+            )
+    
+    def deploy_model(self, model_id: str, model_args: Dict[str, Any]) -> Predictor:
+        """Deploy a model with configuration defined by model_args.
+        
+        Two model deployment methods are supported:
+        - Use JumpStartModel object with kwargs defined in `jumpstart_model_args` key.
+        - Use Model object with `image_uri_args`, `model_args`, and `deploy_args` kwards defined in `model_specs` key.
+
+        Raises:
+            ValueError: if neither `jumpstart_model_args` or `model_specs` keys are present in model_args.
+        """
+        jumpstart_model_args = model_args.get("jumpstart_model_args", None)
+        model_specs = model_args.get("model_specs", None)
         endpoint_name = name_from_base(f"bm-{model_id.replace('huggingface', 'hf')}")
         print(f"{logging_prefix(model_id)} Deploying endpoint {endpoint_name} ...")
-        predictor = model.deploy(endpoint_name=endpoint_name)
-        return predictor
+        if jumpstart_model_args:
+            model = JumpStartModel(sagemaker_session=self.sagemaker_session, **jumpstart_model_args)
+            return model.deploy(endpoint_name=endpoint_name)
+        elif model_specs:
+            image_uri = image_uris.retrieve(region=SM_SESSION._region_name, **model_specs["image_uri_args"])
+            model = Model(
+                image_uri=image_uri,
+                role=SM_SESSION.get_caller_identity_arn(),
+                predictor_cls=Predictor,
+                name=endpoint_name,
+                **model_specs["model_args"],
+            )
+            return model.deploy(
+                serializer=JSONSerializer(),
+                deserializer=JSONDeserializer(),
+                endpoint_name=endpoint_name,
+                **model_specs["deploy_args"],
+            )
+        else:
+            raise ValueError(f"{logging_prefix(model_id)} No model arguments discovered for deployment.")
 
     def run_multiple_model_ids(
-        self,
-        models: Dict[str, Dict[str, Any]],
-        attempt_retrieve_predictor: bool = True,
-        save_file_path: Path = SAVE_METRICS_FILE_PATH
+        self, models: Dict[str, Dict[str, Any]], save_file_path: Path = SAVE_METRICS_FILE_PATH
     ) -> Dict[str, Any]:
         metrics = []
         errors = {}
         endpoints: Dict[str, str] = {}
-        endpoints_from_file: Dict[str, str] = {}
-        if attempt_retrieve_predictor:
-            endpoints_from_file = self.load_metrics_json(save_file_path).get("endpoints", {})
 
         with futures.ThreadPoolExecutor(max_workers=self.max_concurrent_benchmarks) as executor:
             future_to_model_id = {
-                executor.submit(
-                    self.run_single_model_id, model_id, model_args, endpoints_from_file.get(model_id)
-                ): model_id for model_id, model_args in models.items()
+                executor.submit(self.run_single_model, model_id, args): model_id for model_id, args in models.items()
             }
             for future in futures.as_completed(future_to_model_id):
                 model_id = future_to_model_id[future]

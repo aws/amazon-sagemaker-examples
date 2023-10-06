@@ -14,6 +14,6 @@ NUM_INVOCATIONS = 10
 SM_SESSION = Session(
     sagemaker_runtime_client=boto3.client(
         "sagemaker-runtime",
-        config=Config(connect_timeout=5, read_timeout=60, retries={"max_attempts": 20}),
+        config=Config(connect_timeout=5, read_timeout=60, retries={"max_attempts": 50}),
     )
 )
