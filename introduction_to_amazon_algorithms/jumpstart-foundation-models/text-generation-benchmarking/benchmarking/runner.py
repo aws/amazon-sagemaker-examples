@@ -1,7 +1,7 @@
 from concurrent import futures
 import json
 from pathlib import Path
-from typing import Any, Optional, Tuple
+from typing import Any, Callable, Optional, Tuple
 from typing import Dict
 from typing import List
 
@@ -26,6 +26,9 @@ from benchmarking.constants import SM_SESSION
 from benchmarking.load_test import LoadTester
 from benchmarking.load_test import logging_prefix
 from benchmarking.pricing_client import PricingClient
+from benchmarking.concurrency_probe import num_invocation_scaler
+from benchmarking.concurrency_probe import ConcurrentProbeIteratorBase
+from benchmarking.concurrency_probe import ConcurrentProbeExponentialScalingIterator
 
 
 class Benchmarker:
@@ -42,9 +45,11 @@ class Benchmarker:
         run_latency_load_test: bool = False,
         run_throughput_load_test: bool = False,
         run_concurrency_probe: bool = False,
+        concurrency_probe_num_invocation_hook: Optional[Callable[[int], int]] = None,
+        concurrency_probe_concurrent_request_iterator_cls: Optional[ConcurrentProbeIteratorBase] = None,
         clean_up: bool = False,
         attempt_retrieve_predictor: bool = True,
-        saved_metrics_path: Path = SAVE_METRICS_FILE_PATH
+        saved_metrics_path: Path = SAVE_METRICS_FILE_PATH,
     ):
         self.payloads = payloads
         self.max_concurrent_benchmarks = max_concurrent_benchmarks
@@ -56,6 +61,17 @@ class Benchmarker:
         self.run_latency_load_test = run_latency_load_test
         self.run_throughput_load_test = run_throughput_load_test
         self.run_concurrency_probe = run_concurrency_probe
+
+        if concurrency_probe_num_invocation_hook is None:
+            self.concurrency_probe_num_invocation_hook = num_invocation_scaler
+        else:
+            self.concurrency_probe_num_invocation_hook = concurrency_probe_num_invocation_hook
+
+        if concurrency_probe_concurrent_request_iterator_cls is None:
+            self.concurrency_probe_concurrent_request_iterator_cls = ConcurrentProbeExponentialScalingIterator
+        else:
+            self.concurrency_probe_concurrent_request_iterator_cls = concurrency_probe_concurrent_request_iterator_cls
+
         self.clean_up = clean_up
         self._pricing_client = PricingClient()
         self.endpoints_from_file: Dict[str, str] = {}
@@ -72,7 +88,10 @@ class Benchmarker:
         if self.run_throughput_load_test:
             metrics_throughput = tester.run_throughput_load_test(self.num_invocations, self.max_workers)
         if self.run_concurrency_probe:
-            metrics_concurrency = {"ConcurrencyProbe": tester.run_concurrency_probe()}
+            metrics_concurrency = {"ConcurrencyProbe": tester.run_concurrency_probe(
+                concurrent_request_iterator=self.concurrency_probe_concurrent_request_iterator_cls(),
+                num_invocation_hook=self.concurrency_probe_num_invocation_hook,
+            )}
 
         endpoint_config = describe_endpoint_config(tester.predictor.endpoint_name)
         instance_type = endpoint_config["ProductionVariants"][0]["InstanceType"]
@@ -150,19 +169,19 @@ class Benchmarker:
         """Deploy a model with configuration defined by model_args.
         
         Two model deployment methods are supported:
-        - Use JumpStartModel object with kwargs defined in `jumpstart_model_args` key.
+        - Use JumpStartModel object with kwargs defined in `jumpstart_model_specs` key.
         - Use Model object with `image_uri_args`, `model_args`, and `deploy_args` kwards defined in `model_specs` key.
 
         Raises:
-            ValueError: if neither `jumpstart_model_args` or `model_specs` keys are present in model_args.
+            ValueError: if neither `jumpstart_model_specs` or `model_specs` keys are present in model_args.
         """
-        jumpstart_model_args = model_args.get("jumpstart_model_args", None)
-        model_specs = model_args.get("model_specs", None)
+        jumpstart_model_specs: Optional[Dict[str, Any]] = model_args.get("jumpstart_model_specs", None)
+        model_specs: Optional[Dict[str, Any]] = model_args.get("model_specs", None)
         endpoint_name = name_from_base(f"bm-{model_id.replace('huggingface', 'hf')}")
         print(f"{logging_prefix(model_id)} Deploying endpoint {endpoint_name} ...")
-        if jumpstart_model_args:
-            model = JumpStartModel(sagemaker_session=self.sagemaker_session, **jumpstart_model_args)
-            return model.deploy(endpoint_name=endpoint_name)
+        if jumpstart_model_specs:
+            model = JumpStartModel(sagemaker_session=self.sagemaker_session, **jumpstart_model_specs["model_args"])
+            return model.deploy(endpoint_name=endpoint_name, **jumpstart_model_specs.get("deploy_args", {}))
         elif model_specs:
             image_uri = image_uris.retrieve(region=SM_SESSION._region_name, **model_specs["image_uri_args"])
             model = Model(
@@ -181,7 +200,7 @@ class Benchmarker:
         else:
             raise ValueError(f"{logging_prefix(model_id)} No model arguments discovered for deployment.")
 
-    def run_multiple_model_ids(
+    def run_multiple_models(
         self, models: Dict[str, Dict[str, Any]], save_file_path: Path = SAVE_METRICS_FILE_PATH
     ) -> Dict[str, Any]:
         metrics = []

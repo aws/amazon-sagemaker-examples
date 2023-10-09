@@ -1,7 +1,7 @@
 from concurrent import futures
 import datetime
 from copy import deepcopy
-from typing import Any, Dict, List, NamedTuple, Optional, Union
+from typing import Any, Callable, Dict, List, NamedTuple, Optional, Union
 import math
 import time
 
@@ -11,6 +11,7 @@ from sagemaker.predictor import Predictor
 from transformers import AutoTokenizer
 from transformers import PreTrainedTokenizerBase
 
+from benchmarking.concurrency_probe import ConcurrentProbeIteratorBase
 from benchmarking.constants import CLOUDWATCH_PERIOD
 from benchmarking.constants import MAX_TOTAL_RETRY_TIME_SECONDS
 from benchmarking.constants import RETRY_WAIT_TIME_SECONDS
@@ -218,36 +219,28 @@ class LoadTester:
         return metrics
     
     def run_concurrency_probe(
-        self,
-        scale_factor: float = 2.0,
-        max_concurrent_requests: int = 256,
-        max_latency_seconds: float = 25.0,
-        num_invocation_factor: int = 3,
+        self, concurrent_request_iterator: ConcurrentProbeIteratorBase, num_invocation_hook: Callable[[int], int]
     ) -> List[Dict[str, Any]]:
-        """Probe the endpoint with a series of concurrent request payloads to obtain a set of throughput measures."""
+        """Probe the endpoint with a series of concurrent request payloads to obtain a set of throughput measures.
+        
+        Arguments:
+            concurrent_request_iterator (ConcurrentRequestIteratorBase): An iterator that controls the number of
+                concurrent requests to load the endpoint with during the probe.
+            num_invocation_hook (Callable[[int], int]): A hook that controls the number of invocations use during a
+                single load test as a function of the number of concurrent requests.
+        """
         print(f"{self._logging_prefix} Begin concurrency probe ...")
-        concurrent_requests = 1
-        last_latency_seconds = 0.0
         results: List[Dict[str, Any]] = []
-        continue_probe = True
-        while continue_probe is True:
+        for concurrent_requests in concurrent_request_iterator:
             try:
-                result = self.run_throughput_load_test(concurrent_requests * num_invocation_factor, concurrent_requests)
+                num_invocations = num_invocation_hook(concurrent_requests)
+                result = self.run_throughput_load_test(num_invocations, concurrent_requests)
             except Exception as e:
-                print(f"{self._logging_prefix} Error occured, stopping concurrency probe: {e}")
-                break
-
-            last_latency_seconds = result["Latency"]["p90"] / 1e3
-            results.append(result)
-            concurrent_requests = int(concurrent_requests * scale_factor)
-            if (concurrent_requests > max_concurrent_requests):
-                continue_probe = False
-            if (last_latency_seconds > max_latency_seconds):
-                continue_probe = False
-                print(
-                    f"{self._logging_prefix} End concurrency probe, "
-                    f"last p90 latency = {last_latency_seconds} > {max_latency_seconds}"
-                )
+                concurrent_request_iterator.exception = e
+            else:
+                if concurrent_request_iterator.send(result, self.predictor):
+                    results.append(result)
+        print(f"{self._logging_prefix} End concurrency probe. {concurrent_request_iterator.stop_reason}")
         return results
 
     def query_cloudwatch_get_metric_statistics(
