@@ -18,7 +18,7 @@ The key difference is that we replace HuggingFace Trainer with our NASTrainer to
 NAS super-network training as described in:
 
 Structural Pruning of Large Language Models via Neural Architecture Search
-Aaron Klein Jacek Golebiowski Xingchen Ma Valerio Perrone Cedric Archambeau
+Aaron Klein, Jacek Golebiowski, Xingchen Ma, Valerio Perrone, Cedric Archambeau
 AutoML Conference 2023 Workshop Track
 """
 import shutil

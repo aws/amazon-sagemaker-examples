@@ -60,6 +60,8 @@ class NASTrainer(Trainer):
 
         self.sampler = SmallSearchSpace(model.config, seed=args.seed)
 
+        assert args.num_sub_networks >= 1, 'Number of random sub-networks per update step has to be >= 1!'
+
         model_type = model.config._name_or_path
         if model_type.startswith("bert"):
             self.mask = mask_bert
@@ -143,13 +145,6 @@ class NASTrainer(Trainer):
         sum_of_sub_networks_losses = 0
         device = self.accelerator.device
         for i in range(self.args.num_sub_networks):
-            #
-            # if is_sagemaker_mp_enabled():
-            #     loss_mb = smp_forward_backward(model, inputs, self.args.gradient_accumulation_steps)
-            #     return loss_mb.reduce_mean().detach().to(self.args.device)
-            #
-            # with self.compute_loss_context_manager():
-            #     loss = self.compute_loss(model, inputs)
 
             if i == 0:
                 # first update full network

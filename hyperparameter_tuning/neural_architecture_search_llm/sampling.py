@@ -16,7 +16,9 @@ import torch
 
 class SearchSpace(object):
     """
-    Setting the mask to 1 means we keep the corresponding head / unit
+    Search space define all possible sub-network within a pre-trained model. To select sub-networks we
+    place a binary mask over the pre-trained network (super-network). Setting the mask to 1 means we
+    keep the corresponding head / unit
     """
 
     def __init__(self, config, seed=None):
@@ -47,6 +49,11 @@ class SearchSpace(object):
 
 
 class SmallSearchSpace(SearchSpace):
+    """
+    Implements the SMALL search space proposed by Klein et. al. Each sub-network is defined by
+    its number of heads in the multi-head attention layer, the number of units in the fully-connected layer
+    and the total number of layers. Hence, the search space consists of three integer hyerparameters.
+    """
     def __call__(self, *args, **kwargs):
         num_layers = self.rng.randint(self.num_layers)
         num_heads = self.rng.choice(
