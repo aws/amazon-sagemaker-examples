@@ -35,12 +35,10 @@ class ConcurrentProbeExponentialScalingIterator(ConcurrentProbeIteratorBase):
         self,
         start: int = 1,
         scale_factor: float = 2.0,
-        max_concurrent_requests: int = 256,
         max_latency_seconds: float = 25.0,
     ) -> None:
         self.concurrent_requests = start
         self.scale_factor = scale_factor
-        self.max_concurrent_requests = max_concurrent_requests
         self.max_latency_seconds = max_latency_seconds
         super().__init__()
     
@@ -57,12 +55,8 @@ class ConcurrentProbeExponentialScalingIterator(ConcurrentProbeIteratorBase):
             self.stop_reason = f"Last p90 latency = {last_latency_seconds} > {self.max_latency_seconds}."
             raise StopIteration
         
-        concurrent_requests_next = int(self.concurrent_requests * self.scale_factor)
-        if (concurrent_requests_next > self.max_concurrent_requests):
-            self.stop_reason = f"Concurrent requests = {concurrent_requests_next} > {self.max_concurrent_requests}."
-            raise StopIteration
-        
-        self.concurrent_requests = concurrent_requests_next
+        self.concurrent_requests = int(self.concurrent_requests * self.scale_factor)
+
         return self.concurrent_requests
 
 

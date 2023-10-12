@@ -1,4 +1,5 @@
 from concurrent import futures
+from datetime import datetime
 import json
 from pathlib import Path
 from typing import Any, Callable, Optional, Tuple
@@ -78,31 +79,53 @@ class Benchmarker:
         if attempt_retrieve_predictor:
             self.endpoints_from_file = self.load_metrics_json(saved_metrics_path).get("endpoints", {})
 
-    def _run_benchmarking_tests(self, tester: LoadTester) -> Dict[str, Any]:
+    def _run_benchmarking_tests(
+        self, predictor: Predictor, payload: Dict[str, Any], model_id: str, payload_name: str, tokenizer_model_id: str
+    ) -> Dict[str, Any]:
         metrics_latency: Dict[str, Any] = {}
         metrics_throughput: Dict[str, Any] = {}
         metrics_concurrency: Dict[str, Any] = {}
+
+        endpoint_config_description = describe_endpoint_config(predictor.endpoint_name)
+        endpoint_description = describe_endpoint(predictor.endpoint_name)
+
+        production_variant = endpoint_config_description["ProductionVariants"][0]
+        instance_type = production_variant["InstanceType"]
+        price_per_instance = self._pricing_client.get_price_per_unit(instance_type, SM_SESSION._region_name)
+        price_per_endpoint = production_variant["InitialInstanceCount"] * price_per_instance
+        metrics_pricing = {
+            "PricePerInstance": price_per_instance,
+            "PricePerEndpoint": price_per_endpoint,
+        }
+
+        creation_time: datetime = endpoint_description["CreationTime"]
+        last_modified_time: datetime = endpoint_description["LastModifiedTime"]
+        metrics_time = {
+            "CreationTime": creation_time.isoformat(),
+            "LastModifiedTime": last_modified_time.isoformat(),
+            "DeploymentTime": (last_modified_time - creation_time).seconds
+        }
+
+        tester = LoadTester(predictor, payload, model_id, payload_name, tokenizer_model_id, price_per_endpoint)
 
         if self.run_latency_load_test:
             metrics_latency = tester.run_latency_load_test(self.num_invocations)
         if self.run_throughput_load_test:
             metrics_throughput = tester.run_throughput_load_test(self.num_invocations, self.max_workers)
         if self.run_concurrency_probe:
-            metrics_concurrency = {"ConcurrencyProbe": tester.run_concurrency_probe(
+            concurrency_probe_results = tester.run_concurrency_probe(
                 concurrent_request_iterator=self.concurrency_probe_concurrent_request_iterator_cls(),
                 num_invocation_hook=self.concurrency_probe_num_invocation_hook,
-            )}
-
-        endpoint_config = describe_endpoint_config(tester.predictor.endpoint_name)
-        instance_type = endpoint_config["ProductionVariants"][0]["InstanceType"]
-        price_per_unit = self._pricing_client.get_price_per_unit(instance_type, SM_SESSION._region_name)
+            )
+            metrics_concurrency = {"ConcurrencyProbe": concurrency_probe_results}
 
         return {
             **metrics_latency,
             **metrics_throughput,
             **metrics_concurrency,
-            "InstanceType": instance_type,
-            "PricePerUnit": price_per_unit
+            **metrics_pricing,
+            **metrics_time,
+            "ProductionVariant": production_variant,
         }
     
     def run_single_predictor(
@@ -112,8 +135,9 @@ class Benchmarker:
         metrics = []
         try:
             for payload_name, payload in self.payloads.items():
-                tester = LoadTester(predictor, payload, model_id, payload_name, tokenizer_model_id)
-                metrics_payload = self._run_benchmarking_tests(tester)
+                metrics_payload = self._run_benchmarking_tests(
+                    predictor, payload, model_id, payload_name, tokenizer_model_id
+                )
                 metrics.append(metrics_payload)
         finally:
             if self.clean_up is True:
@@ -236,32 +260,51 @@ class Benchmarker:
     @classmethod
     def load_metrics_pandas(cls, save_file_path: Path = SAVE_METRICS_FILE_PATH) -> pd.DataFrame:
         metrics = cls.load_metrics_json(save_file_path)
-        return pd.json_normalize(metrics, ["metrics", "ConcurrencyProbe"], [["metrics", "InstanceType"], ["metrics", "PricePerUnit"]])
+        return pd.json_normalize(
+            data=metrics,
+            record_path=["metrics", "ConcurrencyProbe"],
+            meta=[
+                ["metrics", "ProductionVariant", "InstanceType"],
+                ["metrics", "ProductionVariant", "InitialInstanceCount"],
+                ["metrics", "PricePerEndpoint"],
+                ["metrics", "PricePerInstance"],
+                ["metrics", "DeploymentTime"],
+            ]
+        )
     
     @staticmethod
-    def create_concurrency_probe_pivot_table(df: pd.DataFrame) -> pd.DataFrame:
-        df_copy = df.copy()
-
-        df_copy["CostToGenerate1MTokens"] = df_copy["TimeToGenerate1MTokens"] * df_copy["metrics.PricePerUnit"].astype(float)
-
-        index_cols = ["ModelID", "metrics.InstanceType", "PayloadName"]
-        columns_cols = ["ConcurrentRequests"]
-        value_cols = ["TokenThroughput", "LatencyPerToken.p50", "CostToGenerate1MTokens"]
-
-        df_copy = df_copy.astype({"TokenThroughput": "int", "LatencyPerToken.p50": "int"})
-        df_copy["CostToGenerate1MTokens"] = df_copy["CostToGenerate1MTokens"].map("${:,.2f}".format)
-        df_copy = df_copy.astype({"TokenThroughput": "str", "LatencyPerToken.p50": "str", "CostToGenerate1MTokens": "str"})
-
-        df_pivot = df_copy.pivot(index=index_cols, columns=columns_cols, values=value_cols).fillna("--")
-        df_pivot = df_pivot.rename(
-            columns={
+    def create_concurrency_probe_pivot_table(
+        df: pd.DataFrame,
+        value_format_dict: Optional[Dict[str, Callable]] = None,
+        value_name_dict: Optional[Dict[str, str]] = None,
+        fillna_str: str = "--",
+    ) -> pd.DataFrame:
+        if value_format_dict is None:
+            value_format_dict = {
+                "TokenThroughput": int,
+                "LatencyPerToken.p50": int,
+                "CostToGenerate1MTokens": "${:,.2f}".format,
+            }
+        if value_name_dict is None:
+            value_name_dict = {
                 "LatencyPerToken.p50": "p50 latency (ms/token)",
                 "TokenThroughput": "throughput (tokens/s)",
                 "CostToGenerate1MTokens": "cost to generate 1M tokens ($)",
             }
-        )
+
+        df_copy = df.copy()
+
+        index_cols = ["ModelID", "metrics.ProductionVariant.InstanceType", "PayloadName"]
+        columns_cols = ["ConcurrentRequests"]
+        value_cols = value_format_dict.keys()
+
+        for value_name, mapping_function in value_format_dict.items():
+            df_copy[value_name] = df_copy[value_name].map(mapping_function)
+
+        df_pivot = df_copy.pivot(index=index_cols, columns=columns_cols, values=value_cols).fillna(fillna_str)
+        df_pivot = df_pivot.rename(columns=value_name_dict)
         df_pivot.index = df_pivot.index.rename(["model ID", "instance type", "payload"])
-        df_pivot.columns = df_pivot.columns.rename([None, "concurrent users"])
+        df_pivot.columns = df_pivot.columns.rename([None, "concurrent requests"])
         return df_pivot
 
     @staticmethod
@@ -279,3 +322,8 @@ class Benchmarker:
 def describe_endpoint_config(endpoint_name: str) -> Dict[str, Any]:
     sagemaker = boto3.client("sagemaker")
     return sagemaker.describe_endpoint_config(EndpointConfigName=endpoint_name)
+
+
+def describe_endpoint(endpoint_name: str) -> Dict[str, Any]:
+    sagemaker = boto3.client("sagemaker")
+    return sagemaker.describe_endpoint(EndpointName=endpoint_name)
