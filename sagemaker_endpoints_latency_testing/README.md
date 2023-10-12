@@ -1,1 +1,0 @@
-# SageMaker endpoint latency testing
