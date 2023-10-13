@@ -38,6 +38,14 @@ Multi-Model Endpoints
    multi_model_pytorch/pytorch_multi_model_endpoint
    multi_model_catboost/multi_model_catboost
 
+Distributed Sentiment Classification with Debugging
+--------------------------------
+
+.. toctree::
+   :maxdepth: 1
+
+   sentiment_parallel_batch/huggingface_sentiment_parallel_batch
+
 Prebuilt Deep Learning Containers
 --------------------------------
 
