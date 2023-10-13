@@ -101,7 +101,7 @@ class BatchInvocationStatistics(NamedTuple):
             sum(values[:(i + 1)]) / (result.time_utc_end - self.time_utc_start).total_seconds()
             for i, result in enumerate(self.results)
         ]
-        return self._collect_statistics(throughput_values)["p50"]
+        return self._collect_statistics(throughput_values)["Maximum"]
 
     def get_statistics(
         self, tokenizer: Optional[PreTrainedTokenizerBase] = None, price_per_endpoint: Optional[float] = None
@@ -118,10 +118,10 @@ class BatchInvocationStatistics(NamedTuple):
             "Latency": self._collect_statistics([x.client_latency() for x in self.results]),
             "LatencyPerWord": latency_per_word,
             "TestDuration": self._duration_seconds(),
-            "RequestThroughput": self._throughput_robust([1 for _ in self.results]),
-            "RequestThroughputAllQueries": self._throughput([1 for _ in self.results]),
-            "WordThroughput": word_throughput_robust,
-            "WordThroughputAllQueries": self._throughput([x.num_words() for x in self.results]),
+            "RequestThroughputRobust": self._throughput_robust([1 for _ in self.results]),
+            "RequestThroughput": self._throughput([1 for _ in self.results]),
+            "WordThroughputRobust": word_throughput_robust,
+            "WordThroughput": self._throughput([x.num_words() for x in self.results]),
             "TimeToGenerate1MWords": time_to_generate_1m_words,
         }
         if tokenizer is not None:
@@ -134,8 +134,8 @@ class BatchInvocationStatistics(NamedTuple):
             statistics.update({
                 "OutputSequenceTokens": self._collect_statistics([output_sequence_tokens for x in self.results]),
                 "LatencyPerToken": latency_per_token,
-                "TokenThroughput": token_throughput_robust,
-                "TokenThroughputAllQueries": self._throughput_robust(output_sequence_tokens),
+                "TokenThroughputRobust": token_throughput_robust,
+                "TokenThroughput": self._throughput(output_sequence_tokens),
                 "TimeToGenerate1MTokens": time_to_generate_1m_tokens,
             })
         if price_per_endpoint is not None:

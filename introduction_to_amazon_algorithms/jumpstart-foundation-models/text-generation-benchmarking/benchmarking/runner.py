@@ -173,7 +173,7 @@ class Benchmarker:
     
     def retrieve_predictor_from_endpoint(self, endpoint_name: str, model_args: Dict[str, Any]) -> Predictor:
         """Obtain a predictor from an already deployed endpoint."""
-        jumpstart_model_args = model_args.get("jumpstart_model_args", None)
+        jumpstart_model_args = model_args.get("jumpstart_model_args")
         if jumpstart_model_args:
             return retrieve_default(
                 endpoint_name=endpoint_name,
@@ -199,8 +199,8 @@ class Benchmarker:
         Raises:
             ValueError: if neither `jumpstart_model_specs` or `model_specs` keys are present in model_args.
         """
-        jumpstart_model_specs: Optional[Dict[str, Any]] = model_args.get("jumpstart_model_specs", None)
-        model_specs: Optional[Dict[str, Any]] = model_args.get("model_specs", None)
+        jumpstart_model_specs: Optional[Dict[str, Any]] = model_args.get("jumpstart_model_specs")
+        model_specs: Optional[Dict[str, Any]] = model_args.get("model_specs")
         endpoint_name = name_from_base(f"bm-{model_id.replace('huggingface', 'hf')}")
         print(f"{logging_prefix(model_id)} Deploying endpoint {endpoint_name} ...")
         if jumpstart_model_specs:
