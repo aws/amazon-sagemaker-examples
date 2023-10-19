@@ -1,4 +1,3 @@
-
 from abc import abstractmethod
 import logging
 import time
@@ -17,22 +16,22 @@ class ConcurrentProbeIteratorBase:
         self.stop_reason: str = "No stop reason set."
         self.result: Dict[str, Any] = None
 
-    def __iter__(self) -> 'ConcurrentProbeIteratorBase':
+    def __iter__(self) -> "ConcurrentProbeIteratorBase":
         return self
-    
+
     @abstractmethod
     def __next__(self) -> int:
         raise NotImplementedError
 
     def send(self, result: Dict[str, Any], predictor: Predictor) -> bool:
         """Send load test results to the iterator and return whether to use results.
-        
+
         Some iterators may make internal adjustments (e.g., scale endpoint instances and repeat load test for the same
         conccurent request setting) before using the results.
         """
         self.result = result
         return True
-    
+
 
 class ConcurrentProbeExponentialScalingIterator(ConcurrentProbeIteratorBase):
     """An iterator used during a concurrency probe to exponentially scale concurrent requests."""
@@ -49,7 +48,7 @@ class ConcurrentProbeExponentialScalingIterator(ConcurrentProbeIteratorBase):
         self.scale_factor = scale_factor
         self.time_out_wait_time = time_out_wait_time
         super().__init__(model_id, payload_name)
-    
+
     def __next__(self) -> int:
         if self.exception is not None:
             _logging_prefix = logging_prefix(self.model_id, self.payload_name, self.concurrent_requests)
@@ -61,7 +60,7 @@ class ConcurrentProbeExponentialScalingIterator(ConcurrentProbeIteratorBase):
 
         if self.result is None:
             return self.concurrent_requests
-        
+
         self.concurrent_requests = int(self.concurrent_requests * self.scale_factor)
 
         return self.concurrent_requests

@@ -34,7 +34,6 @@ from benchmarking.logging import logging_prefix
 
 
 class Benchmarker:
-
     def __init__(
         self,
         payloads: Dict[str, Dict[str, Any]],
@@ -82,7 +81,12 @@ class Benchmarker:
             self.model_id_to_endpoint_name = self.load_metrics_json(saved_metrics_path).get("endpoints", {})
 
     def _run_benchmarking_tests(
-        self, predictor: Predictor, payload: Dict[str, Any], model_id: str, payload_name: str, tokenizer_model_id: str
+        self,
+        predictor: Predictor,
+        payload: Dict[str, Any],
+        model_id: str,
+        payload_name: str,
+        tokenizer_model_id: str,
     ) -> Dict[str, Any]:
         metrics_latency: Dict[str, Any] = {}
         metrics_throughput: Dict[str, Any] = {}
@@ -108,10 +112,17 @@ class Benchmarker:
         metrics_time = {
             "CreationTime": creation_time.isoformat(),
             "LastModifiedTime": last_modified_time.isoformat(),
-            "DeploymentTime": (last_modified_time - creation_time).seconds
+            "DeploymentTime": (last_modified_time - creation_time).seconds,
         }
 
-        tester = LoadTester(predictor, payload, model_id, payload_name, tokenizer_model_id, price_per_endpoint)
+        tester = LoadTester(
+            predictor,
+            payload,
+            model_id,
+            payload_name,
+            tokenizer_model_id,
+            price_per_endpoint,
+        )
 
         if self.run_latency_load_test:
             metrics_latency = tester.run_latency_load_test(self.num_invocations)
@@ -133,9 +144,12 @@ class Benchmarker:
             "ProductionVariant": production_variant,
             "PrimaryContainer": primary_container,
         }
-    
+
     def run_single_predictor(
-        self, model_id: str, predictor: Predictor, tokenizer_model_id: Optional[str] = None
+        self,
+        model_id: str,
+        predictor: Predictor,
+        tokenizer_model_id: Optional[str] = None,
     ) -> List[Dict[str, Any]]:
         """Run benchmarker given a Predictor for an in-service model endpoint."""
         metrics = []
@@ -155,7 +169,7 @@ class Benchmarker:
 
     def run_single_model(self, model_id: str, model_args: Dict[str, Any]) -> Tuple[List[Dict[str, Any]], Predictor]:
         """Run benchmarker for a single model.
-        
+
         If an `endpoint_name` is provided either as a key in `model_args` or saved in benchmarking metrics file from
         a previous invocation of this benchmarker, then a predictor is attempted to be attached to this endpoint. If
         an `endpoint_name` is not provided, then the model is deployed prior to benchmarking run.
@@ -175,7 +189,7 @@ class Benchmarker:
         self.model_id_to_endpoint_name[model_id] = predictor.endpoint_name
         metrics = self.run_single_predictor(model_id, predictor, model_args["huggingface_model_id"])
         return metrics, predictor
-    
+
     def retrieve_predictor_from_endpoint(
         self, endpoint_name: str, model_args: Optional[Dict[str, Any]] = None
     ) -> Predictor:
@@ -187,7 +201,7 @@ class Benchmarker:
                     endpoint_name=endpoint_name,
                     model_id=jumpstart_model_args["model_id"],
                     model_version="*",
-                    sagemaker_session=self.sagemaker_session
+                    sagemaker_session=self.sagemaker_session,
                 )
 
         return Predictor(
@@ -196,10 +210,10 @@ class Benchmarker:
             serializer=JSONSerializer(),
             deserializer=JSONDeserializer(),
         )
-    
+
     def deploy_model(self, model_id: str, model_args: Dict[str, Any]) -> Predictor:
         """Deploy a model with configuration defined by model_args.
-        
+
         Two model deployment methods are supported:
         - Use JumpStartModel object with kwargs defined in `jumpstart_model_specs` key.
         - Use Model object with `image_uri_args`, `model_args`, and `deploy_args` kwards defined in `model_specs` key.
@@ -212,8 +226,14 @@ class Benchmarker:
         endpoint_name = name_from_base(f"bm-{model_id.replace('huggingface', 'hf')}")
         logging.info(f"{logging_prefix(model_id)} Deploying endpoint {endpoint_name} ...")
         if jumpstart_model_specs:
-            model = JumpStartModel(sagemaker_session=self.sagemaker_session, **jumpstart_model_specs["model_args"])
-            return model.deploy(endpoint_name=endpoint_name, **jumpstart_model_specs.get("deploy_args", {}))
+            model = JumpStartModel(
+                sagemaker_session=self.sagemaker_session,
+                **jumpstart_model_specs["model_args"],
+            )
+            return model.deploy(
+                endpoint_name=endpoint_name,
+                **jumpstart_model_specs.get("deploy_args", {}),
+            )
         elif model_specs:
             image_uri = image_uris.retrieve(region=SM_SESSION._region_name, **model_specs["image_uri_args"])
             model = Model(
@@ -233,7 +253,9 @@ class Benchmarker:
             raise ValueError(f"{logging_prefix(model_id)} No model arguments discovered for deployment.")
 
     def run_multiple_models(
-        self, models: Dict[str, Dict[str, Any]], save_file_path: Path = SAVE_METRICS_FILE_PATH
+        self,
+        models: Dict[str, Dict[str, Any]],
+        save_file_path: Path = SAVE_METRICS_FILE_PATH,
     ) -> Dict[str, Any]:
         metrics = []
         errors = {}
@@ -264,7 +286,7 @@ class Benchmarker:
             json.dump(output, file, indent=4, ensure_ascii=False)
 
         return output
-    
+
     @classmethod
     def load_metrics_pandas(cls, save_file_path: Path = SAVE_METRICS_FILE_PATH) -> pd.DataFrame:
         metrics = cls.load_metrics_json(save_file_path)
@@ -278,9 +300,9 @@ class Benchmarker:
                 ["metrics", "PricePerEndpoint"],
                 ["metrics", "PricePerInstance"],
                 ["metrics", "DeploymentTime"],
-            ]
+            ],
         )
-    
+
     @staticmethod
     def create_concurrency_probe_pivot_table(
         df: pd.DataFrame,
@@ -303,7 +325,11 @@ class Benchmarker:
 
         df_copy = df.copy()
 
-        index_cols = ["ModelID", "metrics.ProductionVariant.InstanceType", "PayloadName"]
+        index_cols = [
+            "ModelID",
+            "metrics.ProductionVariant.InstanceType",
+            "PayloadName",
+        ]
         columns_cols = ["ConcurrentRequests"]
         value_cols = value_format_dict.keys()
 
@@ -315,12 +341,12 @@ class Benchmarker:
         df_pivot.index = df_pivot.index.rename(["model ID", "instance type", "payload"])
         df_pivot.columns = df_pivot.columns.rename([None, "concurrent requests"])
         return df_pivot
-    
+
     def clean_up_resources(self) -> None:
         for model_id, endpoint_name in self.model_id_to_endpoint_name.items():
             predictor = self.retrieve_predictor_from_endpoint(endpoint_name)
             self.clean_up_predictor(model_id, predictor)
-    
+
     @classmethod
     def clean_up_predictor(cls, model_id: str, predictor: Predictor) -> None:
         logging.info(f"{logging_prefix(model_id)} Cleaning up resources ...")
@@ -328,12 +354,14 @@ class Benchmarker:
         predictor.delete_endpoint()
 
     @staticmethod
-    def load_metrics_json(save_file_path: Path = SAVE_METRICS_FILE_PATH) -> Dict[str, str]:
+    def load_metrics_json(
+        save_file_path: Path = SAVE_METRICS_FILE_PATH,
+    ) -> Dict[str, str]:
         try:
             with open(save_file_path, "r") as f:
                 data = json.load(f)
         except Exception as e:
             logging.warning(f"Failed to extract endpoint names from saved benchmarking file: {e}")
             return {}
-        
+
         return data

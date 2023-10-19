@@ -31,7 +31,11 @@ class PricingClient:
             _create_pricing_filter(type="TERM_MATCH", field=PRODUCT_FAMILY_KEY, value=PRODUCT_FAMILY),
             _create_pricing_filter(type="TERM_MATCH", field=REGION_KEY, value=region),
             _create_pricing_filter(type="TERM_MATCH", field=INSTANCE_NAME_KEY, value=instance_type),
-            _create_pricing_filter(type="TERM_MATCH", field=PLATO_INSTANCE_TYPE_KEY, value=PLATO_INSTANCE_TYPE),
+            _create_pricing_filter(
+                type="TERM_MATCH",
+                field=PLATO_INSTANCE_TYPE_KEY,
+                value=PLATO_INSTANCE_TYPE,
+            ),
         ]
         response = self._client.get_products(ServiceCode=SERVICE_CODE, Filters=filters)
         price_list = json.loads(response["PriceList"][0])["terms"]["OnDemand"]

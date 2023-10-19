@@ -66,11 +66,11 @@ class PredictionResult(NamedTuple):
     def num_words(self) -> int:
         """The word count of the output sequence."""
         return self._num_words(self.output_sequence())
-    
+
     def num_tokens(self, tokenizer: PreTrainedTokenizerBase) -> int:
         """The token count of the output sequence."""
         return len(tokenizer.encode(self.output_sequence()))
-    
+
     def _text_inputs(self) -> str:
         if "inputs" in self.payload:
             return self.payload["inputs"]
@@ -99,17 +99,19 @@ class BatchInvocationStatistics(NamedTuple):
     def _throughput(self, values: List[int]) -> float:
         """Computes the number of invocation responses per second."""
         return sum(values) / self._duration_seconds()
-    
+
     def _throughput_robust(self, values: List[int]) -> float:
         """Computes the median throughput of result values in units values per second to eliminate outliers."""
         throughput_values = [
-            sum(values[:(i + 1)]) / (result.time_utc_end - self.time_utc_start).total_seconds()
+            sum(values[: (i + 1)]) / (result.time_utc_end - self.time_utc_start).total_seconds()
             for i, result in enumerate(self.results)
         ]
         return self._collect_statistics(throughput_values)["Maximum"]
 
     def get_statistics(
-        self, tokenizer: Optional[PreTrainedTokenizerBase] = None, price_per_endpoint: Optional[float] = None
+        self,
+        tokenizer: Optional[PreTrainedTokenizerBase] = None,
+        price_per_endpoint: Optional[float] = None,
     ) -> Dict[str, Any]:
         """Collect statistics on the number of input/output sequence words, the latency, and the latency per word."""
         latency_per_word = self._collect_statistics(
@@ -136,13 +138,15 @@ class BatchInvocationStatistics(NamedTuple):
             )
             token_throughput_robust = self._throughput_robust(output_sequence_tokens)
             time_to_generate_1m_tokens = 1e6 / token_throughput_robust / 3600
-            statistics.update({
-                "OutputSequenceTokens": self._collect_statistics([output_sequence_tokens for x in self.results]),
-                "LatencyPerToken": latency_per_token,
-                "TokenThroughputRobust": token_throughput_robust,
-                "TokenThroughput": self._throughput(output_sequence_tokens),
-                "TimeToGenerate1MTokens": time_to_generate_1m_tokens,
-            })
+            statistics.update(
+                {
+                    "OutputSequenceTokens": self._collect_statistics([output_sequence_tokens for x in self.results]),
+                    "LatencyPerToken": latency_per_token,
+                    "TokenThroughputRobust": token_throughput_robust,
+                    "TokenThroughput": self._throughput(output_sequence_tokens),
+                    "TimeToGenerate1MTokens": time_to_generate_1m_tokens,
+                }
+            )
         if price_per_endpoint is not None:
             statistics.update({"CostToGenerate1MTokens": time_to_generate_1m_tokens * price_per_endpoint})
             if tokenizer is not None:
@@ -200,7 +204,9 @@ class LoadTester:
         error = None
         timeout_seconds = SM_INVOCATION_TIMEOUT * num_invocations / max_workers
         with futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
-            futures_list = [executor.submit(self.predict_once_and_collect_client_results) for _ in range(num_invocations)]
+            futures_list = [
+                executor.submit(self.predict_once_and_collect_client_results) for _ in range(num_invocations)
+            ]
             for future in futures.as_completed(futures_list, timeout=timeout_seconds):
                 result = future.result()
                 if isinstance(result.result, Exception):
@@ -208,13 +214,13 @@ class LoadTester:
                     for future_to_cancel in futures_list:
                         future_to_cancel.cancel()
                 else:
-                    results.append(result)          
+                    results.append(result)
 
         if error is not None:
             raise error
         time_utc_end = datetime.datetime.utcnow()
         return BatchInvocationStatistics(time_utc_start, time_utc_end, num_invocations, results)
-    
+
     def run_latency_load_test(
         self,
         num_invocations: int,
@@ -229,24 +235,28 @@ class LoadTester:
         metrics["ModelID"] = self.model_id
         metrics["PayloadName"] = self.payload_name
         return metrics
-    
+
     def run_throughput_load_test(self, num_invocations: int, max_workers: int) -> Dict[str, Any]:
         logging.info(f"{logging_prefix(self.model_id, self.payload_name, max_workers)} Begin throughput load test ...")
         statistics_throughput = self.run_load_test(num_invocations, max_workers)
         metrics = statistics_throughput.get_statistics(self.tokenizer, self.price_per_endpoint)
-        metrics.update({
-            "ModelID": self.model_id,
-            "PayloadName": self.payload_name,
-            "Invocations": num_invocations,
-            "ConcurrentRequests": max_workers,
-        })
+        metrics.update(
+            {
+                "ModelID": self.model_id,
+                "PayloadName": self.payload_name,
+                "Invocations": num_invocations,
+                "ConcurrentRequests": max_workers,
+            }
+        )
         return metrics
-    
+
     def run_concurrency_probe(
-        self, iterator_cls: Type[ConcurrentProbeIteratorBase], num_invocation_hook: Callable[[int], int]
+        self,
+        iterator_cls: Type[ConcurrentProbeIteratorBase],
+        num_invocation_hook: Callable[[int], int],
     ) -> List[Dict[str, Any]]:
         """Probe the endpoint with a series of concurrent request payloads to obtain a set of throughput measures.
-        
+
         Arguments:
             concurrent_request_iterator (ConcurrentRequestIteratorBase): An iterator that controls the number of
                 concurrent requests to load the endpoint with during the probe.
@@ -303,7 +313,10 @@ class LoadTester:
         return datapoints
 
     def _extract_cloudwatch_metrics(
-        self, invocation_statistics: BatchInvocationStatistics, retry_wait_time: float, max_total_retry_time: float
+        self,
+        invocation_statistics: BatchInvocationStatistics,
+        retry_wait_time: float,
+        max_total_retry_time: float,
     ) -> Dict[str, Any]:
         """Iteratively query the Amazon CloudWatch GetMetricStatistics API to obtain load test statistics.
 
