@@ -11,9 +11,14 @@ MAX_CONCURRENT_BENCHMARKS = 15
 RETRY_WAIT_TIME_SECONDS = 30.0
 MAX_TOTAL_RETRY_TIME_SECONDS = 120.0
 NUM_INVOCATIONS = 10
+SM_INVOCATION_TIMEOUT = 60.0
 SM_SESSION = Session(
     sagemaker_runtime_client=boto3.client(
         "sagemaker-runtime",
-        config=Config(connect_timeout=5, read_timeout=60, retries={"max_attempts": 50}),
+        config=Config(connect_timeout=5, read_timeout=60, retries={"max_attempts": 50}, max_pool_connections=1000),
+    ),
+    sagemaker_client=boto3.client(
+        "sagemaker",
+        config=Config(connect_timeout=5, read_timeout=60, retries={"max_attempts": 20}),
     )
 )

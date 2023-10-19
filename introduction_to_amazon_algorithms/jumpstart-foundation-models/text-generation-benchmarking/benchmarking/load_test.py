@@ -1,7 +1,11 @@
 from concurrent import futures
+import copy
 import datetime
 from copy import deepcopy
-from typing import Any, Callable, Dict, List, NamedTuple, Optional, Union
+import json
+import logging
+from threading import Event
+from typing import Any, Callable, Dict, List, NamedTuple, Optional, Type, Union
 import math
 import time
 
@@ -12,9 +16,10 @@ from transformers import AutoTokenizer
 from transformers import PreTrainedTokenizerBase
 
 from benchmarking.concurrency_probe import ConcurrentProbeIteratorBase
-from benchmarking.constants import CLOUDWATCH_PERIOD
+from benchmarking.constants import CLOUDWATCH_PERIOD, SM_INVOCATION_TIMEOUT
 from benchmarking.constants import MAX_TOTAL_RETRY_TIME_SECONDS
 from benchmarking.constants import RETRY_WAIT_TIME_SECONDS
+from benchmarking.logging import logging_prefix
 
 
 class PredictionResult(NamedTuple):
@@ -181,7 +186,10 @@ class LoadTester:
     def predict_once_and_collect_client_results(self) -> PredictionResult:
         """Perform a single endpoint prediction and produce a PredictionResult."""
         time_utc_start = datetime.datetime.utcnow()
-        result = self.predictor.predict(self.payload, custom_attributes="accept_eula=True")
+        try:
+            result = self.predictor.predict(self.payload, custom_attributes="accept_eula=True")
+        except Exception as e:
+            result = e
         time_utc_end = datetime.datetime.utcnow()
         return PredictionResult(time_utc_start, time_utc_end, self.payload, result)
 
@@ -190,13 +198,17 @@ class LoadTester:
         time_utc_start = datetime.datetime.utcnow()
         results = []
         error = None
+        timeout_seconds = SM_INVOCATION_TIMEOUT * num_invocations / max_workers
         with futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
             futures_list = [executor.submit(self.predict_once_and_collect_client_results) for _ in range(num_invocations)]
-            for future in futures.as_completed(futures_list):
-                try:
-                    results.append(future.result())
-                except Exception as e:
-                    error = e
+            for future in futures.as_completed(futures_list, timeout=timeout_seconds):
+                result = future.result()
+                if isinstance(result.result, Exception):
+                    error = copy.deepcopy(result.result)
+                    for future_to_cancel in futures_list:
+                        future_to_cancel.cancel()
+                else:
+                    results.append(result)          
 
         if error is not None:
             raise error
@@ -209,7 +221,7 @@ class LoadTester:
         retry_wait_time: float = RETRY_WAIT_TIME_SECONDS,
         max_total_retry_time: float = MAX_TOTAL_RETRY_TIME_SECONDS,
     ) -> Dict[str, Any]:
-        print(f"{self._logging_prefix} Begin latency load test ...")
+        logging.info(f"{self._logging_prefix} Begin latency load test ...")
         time.sleep(CLOUDWATCH_PERIOD)  # wait for 1 cloudwatch period to ensure no extra queries are reported
         statistics_latency = self.run_load_test(num_invocations, 1)
         metrics = self._extract_cloudwatch_metrics(statistics_latency, retry_wait_time, max_total_retry_time)
@@ -219,11 +231,10 @@ class LoadTester:
         return metrics
     
     def run_throughput_load_test(self, num_invocations: int, max_workers: int) -> Dict[str, Any]:
-        print(f"{self._logging_prefix} Begin throughput load test with concurrency {max_workers} ...")
+        logging.info(f"{logging_prefix(self.model_id, self.payload_name, max_workers)} Begin throughput load test ...")
         statistics_throughput = self.run_load_test(num_invocations, max_workers)
         metrics = statistics_throughput.get_statistics(self.tokenizer, self.price_per_endpoint)
         metrics.update({
-            "SampleOutput": statistics_throughput.results[0].output_sequence(),
             "ModelID": self.model_id,
             "PayloadName": self.payload_name,
             "Invocations": num_invocations,
@@ -232,7 +243,7 @@ class LoadTester:
         return metrics
     
     def run_concurrency_probe(
-        self, concurrent_request_iterator: ConcurrentProbeIteratorBase, num_invocation_hook: Callable[[int], int]
+        self, iterator_cls: Type[ConcurrentProbeIteratorBase], num_invocation_hook: Callable[[int], int]
     ) -> List[Dict[str, Any]]:
         """Probe the endpoint with a series of concurrent request payloads to obtain a set of throughput measures.
         
@@ -242,8 +253,9 @@ class LoadTester:
             num_invocation_hook (Callable[[int], int]): A hook that controls the number of invocations use during a
                 single load test as a function of the number of concurrent requests.
         """
-        print(f"{self._logging_prefix} Begin concurrency probe ...")
+        logging.info(f"{self._logging_prefix} Begin concurrency probe ...")
         results: List[Dict[str, Any]] = []
+        concurrent_request_iterator = iterator_cls(self.model_id, self.payload_name)
         for concurrent_requests in concurrent_request_iterator:
             try:
                 num_invocations = num_invocation_hook(concurrent_requests)
@@ -253,7 +265,7 @@ class LoadTester:
             else:
                 if concurrent_request_iterator.send(result, self.predictor):
                     results.append(result)
-        print(f"{self._logging_prefix} End concurrency probe. {concurrent_request_iterator.stop_reason}")
+        logging.info(f"{self._logging_prefix} End concurrency probe. {concurrent_request_iterator.stop_reason}")
         return results
 
     def _query_cloudwatch_get_metric_statistics(
@@ -290,7 +302,6 @@ class LoadTester:
             }
         return datapoints
 
-
     def _extract_cloudwatch_metrics(
         self, invocation_statistics: BatchInvocationStatistics, retry_wait_time: float, max_total_retry_time: float
     ) -> Dict[str, Any]:
@@ -309,7 +320,7 @@ class LoadTester:
             sample_count_latency = metrics["ModelLatency"].get("SampleCount", 0)
             num_invocations = invocation_statistics.num_invocations
             if (sample_count_latency < num_invocations) and (retry_duration_cumulative < max_total_retry_time):
-                print(
+                logging.info(
                     f" - {self._logging_prefix} Sample count {sample_count_latency} < {num_invocations}. "
                     f"Retrying in {retry_wait_time} seconds ..."
                 )
@@ -318,11 +329,3 @@ class LoadTester:
             else:
                 retry = False
         return metrics
-
-
-def logging_prefix(model_id: str, payload_name: Optional[str] = None) -> str:
-    """A standardized prefix for all console logs."""
-    items = [f"Model '{model_id}'"]
-    if payload_name is not None:
-        items.append(f"Payload '{payload_name}'")
-    return f"({', '.join(items)}):"

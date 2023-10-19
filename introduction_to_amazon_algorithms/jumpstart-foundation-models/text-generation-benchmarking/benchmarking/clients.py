@@ -1,5 +1,5 @@
 import json
-from typing import Dict
+from typing import Any, Dict
 
 import boto3
 
@@ -38,3 +38,21 @@ class PricingClient:
         price_dimensions = list(price_list.values())[0]["priceDimensions"]
         price_per_unit = list(price_dimensions.values())[0]["pricePerUnit"]["USD"]
         return float(price_per_unit)
+
+
+class SageMakerClient:
+    """Boto3 SageMaker client to access endpoint and model information."""
+
+    def __init__(self) -> None:
+        self._client = boto3.client("sagemaker")
+
+    def describe_endpoint_config(self, endpoint_name: str) -> Dict[str, Any]:
+        return self._client.describe_endpoint_config(EndpointConfigName=endpoint_name)
+
+    def describe_endpoint(self, endpoint_name: str) -> Dict[str, Any]:
+        return self._client.describe_endpoint(EndpointName=endpoint_name)
+
+    def describe_model(self, endpoint_name: str) -> Dict[str, Any]:
+        endpoint_config = self.describe_endpoint_config(endpoint_name)
+        model_name = endpoint_config["ProductionVariants"][0]["ModelName"]
+        return self._client.describe_model(ModelName=model_name)
