@@ -16,7 +16,7 @@ from transformers import AutoTokenizer
 from transformers import PreTrainedTokenizerBase
 
 from benchmarking.concurrency_probe import ConcurrentProbeIteratorBase
-from benchmarking.constants import CLOUDWATCH_PERIOD, SM_INVOCATION_TIMEOUT
+from benchmarking.constants import CLOUDWATCH_PERIOD_SECONDS, SM_INVOCATION_TIMEOUT_SECONDS
 from benchmarking.constants import MAX_TOTAL_RETRY_TIME_SECONDS
 from benchmarking.constants import RETRY_WAIT_TIME_SECONDS
 from benchmarking.logging import logging_prefix
@@ -30,15 +30,15 @@ class PredictionResult(NamedTuple):
     payload: Dict[str, Any]
     result: Any
 
-    def client_latency(self):
+    def client_latency(self) -> float:
         """The client latency for this single prediction."""
         return (self.time_utc_end - self.time_utc_start).total_seconds() * 1e3
 
-    def input_sequence_num_words(self):
+    def input_sequence_num_words(self) -> int:
         """The word count of the input sequence."""
         return self._num_words(self._text_inputs())
 
-    def output_sequence(self):
+    def output_sequence(self) -> str:
         """The output sequence with the input sequence prefix removed.
 
         Text generation models, by default, include the input sequence in the model response.
@@ -160,7 +160,6 @@ class BatchInvocationStatistics(NamedTuple):
             "Average": np.average(data).item(),
             "Minimum": np.amin(data).item(),
             "Maximum": np.amax(data).item(),
-            "p50": np.quantile(data, 0.50).item(),
             "p90": np.quantile(data, 0.90).item(),
             "p95": np.quantile(data, 0.95).item(),
         }
@@ -202,7 +201,7 @@ class LoadTester:
         time_utc_start = datetime.datetime.utcnow()
         results = []
         error = None
-        timeout_seconds = SM_INVOCATION_TIMEOUT * num_invocations / max_workers
+        timeout_seconds = SM_INVOCATION_TIMEOUT_SECONDS * num_invocations / max_workers
         with futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
             futures_list = [
                 executor.submit(self.predict_once_and_collect_client_results) for _ in range(num_invocations)
@@ -228,7 +227,7 @@ class LoadTester:
         max_total_retry_time: float = MAX_TOTAL_RETRY_TIME_SECONDS,
     ) -> Dict[str, Any]:
         logging.info(f"{self._logging_prefix} Begin latency load test ...")
-        time.sleep(CLOUDWATCH_PERIOD)  # wait for 1 cloudwatch period to ensure no extra queries are reported
+        time.sleep(CLOUDWATCH_PERIOD_SECONDS)  # wait for 1 cloudwatch period to ensure no extra queries are reported
         statistics_latency = self.run_load_test(num_invocations, 1)
         metrics = self._extract_cloudwatch_metrics(statistics_latency, retry_wait_time, max_total_retry_time)
         metrics["Client"] = statistics_latency.get_statistics(self.tokenizer, self.price_per_endpoint)
@@ -270,11 +269,11 @@ class LoadTester:
             try:
                 num_invocations = num_invocation_hook(concurrent_requests)
                 result = self.run_throughput_load_test(num_invocations, concurrent_requests)
-            except Exception as e:
-                concurrent_request_iterator.exception = e
-            else:
                 if concurrent_request_iterator.send(result, self.predictor):
                     results.append(result)
+            except Exception as e:
+                concurrent_request_iterator.exception = e
+                
         logging.info(f"{self._logging_prefix} End concurrency probe. {concurrent_request_iterator.stop_reason}")
         return results
 

@@ -195,12 +195,12 @@ class Benchmarker:
     ) -> Predictor:
         """Obtain a predictor from an already deployed endpoint."""
         if model_args is not None:
-            jumpstart_model_args = model_args.get("jumpstart_model_args")
+            jumpstart_model_args: Dict[str, Any] = model_args.get("jumpstart_model_args")
             if jumpstart_model_args:
                 return retrieve_default(
                     endpoint_name=endpoint_name,
                     model_id=jumpstart_model_args["model_id"],
-                    model_version="*",
+                    model_version=jumpstart_model_args.get("model_version", "*"),
                     sagemaker_session=self.sagemaker_session,
                 )
 
@@ -257,6 +257,7 @@ class Benchmarker:
         models: Dict[str, Dict[str, Any]],
         save_file_path: Path = SAVE_METRICS_FILE_PATH,
     ) -> Dict[str, Any]:
+        """Concurrently call run_single_model for all models and aggregate benchmarking output."""
         metrics = []
         errors = {}
         endpoints: Dict[str, str] = {}
@@ -289,6 +290,7 @@ class Benchmarker:
 
     @classmethod
     def load_metrics_pandas(cls, save_file_path: Path = SAVE_METRICS_FILE_PATH) -> pd.DataFrame:
+        """Create a pandas DataFrame from the saved JSON metrics file."""
         metrics = cls.load_metrics_json(save_file_path)
         return pd.json_normalize(
             data=metrics,
@@ -310,6 +312,7 @@ class Benchmarker:
         value_name_dict: Optional[Dict[str, str]] = None,
         fillna_str: str = "--",
     ) -> pd.DataFrame:
+        """Pivot concurrency probe pandas DataFrame to show specified values across models and concurrent requests."""
         if value_format_dict is None:
             value_format_dict = {
                 "TokenThroughput": int,
@@ -343,12 +346,14 @@ class Benchmarker:
         return df_pivot
 
     def clean_up_resources(self) -> None:
+        """Delete model and endpoint for all endpoints attached to this benchmarker."""
         for model_id, endpoint_name in self.model_id_to_endpoint_name.items():
             predictor = self.retrieve_predictor_from_endpoint(endpoint_name)
             self.clean_up_predictor(model_id, predictor)
 
     @classmethod
     def clean_up_predictor(cls, model_id: str, predictor: Predictor) -> None:
+        """Delete model and endpoint for a single predictor."""
         logging.info(f"{logging_prefix(model_id)} Cleaning up resources ...")
         predictor.delete_model()
         predictor.delete_endpoint()
@@ -357,6 +362,7 @@ class Benchmarker:
     def load_metrics_json(
         save_file_path: Path = SAVE_METRICS_FILE_PATH,
     ) -> Dict[str, str]:
+        """Attempt to load metrics from a previous benchmarking run."""
         try:
             with open(save_file_path, "r") as f:
                 data = json.load(f)

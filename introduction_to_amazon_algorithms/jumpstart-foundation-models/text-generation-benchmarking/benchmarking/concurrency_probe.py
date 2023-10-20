@@ -42,11 +42,11 @@ class ConcurrentProbeExponentialScalingIterator(ConcurrentProbeIteratorBase):
         payload_name: str,
         start: int = 1,
         scale_factor: float = 2.0,
-        time_out_wait_time: float = 60.0,
+        time_out_wait_time_seconds: float = 60.0,
     ) -> None:
         self.concurrent_requests = start
         self.scale_factor = scale_factor
-        self.time_out_wait_time = time_out_wait_time
+        self.time_out_wait_time_seconds = time_out_wait_time_seconds
         super().__init__(model_id, payload_name)
 
     def __next__(self) -> int:
@@ -54,8 +54,10 @@ class ConcurrentProbeExponentialScalingIterator(ConcurrentProbeIteratorBase):
             _logging_prefix = logging_prefix(self.model_id, self.payload_name, self.concurrent_requests)
             self.stop_reason = f"Error occured: {self.exception}"
             if "timed out" in str(self.exception):
-                logging.info(f"{_logging_prefix} Waiting {self.time_out_wait_time} seconds to clear time out error ...")
-                time.sleep(self.time_out_wait_time)
+                logging.info(
+                    f"{_logging_prefix} Waiting {self.time_out_wait_time_seconds} seconds to clear time out error ..."
+                )
+                time.sleep(self.time_out_wait_time_seconds)
             raise StopIteration
 
         if self.result is None:
