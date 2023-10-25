@@ -1,0 +1,54 @@
+{
+  "builder_name": "parquet",
+  "citation": "",
+  "config_name": "tatsu-lab--alpaca",
+  "dataset_size": 46208623,
+  "description": "",
+  "download_checksums": {
+    "https://huggingface.co/datasets/tatsu-lab/alpaca/resolve/dce01c9b08f87459cf36a430d809084718273017/data/train-00000-of-00001-a09b74b3ef9c3b56.parquet": {
+      "num_bytes": 24246638,
+      "checksum": null
+    }
+  },
+  "download_size": 24246638,
+  "features": {
+    "input_ids": {
+      "feature": {
+        "dtype": "int32",
+        "_type": "Value"
+      },
+      "_type": "Sequence"
+    },
+    "attention_mask": {
+      "feature": {
+        "dtype": "int8",
+        "_type": "Value"
+      },
+      "_type": "Sequence"
+    },
+    "labels": {
+      "feature": {
+        "dtype": "int64",
+        "_type": "Value"
+      },
+      "_type": "Sequence"
+    }
+  },
+  "homepage": "",
+  "license": "",
+  "size_in_bytes": 70455261,
+  "splits": {
+    "train": {
+      "name": "train",
+      "num_bytes": 46208623,
+      "num_examples": 52002,
+      "dataset_name": "parquet"
+    }
+  },
+  "version": {
+    "version_str": "0.0.0",
+    "major": 0,
+    "minor": 0,
+    "patch": 0
+  }
+}
