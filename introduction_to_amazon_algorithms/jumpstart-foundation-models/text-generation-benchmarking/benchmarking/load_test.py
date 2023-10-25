@@ -189,34 +189,36 @@ class LoadTester:
     def predict_once_and_collect_client_results(self) -> PredictionResult:
         """Perform a single endpoint prediction and produce a PredictionResult."""
         time_utc_start = datetime.datetime.utcnow()
-        try:
-            result = self.predictor.predict(self.payload, custom_attributes="accept_eula=True")
-        except Exception as e:
-            result = e
+        result = self.predictor.predict(self.payload, custom_attributes="accept_eula=True")
         time_utc_end = datetime.datetime.utcnow()
         return PredictionResult(time_utc_start, time_utc_end, self.payload, result)
 
     def run_load_test(self, num_invocations: int, max_workers: int) -> Optional[BatchInvocationStatistics]:
         """Concurrently invoke an endpoint prediction multiple times and gather results in BatchInvocationStatistics."""
         time_utc_start = datetime.datetime.utcnow()
-        results = []
-        error = None
         timeout_seconds = SM_INVOCATION_TIMEOUT_SECONDS * num_invocations / max_workers
+        logging_prefix_long = logging_prefix(self.model_id, self.payload_name, max_workers)
+
+        logging.info(f"{logging_prefix_long} Begin throughput load test ...")
+
         with futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
             futures_list = [
                 executor.submit(self.predict_once_and_collect_client_results) for _ in range(num_invocations)
             ]
-            for future in futures.as_completed(futures_list, timeout=timeout_seconds):
-                result = future.result()
-                if isinstance(result.result, Exception):
-                    error = copy.deepcopy(result.result)
-                    for future_to_cancel in futures_list:
-                        future_to_cancel.cancel()
-                else:
-                    results.append(result)
+            done, not_done = futures.wait(futures_list, timeout=timeout_seconds, return_when=futures.FIRST_EXCEPTION)
+            for future in done:
+                if future._exception is not None:
+                    logging.info(
+                        f"{logging_prefix_long} Cancelling and awaiting future completion: {future._exception}"
+                    )
+                    if not_done:
+                        for future_to_cancel in not_done:
+                            future_to_cancel.cancel()
+                        futures.wait(not_done, timeout=SM_INVOCATION_TIMEOUT_SECONDS, return_when=futures.ALL_COMPLETED)
 
-        if error is not None:
-            raise error
+                    raise future._exception
+            results = [future.result(timeout=0.0) for future in futures_list]
+
         time_utc_end = datetime.datetime.utcnow()
         return BatchInvocationStatistics(time_utc_start, time_utc_end, num_invocations, results)
 
@@ -236,7 +238,6 @@ class LoadTester:
         return metrics
 
     def run_throughput_load_test(self, num_invocations: int, max_workers: int) -> Dict[str, Any]:
-        logging.info(f"{logging_prefix(self.model_id, self.payload_name, max_workers)} Begin throughput load test ...")
         statistics_throughput = self.run_load_test(num_invocations, max_workers)
         metrics = statistics_throughput.get_statistics(self.tokenizer, self.price_per_endpoint)
         metrics.update(

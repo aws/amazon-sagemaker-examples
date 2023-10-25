@@ -1,11 +1,7 @@
 from abc import abstractmethod
-import logging
-import time
 from typing import Any, Dict, Optional
 
 from sagemaker.predictor import Predictor
-
-from benchmarking.logging import logging_prefix
 
 
 class ConcurrentProbeIteratorBase:
@@ -36,28 +32,14 @@ class ConcurrentProbeIteratorBase:
 class ConcurrentProbeExponentialScalingIterator(ConcurrentProbeIteratorBase):
     """An iterator used during a concurrency probe to exponentially scale concurrent requests."""
 
-    def __init__(
-        self,
-        model_id: str,
-        payload_name: str,
-        start: int = 1,
-        scale_factor: float = 2.0,
-        time_out_wait_time_seconds: float = 60.0,
-    ) -> None:
+    def __init__(self, model_id: str, payload_name: str, start: int = 1, scale_factor: float = 2.0) -> None:
         self.concurrent_requests = start
         self.scale_factor = scale_factor
-        self.time_out_wait_time_seconds = time_out_wait_time_seconds
         super().__init__(model_id, payload_name)
 
     def __next__(self) -> int:
         if self.exception is not None:
-            _logging_prefix = logging_prefix(self.model_id, self.payload_name, self.concurrent_requests)
             self.stop_reason = f"Error occured: {self.exception}"
-            if "timed out" in str(self.exception):
-                logging.info(
-                    f"{_logging_prefix} Waiting {self.time_out_wait_time_seconds} seconds to clear time out error ..."
-                )
-                time.sleep(self.time_out_wait_time_seconds)
             raise StopIteration
 
         if self.result is None:

@@ -50,8 +50,8 @@ class SageMakerClient:
     def __init__(self) -> None:
         self._client = boto3.client("sagemaker")
 
-    def describe_endpoint_config(self, endpoint_name: str) -> Dict[str, Any]:
-        return self._client.describe_endpoint_config(EndpointConfigName=endpoint_name)
+    def describe_endpoint_config(self, endpoint_config_name: str) -> Dict[str, Any]:
+        return self._client.describe_endpoint_config(EndpointConfigName=endpoint_config_name)
 
     def describe_endpoint(self, endpoint_name: str) -> Dict[str, Any]:
         return self._client.describe_endpoint(EndpointName=endpoint_name)

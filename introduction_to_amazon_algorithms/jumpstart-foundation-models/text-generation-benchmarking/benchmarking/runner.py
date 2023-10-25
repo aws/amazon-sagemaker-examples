@@ -92,8 +92,9 @@ class Benchmarker:
         metrics_throughput: Dict[str, Any] = {}
         metrics_concurrency: Dict[str, Any] = {}
 
-        endpoint_config_description = self._sagemaker_client.describe_endpoint_config(predictor.endpoint_name)
         endpoint_description = self._sagemaker_client.describe_endpoint(predictor.endpoint_name)
+        endpoint_config_name = endpoint_description["EndpointConfigName"]
+        endpoint_config_description = self._sagemaker_client.describe_endpoint_config(endpoint_config_name)
         model_description = self._sagemaker_client.describe_model(predictor.endpoint_name)
 
         production_variant = endpoint_config_description["ProductionVariants"][0]
