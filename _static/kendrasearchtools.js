@@ -586,7 +586,7 @@ var KendraSearch = {
    * execute search (requires search index to be loaded)
    */
    query : function(query, pageNumber, pageSize=10, filters={}) {
-    var url = "https://9cs56celvj.execute-api.us-west-2.amazonaws.com/prod"
+    var url = "https://1q43ik7b39.execute-api.us-west-2.amazonaws.com/prod"
 
     $('#search-progress').empty();
 
