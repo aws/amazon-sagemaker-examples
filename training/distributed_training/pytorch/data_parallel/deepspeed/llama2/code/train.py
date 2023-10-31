@@ -8,7 +8,12 @@ import torch.distributed as dist
 from utils import create_dataloaders, StubDataset
 import functools
 import deepspeed
-import smdistributed.dataparallel.torch.torch_smddp # importing SMDDP library
+try:
+    backend = "smddp"
+    import smdistributed.dataparallel.torch.torch_smddp
+except ModuleNotFoundError:
+    backend = "nccl"
+    print("Warning: SMDDP not found on this image, falling back to NCCL!")
 
 def parse_args():
   parser = argparse.ArgumentParser()
@@ -198,7 +203,7 @@ def training_function(args):
   dist.barrier()
 
 def main():
-  deepspeed.init_distributed(dist_backend="smddp")  
+  deepspeed.init_distributed(dist_backend=backend)  
 
   args, _ = parse_args()
   training_function(args)

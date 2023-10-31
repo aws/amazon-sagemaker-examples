@@ -35,8 +35,13 @@ from torch.distributed.fsdp.wrap import (
     transformer_auto_wrap_policy,
 )
 import functools
+try:
+    backend = "smddp"
+    import smdistributed.dataparallel.torch.torch_smddp
+except ModuleNotFoundError:
+    backend = "nccl"
+    print("Warning: SMDDP not found on this image, falling back to NCCL!")
 
-import smdistributed.dataparallel.torch.torch_smddp
 def parse_arge():
     """Parse the arguments."""
     parser = argparse.ArgumentParser()
@@ -279,7 +284,7 @@ def training_function(args):
 
 
 def main():
-    torch.distributed.init_process_group("smddp")
+    torch.distributed.init_process_group(backend)
     args, _ = parse_arge()
     args.local_rank = int(os.environ["LOCAL_RANK"])
     args.rank = int(os.environ["RANK"])
