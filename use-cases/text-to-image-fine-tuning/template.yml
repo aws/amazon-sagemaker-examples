@@ -64,10 +64,11 @@ Resources:
   TrainingS3Bucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketEncryption: 
-        ServerSideEncryptionConfiguration:
-          - ServerSideEncryptionByDefault: 
-              SSEAlgorithm: AES256
+      # If you are using an older version of ControlTower guardrails, this may fail if the guardrail disallows changes to the encryption config
+      # BucketEncryption: 
+      #   ServerSideEncryptionConfiguration:
+      #     - ServerSideEncryptionByDefault: 
+      #         SSEAlgorithm: AES256
       BucketName: !Sub '${TrainingS3BucketNamePrefix}-${AWS::AccountId}'
 
   # The CodeBuild project that build the training container image and pushes the image to ECR
