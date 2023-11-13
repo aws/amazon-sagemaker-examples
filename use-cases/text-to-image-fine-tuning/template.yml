@@ -7,7 +7,7 @@ Description: Template that provides automation to fine-tune a Stable Diffusion X
 Parameters:
   TrainingS3BucketNamePrefix:
     Type: String
-    Default: kohya-ss-fine-tuning
+    Default: sagemaker-kohya-ss-fine-tuning
     Description: The S3 bucket for the custom dataset (images), config files, and model outputs. The AWS Account ID will be appended to this name automatically to ensure uniqueness.
   TrainingContainerRepositoryName:
     Type: String

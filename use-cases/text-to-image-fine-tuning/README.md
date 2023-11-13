@@ -12,11 +12,12 @@
         cd amazon-sagemaker-examples/
         git sparse-checkout set use-cases/text-to-image-fine-tuning
         git checkout
-4. In Amazon SageMaker Studio, in the left-hand navigation pane, click the File Browser and navigate to the project directory. Open the Jupyter Notebook named kohya-ss-fine-tuning.ipynb. You may now continue with this Notebook to start setting up your solution.
+4. In Amazon SageMaker Studio, in the left-hand navigation pane, click the File Browser and navigate to the project directory (amazon-sagemaker-examples/use-cases/text-to-image-fine-tuning). Open the Jupyter Notebook named kohya-ss-fine-tuning.ipynb.
+5. Select the runtime (defaults are fine) and wait for the notebook kernel to boot. You may now continue with this Notebook to start setting up your solution.
 
 ---
 
-### S3 Bucket (kohya-ss-fine-tuning-\<accountid\>)
+### S3 Bucket (sagemaker-kohya-ss-fine-tuning-\<accountid\>)
 The S3 bucket where we will upload the custom dataset (images) to fine-tune a custom model. We will upload the images and the kohya ss configuration file in the notebook, and the SageMaker pipeline will orchestrate the training and output the model to this same S3 bucket.
 
 ### CodeCommit Repository (kohya-ss-fine-tuning-container-image)
