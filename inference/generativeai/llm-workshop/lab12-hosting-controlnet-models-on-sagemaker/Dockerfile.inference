@@ -10,11 +10,14 @@ RUN pip install boto3 huggingface_hub triton deepspeed accelerate
 RUN mkdir -p /opt/ml/code
 WORKDIR /opt/ml/code
 
-ADD https://api.github.com/repos/xieyongliang/stable-diffusion-webui/git/refs/heads/api-v1.5.1 /opt/ml/webui.version.json
-RUN git clone https://github.com/xieyongliang/stable-diffusion-webui.git /opt/ml/code -b api-v1.5.1
+ADD https://api.github.com/repos/xieyongliang/stable-diffusion-webui/git/refs/heads/api-v1.6.0-reinvent2023 /opt/ml/webui.version.json
+RUN git clone https://github.com/xieyongliang/stable-diffusion-webui.git /opt/ml/code -b api-v1.6.0-reinvent2023
 
 ADD https://api.github.com/repos/Mikubill/sd-webui-controlnet/git/refs/heads/main /opt/ml/controlnet.version.json
 RUN git clone https://github.com/Mikubill/sd-webui-controlnet.git /opt/ml/code/extensions/sd-webui-controlnet
+
+ADD https://api.github.com/repos/xieyongliang/inpaint-anything/git/refs/heads/main /opt/ml/inpaint-anything.version.json
+RUN git clone https://github.com/xieyongliang/inpaint-anything.git /opt/ml/code/extensions/inpaint-anything
 
 RUN python launch.py -f --exit --skip-torch-cuda-test
 RUN pip install -U pytorch_lightning==1.6.5 pydantic==1.10.11
