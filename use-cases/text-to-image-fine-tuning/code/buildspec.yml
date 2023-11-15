@@ -11,6 +11,8 @@ phases:
     commands:
       - echo Build started on `date`
       # Clone the specific version of the GitHub repository for Kohya SS
+      # Tested as of version v22.1.1. If you use newer versions, you will want to check the Dockerfile and the docker-compose.yaml file in the 
+      # repository, and the training entrypoint for SDXL (sdxl_train_network.py) in the custom "train" file located in this repository
       - git clone https://github.com/bmaltais/kohya_ss.git --branch ${KOHYA_SS_VERSION}
       # Overwrite the Dockerfile with the custom one we have in the CodeCommit repository
       # Our Dockerfile has minor tweaks to enable using SageMaker Training Jobs
@@ -20,12 +22,11 @@ phases:
       # but eventually the Docker context may be changed so we don't have to add the train file to this directory
       - chmod +x ./train && mv -f ./train ./kohya_ss/train
       - cd kohya_ss
-      # TODO: find out if the image name needs to be kohya-ss-gui
-      # - sed -i "s/kohya-ss-gui:latest/$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com\/kohya-ss-gui:latest/" docker-compose.yaml
       - echo Building the Docker image that will be used for training...          
       # Build and tag the container image
       - docker compose build --no-cache=true --progress=plain
-      - docker tag $IMAGE_REPO_NAME:$IMAGE_TAG $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:$IMAGE_TAG   
+      # The "kohya-ss-gui:latest" comes from the Kohya SS Docker config: https://github.com/bmaltais/kohya_ss/blob/v22.1.1/docker-compose.yaml#L5
+      - docker tag kohya-ss-gui:latest $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:$IMAGE_TAG   
   post_build:
     commands:
       # Push the container image to ECR

@@ -1,6 +1,3 @@
-# TODO: test https://github.com/bmaltais/kohya_ss/blob/master/Dockerfile different version, update template.yml env var and also readme
-# TODO: find out if the image name needs to be kohya-ss-gui
-
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::LanguageExtensions # allows you to convert object to json
 Description: Template that provides automation to fine-tune a Stable Diffusion XL (SDXL) model using a custom image dataset
@@ -84,7 +81,7 @@ Resources:
         EnvironmentVariables:
           - Name: KOHYA_SS_VERSION
             Type: PLAINTEXT
-            Value: v21.8.9
+            Value: v22.1.1
           - Name: IMAGE_TAG
             Type: PLAINTEXT
             Value: latest
@@ -151,7 +148,8 @@ Resources:
                 Description: S3 URI of the training dataset
                 DefaultValue: !Join
                   - ''
-                  - - !Ref TrainingS3Bucket
+                  - - 's3://'
+                    - !Ref TrainingS3Bucket
                     - '/'
                     - '0001-dataset'
               - Name: OutputS3ModelLocation
@@ -159,17 +157,18 @@ Resources:
                 Description: The S3 location where the model will be output to
                 DefaultValue: !Join
                   - ''
-                  - - !Ref TrainingS3Bucket
+                  - - 's3://'
+                    - !Ref TrainingS3Bucket
                     - '/'
                     - 'model-outputs'
               - Name: TrainingDockerImage
                 Type: String
                 Description: The ECR docker image that will be used for training
-                DefaultValue: !Sub ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${TrainingContainerCodeRepositoryName}:latest
+                DefaultValue: !Sub ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${TrainingContainerRepositoryName}:latest
               - Name: TrainingInstanceType
                 Type: String
                 Description: The instance type to use for training
-                DefaultValue: ml.g5.4xlarge
+                DefaultValue: ml.g5.8xlarge
               - Name: TrainingVolumeSizeInGB
                 Type: Integer
                 Description: The instance volume size to use for training
@@ -300,7 +299,7 @@ Resources:
                   - ecs:UpdateService
                   - ecr:BatchGetImage
                   - ecr:GetDownloadUrlForLayer
-                Resource: !GetAtt TrainingContainerECRRepository.Arn
+                Resource: '*'
               - Effect: Allow
                 Action: 
                   - logs:CreateLogGroup
