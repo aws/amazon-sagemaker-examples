@@ -10,5 +10,5 @@ SageMaker:
         Dependencies: ./requirements.txt
         IncludeLocalWorkDir: true
         CustomFileFilter:
-          IgnoreNamePatterns:
-            - "data"
+          IgnoreNamePatterns: # files or directories to ignore
+          - "*.ipynb" # all notebook files
