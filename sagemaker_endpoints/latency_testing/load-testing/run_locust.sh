@@ -6,9 +6,9 @@ export ENDPOINT_NAME=https://$1
 export REGION=$2
 export CONTENT_TYPE=text/csv
 # export PAYLOAD='{"inputs": "I am super happy right now."}'
-export USERS=120
-export WORKERS=30
-export RUN_TIME=5mg
+export USERS=50
+export WORKERS=5
+export RUN_TIME=5m
 export LOCUST_UI=false # Use Locust UI
 
 parent_path=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
