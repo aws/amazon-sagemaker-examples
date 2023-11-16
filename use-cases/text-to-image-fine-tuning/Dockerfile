@@ -41,17 +41,23 @@ RUN python3 -m pip install -r ./requirements.txt
 # WARNING[XFORMERS]: xFormers can't load C++/CUDA extensions. xFormers was built for:
 #    PyTorch 2.0.1+cu118 with CUDA 1108 (you have 2.1.0+cu121)
 #    Python  3.10.11 (you have 3.10.11)
-# In order to resolve this issue temporarily, the following line must be added to update the correct dependencies
+# Furthermore, torch version 2.1.1 and torchvision 0.16.1 was released on November 15, 2023 which also led to incompatible dependencies.
+# In order to resolve this issue temporarily, xformers==0.0.22.post7, torch==2.1.0, and torchvision==0.16.0 must be installed (see next 3 "RUN" lines). 
 # In future versions of the Kohya SS git repository, this will likely be updated in the requirements file(s). At that
-# point, you may remove this line and use an updated version of the git repo (see the template.yml file to update the version).
+# point, you may remove this line and use an updated version of the Kohya git repo (see the template.yml file to update the version).
 
+##### TODO: Keep an eye on Kohya SS Git repo for a new version that has compatible dependencies for PyTorch/xFormers.
+##### Use that version once it's available, and remove the next 3 RUN commands
 # https://github.com/bmaltais/kohya_ss/issues/1651
 # https://github.com/facebookresearch/xformers/issues/897
 # https://github.com/facebookresearch/xformers/issues/870
 # https://github.com/bmaltais/kohya_ss/issues/1588
 # https://github.com/bmaltais/kohya_ss/issues/1638
 # https://github.com/facebookresearch/xformers/issues/874
+RUN python3 -m pip install -v -U torch==2.1.0
+RUN python3 -m pip install -v -U torchvision==0.16.0
 RUN python3 -m pip install -v -U xformers==0.0.22.post7 --index-url https://download.pytorch.org/whl/cu118
+#### END TODO
 
 # Replace pillow with pillow-simd
 RUN python3 -m pip uninstall -y pillow && \
