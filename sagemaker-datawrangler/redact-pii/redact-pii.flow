@@ -1,0 +1,195 @@
+{
+  "metadata": {
+    "version": 1,
+    "disable_limits": false,
+    "instance_type": "ml.m5.4xlarge",
+    "disable_validation": true
+  },
+  "parameters": [],
+  "nodes": [
+    {
+      "node_id": "5ed4815f-8bcc-4d85-a786-0b91f07b605b",
+      "type": "SOURCE",
+      "operator": "sagemaker.s3_source_0.1",
+      "parameters": {
+        "dataset_definition": {
+          "__typename": "S3CreateDatasetDefinitionOutput",
+          "datasetSourceType": "S3",
+          "name": "synthetic_txn_data_new.csv",
+          "description": null,
+          "s3ExecutionContext": {
+            "__typename": "S3ExecutionContext",
+            "s3Uri": "s3://aws-ml-blog/artifacts/fraud-detector-transaction-fraud-insights/synthetic_txn_data_new.csv",
+            "s3ContentType": "csv",
+            "s3HasHeader": true,
+            "s3FieldDelimiter": ",",
+            "s3DirIncludesNested": false,
+            "s3AddsFilenameColumn": false,
+            "s3RoleArn": null
+          }
+        }
+      },
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "default",
+          "sampling": {
+            "sampling_method": "sample_by_count",
+            "sample_size": 2000
+          }
+        }
+      ]
+    },
+    {
+      "node_id": "dcfd66e0-e081-4136-a6bf-af5f0fa4c443",
+      "type": "TRANSFORM",
+      "operator": "sagemaker.spark.infer_and_cast_type_0.1",
+      "parameters": {},
+      "trained_parameters": {
+        "schema": {
+          "EVENT_TIMESTAMP": "datetime",
+          "EVENT_ID": "string",
+          "ENTITY_ID": "string",
+          "ENTITY_TYPE": "string",
+          "EVENT_LABEL": "long",
+          "LABEL_TIMESTAMP": "datetime",
+          "card_bin": "long",
+          "customer_name": "string",
+          "billing_street": "string",
+          "billing_city": "string",
+          "billing_state": "string",
+          "billing_zip": "long",
+          "billing_latitude": "float",
+          "billing_longitude": "float",
+          "customer_job": "string",
+          "ip_address": "string",
+          "customer_email": "string",
+          "phone": "string",
+          "user_agent": "string",
+          "product_category": "string",
+          "order_price": "float",
+          "payment_currency": "string",
+          "merchant": "string"
+        }
+      },
+      "inputs": [
+        {
+          "name": "df",
+          "node_id": "5ed4815f-8bcc-4d85-a786-0b91f07b605b",
+          "output_name": "default"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "default"
+        }
+      ]
+    },
+    {
+      "node_id": "8c3966bd-872e-47a1-8dfe-de8ad315d353",
+      "type": "TRANSFORM",
+      "operator": "sagemaker.spark.custom_code_0.1",
+      "parameters": {
+        "operator": "Python (User-Defined Function)",
+        "udf_parameters": {
+          "return_type": "string",
+          "udf_mode": "Pandas",
+          "input_col": "pii_col_prep",
+          "output_col": "pii_redacted",
+          "pandas_code": "import boto3\nimport json\nimport pandas as pd\n\n\ndef custom_func(series: pd.Series) -> pd.Series:\n  \"\"\" The following function is applied over batches of the input. The Series that it outputs must be the same length as the input Series.\n  \"\"\"\n  \n  # #############################################################################\n  # Constants\n  \n  # Comprehend maximum character limits\n  COMPREHEND_MAX_CHARS = 100000\n  # delimeter for end of cell text - must match Step 5s\n  CELL_DELIM = \"<R>\"\n  # comprehend client\n  comprehend = boto3.client(\"comprehend\", region_name=\"us-east-1\")\n  \n  # #############################################################################\n  # Helper Functions\n  \n  def make_text_chunks(series, max_num_chars):\n\n    cells = series.to_list()\n    chunks = []\n    chunk_text = \"\"\n    \n    # assume: all cells are truncated to comprehend limit\n    for cell_text in cells:\n        if len(cell_text) + len(chunk_text) < max_num_chars:\n            chunk_text = chunk_text + cell_text\n            continue\n        chunks.append(chunk_text)\n        chunk_text = cell_text\n\n    chunks.append(chunk_text)\n    return chunks\n\n  \n  def redact_pii(text):\n    # identify PII in the text\n    result = comprehend.detect_pii_entities(LanguageCode = 'en', Text=text)\n    \n    text_redacted = \"\"    \n    char_i = 0\n    # loop through each PII entity and redact\n    for e in result['Entities']:\n      text_redacted += text[char_i:e['BeginOffset']] \n      text_redacted += \"[\" + e['Type'] + \"]\"\n      char_i = e['EndOffset']\n    \n    if text_redacted == \"\":\n      # if no PII, return original string\n      text_redacted = text\n    else:\n      # add the last non-PII section of the string\n      text_redacted += text[char_i:]\n          \n    return text_redacted\n  \n  \n  # #############################################################################\n  # Function code\n  \n  # concatenate text from cells into longer chunks\n  chunks = make_text_chunks(series, COMPREHEND_MAX_CHARS)\n\n  redacted_chunks = []\n  # call Comprehend once for each chunk\n  for text in chunks:\n    redacted_text = redact_pii(text)\n    redacted_chunks.append(redacted_text)\n  \n  # join all redacted chunks into one text string\n  redacted_text = ''.join(redacted_chunks)\n  # split back to list of the original rows\n  redacted_rows = redacted_text.split(CELL_DELIM)\n  # remove extra row added by split\n  redacted_rows = redacted_rows[:-1]\n  \n  return pd.Series(redacted_rows)"
+        },
+        "pyspark_parameters": {},
+        "name": "Redact PII"
+      },
+      "inputs": [
+        {
+          "name": "df",
+          "node_id": "39b7cb6e-0af0-45f1-864e-5c0b3fa161fe",
+          "output_name": "default"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "default"
+        }
+      ]
+    },
+    {
+      "node_id": "39b7cb6e-0af0-45f1-864e-5c0b3fa161fe",
+      "type": "TRANSFORM",
+      "operator": "sagemaker.spark.custom_code_0.1",
+      "parameters": {
+        "operator": "Python (User-Defined Function)",
+        "udf_parameters": {
+          "return_type": "string",
+          "udf_mode": "Pandas",
+          "input_col": "pii_col",
+          "output_col": "pii_col_prep",
+          "pandas_code": "import pandas as pd\n# Add imports for sklearn, numpy, or any other packages you might need.\n\ndef custom_func(series: pd.Series) -> pd.Series:\n  \"\"\" The following function is applied over batches of the input. The Series that it outputs must be the same length as the input Series.\n  \"\"\"\n  COMPREHEND_MAX_CHARS = 100000\n  CELL_DELIM = \"<R>\"\n  # truncate the text in each cell (assuming the delimeter is added) to Comprehend's maximum length \n  # add the delimiter to the end of each cell\n  return series.apply(lambda x: x[:min(len(x), COMPREHEND_MAX_CHARS - len(CELL_DELIM))] + CELL_DELIM)"
+        },
+        "pyspark_parameters": {},
+        "name": "Prep for redaction"
+      },
+      "inputs": [
+        {
+          "name": "df",
+          "node_id": "6b5747fb-a779-44f2-93de-a4690052e15a",
+          "output_name": "default"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "default"
+        }
+      ]
+    },
+    {
+      "node_id": "6b5747fb-a779-44f2-93de-a4690052e15a",
+      "type": "TRANSFORM",
+      "operator": "sagemaker.spark.custom_code_0.1",
+      "parameters": {
+        "operator": "Python (PySpark)",
+        "pyspark_parameters": {
+          "code": "# Table is available as variable `df`\nfrom pyspark.sql.functions import col, concat, lit\n\ndf = df.withColumn(\n  \"pii_col\", concat(\n    col(\"customer_name\"), \n    lit(\" is a \"), \n    col(\"customer_job\"), \n    lit(\" who lives at \"),\n  \tcol(\"billing_street\"),\n    lit(\" and can be emailed at \"),\n    col(\"customer_email\")\n  )\n)"
+        },
+        "name": "Make PII column"
+      },
+      "inputs": [
+        {
+          "name": "df",
+          "node_id": "7d08360b-c216-4150-a8a5-a080b8311ffa",
+          "output_name": "default"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "default"
+        }
+      ]
+    },
+    {
+      "node_id": "7d08360b-c216-4150-a8a5-a080b8311ffa",
+      "type": "TRANSFORM",
+      "operator": "sagemaker.spark.sampling_0.1",
+      "parameters": {
+        "sampling_method": "Random",
+        "random_parameters": {
+          "sample_size": 1000,
+          "seed": 1
+        }
+      },
+      "inputs": [
+        {
+          "name": "df",
+          "node_id": "dcfd66e0-e081-4136-a6bf-af5f0fa4c443",
+          "output_name": "default"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "default"
+        }
+      ]
+    }
+  ]
+}
