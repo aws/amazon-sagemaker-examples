@@ -87,6 +87,7 @@ class Benchmarker:
         model_id: str,
         payload_name: str,
         tokenizer_model_id: str,
+        huggingface_hub_token: Optional[str] = None
     ) -> Dict[str, Any]:
         metrics_latency: Dict[str, Any] = {}
         metrics_throughput: Dict[str, Any] = {}
@@ -98,7 +99,7 @@ class Benchmarker:
         model_description = self._sagemaker_client.describe_model(predictor.endpoint_name)
 
         production_variant = endpoint_config_description["ProductionVariants"][0]
-        primary_container = model_description["PrimaryContainer"]
+        primary_container = model_description.get("PrimaryContainer")
 
         instance_type = production_variant["InstanceType"]
         price_per_instance = self._pricing_client.get_price_per_unit(instance_type, SM_SESSION._region_name)
@@ -122,6 +123,7 @@ class Benchmarker:
             model_id,
             payload_name,
             tokenizer_model_id,
+            huggingface_hub_token,
             price_per_endpoint,
         )
 
@@ -151,13 +153,14 @@ class Benchmarker:
         model_id: str,
         predictor: Predictor,
         tokenizer_model_id: Optional[str] = None,
+        huggingface_hub_token: Optional[str] = None,
     ) -> List[Dict[str, Any]]:
         """Run benchmarker given a Predictor for an in-service model endpoint."""
         metrics = []
         try:
             for payload_name, payload in self.payloads.items():
                 metrics_payload = self._run_benchmarking_tests(
-                    predictor, payload, model_id, payload_name, tokenizer_model_id
+                    predictor, payload, model_id, payload_name, tokenizer_model_id, huggingface_hub_token
                 )
                 metrics.append(metrics_payload)
         finally:
@@ -184,11 +187,12 @@ class Benchmarker:
                 logging.warning(f"{logging_prefix(model_id)} Failed to retrieve predictor, re-deploying model: {e}")
                 predictor = self.deploy_model(model_id, model_args)
         else:
-            pass
             predictor = self.deploy_model(model_id, model_args)
 
         self.model_id_to_endpoint_name[model_id] = predictor.endpoint_name
-        metrics = self.run_single_predictor(model_id, predictor, model_args["huggingface_model_id"])
+        metrics = self.run_single_predictor(
+            model_id, predictor, model_args["huggingface_model_id"], model_args.get("huggingface_hub_token")
+        )
         return metrics, predictor
 
     def retrieve_predictor_from_endpoint(
@@ -304,6 +308,7 @@ class Benchmarker:
                 ["metrics", "PricePerInstance"],
                 ["metrics", "DeploymentTime"],
             ],
+            errors="ignore",
         )
 
     @staticmethod

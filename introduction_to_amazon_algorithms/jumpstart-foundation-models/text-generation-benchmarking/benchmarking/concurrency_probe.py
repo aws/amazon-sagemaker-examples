@@ -39,7 +39,8 @@ class ConcurrentProbeExponentialScalingIterator(ConcurrentProbeIteratorBase):
 
     def __next__(self) -> int:
         if self.exception is not None:
-            self.stop_reason = f"Error occured: {self.exception}"
+            e = self.exception
+            self.stop_reason = "".join([type(e).__name__, f": {e}" if str(e) else ""])
             raise StopIteration
 
         if self.result is None:

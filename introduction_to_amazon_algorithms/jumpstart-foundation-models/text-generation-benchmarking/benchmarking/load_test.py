@@ -1,11 +1,8 @@
 from concurrent import futures
-import copy
 import datetime
 from copy import deepcopy
-import json
 import logging
-from threading import Event
-from typing import Any, Callable, Dict, List, NamedTuple, Optional, Type, Union
+from typing import Any, Callable, Dict, List, NamedTuple, Optional, Set, Type, Union
 import math
 import time
 
@@ -136,14 +133,15 @@ class BatchInvocationStatistics(NamedTuple):
             latency_per_token = self._collect_statistics(
                 [x.client_latency() / x.num_tokens(tokenizer) for x in self.results if x.num_tokens(tokenizer) > 0]
             )
+            token_throughput = self._throughput(output_sequence_tokens)
             token_throughput_robust = self._throughput_robust(output_sequence_tokens)
-            time_to_generate_1m_tokens = 1e6 / token_throughput_robust / 3600
+            time_to_generate_1m_tokens = 1e6 / token_throughput / 3600
             statistics.update(
                 {
                     "OutputSequenceTokens": self._collect_statistics([output_sequence_tokens for x in self.results]),
                     "LatencyPerToken": latency_per_token,
                     "TokenThroughputRobust": token_throughput_robust,
-                    "TokenThroughput": self._throughput(output_sequence_tokens),
+                    "TokenThroughput": token_throughput,
                     "TimeToGenerate1MTokens": time_to_generate_1m_tokens,
                 }
             )
@@ -173,6 +171,7 @@ class LoadTester:
         model_id: str,
         payload_name: str,
         tokenizer_model_id: Optional[str] = None,
+        huggingface_hub_token: Optional[str] = None,
         price_per_endpoint: Optional[float] = None,
     ) -> None:
         self.predictor = predictor
@@ -181,7 +180,7 @@ class LoadTester:
         self.payload_name = payload_name
         self._logging_prefix = logging_prefix(self.model_id, self.payload_name)
         if tokenizer_model_id is not None:
-            self.tokenizer = AutoTokenizer.from_pretrained(tokenizer_model_id)
+            self.tokenizer = AutoTokenizer.from_pretrained(tokenizer_model_id, token=huggingface_hub_token)
         else:
             self.tokenizer = None
         self.price_per_endpoint = price_per_endpoint
@@ -197,9 +196,9 @@ class LoadTester:
         """Concurrently invoke an endpoint prediction multiple times and gather results in BatchInvocationStatistics."""
         time_utc_start = datetime.datetime.utcnow()
         timeout_seconds = SM_INVOCATION_TIMEOUT_SECONDS * num_invocations / max_workers
-        logging_prefix_long = logging_prefix(self.model_id, self.payload_name, max_workers)
+        _logging_prefix = logging_prefix(self.model_id, self.payload_name, max_workers)
 
-        logging.info(f"{logging_prefix_long} Begin throughput load test ...")
+        logging.info(f"{_logging_prefix} Begin throughput load test ...")
 
         with futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
             futures_list = [
@@ -208,19 +207,29 @@ class LoadTester:
             done, not_done = futures.wait(futures_list, timeout=timeout_seconds, return_when=futures.FIRST_EXCEPTION)
             for future in done:
                 if future._exception is not None:
-                    logging.info(
-                        f"{logging_prefix_long} Cancelling and awaiting future completion: {future._exception}"
-                    )
+                    logging.info(f"{_logging_prefix} Cancelling and awaiting future completion: {future._exception}")
                     if not_done:
-                        for future_to_cancel in not_done:
-                            future_to_cancel.cancel()
-                        futures.wait(not_done, timeout=SM_INVOCATION_TIMEOUT_SECONDS, return_when=futures.ALL_COMPLETED)
-
+                        self._cancel_futures_and_wait(not_done)
                     raise future._exception
+                
+            if not_done:
+                logging.info(f"{_logging_prefix} Cancelling and awaiting future completion: Load test timeout.")
+                self._cancel_futures_and_wait(not_done)
+                raise TimeoutError("Load test timeout.")
+
             results = [future.result(timeout=0.0) for future in futures_list]
 
         time_utc_end = datetime.datetime.utcnow()
         return BatchInvocationStatistics(time_utc_start, time_utc_end, num_invocations, results)
+    
+    @staticmethod
+    def _cancel_futures_and_wait(
+        futures_list: Set[futures.Future], timeout: float = SM_INVOCATION_TIMEOUT_SECONDS
+    ) -> None:
+        if futures_list:
+            for future_to_cancel in futures_list:
+                future_to_cancel.cancel()
+            futures.wait(futures_list, timeout=timeout, return_when=futures.ALL_COMPLETED)
 
     def run_latency_load_test(
         self,
