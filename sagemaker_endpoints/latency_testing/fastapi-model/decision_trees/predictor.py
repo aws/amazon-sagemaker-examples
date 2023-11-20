@@ -19,7 +19,7 @@ class ScoringService(object):
     @classmethod
     def get_model(cls):
         """Get the model object for this instance, loading it if it's not already loaded."""
-        if cls.model == None:
+        if cls.model is None:
             with open(os.path.join(model_path, "decision-tree-model.pkl"), "rb") as inp:
                 cls.model = pickle.load(inp)
         return cls.model
@@ -59,8 +59,8 @@ async def transformation(request: Request):
     content_type = request.headers.get("content-type", None)
     if content_type == "text/csv":
         content = await request.body()
-        s = io.BytesIO(content)
-        data = pd.read_csv(s, header=None)
+        with io.BytesIO(content) as s:
+            data = pd.read_csv(s, header=None)
     else:
         return Response(
             content="This predictor only supports csv data", 
