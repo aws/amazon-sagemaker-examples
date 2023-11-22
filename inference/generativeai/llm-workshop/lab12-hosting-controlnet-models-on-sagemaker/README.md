@@ -14,6 +14,7 @@ You will find 2 Jupyter Notebooks: 1 for running with Amazon SageMaker Studio an
 
     ```
     AmazonSageMakerFullAccess
+    AmazonEC2ContainerRegistryFullAccess
     AWSCodeBuildAdminAccess
     IAMFullAccess
     ```
@@ -43,8 +44,8 @@ You will find 2 Jupyter Notebooks: 1 for running with Amazon SageMaker Studio an
 * Permission Policies
 
     ```
-    AmazonEC2ContainerRegistryFullAccess
     AmazonSageMakerFullAccess
+    AmazonEC2ContainerRegistryFullAccess
     ```
 
 * Trusted entities
