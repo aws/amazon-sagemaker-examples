@@ -2,7 +2,7 @@
 
 ## Overview
 
-In this notebook, we explore how to build generative fill application and host Stable Diffusion/ ControlNet / segment anything models on SageMaker asynchronous endpoint using BYOC (Bring-your-own-container).
+In this notebook, we will explore how to build generative fill application and host Stable Diffusion/ ControlNet / segment anything models on SageMaker asynchronous endpoint using DLC container.
 
 You will find 2 Jupyter Notebooks: 1 for running with Amazon SageMaker Studio and 1 for running with Amazon SageMaker Notebook.
 
@@ -39,6 +39,14 @@ You will find 2 Jupyter Notebooks: 1 for running with Amazon SageMaker Studio an
     }
     ```
 
+* Tested image, kernel, and instance:
+    ```
+    image: Pytorch 2.0.1 Python 3.10 CPU Optimized
+    kernel: Python 3
+    instance: ml.m5.4xlarge
+    
+    ```
+
 2) Running with Amazon SageMaker Notebook
 
 * Permission Policies
@@ -66,6 +74,12 @@ You will find 2 Jupyter Notebooks: 1 for running with Amazon SageMaker Studio an
             }
         ]
     }
+    ```
+
+* Tested kernel:
+    ```
+    kernel: conda_pytorch_p310
+    
     ```
 
 ## Note
