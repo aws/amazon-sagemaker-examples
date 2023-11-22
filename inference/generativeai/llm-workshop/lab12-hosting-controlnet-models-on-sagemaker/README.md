@@ -6,7 +6,7 @@ In this notebook, we explore how to build generative fill application and host S
 
 You will find 2 Jupyter Notebooks: 1 for running with Amazon SageMaker Studio and 1 for running with Amazon SageMaker Notebook.
 
-## IAM role recommendations:
+## IAM role recommendations
 
 1) Running with Amazon SageMaker Studio
 
@@ -67,7 +67,7 @@ You will find 2 Jupyter Notebooks: 1 for running with Amazon SageMaker Studio an
     }
     ```
 
-Note:
+## Note
 
 1. You may need to adjust IAM roles definition to achieve fine grained access control.
 
