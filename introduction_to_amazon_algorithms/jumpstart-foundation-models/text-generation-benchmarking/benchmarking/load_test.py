@@ -161,8 +161,10 @@ class BatchInvocationStatistics(NamedTuple):
             "Average": np.average(data).item(),
             "Minimum": np.amin(data).item(),
             "Maximum": np.amax(data).item(),
+            "p50": np.quantile(data, 0.50).item(),
             "p90": np.quantile(data, 0.90).item(),
             "p95": np.quantile(data, 0.95).item(),
+            "p99": np.quantile(data, 0.99).item(),
         }
 
 
@@ -235,7 +237,8 @@ class LoadTester:
         metrics = self._extract_cloudwatch_metrics(statistics_latency, retry_wait_time, max_total_retry_time)
         metrics["Client"] = statistics_latency.get_statistics(self.tokenizer, self.price_per_endpoint)
         metrics["ModelID"] = self.model_id
-        metrics["PayloadName"] = self.payload_name
+        metrics["Invocations"] = num_invocations
+        metrics["ConcurrentRequests"] = max_workers
         return metrics
 
     def run_throughput_load_test(self, num_invocations: int, max_workers: int) -> Dict[str, Any]:
@@ -270,6 +273,7 @@ class LoadTester:
         for concurrent_requests in concurrent_request_iterator:
             try:
                 num_invocations = num_invocation_hook(concurrent_requests)
+
                 result = self.run_throughput_load_test(num_invocations, concurrent_requests)
                 if concurrent_request_iterator.send(result, self.predictor):
                     results.append(result)

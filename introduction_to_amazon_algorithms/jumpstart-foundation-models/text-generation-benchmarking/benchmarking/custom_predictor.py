@@ -1,13 +1,17 @@
 import requests
+from urllib.parse import urlparse
 import json
+import sagemaker
 
 from sagemaker.predictor import Predictor
-import logging
-
+from sagemaker.serializers import JSONSerializer
+from sagemaker.deserializers import JSONDeserializer
 
 class CustomPredictor:
+    predictor: Predictor
+
     def __init__(self, endpoint_url=None,
-                 predictor:Predictor=None,
+                 predictor: Predictor = None,
                  instance_type=None):
         if endpoint_url is None and predictor is None:
             raise ValueError(f"both endpoint_url and predictor are none in CustomPredictor.")
@@ -19,8 +23,20 @@ class CustomPredictor:
         else:
             self.endpoint_name = self.endpoint_url
 
+    def sm_url_predict(self, payload):
+        parsed_url = urlparse(self.endpoint_url)
+        split_url = parsed_url.path.split("/")
+        endpoint_name = split_url[2]
+        self.predictor = Predictor(endpoint_name=endpoint_name,
+                                   sagemaker_session=sagemaker.session.Session(),
+                                   serializer=JSONSerializer(),
+                                   deserializer=JSONDeserializer())
+        return self.predictor.predict(payload, custom_attributes="accept_eula=True")
+
     def predict(self, payload):
         if self.predictor is None:
+            if "runtime.sagemaker" in self.endpoint_url:
+                return self.sm_url_predict(payload)
             response = requests.post(self.endpoint_url, json=payload)
             return response.text
         else:

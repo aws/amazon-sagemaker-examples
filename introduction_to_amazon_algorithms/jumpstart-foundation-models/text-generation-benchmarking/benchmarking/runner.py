@@ -353,12 +353,18 @@ class Benchmarker:
         """Pivot concurrency probe pandas DataFrame to show specified values across models and concurrent requests."""
         if value_format_dict is None:
             value_format_dict = {
-                "TokenThroughput": int,
+                "Latency.p50": "{:.2f}".format,
+                "Latency.p90": "{:.2f}".format,
+                "Latency.p99": "{:.2f}".format,
+                "TokenThroughput": "{:.2f}".format,
                 "LatencyPerToken.p90": int,
                 "CostToGenerate1MTokens": "${:,.2f}".format,
             }
         if value_name_dict is None:
             value_name_dict = {
+                "Latency.p50": "p50 latency",
+                "Latency.p90": "p90 latency",
+                "Latency.p99": "p99 latency",
                 "LatencyPerToken.p90": "p90 latency (ms/token)",
                 "TokenThroughput": "throughput (tokens/s)",
                 "CostToGenerate1MTokens": "cost to generate 1M tokens ($)",
