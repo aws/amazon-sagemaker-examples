@@ -1,7 +1,8 @@
 datasets
-transformers
+transformers[torch]
 torch
 scikit-learn
 # lock s3fs to this specific version as more recent ones introduce dependency on aiobotocore, which is not compatible with botocore
 s3fs==0.4.2
 sagemaker>=2.156.0,<3
+pandas>=2.0.0

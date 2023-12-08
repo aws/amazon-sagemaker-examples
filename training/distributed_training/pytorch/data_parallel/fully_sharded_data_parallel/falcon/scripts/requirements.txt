@@ -1,0 +1,5 @@
+transformers==4.33.0
+datasets
+accelerate>=0.21
+bitsandbytes
+einops

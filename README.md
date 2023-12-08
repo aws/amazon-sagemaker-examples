@@ -189,6 +189,13 @@ More examples for models such as BERT and YOLOv5 can be found in [distributed_tr
 - [Train EleutherAI GPT-J with Model Parallel](https://github.com/aws/amazon-sagemaker-examples/blob/main/training/distributed_training/pytorch/model_parallel/gpt-j/11_train_gptj_smp_tensor_parallel_notebook.ipynb) shows how to train EleutherAI GPT-J with PyTorch and Tensor Parallelism technique in the SageMaker Model Parallelism Library.
 - [Train MaskRCNN with Data Parallel](https://github.com/aws/amazon-sagemaker-examples/blob/main/training/distributed_training/pytorch/data_parallel/maskrcnn/pytorch_smdataparallel_maskrcnn_demo.ipynb) shows how to train MaskRCNN with PyTorch and SageMaker Data Parallelism Library.
 
+### Amazon SageMaker Smart Sifting
+
+These examples provide an Introduction to Smart Sifting library. Smart Sifting is a framework to speed up training of PyTorch models. The framework implements a set of algorithms that filter out inconsequential training examples during training, reducing the computational cost and accelerating the training process. It is configuration-driven and extensible, allowing users to add custom logic to transform their training examples into a filterable format. Smart sifting provides a generic utility for any DNN model, and can reduce the training cost by up to 35% in infrastructure cost.
+  
+- [Train Image Classification using Vision Transformer with Smart Sifting](https://github.com/aws/amazon-sagemaker-examples/tree/main/training/smart_sifting/Image_Classification_VIT/Train_Image_classification.ipynb): This Example shows how to use Smart sifting to fine tune Vision Transformers for Image Classification.
+- [Train Text Classification using BERT with Smart Sifting](https://github.com/aws/amazon-sagemaker-examples/tree/main/training/smart_sifting/Text_Classification_BERT/Train_text_classification.ipynb): This Example shows how to use Smart Sifting to fine tune BERT for Text Classification.
+
 ### Amazon SageMaker Clarify
 
 These examples provide an introduction to SageMaker Clarify which provides machine learning developers with greater visibility into their training data and models so they can identify and limit bias and explain predictions.

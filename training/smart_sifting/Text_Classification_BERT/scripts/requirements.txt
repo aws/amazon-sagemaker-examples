@@ -1,0 +1,7 @@
+datasets
+evaluate
+transformers
+accelerate
+sagemaker
+botocore
+pytorch-lightning==1.9.4
