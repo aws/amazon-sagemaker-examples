@@ -1,0 +1,7 @@
+scikit-learn
+xgboost==1.7.1
+s3fs==0.4.2
+sagemaker>=2.199.0,<3
+pandas>=2.0.0
+gevent
+geventhttpclient
