@@ -32,7 +32,6 @@ from benchmarking.constants import SM_SESSION
 from benchmarking.load_test import LoadTester
 from benchmarking.logging import logging_prefix
 from benchmarking.custom_predictor import CustomPredictor
-from datetime import date
 
 class Benchmarker:
     def __init__(
@@ -63,6 +62,7 @@ class Benchmarker:
         self.run_latency_load_test = run_latency_load_test
         self.run_throughput_load_test = run_throughput_load_test
         self.run_concurrency_probe = run_concurrency_probe
+
         if concurrency_probe_num_invocation_hook is None:
             self.concurrency_probe_num_invocation_hook = num_invocation_scaler
         else:
@@ -87,10 +87,12 @@ class Benchmarker:
         model_id: str,
         payload_name: str,
         tokenizer_model_id: str,
+        huggingface_hub_token: Optional[str] = None
     ) -> Dict[str, Any]:
         metrics_latency: Dict[str, Any] = {}
         metrics_throughput: Dict[str, Any] = {}
         metrics_concurrency: Dict[str, Any] = {}
+
         if hasattr(predictor, "predictor") and predictor.predictor is not None:
             endpoint_description = self._sagemaker_client.describe_endpoint(predictor.endpoint_name)
             endpoint_config_name = endpoint_description["EndpointConfigName"]
@@ -146,13 +148,13 @@ class Benchmarker:
                 "ContainerStartupHealthCheckTimeoutInSeconds": 3600
             }
 
-
         tester = LoadTester(
             predictor,
             payload,
             model_id,
             payload_name,
             tokenizer_model_id,
+            huggingface_hub_token,
             price_per_endpoint,
         )
 
@@ -166,6 +168,7 @@ class Benchmarker:
                 num_invocation_hook=self.concurrency_probe_num_invocation_hook,
             )
             metrics_concurrency = {"ConcurrencyProbe": concurrency_probe_results}
+
         return {
             **metrics_latency,
             **metrics_throughput,
@@ -183,13 +186,14 @@ class Benchmarker:
         model_id: str,
         predictor: CustomPredictor,
         tokenizer_model_id: Optional[str] = None,
+        huggingface_hub_token: Optional[str] = None,
     ) -> List[Dict[str, Any]]:
         """Run benchmarker given a Predictor for an in-service model endpoint."""
         metrics = []
         try:
             for payload_name, payload in self.payloads.items():
                 metrics_payload = self._run_benchmarking_tests(
-                    predictor, payload, model_id, payload_name, tokenizer_model_id
+                    predictor, payload, model_id, payload_name, tokenizer_model_id, huggingface_hub_token
                 )
                 metrics.append(metrics_payload)
         finally:
@@ -222,12 +226,13 @@ class Benchmarker:
                 predictor = self.deploy_model(model_id, model_args)
                 predictor = CustomPredictor(predictor=predictor)
         else:
-            pass
             predictor = self.deploy_model(model_id, model_args)
             predictor = CustomPredictor(predictor=predictor)
 
         self.model_id_to_endpoint_name[model_id] = predictor.endpoint_name
-        metrics = self.run_single_predictor(model_id, predictor, model_args["huggingface_model_id"])
+        metrics = self.run_single_predictor(
+            model_id, predictor, model_args["huggingface_model_id"], model_args.get("huggingface_hub_token")
+        )
         return metrics, predictor
 
     def retrieve_predictor_from_endpoint(
@@ -301,6 +306,7 @@ class Benchmarker:
         metrics = []
         errors = {}
         endpoints: Dict[str, str] = {}
+
         with futures.ThreadPoolExecutor(max_workers=self.max_concurrent_benchmarks) as executor:
             future_to_model_id = {
                 executor.submit(self.run_single_model, model_id, args): model_id for model_id, args in models.items()
@@ -321,6 +327,7 @@ class Benchmarker:
             "endpoints": endpoints,
             "metrics": metrics,
         }
+
         with open(save_file_path, "w") as file:
             json.dump(output, file, indent=4, ensure_ascii=False)
 
@@ -340,7 +347,8 @@ class Benchmarker:
                 ["metrics", "PricePerEndpoint"],
                 ["metrics", "PricePerInstance"],
                 ["metrics", "DeploymentTime"],
-            ], errors='ignore'
+            ],
+            errors="ignore",
         )
 
     @staticmethod

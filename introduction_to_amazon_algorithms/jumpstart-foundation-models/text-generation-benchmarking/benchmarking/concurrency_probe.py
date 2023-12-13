@@ -34,20 +34,16 @@ class ConcurrentProbeExponentialScalingIterator(ConcurrentProbeIteratorBase):
     """An iterator used during a concurrency probe to exponentially scale concurrent requests."""
 
     def __init__(self, model_id: str, payload_name: str, start: int = 1, scale_factor: float = 2.0) -> None:
-    #def __init__(self, model_id: str, payload_name: str, start: int = 32, scale_factor: float = 2.0) -> None:
         self.concurrent_requests = start
         self.scale_factor = scale_factor
         super().__init__(model_id, payload_name)
 
     def __next__(self) -> int:
         if self.exception is not None:
-            self.stop_reason = f"Error occured: {self.exception}"
+            e = self.exception
+            self.stop_reason = "".join([type(e).__name__, f": {e}" if str(e) else ""])
             raise StopIteration
-
-        #if self.concurrent_requests > 32:
-        #    self.stop_reason = f"concurrent_requests limit reached"
-        #    raise StopIteration
-
+        
         if self.result is None:
             return self.concurrent_requests
 

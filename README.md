@@ -40,9 +40,11 @@ These examples introduce SageMaker geospatial capabilities which makes it easy t
 - [Monitoring Lake Drought with SageMaker Geospatial Capabilities](sagemaker-geospatial/lake-mead-drought-monitoring) shows how to monitor Lake Mead drought using SageMaker geospatial capabilities.
 - [Digital Farming with Amazon SageMaker Geospatial Capabilities](sagemaker-geospatial/digital-farming-pipelines) shows how geospatial capabilities can help accelerating, optimizing, and easing the processing of the geospatial data for the Digital Farming use cases.
 - [Assess wildfire damage with Amazon SageMaker Geospatial Capabilities](sagemaker-geospatial/dixie-wildfire-damage-assessment/dixie-wildfire-damage-assessment.ipynb) demonstrates how Amazon SageMaker geospatial capabilities can be used to identify and assess vegetation loss caused by the Dixie wildfire in Northern California.
+- [Monitoring Glacier Melting with SageMaker Geospatial Capabilities](sagemaker-geospatial/mount-shasta-glacier-melting-monitoring) shows how to monitor glacier melting at Mount Shasta using SageMaker geospatial capabilities.
+- [Monitoring of methane (CH4) emission point sources using Amazon SageMaker Geospatial Capabilities](sagemaker-geospatial/dixie-wildfire-damage-assessment/dixie-wildfire-damage-assessment.ipynb) demonstrates how methane emissions can be detected by using open data Satellite imagery (Sentinel-2).
+- [Perform Sentinel-1 InSAR using ESA SNAP Toolkit](sagemaker-geospatial/sentinel1-insar-snap/sentinel1_insar_kumamoto.ipynb) shows how the SNAP toolkit can be used within Amazon SageMaker geospatial capabilities to create interferograms on Sentinel-1 SAR data.
 - [How to use Vector Enrichment Jobs for Map Matching](sagemaker-geospatial/vector-enrichment-map-matching/vector-enrichment-map-matching.ipynb) shows how to use vector enrichtment operations with Amazon SageMaker Geospatial capabilities to snap GPS coordinates to road segments.
 - [How to use Vector Enrichment Jobs for Reverse Geocoding](sagemaker-geospatial/vector-enrichment-reverse-geocoding/vector-enrichment-reverse-geocoding.ipynb) shows how to use Amazon SageMaker Geospatial capabilities for reverse geocoding to obtain human readable addresses from data with latitude/longitude information.
-- [Monitoring Glacier Melting with SageMaker Geospatial Capabilities](sagemaker-geospatial/mount-shasta-glacier-melting-monitoring) shows how to monitor glacier melting at Mount Shasta using SageMaker geospatial capabilities.
 - [SageMaker Pipelines with Amazon SageMaker Geospatial Capabilities](sagemaker-geospatial/geospatial-pipeline/geospatial-pipelines.ipynb) shows how a geospatial data processing workflow can be automated by using an Amazon SageMaker Pipeline.
 
 ### Introduction to Ground Truth Labeling Jobs
@@ -189,6 +191,13 @@ More examples for models such as BERT and YOLOv5 can be found in [distributed_tr
 - [Train EleutherAI GPT-J with Model Parallel](https://github.com/aws/amazon-sagemaker-examples/blob/main/training/distributed_training/pytorch/model_parallel/gpt-j/11_train_gptj_smp_tensor_parallel_notebook.ipynb) shows how to train EleutherAI GPT-J with PyTorch and Tensor Parallelism technique in the SageMaker Model Parallelism Library.
 - [Train MaskRCNN with Data Parallel](https://github.com/aws/amazon-sagemaker-examples/blob/main/training/distributed_training/pytorch/data_parallel/maskrcnn/pytorch_smdataparallel_maskrcnn_demo.ipynb) shows how to train MaskRCNN with PyTorch and SageMaker Data Parallelism Library.
 
+### Amazon SageMaker Smart Sifting
+
+These examples provide an Introduction to Smart Sifting library. Smart Sifting is a framework to speed up training of PyTorch models. The framework implements a set of algorithms that filter out inconsequential training examples during training, reducing the computational cost and accelerating the training process. It is configuration-driven and extensible, allowing users to add custom logic to transform their training examples into a filterable format. Smart sifting provides a generic utility for any DNN model, and can reduce the training cost by up to 35% in infrastructure cost.
+  
+- [Train Image Classification using Vision Transformer with Smart Sifting](https://github.com/aws/amazon-sagemaker-examples/tree/main/training/smart_sifting/Image_Classification_VIT/Train_Image_classification.ipynb): This Example shows how to use Smart sifting to fine tune Vision Transformers for Image Classification.
+- [Train Text Classification using BERT with Smart Sifting](https://github.com/aws/amazon-sagemaker-examples/tree/main/training/smart_sifting/Text_Classification_BERT/Train_text_classification.ipynb): This Example shows how to use Smart Sifting to fine tune BERT for Text Classification.
+
 ### Amazon SageMaker Clarify
 
 These examples provide an introduction to SageMaker Clarify which provides machine learning developers with greater visibility into their training data and models so they can identify and limit bias and explain predictions.
@@ -209,6 +218,7 @@ These examples show you how to run R examples, and publish applications in RStud
 These examples showcase unique functionality available in Amazon SageMaker. They cover a broad range of topics and utilize a variety of methods, but aim to provide the user with sufficient insight or inspiration to develop within Amazon SageMaker.
 
 - [Data Distribution Types](advanced_functionality/data_distribution_types) showcases the difference between two methods for sending data from S3 to Amazon SageMaker Training instances. This has particular implication for scalability and accuracy of distributed training.
+- [Distributed Training and Batch Transform with Sentiment Classification](advanced_functionality/sentiment_parallel_batch) shows how to use SageMaker Distributed Data Parallelism, SageMaker Debugger, and distrubted SageMaker Batch Transform on a HuggingFace Estimator, in a sentiment classification use case.
 - [Encrypting Your Data](advanced_functionality/handling_kms_encrypted_data) shows how to use Server Side KMS encrypted data with Amazon SageMaker training. The IAM role used for S3 access needs to have permissions to encrypt and decrypt data with the KMS key.
 - [Using Parquet Data](advanced_functionality/parquet_to_recordio_protobuf) shows how to bring [Parquet](https://parquet.apache.org/) data sitting in S3 into an Amazon SageMaker Notebook and convert it into the recordIO-protobuf format that many SageMaker algorithms consume.
 - [Connecting to Redshift](advanced_functionality/working_with_redshift_data) demonstrates how to copy data from Redshift to S3 and vice-versa without leaving Amazon SageMaker Notebooks.

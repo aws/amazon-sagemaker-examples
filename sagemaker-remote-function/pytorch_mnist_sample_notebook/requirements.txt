@@ -2,3 +2,4 @@ torch
 torchvision
 scikit-learn
 sagemaker>=2.156.0,<3
+pandas>=2.0.0
