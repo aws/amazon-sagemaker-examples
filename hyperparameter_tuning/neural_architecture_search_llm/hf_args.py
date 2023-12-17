@@ -28,6 +28,21 @@ class DataTrainingArguments:
         default=None,
         metadata={"help": "The name of the dataset to use (via the datasets library)."},
     )
+    dataset_config_name: Optional[str] = field(
+        default=None,
+        metadata={
+            "help": "The configuration name of the dataset to use (via the datasets library)."
+        },
+    )
+    train_file: Optional[str] = field(
+        default=None, metadata={"help": "A csv or a json file containing the training data."}
+    )
+    validation_file: Optional[str] = field(
+        default=None, metadata={"help": "A csv or a json file containing the validation data."}
+    )
+    test_file: Optional[str] = field(
+        default=None, metadata={"help": "A csv or a json file containing the test data."}
+    )
     max_seq_length: int = field(
         default=128,
         metadata={
@@ -49,9 +64,7 @@ class DataTrainingArguments:
 
     is_regression: bool = field(
         default=False,
-        metadata={
-            "help": "Specifies if dataset is a regression dataset."
-        },
+        metadata={"help": "Specifies if dataset is a regression dataset."},
     )
 
 
@@ -62,9 +75,7 @@ class ModelArguments:
     """
 
     model_name_or_path: str = field(
-        metadata={
-            "help": "Path to pretrained model or model identifier from huggingface.co/models"
-        }
+        metadata={"help": "Path to pretrained model or model identifier from huggingface.co/models"}
     )
     cache_dir: Optional[str] = field(
         default=None,
@@ -89,5 +100,15 @@ class ModelArguments:
         metadata={
             "help": "Will use the token generated when running `transformers-cli login` (necessary to use this script "
             "with private models)."
+        },
+    )
+    trust_remote_code: bool = field(
+        default=False,
+        metadata={
+            "help": (
+                "Whether or not to allow for custom models defined on the Hub in their own modeling files. This option"
+                "should only be set to `True` for repositories you trust and in which you have read the code, as it will"
+                "execute code present on the Hub on your local machine."
+            )
         },
     )

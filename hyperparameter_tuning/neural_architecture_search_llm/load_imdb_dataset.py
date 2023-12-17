@@ -27,25 +27,24 @@ from task_data import GLUE_TASK_INFO
 logger = logging.getLogger(__name__)
 
 
-def load_glue_datasets(training_args, model_args, data_args):
-    raw_datasets = load_dataset("glue", data_args.task_name, cache_dir=model_args.cache_dir)
+def load_imdb_dataset(training_args, model_args, data_args):
+
+    # Downloading and loading a dataset from the hub.
+    raw_datasets = load_dataset(
+        data_args.task_name,
+        cache_dir=model_args.cache_dir,
+    )
 
     # Load tokenizer
-    model_type = model_args.model_name_or_path
-
     tokenizer = AutoTokenizer.from_pretrained(
-        model_type,
+        model_args.model_name_or_path,
         cache_dir=model_args.cache_dir,
         use_fast=model_args.use_fast_tokenizer,
         revision=model_args.model_revision,
-        use_auth_token=True if model_args.use_auth_token else None,
+        trust_remote_code=model_args.trust_remote_code,
     )
 
-    if model_type.startswith("gpt2"):
-        tokenizer.pad_token = tokenizer.eos_token
-
-    # Preprocessing the raw_datasets
-    sentence1_key, sentence2_key = GLUE_TASK_INFO[data_args.task_name]["keys"]
+    sentence1_key, sentence2_key = "text", None
 
     # Padding strategy
     if data_args.pad_to_max_length:
@@ -81,12 +80,7 @@ def load_glue_datasets(training_args, model_args, data_args):
         )
 
     train_dataset = raw_datasets["train"]
-    test_dataset = raw_datasets[
-        "validation_matched" if data_args.task_name == "mnli" else "validation"
-    ]
-
-    train_dataset = train_dataset.remove_columns(["idx"])
-    test_dataset = test_dataset.remove_columns(["idx"])
+    test_dataset = raw_datasets["test"]
 
     # Split training dataset in training / validation
     split = train_dataset.train_test_split(
@@ -94,12 +88,6 @@ def load_glue_datasets(training_args, model_args, data_args):
     )  # fix seed, all trials have the same data split
     train_dataset = split["train"]
     valid_dataset = split["test"]
-
-    if data_args.task_name in ["sst2", "qqp", "qnli", "mnli"]:
-        valid_dataset = Subset(
-            valid_dataset,
-            np.random.choice(len(valid_dataset), 2048).tolist(),
-        )
 
     if data_args.pad_to_max_length:
         data_collator = default_data_collator
