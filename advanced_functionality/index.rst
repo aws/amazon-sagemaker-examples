@@ -118,3 +118,11 @@ Casual Inference Container
    causal-inference/causal-inference-container
                                                 
 
+BYOC Pytorch Container
+-------------------------------------
+
+.. toctree::
+   :maxdepth: 1
+
+   byoc-pytorch-container/byoc-pytorch-container
+                                                
