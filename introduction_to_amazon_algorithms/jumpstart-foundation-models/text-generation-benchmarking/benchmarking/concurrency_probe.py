@@ -33,7 +33,13 @@ class ConcurrentProbeIteratorBase:
 class ConcurrentProbeExponentialScalingIterator(ConcurrentProbeIteratorBase):
     """An iterator used during a concurrency probe to exponentially scale concurrent requests."""
 
-    def __init__(self, model_id: str, payload_name: str, start: int = 1, scale_factor: float = 2.0) -> None:
+    def __init__(
+        self,
+        model_id: str,
+        payload_name: str,
+        start: int = 1,
+        scale_factor: float = 2.0,
+    ) -> None:
         self.concurrent_requests = start
         self.scale_factor = scale_factor
         super().__init__(model_id, payload_name)
@@ -43,7 +49,7 @@ class ConcurrentProbeExponentialScalingIterator(ConcurrentProbeIteratorBase):
             e = self.exception
             self.stop_reason = "".join([type(e).__name__, f": {e}" if str(e) else ""])
             raise StopIteration
-        
+
         if self.result is None:
             return self.concurrent_requests
 
@@ -52,5 +58,7 @@ class ConcurrentProbeExponentialScalingIterator(ConcurrentProbeIteratorBase):
         return self.concurrent_requests
 
 
-def num_invocation_scaler(concurrent_requests: int, num_invocation_factor: int = 3) -> int:
+def num_invocation_scaler(
+    concurrent_requests: int, num_invocation_factor: int = 3
+) -> int:
     return concurrent_requests * num_invocation_factor

@@ -7,14 +7,20 @@ from sagemaker.predictor import Predictor
 from sagemaker.serializers import JSONSerializer
 from sagemaker.deserializers import JSONDeserializer
 
+
 class CustomPredictor:
     predictor: Predictor
 
-    def __init__(self, endpoint_url=None,
-                 predictor: Predictor = None,
-                 instance_type=None):
+    def __init__(
+        self,
+        endpoint_url: Optional[str] = None,
+        predictor: Predictor = None,
+        instance_type=None,
+    ):
         if endpoint_url is None and predictor is None:
-            raise ValueError(f"both endpoint_url and predictor are none in CustomPredictor.")
+            raise ValueError(
+                f"both endpoint_url and predictor are none in CustomPredictor."
+            )
         self.endpoint_url = endpoint_url
         self.predictor = predictor
         self.instance_type = instance_type
@@ -27,10 +33,12 @@ class CustomPredictor:
         parsed_url = urlparse(self.endpoint_url)
         split_url = parsed_url.path.split("/")
         endpoint_name = split_url[2]
-        self.predictor = Predictor(endpoint_name=endpoint_name,
-                                   sagemaker_session=sagemaker.session.Session(),
-                                   serializer=JSONSerializer(),
-                                   deserializer=JSONDeserializer())
+        self.predictor = Predictor(
+            endpoint_name=endpoint_name,
+            sagemaker_session=sagemaker.session.Session(),
+            serializer=JSONSerializer(),
+            deserializer=JSONDeserializer(),
+        )
         return self.predictor.predict(payload, custom_attributes="accept_eula=True")
 
     def predict(self, payload):
