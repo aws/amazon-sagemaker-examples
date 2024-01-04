@@ -209,9 +209,6 @@ class Benchmarker:
             **metrics_pricing,
             **metrics_time,
             "ProductionVariant": production_variant,
-            # "PrimaryContainer": primary_container,
-            # "ProductionVariant": None,
-            # "PrimaryContainer": None,
         }
 
     def run_single_predictor(

@@ -1,4 +1,5 @@
 import requests
+from typing import Optional
 from urllib.parse import urlparse
 import json
 import sagemaker
@@ -29,22 +30,8 @@ class CustomPredictor:
         else:
             self.endpoint_name = self.endpoint_url
 
-    def sm_url_predict(self, payload):
-        parsed_url = urlparse(self.endpoint_url)
-        split_url = parsed_url.path.split("/")
-        endpoint_name = split_url[2]
-        self.predictor = Predictor(
-            endpoint_name=endpoint_name,
-            sagemaker_session=sagemaker.session.Session(),
-            serializer=JSONSerializer(),
-            deserializer=JSONDeserializer(),
-        )
-        return self.predictor.predict(payload, custom_attributes="accept_eula=True")
-
     def predict(self, payload):
         if self.predictor is None:
-            if "runtime.sagemaker" in self.endpoint_url:
-                return self.sm_url_predict(payload)
             response = requests.post(self.endpoint_url, json=payload)
             return response.text
         else:
