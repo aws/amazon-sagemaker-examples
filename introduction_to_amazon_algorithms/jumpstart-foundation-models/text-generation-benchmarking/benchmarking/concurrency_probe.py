@@ -58,7 +58,5 @@ class ConcurrentProbeExponentialScalingIterator(ConcurrentProbeIteratorBase):
         return self.concurrent_requests
 
 
-def num_invocation_scaler(
-    concurrent_requests: int, num_invocation_factor: int = 3
-) -> int:
+def num_invocation_scaler(concurrent_requests: int, num_invocation_factor: int = 3) -> int:
     return concurrent_requests * num_invocation_factor

@@ -19,9 +19,7 @@ class CustomPredictor:
         instance_type=None,
     ):
         if endpoint_url is None and predictor is None:
-            raise ValueError(
-                f"both endpoint_url and predictor are none in CustomPredictor."
-            )
+            raise ValueError(f"both endpoint_url and predictor are none in CustomPredictor.")
         self.endpoint_url = endpoint_url
         self.predictor = predictor
         self.instance_type = instance_type

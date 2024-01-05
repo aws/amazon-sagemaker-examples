@@ -48,9 +48,7 @@ class Benchmarker:
         run_throughput_load_test: bool = False,
         run_concurrency_probe: bool = False,
         concurrency_probe_num_invocation_hook: Optional[Callable[[int], int]] = None,
-        concurrency_probe_concurrent_request_iterator_cls: Optional[
-            Type[ConcurrentProbeIteratorBase]
-        ] = None,
+        concurrency_probe_concurrent_request_iterator_cls: Optional[Type[ConcurrentProbeIteratorBase]] = None,
         clean_up: bool = False,
         attempt_retrieve_predictor: bool = True,
         saved_metrics_path: Path = SAVE_METRICS_FILE_PATH,
@@ -69,27 +67,19 @@ class Benchmarker:
         if concurrency_probe_num_invocation_hook is None:
             self.concurrency_probe_num_invocation_hook = num_invocation_scaler
         else:
-            self.concurrency_probe_num_invocation_hook = (
-                concurrency_probe_num_invocation_hook
-            )
+            self.concurrency_probe_num_invocation_hook = concurrency_probe_num_invocation_hook
 
         if concurrency_probe_concurrent_request_iterator_cls is None:
-            self.concurrency_probe_concurrent_request_iterator_cls = (
-                ConcurrentProbeExponentialScalingIterator
-            )
+            self.concurrency_probe_concurrent_request_iterator_cls = ConcurrentProbeExponentialScalingIterator
         else:
-            self.concurrency_probe_concurrent_request_iterator_cls = (
-                concurrency_probe_concurrent_request_iterator_cls
-            )
+            self.concurrency_probe_concurrent_request_iterator_cls = concurrency_probe_concurrent_request_iterator_cls
 
         self.clean_up = clean_up
         self._pricing_client = PricingClient()
         self._sagemaker_client = SageMakerClient()
         self.model_id_to_endpoint_name: Dict[str, str] = {}
         if attempt_retrieve_predictor:
-            self.model_id_to_endpoint_name = self.load_metrics_json(
-                saved_metrics_path
-            ).get("endpoints", {})
+            self.model_id_to_endpoint_name = self.load_metrics_json(saved_metrics_path).get("endpoints", {})
 
     def _run_benchmarking_tests(
         self,
@@ -105,25 +95,15 @@ class Benchmarker:
         metrics_concurrency: Dict[str, Any] = {}
 
         if predictor.predictor is not None:
-            endpoint_description = self._sagemaker_client.describe_endpoint(
-                predictor.endpoint_name
-            )
+            endpoint_description = self._sagemaker_client.describe_endpoint(predictor.endpoint_name)
             endpoint_config_name = endpoint_description["EndpointConfigName"]
-            endpoint_config_description = (
-                self._sagemaker_client.describe_endpoint_config(endpoint_config_name)
-            )
-            model_description = self._sagemaker_client.describe_model(
-                predictor.endpoint_name
-            )
+            endpoint_config_description = self._sagemaker_client.describe_endpoint_config(endpoint_config_name)
+            model_description = self._sagemaker_client.describe_model(predictor.endpoint_name)
             production_variant = endpoint_config_description["ProductionVariants"][0]
             # primary_container = model_description["PrimaryContainer"]
             instance_type = production_variant["InstanceType"]
-            price_per_instance = self._pricing_client.get_price_per_unit(
-                instance_type, SM_SESSION._region_name
-            )
-            price_per_endpoint = (
-                production_variant["InitialInstanceCount"] * price_per_instance
-            )
+            price_per_instance = self._pricing_client.get_price_per_unit(instance_type, SM_SESSION._region_name)
+            price_per_endpoint = production_variant["InitialInstanceCount"] * price_per_instance
             metrics_pricing = {
                 "PricePerInstance": price_per_instance,
                 "PricePerEndpoint": price_per_endpoint,
@@ -136,29 +116,21 @@ class Benchmarker:
                 "DeploymentTime": (last_modified_time - creation_time).seconds,
             }
         else:
-            if (
-                hasattr(predictor, "instance_type")
-                and predictor.instance_type is not None
-            ):
+            if hasattr(predictor, "instance_type") and predictor.instance_type is not None:
                 instance_type = predictor.instance_type
             else:
                 logging.info(
                     f"{logging_prefix(model_id)} No instance type provided. Using the default ml.g5.2xlarge for pricing calculations."
                 )
                 instance_type = "ml.g5.2xlarge"
-            if (
-                hasattr(predictor, "instance_count")
-                and predictor.instance_count is not None
-            ):
+            if hasattr(predictor, "instance_count") and predictor.instance_count is not None:
                 initial_instance_count = predictor.instance_count
             else:
                 logging.info(
                     f"{logging_prefix(model_id)} No initial_instance_count provided. Using the default count 1."
                 )
                 initial_instance_count = 1
-            price_per_instance = self._pricing_client.get_price_per_unit(
-                instance_type, SM_SESSION._region_name
-            )
+            price_per_instance = self._pricing_client.get_price_per_unit(instance_type, SM_SESSION._region_name)
             price_per_endpoint = initial_instance_count * price_per_instance
             metrics_pricing = {
                 "PricePerInstance": price_per_instance,
@@ -192,9 +164,7 @@ class Benchmarker:
         if self.run_latency_load_test:
             metrics_latency = tester.run_latency_load_test(self.num_invocations)
         if self.run_throughput_load_test:
-            metrics_throughput = tester.run_throughput_load_test(
-                self.num_invocations, self.max_workers
-            )
+            metrics_throughput = tester.run_throughput_load_test(self.num_invocations, self.max_workers)
         if self.run_concurrency_probe:
             concurrency_probe_results = tester.run_concurrency_probe(
                 iterator_cls=self.concurrency_probe_concurrent_request_iterator_cls,
@@ -235,9 +205,7 @@ class Benchmarker:
             if self.clean_up is True:
                 self.clean_up_predictor(model_id, predictor)
             else:
-                logging.info(
-                    f"{logging_prefix(model_id)} Skipping cleaning up resources ..."
-                )
+                logging.info(f"{logging_prefix(model_id)} Skipping cleaning up resources ...")
 
         return metrics
 
@@ -250,28 +218,18 @@ class Benchmarker:
         a previous invocation of this benchmarker, then a predictor is attempted to be attached to this endpoint. If
         an `endpoint_name` is not provided, then the model is deployed prior to benchmarking run.
         """
-        endpoint_name = model_args.get(
-            "endpoint_name"
-        ) or self.model_id_to_endpoint_name.get(model_id)
+        endpoint_name = model_args.get("endpoint_name") or self.model_id_to_endpoint_name.get(model_id)
         endpoint_url = model_args.get("endpoint_url")
         instance_type = model_args.get("instance_type")
         if endpoint_url is not None:
-            predictor = CustomPredictor(
-                endpoint_url=endpoint_url, instance_type=instance_type
-            )
+            predictor = CustomPredictor(endpoint_url=endpoint_url, instance_type=instance_type)
         elif endpoint_name is not None:
             try:
-                predictor = self.retrieve_predictor_from_endpoint(
-                    endpoint_name, model_args
-                )
+                predictor = self.retrieve_predictor_from_endpoint(endpoint_name, model_args)
                 predictor = CustomPredictor(predictor=predictor)
-                logging.info(
-                    f"{logging_prefix(model_id)} Predictor successfully retrieved from endpoint name"
-                )
+                logging.info(f"{logging_prefix(model_id)} Predictor successfully retrieved from endpoint name")
             except Exception as e:
-                logging.warning(
-                    f"{logging_prefix(model_id)} Failed to retrieve predictor, re-deploying model: {e}"
-                )
+                logging.warning(f"{logging_prefix(model_id)} Failed to retrieve predictor, re-deploying model: {e}")
                 predictor = self.deploy_model(model_id, model_args)
                 predictor = CustomPredictor(predictor=predictor)
         else:
@@ -292,9 +250,7 @@ class Benchmarker:
     ) -> Predictor:
         """Obtain a predictor from an already deployed endpoint."""
         if model_args is not None:
-            jumpstart_model_args: Dict[str, Any] = model_args.get(
-                "jumpstart_model_args"
-            )
+            jumpstart_model_args: Dict[str, Any] = model_args.get("jumpstart_model_args")
             if jumpstart_model_args:
                 return retrieve_default(
                     endpoint_name=endpoint_name,
@@ -320,14 +276,10 @@ class Benchmarker:
         Raises:
             ValueError: if neither `jumpstart_model_specs` or `model_specs` keys are present in model_args.
         """
-        jumpstart_model_specs: Optional[Dict[str, Any]] = model_args.get(
-            "jumpstart_model_specs"
-        )
+        jumpstart_model_specs: Optional[Dict[str, Any]] = model_args.get("jumpstart_model_specs")
         model_specs: Optional[Dict[str, Any]] = model_args.get("model_specs")
         endpoint_name = name_from_base(f"bm-{model_id.replace('huggingface', 'hf')}")
-        logging.info(
-            f"{logging_prefix(model_id)} Deploying endpoint {endpoint_name} ..."
-        )
+        logging.info(f"{logging_prefix(model_id)} Deploying endpoint {endpoint_name} ...")
         if jumpstart_model_specs:
             model = JumpStartModel(
                 sagemaker_session=self.sagemaker_session,
@@ -338,9 +290,7 @@ class Benchmarker:
                 **jumpstart_model_specs.get("deploy_args", {}),
             )
         elif model_specs:
-            image_uri = image_uris.retrieve(
-                region=SM_SESSION._region_name, **model_specs["image_uri_args"]
-            )
+            image_uri = image_uris.retrieve(region=SM_SESSION._region_name, **model_specs["image_uri_args"])
             model = Model(
                 image_uri=image_uri,
                 role=SM_SESSION.get_caller_identity_arn(),
@@ -355,9 +305,7 @@ class Benchmarker:
                 **model_specs["deploy_args"],
             )
         else:
-            raise ValueError(
-                f"{logging_prefix(model_id)} No model arguments discovered for deployment."
-            )
+            raise ValueError(f"{logging_prefix(model_id)} No model arguments discovered for deployment.")
 
     def run_multiple_models(
         self,
@@ -369,12 +317,9 @@ class Benchmarker:
         errors = {}
         endpoints: Dict[str, str] = {}
 
-        with futures.ThreadPoolExecutor(
-            max_workers=self.max_concurrent_benchmarks
-        ) as executor:
+        with futures.ThreadPoolExecutor(max_workers=self.max_concurrent_benchmarks) as executor:
             future_to_model_id = {
-                executor.submit(self.run_single_model, model_id, args): model_id
-                for model_id, args in models.items()
+                executor.submit(self.run_single_model, model_id, args): model_id for model_id, args in models.items()
             }
             for future in futures.as_completed(future_to_model_id):
                 model_id = future_to_model_id[future]
@@ -384,9 +329,7 @@ class Benchmarker:
                     metrics.extend(metrics_model_id)
                 except Exception as e:
                     errors[model_id] = e
-                    logging.error(
-                        f"{logging_prefix(model_id)} Benchmarking failed: {e}"
-                    )
+                    logging.error(f"{logging_prefix(model_id)} Benchmarking failed: {e}")
 
         output = {
             "models": models,
@@ -401,9 +344,7 @@ class Benchmarker:
         return output
 
     @classmethod
-    def load_metrics_pandas(
-        cls, save_file_path: Path = SAVE_METRICS_FILE_PATH
-    ) -> pd.DataFrame:
+    def load_metrics_pandas(cls, save_file_path: Path = SAVE_METRICS_FILE_PATH) -> pd.DataFrame:
         """Create a pandas DataFrame from the saved JSON metrics file."""
         metrics = cls.load_metrics_json(save_file_path)
         return pd.json_normalize(
@@ -454,9 +395,7 @@ class Benchmarker:
         for value_name, mapping_function in value_format_dict.items():
             df_copy[value_name] = df_copy[value_name].map(mapping_function)
 
-        df_pivot = df_copy.pivot(
-            index=index_cols, columns=columns_cols, values=value_cols
-        ).fillna(fillna_str)
+        df_pivot = df_copy.pivot(index=index_cols, columns=columns_cols, values=value_cols).fillna(fillna_str)
         df_pivot = df_pivot.rename(columns=value_name_dict)
         df_pivot.index = df_pivot.index.rename(["model ID", "instance type", "payload"])
         df_pivot.columns = df_pivot.columns.rename([None, "concurrent requests"])
@@ -484,9 +423,7 @@ class Benchmarker:
             with open(save_file_path, "r") as f:
                 data = json.load(f)
         except Exception as e:
-            logging.warning(
-                f"Failed to extract endpoint names from saved benchmarking file: {e}"
-            )
+            logging.warning(f"Failed to extract endpoint names from saved benchmarking file: {e}")
             return {}
 
         return data

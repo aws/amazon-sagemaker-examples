@@ -23,20 +23,14 @@ class PricingClient:
 
     def __init__(self) -> None:
         """Creates the boto3 client for AWS pricing."""
-        self._client = boto3.client(
-            service_name="pricing", region_name=PRICING_SERVICE_API_REGION
-        )
+        self._client = boto3.client(service_name="pricing", region_name=PRICING_SERVICE_API_REGION)
 
     def get_price_per_unit(self, instance_type: str, region: str) -> float:
         """Returns the price per unit in USD of a SageMaker machine learning instance in a region."""
         filters = [
-            _create_pricing_filter(
-                type="TERM_MATCH", field=PRODUCT_FAMILY_KEY, value=PRODUCT_FAMILY
-            ),
+            _create_pricing_filter(type="TERM_MATCH", field=PRODUCT_FAMILY_KEY, value=PRODUCT_FAMILY),
             _create_pricing_filter(type="TERM_MATCH", field=REGION_KEY, value=region),
-            _create_pricing_filter(
-                type="TERM_MATCH", field=INSTANCE_NAME_KEY, value=instance_type
-            ),
+            _create_pricing_filter(type="TERM_MATCH", field=INSTANCE_NAME_KEY, value=instance_type),
             _create_pricing_filter(
                 type="TERM_MATCH",
                 field=PLATO_INSTANCE_TYPE_KEY,
@@ -57,9 +51,7 @@ class SageMakerClient:
         self._client = boto3.client("sagemaker")
 
     def describe_endpoint_config(self, endpoint_config_name: str) -> Dict[str, Any]:
-        return self._client.describe_endpoint_config(
-            EndpointConfigName=endpoint_config_name
-        )
+        return self._client.describe_endpoint_config(EndpointConfigName=endpoint_config_name)
 
     def describe_endpoint(self, endpoint_name: str) -> Dict[str, Any]:
         return self._client.describe_endpoint(EndpointName=endpoint_name)

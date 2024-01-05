@@ -56,9 +56,7 @@ class PredictionResult(NamedTuple):
                 elif "generation" in data:
                     data = data["generation"]
                 else:
-                    raise ValueError(
-                        "Output data contains dictionary without recognized keys."
-                    )
+                    raise ValueError("Output data contains dictionary without recognized keys.")
 
         text_inputs = self._text_inputs()
         if data.startswith(text_inputs):
@@ -106,8 +104,7 @@ class BatchInvocationStatistics(NamedTuple):
     def _throughput_robust(self, values: List[int]) -> float:
         """Computes the median throughput of result values in units values per second to eliminate outliers."""
         throughput_values = [
-            sum(values[: (i + 1)])
-            / (result.time_utc_end - self.time_utc_start).total_seconds()
+            sum(values[: (i + 1)]) / (result.time_utc_end - self.time_utc_start).total_seconds()
             for i, result in enumerate(self.results)
         ]
         return self._collect_statistics(throughput_values)["Maximum"]
@@ -119,31 +116,17 @@ class BatchInvocationStatistics(NamedTuple):
     ) -> Dict[str, Any]:
         """Collect statistics on the number of input/output sequence words, the latency, and the latency per word."""
         latency_per_word = self._collect_statistics(
-            [
-                x.client_latency() / x.num_words()
-                for x in self.results
-                if x.num_words() > 0
-            ]
+            [x.client_latency() / x.num_words() for x in self.results if x.num_words() > 0]
         )
-        word_throughput_robust = self._throughput_robust(
-            [x.num_words() for x in self.results]
-        )
+        word_throughput_robust = self._throughput_robust([x.num_words() for x in self.results])
         time_to_generate_1m_words = 1e6 / word_throughput_robust / 3600
         statistics: Dict[str, Any] = {
-            "InputSequenceWords": self._collect_statistics(
-                [x.input_sequence_num_words() for x in self.results]
-            ),
-            "OutputSequenceWords": self._collect_statistics(
-                [x.num_words() for x in self.results]
-            ),
-            "Latency": self._collect_statistics(
-                [x.client_latency() for x in self.results]
-            ),
+            "InputSequenceWords": self._collect_statistics([x.input_sequence_num_words() for x in self.results]),
+            "OutputSequenceWords": self._collect_statistics([x.num_words() for x in self.results]),
+            "Latency": self._collect_statistics([x.client_latency() for x in self.results]),
             "LatencyPerWord": latency_per_word,
             "TestDuration": self._duration_seconds(),
-            "RequestThroughputRobust": self._throughput_robust(
-                [1 for _ in self.results]
-            ),
+            "RequestThroughputRobust": self._throughput_robust([1 for _ in self.results]),
             "RequestThroughput": self._throughput([1 for _ in self.results]),
             "WordThroughputRobust": word_throughput_robust,
             "WordThroughput": self._throughput([x.num_words() for x in self.results]),
@@ -152,20 +135,14 @@ class BatchInvocationStatistics(NamedTuple):
         if tokenizer is not None:
             output_sequence_tokens = [x.num_tokens(tokenizer) for x in self.results]
             latency_per_token = self._collect_statistics(
-                [
-                    x.client_latency() / x.num_tokens(tokenizer)
-                    for x in self.results
-                    if x.num_tokens(tokenizer) > 0
-                ]
+                [x.client_latency() / x.num_tokens(tokenizer) for x in self.results if x.num_tokens(tokenizer) > 0]
             )
             token_throughput = self._throughput(output_sequence_tokens)
             token_throughput_robust = self._throughput_robust(output_sequence_tokens)
             time_to_generate_1m_tokens = 1e6 / token_throughput / 3600
             statistics.update(
                 {
-                    "OutputSequenceTokens": self._collect_statistics(
-                        [output_sequence_tokens for x in self.results]
-                    ),
+                    "OutputSequenceTokens": self._collect_statistics([output_sequence_tokens for x in self.results]),
                     "LatencyPerToken": latency_per_token,
                     "TokenThroughputRobust": token_throughput_robust,
                     "TokenThroughput": token_throughput,
@@ -173,19 +150,9 @@ class BatchInvocationStatistics(NamedTuple):
                 }
             )
         if price_per_endpoint is not None:
-            statistics.update(
-                {
-                    "CostToGenerate1MTokens": time_to_generate_1m_tokens
-                    * price_per_endpoint
-                }
-            )
+            statistics.update({"CostToGenerate1MTokens": time_to_generate_1m_tokens * price_per_endpoint})
             if tokenizer is not None:
-                statistics.update(
-                    {
-                        "CostToGenerate1MTokens": time_to_generate_1m_tokens
-                        * price_per_endpoint
-                    }
-                )
+                statistics.update({"CostToGenerate1MTokens": time_to_generate_1m_tokens * price_per_endpoint})
         return statistics
 
     @staticmethod
@@ -219,9 +186,7 @@ class LoadTester:
         self.payload_name = payload_name
         self._logging_prefix = logging_prefix(self.model_id, self.payload_name)
         if tokenizer_model_id is not None:
-            self.tokenizer = AutoTokenizer.from_pretrained(
-                tokenizer_model_id, token=huggingface_hub_token
-            )
+            self.tokenizer = AutoTokenizer.from_pretrained(tokenizer_model_id, token=huggingface_hub_token)
         else:
             self.tokenizer = None
         self.price_per_endpoint = price_per_endpoint
@@ -233,9 +198,7 @@ class LoadTester:
         time_utc_end = datetime.datetime.utcnow()
         return PredictionResult(time_utc_start, time_utc_end, self.payload, result)
 
-    def run_load_test(
-        self, num_invocations: int, max_workers: int
-    ) -> Optional[BatchInvocationStatistics]:
+    def run_load_test(self, num_invocations: int, max_workers: int) -> Optional[BatchInvocationStatistics]:
         """Concurrently invoke an endpoint prediction multiple times and gather results in BatchInvocationStatistics."""
         time_utc_start = datetime.datetime.utcnow()
         timeout_seconds = SM_INVOCATION_TIMEOUT_SECONDS * num_invocations / max_workers
@@ -245,8 +208,7 @@ class LoadTester:
 
         with futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
             futures_list = [
-                executor.submit(self.predict_once_and_collect_client_results)
-                for _ in range(num_invocations)
+                executor.submit(self.predict_once_and_collect_client_results) for _ in range(num_invocations)
             ]
             done, not_done = futures.wait(
                 futures_list,
@@ -255,26 +217,20 @@ class LoadTester:
             )
             for future in done:
                 if future._exception is not None:
-                    logging.info(
-                        f"{_logging_prefix} Cancelling and awaiting future completion: {future._exception}"
-                    )
+                    logging.info(f"{_logging_prefix} Cancelling and awaiting future completion: {future._exception}")
                     if not_done:
                         self._cancel_futures_and_wait(not_done)
                     raise future._exception
 
             if not_done:
-                logging.info(
-                    f"{_logging_prefix} Cancelling and awaiting future completion: Load test timeout."
-                )
+                logging.info(f"{_logging_prefix} Cancelling and awaiting future completion: Load test timeout.")
                 self._cancel_futures_and_wait(not_done)
                 raise TimeoutError("Load test timeout.")
 
             results = [future.result(timeout=0.0) for future in futures_list]
 
         time_utc_end = datetime.datetime.utcnow()
-        return BatchInvocationStatistics(
-            time_utc_start, time_utc_end, num_invocations, results
-        )
+        return BatchInvocationStatistics(time_utc_start, time_utc_end, num_invocations, results)
 
     @staticmethod
     def _cancel_futures_and_wait(
@@ -284,9 +240,7 @@ class LoadTester:
         if futures_list:
             for future_to_cancel in futures_list:
                 future_to_cancel.cancel()
-            futures.wait(
-                futures_list, timeout=timeout, return_when=futures.ALL_COMPLETED
-            )
+            futures.wait(futures_list, timeout=timeout, return_when=futures.ALL_COMPLETED)
 
     def run_latency_load_test(
         self,
@@ -295,29 +249,19 @@ class LoadTester:
         max_total_retry_time: float = MAX_TOTAL_RETRY_TIME_SECONDS,
     ) -> Dict[str, Any]:
         logging.info(f"{self._logging_prefix} Begin latency load test ...")
-        time.sleep(
-            CLOUDWATCH_PERIOD_SECONDS
-        )  # wait for 1 cloudwatch period to ensure no extra queries are reported
+        time.sleep(CLOUDWATCH_PERIOD_SECONDS)  # wait for 1 cloudwatch period to ensure no extra queries are reported
         statistics_latency = self.run_load_test(num_invocations, 1)
-        metrics = self._extract_cloudwatch_metrics(
-            statistics_latency, retry_wait_time, max_total_retry_time
-        )
-        metrics["Client"] = statistics_latency.get_statistics(
-            self.tokenizer, self.price_per_endpoint
-        )
+        metrics = self._extract_cloudwatch_metrics(statistics_latency, retry_wait_time, max_total_retry_time)
+        metrics["Client"] = statistics_latency.get_statistics(self.tokenizer, self.price_per_endpoint)
         metrics["ModelID"] = self.model_id
         metrics["Invocations"] = num_invocations
         metrics["ConcurrentRequests"] = max_workers
         metrics["PayloadName"] = self.payload_name
         return metrics
 
-    def run_throughput_load_test(
-        self, num_invocations: int, max_workers: int
-    ) -> Dict[str, Any]:
+    def run_throughput_load_test(self, num_invocations: int, max_workers: int) -> Dict[str, Any]:
         statistics_throughput = self.run_load_test(num_invocations, max_workers)
-        metrics = statistics_throughput.get_statistics(
-            self.tokenizer, self.price_per_endpoint
-        )
+        metrics = statistics_throughput.get_statistics(self.tokenizer, self.price_per_endpoint)
         metrics.update(
             {
                 "ModelID": self.model_id,
@@ -347,17 +291,13 @@ class LoadTester:
         for concurrent_requests in concurrent_request_iterator:
             try:
                 num_invocations = num_invocation_hook(concurrent_requests)
-                result = self.run_throughput_load_test(
-                    num_invocations, concurrent_requests
-                )
+                result = self.run_throughput_load_test(num_invocations, concurrent_requests)
                 if concurrent_request_iterator.send(result, self.predictor):
                     results.append(result)
             except Exception as e:
                 concurrent_request_iterator.exception = e
 
-        logging.info(
-            f"{self._logging_prefix} End concurrency probe. {concurrent_request_iterator.stop_reason}"
-        )
+        logging.info(f"{self._logging_prefix} End concurrency probe. {concurrent_request_iterator.stop_reason}")
         return results
 
     def _query_cloudwatch_get_metric_statistics(
@@ -390,10 +330,7 @@ class LoadTester:
             datapoints[metric_name] = {
                 **{x: _datapoints.get(x, 0) for x in sample_count},
                 **{x: _datapoints.get(x, 0) / 1e6 for x in statistics},
-                **{
-                    x: _datapoints.get("ExtendedStatistics", {}).get(x, 0) / 1e6
-                    for x in extended
-                },
+                **{x: _datapoints.get("ExtendedStatistics", {}).get(x, 0) / 1e6 for x in extended},
             }
         return datapoints
 
@@ -417,9 +354,7 @@ class LoadTester:
             metrics = self._query_cloudwatch_get_metric_statistics(start_time, end_time)
             sample_count_latency = metrics["ModelLatency"].get("SampleCount", 0)
             num_invocations = invocation_statistics.num_invocations
-            if (sample_count_latency < num_invocations) and (
-                retry_duration_cumulative < max_total_retry_time
-            ):
+            if (sample_count_latency < num_invocations) and (retry_duration_cumulative < max_total_retry_time):
                 logging.info(
                     f" - {self._logging_prefix} Sample count {sample_count_latency} < {num_invocations}. "
                     f"Retrying in {retry_wait_time} seconds ..."
