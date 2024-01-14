@@ -1,0 +1,18 @@
+minWorkers: 1
+maxWorkers: 1
+maxBatchDelay: 100
+responseTimeout: 10800
+batchSize: 16
+
+handler:
+    model_checkpoint_dir: "llama-2-13b-split"
+    amp: "bf16"
+    tp_degree: 12 
+    max_length: 100
+
+micro_batching:
+    micro_batch_size: 1 
+    parallelism:
+        preprocess: 2
+        inference: 1
+        postprocess: 2
