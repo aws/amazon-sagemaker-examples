@@ -90,6 +90,7 @@ We recommend the following notebooks as a broad introduction to the capabilities
    sagemaker-python-sdk/mxnet_gluon_mnist/mxnet_mnist_with_gluon_outputs
    frameworks/tensorflow/get_started_mnist_train_outputs
    frameworks/pytorch/get_started_mnist_train_outputs
+   introduction_to_applying_machine_learning/mixtral_tune_and_deploy/mixtral-8x7b
 
 -----
 
