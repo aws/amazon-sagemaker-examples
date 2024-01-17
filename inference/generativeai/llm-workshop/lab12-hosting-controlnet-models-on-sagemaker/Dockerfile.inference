@@ -1,23 +1,28 @@
 ARG REGION
 FROM 763104351884.dkr.ecr.$REGION.amazonaws.com/pytorch-inference:2.0.1-gpu-py310-cu118-ubuntu20.04-sagemaker
 
-RUN apt update && apt install wget git libgl1-mesa-glx libcairo2-dev -y
+RUN apt update && apt install wget git libgl1-mesa-glx libcairo2-dev libtcmalloc-minimal4 -y
 RUN rm -rf /opt/conda/lib/python3.10/site-packages/opencv_python-4.6.0.dist-info/
 RUN pip install opencv-python
-RUN pip install install -U -I --no-deps xformers==0.0.20
+RUN pip install xformers==0.0.22.post7 --extra-index-url https://download.pytorch.org/whl/cu118
 RUN pip install boto3 huggingface_hub triton deepspeed accelerate
 
 RUN mkdir -p /opt/ml/code
 WORKDIR /opt/ml/code
 
-ADD https://api.github.com/repos/xieyongliang/stable-diffusion-webui/git/refs/heads/api-v1.5.1 /opt/ml/webui.version.json
-RUN git clone https://github.com/xieyongliang/stable-diffusion-webui.git /opt/ml/code -b api-v1.5.1
+ADD https://api.github.com/repos/xieyongliang/stable-diffusion-webui/git/refs/heads/api /opt/ml/webui.version.json
+RUN git clone https://github.com/xieyongliang/stable-diffusion-webui.git /opt/ml/code -b api
 
 ADD https://api.github.com/repos/Mikubill/sd-webui-controlnet/git/refs/heads/main /opt/ml/controlnet.version.json
 RUN git clone https://github.com/Mikubill/sd-webui-controlnet.git /opt/ml/code/extensions/sd-webui-controlnet
 
+ADD https://api.github.com/repos/xieyongliang/inpaint-anything/git/refs/heads/main /opt/ml/inpaint-anything.version.json
+RUN git clone https://github.com/xieyongliang/inpaint-anything.git /opt/ml/code/extensions/inpaint-anything
+
 RUN python launch.py -f --exit --skip-torch-cuda-test
-RUN pip install -U pytorch_lightning==1.6.5 pydantic==1.10.11
+RUN pip install -U pytorch_lightning==1.6.5 pydantic==1.10.11 httpx==0.24.1
+RUN pip install -U torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cu118
+
 RUN rm requirements.txt
 
 COPY serve /opt/ml/code
