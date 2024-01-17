@@ -1,0 +1,8 @@
+{
+  "source": ["aws.sagemaker"],
+  "detail-type": ["SageMaker Model Package State Change"],
+  "detail": {
+    "ModelPackageGroupName": ["model-monitor-clarify-group"],
+    "ModelApprovalStatus": ["PendingManualApproval"]
+  }
+}
