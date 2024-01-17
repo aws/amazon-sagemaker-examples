@@ -16,6 +16,13 @@ logger.addHandler(logging.StreamHandler())
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--model_package_group_name', type=str, default="")
+
+    args, _ = parser.parse_known_args()
+    
+    model_package_group_name = args.model_package_group_name
+
     is_approved = True
     reasons = []
     with open('/opt/ml/processing/input/checks.json') as checks:
@@ -30,8 +37,11 @@ if __name__ == "__main__":
             
     client = boto3.client(service_name="sagemaker", region_name="us-east-1")
 
-    model_package_arn = "arn:aws:sagemaker:us-east-1:495659485974:model-package/model-monitor-clarify-group/1"
+    model_package_arn = client.list_model_packages(ModelPackageGroupName=model_package_group_name)[
+    "ModelPackageSummaryList"
+    ][0]["ModelPackageArn"]
     
+
     if is_approved:
         approval_description = "Model package meets organisational guidelines"
     else:

@@ -34,7 +34,6 @@ if __name__ == "__main__":
     model_package_arn = client.list_model_packages(ModelPackageGroupName=model_package_group_name)[
         "ModelPackageSummaryList"
     ][0]["ModelPackageArn"]
-    model_package_arn = "arn:aws:sagemaker:us-east-1:495659485974:model-package/model-monitor-clarify-group/1"
     
     model_package_metrics = client.describe_model_package(ModelPackageName=model_package_arn)["ModelMetrics"]
 
