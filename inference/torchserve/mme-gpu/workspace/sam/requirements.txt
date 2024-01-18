@@ -1,3 +1,8 @@
+--extra-index-url https://download.pytorch.org/whl/cu118
+torch==2.1.0+cu118
+torchvision==0.16.0+cu118
+torchtext==0.16.0
+torchaudio==2.1.0+cu118
 segment-anything-py==1.0
 opencv-python-headless==4.7.0.68
 matplotlib==3.6.3
