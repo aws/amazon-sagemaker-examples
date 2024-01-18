@@ -21,17 +21,15 @@ Basic training example for SageMaker Studio
    sagemaker_algorithms/linear_learner_mnist/linear_learner_mnist
 
 
-
 Framework examples
 =======================
 
 .. toctree::
    :maxdepth: 1
 
-   frameworks/mxnet_gluon_sentiment/mxnet_sentiment_analysis_with_gluon
-   frameworks/mxnet_mnist/mxnet_mnist_with_batch_transform
    frameworks/mxnet_onnx_ei/mxnet_onnx_ei
    frameworks/pytorch_cnn_cifar10/pytorch_cnn_cifar10
+   frameworks/tensorflow_mnist/tensorflow_mnist
 
 
 Model compilation with Neo
@@ -40,7 +38,6 @@ Model compilation with Neo
 .. toctree::
    :maxdepth: 1
 
-   sagemaker_neo_compilation_jobs/gluoncv_ssd_mobilenet_studio/gluoncv_ssd_mobilenet_neo_studio
    sagemaker_neo_compilation_jobs/imageclassification_caltech/Image-classification-fulltraining-highlevel-neo-studio
    sagemaker_neo_compilation_jobs/pytorch_torchvision/pytorch_torchvision_neo_studio
    sagemaker_neo_compilation_jobs/pytorch_vgg19_bn/pytorch-vgg19-bn-studio

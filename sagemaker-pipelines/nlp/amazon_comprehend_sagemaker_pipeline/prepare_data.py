@@ -3,7 +3,6 @@
 import os
 import pandas as pd
 from glob import glob
-from tqdm import tqdm
 
 os.system("du -a /opt/ml")
 

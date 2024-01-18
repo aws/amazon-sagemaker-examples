@@ -1,0 +1,45 @@
+AMAZON.COM ANNOUNCES FIRST QUARTER RESULTS
+SEATTLE—(BUSINESS WIRE) April 27, 2023—Amazon.com, Inc. (NASDAQ: AMZN) today announced financial results
+for its first quarter ended March 31, 2023.
+• Net sales increased 9% to $127.4 billion in the first quarter, compared with $116.4 billion in first quarter 2022.
+Excluding the $2.4 billion unfavorable impact from year-over-year changes in foreign exchange rates throughout the
+quarter, net sales increased 11% compared with first quarter 2022.
+• North America segment sales increased 11% year-over-year to $76.9 billion.
+• International segment sales increased 1% year-over-year to $29.1 billion, or increased 9% excluding changes
+in foreign exchange rates.
+• AWS segment sales increased 16% year-over-year to $21.4 billion.
+• Operating income increased to $4.8 billion in the first quarter, compared with $3.7 billion in first quarter 2022. First
+quarter 2023 operating income includes approximately $0.5 billion of charges related to estimated severance costs.
+• North America segment operating income was $0.9 billion, compared with operating loss of $1.6 billion in
+first quarter 2022.
+• International segment operating loss was $1.2 billion, compared with operating loss of $1.3 billion in first
+quarter 2022.
+• AWS segment operating income was $5.1 billion, compared with operating income of $6.5 billion in first
+quarter 2022.
+• Net income was $3.2 billion in the first quarter, or $0.31 per diluted share, compared with net loss of $3.8 billion, or
+$0.38 per diluted share, in first quarter 2022. All share and per share information for comparable prior year periods
+throughout this release have been retroactively adjusted to reflect the 20-for-1 stock split effected on May 27, 2022.
+• First quarter 2023 net income includes a pre-tax valuation loss of $0.5 billion included in non-operating
+expense from the common stock investment in Rivian Automotive, Inc., compared to a pre-tax valuation loss
+of $7.6 billion from the investment in first quarter 2022.
+• Operating cash flow increased 38% to $54.3 billion for the trailing twelve months, compared with $39.3 billion for
+the trailing twelve months ended March 31, 2022
+Free cash flow improved to an outflow of $3.3 billion for the trailing twelve months, compared with an outflow of
+$18.6 billion for the trailing twelve months ended March 31, 2022.
+• Free cash flow less principal repayments of finance leases and financing obligations improved to an outflow of
+$10.1 billion for the trailing twelve months, compared with an outflow of $29.3 billion for the trailing twelve months
+ended March 31, 2022.
+• Free cash flow less equipment finance leases and principal repayments of all other finance leases and financing
+obligations improved to an outflow of $4.5 billion for the trailing twelve months, compared with an outflow of $22.3
+billion for the trailing twelve months ended March 31, 2022
+
+“There’s a lot to like about how our teams are delivering for customers, particularly amidst an uncertain economy,” said Andy
+Jassy, Amazon CEO. “Our Stores business is continuing to improve the cost to serve in our fulfillment network while
+increasing the speed with which we get products into the hands of customers (we expect to have our fastest Prime delivery
+speeds ever in 2023). Our Advertising business continues to deliver robust growth, largely due to our ongoing machine learning
+investments that help customers see relevant information when they engage with us, which in turn delivers unusually strong
+results for brands. And, while our AWS business navigates companies spending more cautiously in this macro environment, we
+continue to prioritize building long-term customer relationships both by helping customers save money and enabling them to
+more easily leverage technologies like Large Language Models and Generative AI with our uniquely cost-effective machine
+learning chips (“Trainium” and “Inferentia”), managed Large Language Models (“Bedrock”), and AI code companion
+CodeWhisperer. We like the fundamentals we’re seeing in AWS, and believe there’s much growth ahead

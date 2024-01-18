@@ -39,6 +39,7 @@ We recommend the following notebooks as a broad introduction to the capabilities
    :maxdepth: 1
    :caption: Prepare data
 
+   sagemaker-datawrangler/index
    sagemaker_processing/spark_distributed_data_processing/sagemaker-spark-processing_outputs
    sagemaker_processing/basic_sagemaker_data_processing/basic_sagemaker_processing_outputs
 
@@ -68,7 +69,7 @@ We recommend the following notebooks as a broad introduction to the capabilities
 
    sagemaker-lineage/sagemaker-lineage-multihop-queries_outputs
    sagemaker_model_monitor/introduction/SageMaker-ModelMonitoring_outputs
-   sagemaker_processing/fairness_and_explainability/fairness_and_explainability_outputs
+   sagemaker-clarify/fairness_and_explainability/fairness_and_explainability_outputs
 
 
 .. toctree::
@@ -104,6 +105,11 @@ More examples
    aws_sagemaker_studio/index
    sagemaker-lineage/index
 
+.. toctree::
+   :maxdepth: 1
+   :caption: Introduction to Amazon Algorithms
+
+   introduction_to_amazon_algorithms/index
 
 .. toctree::
    :maxdepth: 1
@@ -184,14 +190,15 @@ More examples
    sagemaker-script-mode/index
    training/bring_your_own_container
    training/management
-
+   training/heterogeneous-clusters/index
 
 .. toctree::
    :maxdepth: 1
    :caption: Inference
 
    inference/index
-
+   model-governance/index
+   sagemaker-shadow-variant/index
 
 .. toctree::
    :maxdepth: 1
@@ -201,7 +208,14 @@ More examples
    sagemaker_processing/index
    sagemaker-spark/index
    step-functions-data-science-sdk/index
+   sagemaker-notebook-jobs/index
 
+.. toctree::
+   :maxdepth: 1
+   :caption: Advanced Functionality
+
+   advanced_functionality/index
+   serverless-inference/index
 
 .. toctree::
    :maxdepth: 1
@@ -210,8 +224,8 @@ More examples
    sagemaker-clarify/index
    scientific_details_of_algorithms/index
    aws_marketplace/index
-
-
+   sagemaker-geospatial/index
+   
 .. toctree::
    :maxdepth: 1
    :caption: Community examples

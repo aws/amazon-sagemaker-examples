@@ -29,14 +29,6 @@ E-Commerce Personalization
     retail_recommend/retail_recommend_pipeline
 
 
-Computer Vision for Medical Imaging
------------------------------------
-
-.. toctree::
-    :maxdepth: 1
-
-    computer_vision/metastases-detection
-    computer_vision/metastases-detection-pipeline
 
 
 Pipelines with NLP for Product Rating Prediction
@@ -55,3 +47,12 @@ Credit Risk
    :maxdepth: 1
 
    credit_risk/risk_bucketing
+
+SageMaker Data Wrangler
+--------------------------
+
+
+.. toctree::
+   :maxdepth: 1
+
+   predictive_maintenance/dw_flow/dw_job

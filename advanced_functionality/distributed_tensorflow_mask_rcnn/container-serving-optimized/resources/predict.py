@@ -33,10 +33,8 @@ class MaskRCNNService:
             if cls.predictor:
                 return cls.predictor
 
-            os.environ["TENSORPACK_FP16"] = "true"
-
             # create a mask r-cnn model
-            mask_rcnn_model = ResNetFPNModel(True)
+            mask_rcnn_model = ResNetFPNModel()
 
             try:
                 model_dir = os.environ["SM_MODEL_DIR"]
@@ -91,13 +89,6 @@ class MaskRCNNService:
                     session_init=get_model_loader(trained_model),
                     input_names=["images", "orig_image_dims"],
                     output_names=[
-                        "generate_{}_proposals_topk_per_image/boxes".format(
-                            "fpn" if cfg.MODE_FPN else "rpn"
-                        ),
-                        "generate_{}_proposals_topk_per_image/scores".format(
-                            "fpn" if cfg.MODE_FPN else "rpn"
-                        ),
-                        "fastrcnn_all_scores",
                         "output/boxes",
                         "output/scores",
                         "output/labels",
@@ -112,9 +103,6 @@ class MaskRCNNService:
     def predict(cls, img=None, img_id=None, rpn=False, score_threshold=0.8, mask_threshold=0.5):
 
         (
-            rpn_boxes,
-            rpn_scores,
-            all_scores,
             final_boxes,
             final_scores,
             final_labels,
@@ -140,11 +128,6 @@ class MaskRCNNService:
                 annotations.append(a)
 
         predictions["annotations"] = annotations
-        if rpn:
-            predictions["rpn_boxes"] = rpn_boxes.tolist()
-            predictions["rpn_scores"] = rpn_scores.tolist()
-            predictions["all_scores"] = all_scores.tolist()
-
         return predictions
 
     @classmethod
