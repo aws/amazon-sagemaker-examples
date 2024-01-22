@@ -155,7 +155,7 @@ def main():
         help="aws region",
     )
 
-    dist.init_process_group(backend="smddp")
+    dist.init_process_group(backend=backend)
     args = parser.parse_args()
     args.world_size = dist.get_world_size()
     args.rank = rank = dist.get_rank()
