@@ -31,6 +31,7 @@ from benchmarking.constants import RETRY_WAIT_TIME_SECONDS
 from benchmarking.constants import SM_SESSION
 from benchmarking.load_test import LoadTester
 from benchmarking.logging import logging_prefix
+from benchmarking.custom_predictor import CustomPredictor
 
 
 class Benchmarker:
@@ -82,40 +83,73 @@ class Benchmarker:
 
     def _run_benchmarking_tests(
         self,
-        predictor: Predictor,
+        predictor: CustomPredictor,
         payload: Dict[str, Any],
         model_id: str,
         payload_name: str,
         tokenizer_model_id: str,
-        huggingface_hub_token: Optional[str] = None
+        huggingface_hub_token: Optional[str] = None,
     ) -> Dict[str, Any]:
         metrics_latency: Dict[str, Any] = {}
         metrics_throughput: Dict[str, Any] = {}
         metrics_concurrency: Dict[str, Any] = {}
 
-        endpoint_description = self._sagemaker_client.describe_endpoint(predictor.endpoint_name)
-        endpoint_config_name = endpoint_description["EndpointConfigName"]
-        endpoint_config_description = self._sagemaker_client.describe_endpoint_config(endpoint_config_name)
-        model_description = self._sagemaker_client.describe_model(predictor.endpoint_name)
-
-        production_variant = endpoint_config_description["ProductionVariants"][0]
-        primary_container = model_description.get("PrimaryContainer")
-
-        instance_type = production_variant["InstanceType"]
-        price_per_instance = self._pricing_client.get_price_per_unit(instance_type, SM_SESSION._region_name)
-        price_per_endpoint = production_variant["InitialInstanceCount"] * price_per_instance
-        metrics_pricing = {
-            "PricePerInstance": price_per_instance,
-            "PricePerEndpoint": price_per_endpoint,
-        }
-
-        creation_time: datetime = endpoint_description["CreationTime"]
-        last_modified_time: datetime = endpoint_description["LastModifiedTime"]
-        metrics_time = {
-            "CreationTime": creation_time.isoformat(),
-            "LastModifiedTime": last_modified_time.isoformat(),
-            "DeploymentTime": (last_modified_time - creation_time).seconds,
-        }
+        if predictor.predictor is not None:
+            endpoint_description = self._sagemaker_client.describe_endpoint(predictor.endpoint_name)
+            endpoint_config_name = endpoint_description["EndpointConfigName"]
+            endpoint_config_description = self._sagemaker_client.describe_endpoint_config(endpoint_config_name)
+            model_description = self._sagemaker_client.describe_model(predictor.endpoint_name)
+            production_variant = endpoint_config_description["ProductionVariants"][0]
+            # primary_container = model_description["PrimaryContainer"]
+            instance_type = production_variant["InstanceType"]
+            price_per_instance = self._pricing_client.get_price_per_unit(instance_type, SM_SESSION._region_name)
+            price_per_endpoint = production_variant["InitialInstanceCount"] * price_per_instance
+            metrics_pricing = {
+                "PricePerInstance": price_per_instance,
+                "PricePerEndpoint": price_per_endpoint,
+            }
+            creation_time: datetime = endpoint_description["CreationTime"]
+            last_modified_time: datetime = endpoint_description["LastModifiedTime"]
+            metrics_time = {
+                "CreationTime": creation_time.isoformat(),
+                "LastModifiedTime": last_modified_time.isoformat(),
+                "DeploymentTime": (last_modified_time - creation_time).seconds,
+            }
+        else:
+            if hasattr(predictor, "instance_type") and predictor.instance_type is not None:
+                instance_type = predictor.instance_type
+            else:
+                logging.info(
+                    f"{logging_prefix(model_id)} No instance type provided. Using the default ml.g5.2xlarge for pricing calculations."
+                )
+                instance_type = "ml.g5.2xlarge"
+            if hasattr(predictor, "instance_count") and predictor.instance_count is not None:
+                initial_instance_count = predictor.instance_count
+            else:
+                logging.info(
+                    f"{logging_prefix(model_id)} No initial_instance_count provided. Using the default count 1."
+                )
+                initial_instance_count = 1
+            price_per_instance = self._pricing_client.get_price_per_unit(instance_type, SM_SESSION._region_name)
+            price_per_endpoint = initial_instance_count * price_per_instance
+            metrics_pricing = {
+                "PricePerInstance": price_per_instance,
+                "PricePerEndpoint": price_per_endpoint,
+            }
+            metrics_time = {
+                "CreationTime": 0,
+                "LastModifiedTime": 0,
+                "DeploymentTime": 0,
+            }
+            production_variant = {
+                "VariantName": "AllTraffic",
+                "ModelName": predictor.endpoint_name,
+                "InitialInstanceCount": initial_instance_count,
+                "InstanceType": instance_type,
+                "InitialVariantWeight": 1.0,
+                "ModelDataDownloadTimeoutInSeconds": 3600,
+                "ContainerStartupHealthCheckTimeoutInSeconds": 3600,
+            }
 
         tester = LoadTester(
             predictor,
@@ -145,13 +179,12 @@ class Benchmarker:
             **metrics_pricing,
             **metrics_time,
             "ProductionVariant": production_variant,
-            "PrimaryContainer": primary_container,
         }
 
     def run_single_predictor(
         self,
         model_id: str,
-        predictor: Predictor,
+        predictor: CustomPredictor,
         tokenizer_model_id: Optional[str] = None,
         huggingface_hub_token: Optional[str] = None,
     ) -> List[Dict[str, Any]]:
@@ -160,7 +193,12 @@ class Benchmarker:
         try:
             for payload_name, payload in self.payloads.items():
                 metrics_payload = self._run_benchmarking_tests(
-                    predictor, payload, model_id, payload_name, tokenizer_model_id, huggingface_hub_token
+                    predictor,
+                    payload,
+                    model_id,
+                    payload_name,
+                    tokenizer_model_id,
+                    huggingface_hub_token,
                 )
                 metrics.append(metrics_payload)
         finally:
@@ -171,7 +209,9 @@ class Benchmarker:
 
         return metrics
 
-    def run_single_model(self, model_id: str, model_args: Dict[str, Any]) -> Tuple[List[Dict[str, Any]], Predictor]:
+    def run_single_model(
+        self, model_id: str, model_args: Dict[str, Any]
+    ) -> Tuple[List[Dict[str, Any]], CustomPredictor]:
         """Run benchmarker for a single model.
 
         If an `endpoint_name` is provided either as a key in `model_args` or saved in benchmarking metrics file from
@@ -179,19 +219,29 @@ class Benchmarker:
         an `endpoint_name` is not provided, then the model is deployed prior to benchmarking run.
         """
         endpoint_name = model_args.get("endpoint_name") or self.model_id_to_endpoint_name.get(model_id)
-        if endpoint_name is not None:
+        endpoint_url = model_args.get("endpoint_url")
+        instance_type = model_args.get("instance_type")
+        if endpoint_url is not None:
+            predictor = CustomPredictor(endpoint_url=endpoint_url, instance_type=instance_type)
+        elif endpoint_name is not None:
             try:
                 predictor = self.retrieve_predictor_from_endpoint(endpoint_name, model_args)
+                predictor = CustomPredictor(predictor=predictor)
                 logging.info(f"{logging_prefix(model_id)} Predictor successfully retrieved from endpoint name")
             except Exception as e:
                 logging.warning(f"{logging_prefix(model_id)} Failed to retrieve predictor, re-deploying model: {e}")
                 predictor = self.deploy_model(model_id, model_args)
+                predictor = CustomPredictor(predictor=predictor)
         else:
             predictor = self.deploy_model(model_id, model_args)
+            predictor = CustomPredictor(predictor=predictor)
 
         self.model_id_to_endpoint_name[model_id] = predictor.endpoint_name
         metrics = self.run_single_predictor(
-            model_id, predictor, model_args["huggingface_model_id"], model_args.get("huggingface_hub_token")
+            model_id,
+            predictor,
+            model_args["huggingface_model_id"],
+            model_args.get("huggingface_hub_token"),
         )
         return metrics, predictor
 
@@ -321,7 +371,7 @@ class Benchmarker:
         """Pivot concurrency probe pandas DataFrame to show specified values across models and concurrent requests."""
         if value_format_dict is None:
             value_format_dict = {
-                "TokenThroughput": int,
+                "TokenThroughput": "{:.2f}".format,
                 "LatencyPerToken.p90": int,
                 "CostToGenerate1MTokens": "${:,.2f}".format,
             }
@@ -358,7 +408,7 @@ class Benchmarker:
             self.clean_up_predictor(model_id, predictor)
 
     @classmethod
-    def clean_up_predictor(cls, model_id: str, predictor: Predictor) -> None:
+    def clean_up_predictor(cls, model_id: str, predictor: CustomPredictor) -> None:
         """Delete model and endpoint for a single predictor."""
         logging.info(f"{logging_prefix(model_id)} Cleaning up resources ...")
         predictor.delete_model()
