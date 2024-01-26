@@ -270,6 +270,7 @@ These examples show you how to use [SageMaker Pipelines](https://aws.amazon.com/
 - [SageMaker Pipeline Local Mode with FrameworkProcessor and BYOC for PyTorch with sagemaker-training-toolkig](sagemaker-pipelines/tabular/local-mode/framework-processor-byoc)
 - [SageMaker Pipeline Step Caching](sagemaker-pipelines/tabular/caching) shows how you can leverage pipeline step caching while building pipelines and shows expected cache hit / cache miss behavior.
 - [Native AutoML step in SageMaker Pipelines](sagemaker-pipelines/tabular/automl-step/sagemaker_autopilot_pipelines_native_auto_ml_step.ipynb) shows how you can use SageMaker Autopilot with a native AutoML step in SageMaker Pipelines for end-to-end AutoML training automation.
+- [Computer Vision Pipeline using step decorator](sagemaker-pipelines/step-decorator/computer-vision-examples/computer-vision-pipeline.ipynb) shows how you can augment a dataset, train a computer vision model, and evaluate the model using a combination of built-in steps and the step decorator.
 
 ### Amazon SageMaker Pre-Built Framework Containers and the Python SDK
 
