@@ -17,6 +17,7 @@ import argparse
 from packaging.version import Version
 import os
 import time
+from sagemaker_training import environment
 
 import torch
 import torchvision
@@ -31,8 +32,16 @@ from torchvision import datasets, transforms
 # Network definition
 from model_def import Net
 
-# Import SMDataParallel PyTorch Modules
-import smdistributed.dataparallel.torch.torch_smddp
+# Import SMDataParallel PyTorch Modules, if applicable
+backend = 'nccl'
+training_env = environment.Environment()
+smdataparallel_enabled = training_env.additional_framework_parameters.get('sagemaker_distributed_dataparallel_enabled', False)
+if smdataparallel_enabled:
+    try:
+        import smdistributed.dataparallel.torch.torch_smddp
+        backend = 'smddp'
+    except ImportError: 
+        print('smdistributed module not available, falling back to NCCL collectives.')
 
 
 class CUDANotFoundException(Exception):
@@ -146,15 +155,13 @@ def main():
         help="aws region",
     )
 
-    dist.init_process_group(backend="smddp")
+    dist.init_process_group(backend=backend)
     args = parser.parse_args()
     args.world_size = dist.get_world_size()
     args.rank = rank = dist.get_rank()
     args.local_rank = local_rank = int(os.getenv("LOCAL_RANK", -1))
-    args.lr = 1.0
-    args.batch_size //= args.world_size // 8
-    args.batch_size = max(args.batch_size, 1)
     data_path = args.data_path
+    save_path = os.getenv("SM_MODEL_DIR",-1)
     
     # override dependency on mirrors provided by torch vision package
     # from torchvision 0.9.1, 2 candidate mirror website links will be added before "resources" items automatically
@@ -200,8 +207,6 @@ def main():
         )
 
     torch.manual_seed(args.seed)
-
-    device = torch.device("cuda")
 
     # select a single rank per node to download data
     is_first_local_rank = local_rank == 0
@@ -249,9 +254,10 @@ def main():
             shuffle=True,
         )
 
-    model = DDP(Net().to(device))
-    torch.cuda.set_device(local_rank)
-    model.cuda(local_rank)
+    device = torch.device(f"cuda:{local_rank}")
+    model = Net().to(device)
+    model = DDP(model, device_ids=[local_rank])
+
     optimizer = optim.Adadelta(model.parameters(), lr=args.lr)
     scheduler = StepLR(optimizer, step_size=1, gamma=args.gamma)
     for epoch in range(1, args.epochs + 1):
@@ -260,8 +266,9 @@ def main():
             test(model, device, test_loader)
         scheduler.step()
 
-    if args.save_model:
-        torch.save(model.state_dict(), "mnist_cnn.pt")
+    if rank == 0:
+        save_model_path = os.join(save_path,'mnist_cnn.pt')
+        torch.save(model.state_dict(), save_model_path)
 
 
 if __name__ == "__main__":
