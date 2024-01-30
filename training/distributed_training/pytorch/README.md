@@ -15,5 +15,4 @@ Based on the Sagemaker model parallelism (SMP) version, you can find examples sc
 
 - For SMP `v2.x`, please find example scripts in the `./model_parallel_v2` directory.
    * **All** models need to access scripts in the `./model_parallel_v2/shared-scripts/` directory.
-   * Models have their separate notebooks in sub directories.
-     During training, please make sure the notebook script is in the same directory with other scripts in `../shared-scripts/`.
+   * Models have their separate notebooks in sub directories and use the `shared-scripts/` directory as the source directory for their SageMaker jobs.
