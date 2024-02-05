@@ -11,7 +11,7 @@ You can use Amazon SageMaker to simplify the process of building, training, and 
 
 The [SageMaker example notebooks](https://sagemaker-examples.readthedocs.io/en/latest/) are Jupyter notebooks that demonstrate the usage of Amazon SageMaker.
 
-The [Sagemaker Example Community repository](https://github.com/aws/amazon-sagemaker-examples-community) are additional notebooks, beyond those critical for showcasing key SageMaker functionality, can be shared and explored by the commmunity.
+The [Sagemaker Example Community repository](https://github.com/aws/amazon-sagemaker-examples-community) are additional notebooks, beyond those critical for showcasing key SageMaker functionality, can be shared and explored by the community.
 
 
 ## :hammer_and_wrench: Setup
@@ -45,7 +45,7 @@ These examples introduce SageMaker geospatial capabilities which makes it easy t
 - [Monitoring of methane (CH4) emission point sources using Amazon SageMaker Geospatial Capabilities](sagemaker-geospatial/methane-emission-monitoring/monitor_methane_ch4_emission_point_sources.ipynb) demonstrates how methane emissions can be detected by using open data Satellite imagery (Sentinel-2).
 - [Segmenting aerial imagery using geospatial GPU notebook](sagemaker-geospatial/segment-aerial-naip/segment_naip_geospatial_notebook.ipynb) shows how to use the geospatial GPU notebook with open-source libraries to perform segmentation on aerial imagery.
 - [Perform Sentinel-1 InSAR using ESA SNAP Toolkit](sagemaker-geospatial/sentinel1-insar-snap/sentinel1_insar_kumamoto.ipynb) shows how the SNAP toolkit can be used within Amazon SageMaker geospatial capabilities to create interferograms on Sentinel-1 SAR data.
-- [How to use Vector Enrichment Jobs for Map Matching](sagemaker-geospatial/vector-enrichment-map-matching/vector-enrichment-map-matching.ipynb) shows how to use vector enrichtment operations with Amazon SageMaker Geospatial capabilities to snap GPS coordinates to road segments.
+- [How to use Vector Enrichment Jobs for Map Matching](sagemaker-geospatial/vector-enrichment-map-matching/vector-enrichment-map-matching.ipynb) shows how to use vector enrichment operations with Amazon SageMaker Geospatial capabilities to snap GPS coordinates to road segments.
 - [How to use Vector Enrichment Jobs for Reverse Geocoding](sagemaker-geospatial/vector-enrichment-reverse-geocoding/vector-enrichment-reverse-geocoding.ipynb) shows how to use Amazon SageMaker Geospatial capabilities for reverse geocoding to obtain human readable addresses from data with latitude/longitude information.
 - [SageMaker Pipelines with Amazon SageMaker Geospatial Capabilities](sagemaker-geospatial/geospatial-pipeline/geospatial-pipelines.ipynb) shows how a geospatial data processing workflow can be automated by using an Amazon SageMaker Pipeline.
 
@@ -72,12 +72,12 @@ These examples provide a gentle introduction to machine learning concepts as the
 - [Fair Linear Learner](introduction_to_applying_machine_learning/fair_linear_learner) is an example of an effective way to create fair linear models with respect to sensitive features.
 - [Population Segmentation of US Census Data using PCA and Kmeans](introduction_to_applying_machine_learning/US-census_population_segmentation_PCA_Kmeans) analyzes US census data and reduces dimensionality using PCA then clusters US counties using KMeans to identify segments of similar counties.
 - [Document Embedding using Object2Vec](introduction_to_applying_machine_learning/object2vec_document_embedding) is an example to embed a large collection of documents in a common low-dimensional space, so that the semantic distances between these documents are preserved.
-- [Traffic violations forecasting using DeepAR](introduction_to_applying_machine_learning/deepar_chicago_traffic_violations) is an example to use daily traffic violation data to predict pattern and seasonality to use Amazon DeepAR alogorithm.
+- [Traffic violations forecasting using DeepAR](introduction_to_applying_machine_learning/deepar_chicago_traffic_violations) is an example to use daily traffic violation data to predict pattern and seasonality to use Amazon DeepAR algorithm.
 - [Visual Inspection Automation with Pre-trained Amazon SageMaker Models](introduction_to_applying_machine_learning/visual_object_detection) is an example for fine-tuning pre-trained Amazon Sagemaker models on a target dataset.
 - [Create SageMaker Models Using the PyTorch Model Zoo](introduction_to_applying_machine_learning/sagemaker_pytorch_model_zoo) contains an example notebook to create a SageMaker model leveraging the PyTorch Model Zoo and visualize the results.
 - [Deep Demand Forecasting](introduction_to_applying_machine_learning/deep_demand_forecasting) provides an end-to-end solution for Demand Forecasting task using three state-of-the-art time series algorithms LSTNet, Prophet, and SageMaker DeepAR, which are available in GluonTS and Amazon SageMaker.
 - [Fraud Detection Using Graph Neural Networks](introduction_to_applying_machine_learning/fraud_detection_using_graph_neural_networks) is an example to identify fraudulent transactions from transaction and user identity datasets.
-- [Identify key insights from textual document](introduction_to_applying_machine_learning/identify_key_insights_from_textual_document) contains comphrensive notebooks for five natural language processing tasks Document Summarization, Text Classification, Question and Answering, Name Entity Recognition, and Semantic Relation Extracion.
+- [Identify key insights from textual document](introduction_to_applying_machine_learning/identify_key_insights_from_textual_document) contains comprensive notebooks for five natural language processing tasks Document Summarization, Text Classification, Question and Answering, Name Entity Recognition, and Semantic Relation Extraction.
 - [Synthetic Churn Prediction with Text](introduction_to_applying_machine_learning/synthetic_churn_prediction_with_text) contains an example notebook to train, deploy and use a churn prediction model that processed numerical, categorical and textual features to make its prediction.
 - [Credit Card Fraud Detector](introduction_to_applying_machine_learning/credit_card_fraud_detector) is an example of the core of a credit card fraud detection system using SageMaker with Random Cut Forest and XGBoost.
 - [Churn Prediction Multimodality of Text and Tabular](introduction_to_applying_machine_learning/churn_prediction_multimodality_of_text_and_tabular) is an example notebook to train and deploy a churn prediction model that uses state-of-the-art natural language processing model to find useful signals in text. In addition to textual inputs, this model uses traditional structured data inputs such as numerical and categorical fields.
@@ -148,7 +148,7 @@ These examples provide quick walkthroughs to get you up and running with Amazon 
 The following provide examples demonstrating different capabilities of Amazon SageMaker RL.
 
 - [Cartpole using Coach](reinforcement_learning/rl_cartpole_coach) demonstrates the simplest usecase of Amazon SageMaker RL using Intel's RL Coach.
-- [AWS DeepRacer](reinforcement_learning/rl_deepracer_robomaker_coach_gazebo) demonstrates AWS DeepRacer trainig using RL Coach in the Gazebo environment.
+- [AWS DeepRacer](reinforcement_learning/rl_deepracer_robomaker_coach_gazebo) demonstrates AWS DeepRacer training using RL Coach in the Gazebo environment.
 - [HVAC using EnergyPlus](reinforcement_learning/rl_hvac_coach_energyplus) demonstrates the training of HVAC systems using the EnergyPlus environment.
 - [Knapsack Problem](reinforcement_learning/rl_knapsack_coach_custom) demonstrates how to solve the knapsack problem using a custom environment.
 - [Mountain Car](reinforcement_learning/rl_mountain_car_coach_gymEnv) Mountain car is a classic RL problem. This notebook explains how to solve this using the OpenAI Gym environment.
