@@ -50,7 +50,7 @@ You can also use the `sagemaker-pipelines-project.ipynb` notebook to experiment 
 
 A description of some of the artifacts is provided below:
 <br/><br/>
-Your codebuild execution instructions. This file contains the instructions needed to kick off an execution of the SageMaker Pipeline in the CICD system (via CodePipeline). You will see that this file has the fields definined for naming the Pipeline, ModelPackageGroup etc. You can customize them as required.
+Your codebuild execution instructions. This file contains the instructions needed to kick off an execution of the SageMaker Pipeline in the CICD system (via CodePipeline). You will see that this file has the fields defined for naming the Pipeline, ModelPackageGroup etc. You can customize them as required.
 
 ```
 |-- codebuild-buildspec.yml
