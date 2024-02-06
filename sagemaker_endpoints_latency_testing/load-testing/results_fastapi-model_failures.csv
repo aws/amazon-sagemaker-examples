@@ -1,0 +1,2 @@
+Method,Name,Error,Occurrences
+InvokeEndpoint,SageMaker,"""ValidationError('An error occurred (ValidationError) when calling the InvokeEndpoint operation (reached max retries: 0): Endpoint fastapi-model of account 561481140543 not found.')""",1747793
