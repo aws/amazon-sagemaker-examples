@@ -1,0 +1,13 @@
+# See: man pkg-config
+prefix=/workspaces/amazon-sagemaker-examples/venv
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: Python
+Description: Python library
+Requires: 
+Version: 3.7
+Libs.private: -lcrypt -lpthread -ldl  -lutil -lrt
+Libs: -L${libdir} -lpython3.7m
+Cflags: -I${includedir}/python3.7m

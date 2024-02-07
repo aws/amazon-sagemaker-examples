@@ -1,0 +1,72 @@
+{
+    "processors": ["inf"],
+    "scope": ["inference"],
+    "versions": {
+        "1.5.1": {
+            "py_versions": ["py3"],
+            "registries": {
+                "af-south-1": "774647643957",
+                "ap-east-1": "110948597952",
+                "ap-northeast-1": "941853720454",
+                "ap-northeast-2": "151534178276",
+                "ap-northeast-3": "925152966179",
+                "ap-south-1": "763008648453",
+                "ap-southeast-1": "324986816169",
+                "ap-southeast-2": "355873309152",
+                "ca-central-1": "464438896020",
+                "cn-north-1": "472730292857",
+                "cn-northwest-1": "474822919863",
+                "eu-central-1": "746233611703",
+                "eu-north-1": "601324751636",
+                "eu-south-1": "966458181534",
+                "eu-west-1": "802834080501",
+                "eu-west-2": "205493899709",
+                "eu-west-3": "254080097072",
+                "me-south-1": "836785723513",
+                "sa-east-1": "756306329178",
+                "us-east-1": "785573368785",
+                "us-east-2": "007439368137",
+                "us-gov-west-1": "263933020539",
+                "us-iso-east-1": "167761179201",
+                "us-isob-east-1": "406031935815",
+                "us-west-1": "710691900526",
+                "us-west-2": "301217895009",
+                "il-central-1": "275950707576"
+            },
+            "repository": "sagemaker-neo-mxnet"
+        },
+        "1.8": {
+            "py_versions": ["py3"],
+            "registries": {
+                "af-south-1": "774647643957",
+                "ap-east-1": "110948597952",
+                "ap-northeast-1": "941853720454",
+                "ap-northeast-2": "151534178276",
+                "ap-northeast-3": "925152966179",
+                "ap-south-1": "763008648453",
+                "ap-southeast-1": "324986816169",
+                "ap-southeast-2": "355873309152",
+                "ca-central-1": "464438896020",
+                "cn-north-1": "472730292857",
+                "cn-northwest-1": "474822919863",
+                "eu-central-1": "746233611703",
+                "eu-north-1": "601324751636",
+                "eu-south-1": "966458181534",
+                "eu-west-1": "802834080501",
+                "eu-west-2": "205493899709",
+                "eu-west-3": "254080097072",
+                "me-south-1": "836785723513",
+                "sa-east-1": "756306329178",
+                "us-east-1": "785573368785",
+                "us-east-2": "007439368137",
+                "us-gov-west-1": "263933020539",
+                "us-iso-east-1": "167761179201",
+                "us-isob-east-1": "406031935815",
+                "us-west-1": "710691900526",
+                "us-west-2": "301217895009",
+                "il-central-1": "275950707576"
+            },
+            "repository": "sagemaker-neo-mxnet"
+        }
+    }
+}

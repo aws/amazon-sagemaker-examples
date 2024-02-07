@@ -1,0 +1,113 @@
+Metadata-Version: 2.1
+Name: contextlib2
+Version: 21.6.0
+Summary: Backports and enhancements for the contextlib module
+Home-page: http://contextlib2.readthedocs.org
+Author: Nick Coghlan
+Author-email: ncoghlan@gmail.com
+License: PSF License
+Platform: UNKNOWN
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: License :: OSI Approved :: Apache Software License
+Classifier: License :: OSI Approved :: Python Software Foundation License
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Requires-Python: >=3.6
+License-File: LICENSE.txt
+
+.. image:: https://jazzband.co/static/img/badge.svg
+   :target: https://jazzband.co/
+   :alt: Jazzband
+
+.. image:: https://github.com/jazzband/contextlib2/workflows/Test/badge.svg
+   :target: https://github.com/jazzband/contextlib2/actions
+   :alt: Tests
+
+.. image:: https://codecov.io/gh/jazzband/contextlib2/branch/master/graph/badge.svg
+   :target: https://codecov.io/gh/jazzband/contextlib2
+   :alt: Coverage
+
+.. image:: https://readthedocs.org/projects/contextlib2/badge/?version=latest
+   :target: https://contextlib2.readthedocs.org/
+   :alt: Latest Docs
+
+contextlib2 is a backport of the `standard library's contextlib
+module <https://docs.python.org/3/library/contextlib.html>`_ to
+earlier Python versions.
+
+It also sometimes serves as a real world proving ground for possible future
+enhancements to the standard library version.
+
+Licensing
+---------
+
+As a backport of Python standard library software, the implementation, test
+suite and other supporting files for this project are distributed under the
+Python Software License used for the CPython reference implementation.
+
+The one exception is the included type hints file, which comes from the
+``typeshed`` project, and is hence distributed under the Apache License 2.0.
+
+Development
+-----------
+
+contextlib2 has no runtime dependencies, but requires ``setuptools`` and
+``wheel`` at build time to generate universal wheel archives.
+
+Local testing is a matter of running::
+
+    python3 -m unittest discover -t . -s test
+
+You can test against multiple versions of Python with
+`tox <https://tox.testrun.org/>`_::
+
+    pip install tox
+    tox
+
+Versions currently tested in both tox and GitHub Actions are:
+
+* CPython 3.6
+* CPython 3.7
+* CPython 3.8
+* CPython 3.9
+* CPython 3.10
+* PyPy3
+
+Updating to a new stdlib reference version
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+As of Python 3.10, 4 files needed to be copied from the CPython reference
+implementation to contextlib2:
+
+* ``Doc/contextlib.rst`` -> ``docs/contextlib2.rst``
+* ``Lib/contextlib.py`` -> ``contextlib2/__init__.py``
+* ``Lib/test/test_contextlib.py`` -> ``test/test_contextlib.py``
+* ``Lib/test/test_contextlib_async.py`` -> ``test/test_contextlib_async.py``
+
+The corresponding version of ``contextlib2/__init__.pyi`` also needs to be
+retrieved from the ``typeshed`` project::
+
+    wget https://raw.githubusercontent.com/python/typeshed/master/stdlib/contextlib.pyi
+
+For the 3.10 sync, the only changes needed to the test files were to import from
+``contextlib2`` rather than ``contextlib``. The test directory is laid out so
+that the test suite's imports from ``test.support`` work the same way they do in
+the main CPython test suite.
+
+The following patch files are saved in the ``dev`` directory:
+
+* changes made to ``contextlib2/__init__.py`` to get it to run on the older
+  versions (and to add back in the deprecated APIs that never graduated to
+  the standard library version)
+* changes made to ``contextlib2/__init__.pyi`` to make the Python version
+  guards unconditional (since the ``contextlib2`` API is the same on all
+  supported versions)
+* changes made to ``docs/contextlib2.rst`` to use ``contextlib2`` version
+  numbers in the version added/changed notes and to integrate the module
+  documentation with the rest of the project documentation
+
+

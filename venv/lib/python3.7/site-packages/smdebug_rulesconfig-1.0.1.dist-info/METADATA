@@ -1,0 +1,16 @@
+Metadata-Version: 2.1
+Name: smdebug-rulesconfig
+Version: 1.0.1
+Summary: SMDebug RulesConfig
+Home-page: https://github.com/awslabs/sagemaker-debugger-rulesconfig
+Author: AWS DeepLearning Team
+License: Apache License Version 2.0
+Platform: UNKNOWN
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: Apache Software License
+Classifier: Operating System :: OS Independent
+Requires-Python: >=2.7
+
+This library, intended to be used with [Amazon SageMaker Python SDK](https://github.com/aws/sagemaker-python-sdk), helps you specify builtin rules without worrying about any details or tweak the configuration of builtin rules. These builtin rules are available in Amazon SageMaker.Amazon SageMaker Debugger Rulesconfig package can be used with Amazon SageMaker Debugger or asstand-alone rule config retriever. In addition to retrieving builtin rules, configuration for common collections can be retrieved as well.
+
+
