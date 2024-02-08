@@ -1,4 +1,8 @@
+################
 Advanced Functionality
+################
+
+Publish algorithm on the Advanced Functionality
 =================================
 
 .. raw:: html
@@ -18,7 +22,13 @@ Advanced Algorithms
    pytorch_deploy_pretrained_bert_model/pytorch_deploy_pretrained_bert_model
    mxnet_mnist_byom/mxnet_mnist
 
+BYOC Pytorch Container Sample
+-------------------------
 
+.. toctree::
+   :maxdepth: 1
+   
+   byoc_pytorch_container/byoc_pytorch_container_sample
 
 Parallelism with Data Distribution
 --------------------------------
@@ -116,13 +126,4 @@ Casual Inference Container
    :maxdepth: 1
 
    causal-inference/causal-inference-container
-                                                
-
-BYOC Pytorch Container
--------------------------------------
-
-.. toctree::
-   :maxdepth: 1
-
-   byoc-pytorch-container/byoc-pytorch-container
                                                 
