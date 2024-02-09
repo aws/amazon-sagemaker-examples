@@ -81,7 +81,7 @@ Resources:
         EnvironmentVariables:
           - Name: KOHYA_SS_VERSION
             Type: PLAINTEXT
-            Value: v22.1.1
+            Value: v22.6.0
           - Name: IMAGE_TAG
             Type: PLAINTEXT
             Value: latest
