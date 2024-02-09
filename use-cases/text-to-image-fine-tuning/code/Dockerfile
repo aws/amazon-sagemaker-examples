@@ -1,4 +1,4 @@
-# This Dockerfile has been modified slightly from https://github.com/bmaltais/kohya_ss/blob/v22.1.1/Dockerfile,
+# This Dockerfile has been modified slightly from https://github.com/bmaltais/kohya_ss/blob/v22.6.0/Dockerfile,
 # to work with SageMaker training jobs
 
 FROM nvcr.io/nvidia/pytorch:23.04-py3 as base
@@ -6,7 +6,9 @@ ENV DEBIAN_FRONTEND=noninteractive
 ENV TZ=Europe/London
 
 RUN apt update && apt-get install -y software-properties-common
-RUN add-apt-repository ppa:deadsnakes/ppa && \
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    add-apt-repository ppa:deadsnakes/ppa && \
     apt update && \
     apt-get install -y git curl libgl1 libglib2.0-0 libgoogle-perftools-dev \
     python3.10-dev python3.10-tk python3-html5lib python3-apt python3-pip python3.10-distutils && \
@@ -20,47 +22,24 @@ RUN update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.10 3
 RUN curl -sS https://bootstrap.pypa.io/get-pip.py | python3
 
 WORKDIR /app
-RUN python3 -m pip install wheel
+RUN --mount=type=cache,target=/root/.cache/pip python3 -m pip install wheel
 
 # Todo: Install torch 2.1.0 for cu121 support (only available as nightly as of writing)
-## RUN python3 -m pip install --pre torch ninja setuptools --extra-index-url https://download.pytorch.org/whl/nightly/cu121
+## RUN --mount=type=cache,target=/root/.cache/pip python3 -m pip install --pre torch ninja setuptools --extra-index-url https://download.pytorch.org/whl/nightly/cu121
 
 # Todo: Install xformers nightly for Torch 2.1.0 support
-## RUN python3 -m pip install -v -U git+https://github.com/facebookresearch/xformers.git@main#egg=xformers
+## RUN --mount=type=cache,target=/root/.cache/pip python3 -m pip install -v -U git+https://github.com/facebookresearch/xformers.git@main#egg=xformers
 
 # Install requirements
 COPY ./requirements.txt ./requirements_linux_docker.txt ./
 COPY ./setup/docker_setup.py ./setup.py
 # Copy the train file to the specified directory that SageMaker training jobs will use
 COPY ./train /opt/program/
-RUN python3 -m pip install -r ./requirements_linux_docker.txt
-RUN python3 -m pip install -r ./requirements.txt
-
-# In early October 2023, PyTorch 2.1 was released, causing a conflict with xFormers that led to
-# breaking many repositories that worked previously. The following was the error message:
-# WARNING[XFORMERS]: xFormers can't load C++/CUDA extensions. xFormers was built for:
-#    PyTorch 2.0.1+cu118 with CUDA 1108 (you have 2.1.0+cu121)
-#    Python  3.10.11 (you have 3.10.11)
-# Furthermore, torch version 2.1.1 and torchvision 0.16.1 was released on November 15, 2023 which also led to incompatible dependencies.
-# In order to resolve this issue temporarily, xformers==0.0.22.post7, torch==2.1.0, and torchvision==0.16.0 must be installed (see next 3 "RUN" lines). 
-# In future versions of the Kohya SS git repository, this will likely be updated in the requirements file(s). At that
-# point, you may remove this line and use an updated version of the Kohya git repo (see the template.yml file to update the version).
-
-##### TODO: Keep an eye on Kohya SS Git repo for a new version that has compatible dependencies for PyTorch/xFormers.
-##### Use that version once it's available, and remove the next 3 RUN commands
-# https://github.com/bmaltais/kohya_ss/issues/1651
-# https://github.com/facebookresearch/xformers/issues/897
-# https://github.com/facebookresearch/xformers/issues/870
-# https://github.com/bmaltais/kohya_ss/issues/1588
-# https://github.com/bmaltais/kohya_ss/issues/1638
-# https://github.com/facebookresearch/xformers/issues/874
-RUN python3 -m pip install -v -U torch==2.1.0
-RUN python3 -m pip install -v -U torchvision==0.16.0
-RUN python3 -m pip install -v -U xformers==0.0.22.post7 --index-url https://download.pytorch.org/whl/cu118
-#### END TODO
+RUN --mount=type=cache,target=/root/.cache/pip python3 -m pip install -r ./requirements_linux_docker.txt
+RUN --mount=type=cache,target=/root/.cache/pip python3 -m pip install -r ./requirements.txt
 
 # Replace pillow with pillow-simd
-RUN python3 -m pip uninstall -y pillow && \
+RUN --mount=type=cache,target=/root/.cache/pip python3 -m pip uninstall -y pillow && \
     CC="cc -mavx2" python3 -m pip install -U --force-reinstall pillow-simd
 
 # Fix missing libnvinfer7
