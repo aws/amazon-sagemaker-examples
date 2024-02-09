@@ -47,7 +47,7 @@ These examples introduce SageMaker geospatial capabilities which makes it easy t
 - [Perform Sentinel-1 InSAR using ESA SNAP Toolkit](sagemaker-geospatial/sentinel1-insar-snap/sentinel1_insar_kumamoto.ipynb) shows how the SNAP toolkit can be used within Amazon SageMaker geospatial capabilities to create interferograms on Sentinel-1 SAR data.
 - [How to use Vector Enrichment Jobs for Map Matching](sagemaker-geospatial/vector-enrichment-map-matching/vector-enrichment-map-matching.ipynb) shows how to use vector enrichtment operations with Amazon SageMaker Geospatial capabilities to snap GPS coordinates to road segments.
 - [How to use Vector Enrichment Jobs for Reverse Geocoding](sagemaker-geospatial/vector-enrichment-reverse-geocoding/vector-enrichment-reverse-geocoding.ipynb) shows how to use Amazon SageMaker Geospatial capabilities for reverse geocoding to obtain human readable addresses from data with latitude/longitude information.
-- [SageMaker Pipelines with Amazon SageMaker Geospatial Capabilities](sagemaker-geospatial/geospatial-pipeline/geospatial-pipelines.ipynb) shows how a geospatial data processing workflow can be automated by using an Amazon SageMaker Pipeline.
+- [Building geospatial pipelines with SageMaker Pipelines](sagemaker-geospatial/geospatial-processing-pipeline/geospatial_pipeline_processing.ipynb) shows how a geospatial data processing workflow can be automated by using Amazon SageMaker Pipelines.
 
 ### Introduction to Ground Truth Labeling Jobs
 
