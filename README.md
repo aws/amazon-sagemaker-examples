@@ -48,6 +48,7 @@ These examples introduce SageMaker geospatial capabilities which makes it easy t
 - [How to use Vector Enrichment Jobs for Map Matching](sagemaker-geospatial/vector-enrichment-map-matching/vector-enrichment-map-matching.ipynb) shows how to use vector enrichtment operations with Amazon SageMaker Geospatial capabilities to snap GPS coordinates to road segments.
 - [How to use Vector Enrichment Jobs for Reverse Geocoding](sagemaker-geospatial/vector-enrichment-reverse-geocoding/vector-enrichment-reverse-geocoding.ipynb) shows how to use Amazon SageMaker Geospatial capabilities for reverse geocoding to obtain human readable addresses from data with latitude/longitude information.
 - [SageMaker Pipelines with Amazon SageMaker Geospatial Capabilities](sagemaker-geospatial/geospatial-pipeline/geospatial-pipelines.ipynb) shows how a geospatial data processing workflow can be automated by using an Amazon SageMaker Pipeline.
+- [Mapping vegetation with SageMaker Geospatial Processing jobs](sagemaker-geospatial/processing_job_mapping_vegetation) shows how to map vegetation in California using SageMaker geospatial processing jobs.
 
 ### Introduction to Ground Truth Labeling Jobs
 
