@@ -5,9 +5,6 @@ with Sagemaker distributed data parallelism and/or model parallelism libraries.
 When using one of the ipynb notebooks within the folders of this directory please 
 make sure to use the `./shared-scripts/` directory as the source directory when submitting a job.
 
-For example, if one wanted to submit a Sagemaker job using the `model_parallel_v2/llama_v2/smp-finetuning-llama-fsdp-tp.ipynb`
-notebook, they would have to copy that notebook within the `./shared-scripts/` directory to make sure it can access all the accompanied files. 
-
 ### Sagemaker Distributed Data Parallelism
 
 Data parallelism examples are in the `./data_parallel/` directory.
