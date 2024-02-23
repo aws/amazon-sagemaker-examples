@@ -3,5 +3,6 @@ xgboost>=1.7.1,<2
 s3fs==0.4.2
 sagemaker>=2.199.0,<3
 pandas>=2.0.0
+fsspec>=2022.11.0
 gevent
 geventhttpclient
