@@ -13,10 +13,14 @@ from transformers import AutoTokenizer
 from transformers import PreTrainedTokenizerBase
 
 from benchmarking.concurrency_probe import ConcurrentProbeIteratorBase
-from benchmarking.constants import CLOUDWATCH_PERIOD_SECONDS, SM_INVOCATION_TIMEOUT_SECONDS
+from benchmarking.constants import (
+    CLOUDWATCH_PERIOD_SECONDS,
+    SM_INVOCATION_TIMEOUT_SECONDS,
+)
 from benchmarking.constants import MAX_TOTAL_RETRY_TIME_SECONDS
 from benchmarking.constants import RETRY_WAIT_TIME_SECONDS
 from benchmarking.logging import logging_prefix
+from benchmarking.custom_predictor import CustomPredictor
 
 
 class PredictionResult(NamedTuple):
@@ -158,15 +162,17 @@ class BatchInvocationStatistics(NamedTuple):
             "Average": np.average(data).item(),
             "Minimum": np.amin(data).item(),
             "Maximum": np.amax(data).item(),
+            "p50": np.quantile(data, 0.50).item(),
             "p90": np.quantile(data, 0.90).item(),
             "p95": np.quantile(data, 0.95).item(),
+            "p99": np.quantile(data, 0.99).item(),
         }
 
 
 class LoadTester:
     def __init__(
         self,
-        predictor: Predictor,
+        predictor: CustomPredictor,
         payload: Dict[str, Any],
         model_id: str,
         payload_name: str,
@@ -188,7 +194,7 @@ class LoadTester:
     def predict_once_and_collect_client_results(self) -> PredictionResult:
         """Perform a single endpoint prediction and produce a PredictionResult."""
         time_utc_start = datetime.datetime.utcnow()
-        result = self.predictor.predict(self.payload, custom_attributes="accept_eula=True")
+        result = self.predictor.predict(self.payload)
         time_utc_end = datetime.datetime.utcnow()
         return PredictionResult(time_utc_start, time_utc_end, self.payload, result)
 
@@ -204,14 +210,18 @@ class LoadTester:
             futures_list = [
                 executor.submit(self.predict_once_and_collect_client_results) for _ in range(num_invocations)
             ]
-            done, not_done = futures.wait(futures_list, timeout=timeout_seconds, return_when=futures.FIRST_EXCEPTION)
+            done, not_done = futures.wait(
+                futures_list,
+                timeout=timeout_seconds,
+                return_when=futures.FIRST_EXCEPTION,
+            )
             for future in done:
                 if future._exception is not None:
                     logging.info(f"{_logging_prefix} Cancelling and awaiting future completion: {future._exception}")
                     if not_done:
                         self._cancel_futures_and_wait(not_done)
                     raise future._exception
-                
+
             if not_done:
                 logging.info(f"{_logging_prefix} Cancelling and awaiting future completion: Load test timeout.")
                 self._cancel_futures_and_wait(not_done)
@@ -221,10 +231,11 @@ class LoadTester:
 
         time_utc_end = datetime.datetime.utcnow()
         return BatchInvocationStatistics(time_utc_start, time_utc_end, num_invocations, results)
-    
+
     @staticmethod
     def _cancel_futures_and_wait(
-        futures_list: Set[futures.Future], timeout: float = SM_INVOCATION_TIMEOUT_SECONDS
+        futures_list: Set[futures.Future],
+        timeout: float = SM_INVOCATION_TIMEOUT_SECONDS,
     ) -> None:
         if futures_list:
             for future_to_cancel in futures_list:
@@ -243,6 +254,8 @@ class LoadTester:
         metrics = self._extract_cloudwatch_metrics(statistics_latency, retry_wait_time, max_total_retry_time)
         metrics["Client"] = statistics_latency.get_statistics(self.tokenizer, self.price_per_endpoint)
         metrics["ModelID"] = self.model_id
+        metrics["Invocations"] = num_invocations
+        metrics["ConcurrentRequests"] = max_workers
         metrics["PayloadName"] = self.payload_name
         return metrics
 
@@ -283,7 +296,7 @@ class LoadTester:
                     results.append(result)
             except Exception as e:
                 concurrent_request_iterator.exception = e
-                
+
         logging.info(f"{self._logging_prefix} End concurrency probe. {concurrent_request_iterator.stop_reason}")
         return results
 
