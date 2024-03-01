@@ -414,7 +414,7 @@ def _load_sharded(model, optimizer, scheduler, checkpoint_dir, checkpointing_pg_
             warnings.simplefilter("ignore", UserWarning)
             # UserWarning to replace all_gather_base with all_gather_into_tensor floods the logs
             flattened_osd = FSDP.optim_state_dict_to_load(
-                optim_state["optimizer"], model, optimizer
+                model=model, optim=optimizer, optim_state_dict=optim_state["optimizer"],
             )
 
         if dist.get_rank() == 0:

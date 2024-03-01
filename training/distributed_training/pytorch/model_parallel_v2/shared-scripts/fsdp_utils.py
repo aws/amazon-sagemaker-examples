@@ -1,6 +1,9 @@
 """FSDP utils."""
 
 # pylint: disable=fixme,import-error,import-outside-toplevel,no-name-in-module
+from distutils.version import LooseVersion
+
+import torch
 from torch.distributed.fsdp import BackwardPrefetch, ShardingStrategy
 from torch.sagemaker.logger import get_logger
 
@@ -24,11 +27,21 @@ def get_backward_fetch_policy(policy: str):
 def get_transformer_layer(model_type="gpt2", use_smp_implementation=False):
     """Get transformer layer."""
     if use_smp_implementation:
-        # We can't checkpoint transformer.TransformerLayer class
-        # as it takes a tuple as input
-        from torch.sagemaker.tensor_parallel.transformer import TETransformerLayer
+        # For pt-2.1-tsm-2.1 releases and below,
+        # We can't checkpoint our transformer.TransformerLayer class as it takes a tuple as input,
+        # so we checkpoint the te.TETransformerLayer directly instead.
+        # In later versions, we patch TransformerEngine activation checkpointing logic in our containers
+        # with some missing native PyTorch checkpoint logic and bug fixes to resolve this.
+        # PT ref: https://github.com/pytorch/pytorch/blob/v2.2.0/torch/utils/checkpoint.py#L307-L319
+        # TE ref: https://github.com/NVIDIA/TransformerEngine/blob/v1.2.1/transformer_engine/pytorch/distributed.py#L272
+        if LooseVersion(torch.__version__) >= LooseVersion("2.1.0"):
+            from torch.sagemaker.tensor_parallel.transformer import TransformerLayer
 
-        transformer_layer = TETransformerLayer
+            transformer_layer = TransformerLayer
+        else:
+            from torch.sagemaker.tensor_parallel.transformer import TETransformerLayer
+
+            transformer_layer = TETransformerLayer
     elif model_type == "gpt2":
         from transformers.models.gpt2.modeling_gpt2 import GPT2Block
 
