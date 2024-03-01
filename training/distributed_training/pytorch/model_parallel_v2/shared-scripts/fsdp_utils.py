@@ -34,7 +34,7 @@ def get_transformer_layer(model_type="gpt2", use_smp_implementation=False):
         # with some missing native PyTorch checkpoint logic and bug fixes to resolve this.
         # PT ref: https://github.com/pytorch/pytorch/blob/v2.2.0/torch/utils/checkpoint.py#L307-L319
         # TE ref: https://github.com/NVIDIA/TransformerEngine/blob/v1.2.1/transformer_engine/pytorch/distributed.py#L272
-        if LooseVersion(torch.__version__) >= LooseVersion("2.1.0"):
+        if LooseVersion(torch.__version__) >= LooseVersion("2.2.0"):
             from torch.sagemaker.tensor_parallel.transformer import TransformerLayer
 
             transformer_layer = TransformerLayer
