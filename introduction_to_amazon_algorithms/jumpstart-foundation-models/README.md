@@ -4,7 +4,9 @@
 
 These examples provide quick walkthroughs to get you up and running with Amazon SageMaker JumpStart Foundation Models.
 
+- [JumpStart Text Generation Inference](jumpstart-text-generation-inference.ipynb) provides a single notebook for all JumpStart text generation models using default payloads retrieved from the JumpStartModel.
 - [Llama-2 Text Generation](llama-2-text-completion.ipynb) and [Llama-2 Chat Completion](llama-2-chat-completion.ipynb) demonstrate text generation using Meta's Llama-2 pretrained and fine-tuned chat models, respectfully.
+- [Code LIama fine-tuning](code-llama-fine-tuning-evaluate-human-eval.ipynb) demonstrate Code Llama fine-tuning and evaluation using [human-eval repository](https://github.com/openai/human-eval).
 - [Llama Guard Text Moderation](llama-guard-text-moderation.ipynb) demonstrates using a Llama Guard model to moderate a conversation in conjunction with a Llama-2 model.
 - [Text2Text Generation Flan T5 UL2](text2text-generation-flan-t5-ul2.ipynb) demonstrates Text2Text generation using state-of-the-art pretrained Flan T5 models from [Hugging Face](https://huggingface.co/docs/transformers/model_doc/flan-t5) which take an input text containing the task and returns the output of the accomplished task. 
 - [Text2Text Generation BloomZ](text2text-generation-bloomz.ipynb) demonstrates Text generation using state-of-the-art pretrained BloomZ 7B1 models from [Hugging Face](https://huggingface.co/bigscience/bloomz-7b1) which take an input text containing the task and returns the output of the accomplished task. In addition to the tasks that Flan T5 can perform, BloomZ can perform multilingual text classification, question and answering, code generation, paragraph rephrase, and More.
