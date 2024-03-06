@@ -33,7 +33,7 @@ def compute_num_params(model):
     return num_params
 
 
-def compute_tflops(throughput, num_params, dp_size, seq_len):
+def compute_tflops(throughput, num_params, world_size, seq_len):
     """
     Compute TFLOPs by using the 6 factor which gives us model tflops.
     This makes it easier to compare with frameworks such as megatron
@@ -43,7 +43,7 @@ def compute_tflops(throughput, num_params, dp_size, seq_len):
     Based on the formula in
     https://developer.nvidia.com/blog/scaling-language-model-training-to-a-trillion-parameters-using-megatron/
     """
-    return 6 * throughput * num_params / dp_size * seq_len * 1e-12
+    return 6 * throughput * num_params / world_size * seq_len * 1e-12
 
 
 def get_learning_rate_scheduler(optimizer, args):

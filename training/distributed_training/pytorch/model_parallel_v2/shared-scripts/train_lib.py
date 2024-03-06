@@ -304,7 +304,7 @@ def train(
                         grad_norm,
                         throughputs,
                         num_params,
-                        dp_size,
+                        world_size,
                         batch_seqlen,
                     )
 

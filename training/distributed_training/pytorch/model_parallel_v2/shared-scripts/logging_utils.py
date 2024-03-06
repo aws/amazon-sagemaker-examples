@@ -128,7 +128,7 @@ def log_train_metrics(
     grad_norm,
     throughputs,
     num_params,
-    dp_size,
+    world_size,
     batch_seqlen,
 ):
     """Log train metrics."""
@@ -148,7 +148,7 @@ def log_train_metrics(
         avg_throughput = np.average(throughputs[30:])
         from train_utils import compute_tflops
 
-        avg_tflops = compute_tflops(avg_throughput, num_params, dp_size, batch_seqlen)
+        avg_tflops = compute_tflops(avg_throughput, num_params, world_size, batch_seqlen)
         _logger.info(
             "Batch %d Running Avg Speed: %.2f samples/sec, Running Avg Model TFLOPS/GPU: %.2f",  # pylint: disable=line-too-long
             display_step,
