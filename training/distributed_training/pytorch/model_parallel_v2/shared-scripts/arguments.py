@@ -27,6 +27,9 @@ def parse_args():  # pylint: disable=too-many-statements
     opt_grp.add_argument("--seed", type=int, default=12345)
     opt_grp.add_argument("--same_seed", type=int, default=0)
     opt_grp.add_argument("--bf16", default=1, type=int, help="automatic mixed precision training")
+    opt_grp.add_argument("--fp8", default=1, type=int, help="fp8 mixed precision training")
+    opt_grp.add_argument("--fp8_amax_history_len", default=1024, type=int, help="amax history length")
+    opt_grp.add_argument("--fp8_amax_compute_algo", default="max", type=str, help="amax computation algorithm: 'max' or 'most_recent'")
     opt_grp.add_argument("--grad_clip", default=1.0, type=float, help="gradient clipping")
     opt_grp.add_argument("--weight_decay", default=0.2, type=float, help="weight decay")
     opt_grp.add_argument(
@@ -214,7 +217,7 @@ def parse_args():  # pylint: disable=too-many-statements
         "--num_key_value_heads",
         type=int,
         default=None,
-        help="num_key_value_heads for Llama v2",
+        help="The number of heads for key and value in GQA",
     )
     model_grp.add_argument(
         "--use_smp_implementation",
@@ -311,6 +314,7 @@ def parse_args():  # pylint: disable=too-many-statements
         choices=["smddp", "nccl"],
         help="Distributed backend to use for collectives",
     )
+    parser.add_argument("--nccl_test_log", type=str, default="")
     parser.add_argument("--profile_nsys", type=int, default=0)
     parser.add_argument("--framework", type=str, default="fsdp")
 
