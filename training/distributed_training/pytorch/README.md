@@ -1,9 +1,11 @@
 ## Sagemaker Distributed Training
 
 This directory contains example scripts to train or fine-tune large scale models,
-with Sagemaker distributed data parallelism and/ or model parallelism libraries.
+with Sagemaker distributed data parallelism and/or model parallelism libraries.
+When using one of the ipynb notebooks within the folders of this directory please 
+make sure to use the `./shared-scripts/` directory as the source directory when submitting a job.
 
-### Sagemaker Distriubted Data Parallelism
+### Sagemaker Distributed Data Parallelism
 
 Data parallelism examples are in the `./data_parallel/` directory.
 
