@@ -1,4 +1,4 @@
-transformers==4.31
+transformers==4.36.0
 datasets
 accelerate>=0.21
 bitsandbytes
