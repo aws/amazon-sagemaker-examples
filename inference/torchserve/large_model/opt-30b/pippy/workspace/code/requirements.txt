@@ -1,2 +1,2 @@
-transformers
-torchpippy
+transformers==4.28.1
+torchpippy==0.1.1
