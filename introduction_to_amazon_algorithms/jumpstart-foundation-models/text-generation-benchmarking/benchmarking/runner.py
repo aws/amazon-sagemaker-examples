@@ -78,8 +78,10 @@ class Benchmarker:
         self._pricing_client = PricingClient()
         self._sagemaker_client = SageMakerClient()
         self.model_id_to_endpoint_name: Dict[str, str] = {}
+        self.model_id_to_component_name: Dict[str, str] = {}
         if attempt_retrieve_predictor:
             self.model_id_to_endpoint_name = self.load_metrics_json(saved_metrics_path).get("endpoints", {})
+            self.model_id_to_component_name = self.load_metrics_json(saved_metrics_path).get("components", {})
 
     def _run_benchmarking_tests(
         self,
@@ -98,16 +100,8 @@ class Benchmarker:
             endpoint_description = self._sagemaker_client.describe_endpoint(predictor.endpoint_name)
             endpoint_config_name = endpoint_description["EndpointConfigName"]
             endpoint_config_description = self._sagemaker_client.describe_endpoint_config(endpoint_config_name)
-            model_description = self._sagemaker_client.describe_model(predictor.endpoint_name)
             production_variant = endpoint_config_description["ProductionVariants"][0]
-            # primary_container = model_description["PrimaryContainer"]
             instance_type = production_variant["InstanceType"]
-            price_per_instance = self._pricing_client.get_price_per_unit(instance_type, SM_SESSION._region_name)
-            price_per_endpoint = production_variant["InitialInstanceCount"] * price_per_instance
-            metrics_pricing = {
-                "PricePerInstance": price_per_instance,
-                "PricePerEndpoint": price_per_endpoint,
-            }
             creation_time: datetime = endpoint_description["CreationTime"]
             last_modified_time: datetime = endpoint_description["LastModifiedTime"]
             metrics_time = {
@@ -130,12 +124,6 @@ class Benchmarker:
                     f"{logging_prefix(model_id)} No initial_instance_count provided. Using the default count 1."
                 )
                 initial_instance_count = 1
-            price_per_instance = self._pricing_client.get_price_per_unit(instance_type, SM_SESSION._region_name)
-            price_per_endpoint = initial_instance_count * price_per_instance
-            metrics_pricing = {
-                "PricePerInstance": price_per_instance,
-                "PricePerEndpoint": price_per_endpoint,
-            }
             metrics_time = {
                 "CreationTime": 0,
                 "LastModifiedTime": 0,
@@ -150,6 +138,13 @@ class Benchmarker:
                 "ModelDataDownloadTimeoutInSeconds": 3600,
                 "ContainerStartupHealthCheckTimeoutInSeconds": 3600,
             }
+
+        price_per_instance = self._pricing_client.get_price_per_unit(instance_type, SM_SESSION._region_name)
+        price_per_endpoint = production_variant["InitialInstanceCount"] * price_per_instance
+        metrics_pricing = {
+            "PricePerInstance": price_per_instance,
+            "PricePerEndpoint": price_per_endpoint,
+        }
 
         tester = LoadTester(
             predictor,
@@ -219,13 +214,14 @@ class Benchmarker:
         an `endpoint_name` is not provided, then the model is deployed prior to benchmarking run.
         """
         endpoint_name = model_args.get("endpoint_name") or self.model_id_to_endpoint_name.get(model_id)
+        component_name = model_args.get("component_name")
         endpoint_url = model_args.get("endpoint_url")
         instance_type = model_args.get("instance_type")
         if endpoint_url is not None:
             predictor = CustomPredictor(endpoint_url=endpoint_url, instance_type=instance_type)
         elif endpoint_name is not None:
             try:
-                predictor = self.retrieve_predictor_from_endpoint(endpoint_name, model_args)
+                predictor = self.retrieve_predictor_from_endpoint(endpoint_name, component_name, model_args)
                 predictor = CustomPredictor(predictor=predictor)
                 logging.info(f"{logging_prefix(model_id)} Predictor successfully retrieved from endpoint name")
             except Exception as e:
@@ -237,34 +233,39 @@ class Benchmarker:
             predictor = CustomPredictor(predictor=predictor)
 
         self.model_id_to_endpoint_name[model_id] = predictor.endpoint_name
+        if predictor.component_name is not None:
+            self.model_id_to_component_name[model_id] = predictor.component_name
+
         metrics = self.run_single_predictor(
-            model_id,
-            predictor,
-            model_args["huggingface_model_id"],
-            model_args.get("huggingface_hub_token"),
+            model_id, predictor, model_args.get("huggingface_model_id"), model_args.get("huggingface_hub_token")
         )
         return metrics, predictor
 
     def retrieve_predictor_from_endpoint(
-        self, endpoint_name: str, model_args: Optional[Dict[str, Any]] = None
+        self, endpoint_name: str, component_name: Optional[str] = None, model_args: Optional[Dict[str, Any]] = None
     ) -> Predictor:
         """Obtain a predictor from an already deployed endpoint."""
         if model_args is not None:
             jumpstart_model_args: Dict[str, Any] = model_args.get("jumpstart_model_args")
             if jumpstart_model_args:
-                return retrieve_default(
+                predictor = retrieve_default(
                     endpoint_name=endpoint_name,
                     model_id=jumpstart_model_args["model_id"],
                     model_version=jumpstart_model_args.get("model_version", "*"),
                     sagemaker_session=self.sagemaker_session,
                 )
+        else:
+            predictor = Predictor(
+                endpoint_name=endpoint_name,
+                sagemaker_session=self.sagemaker_session,
+                serializer=JSONSerializer(),
+                deserializer=JSONDeserializer(),
+            )
 
-        return Predictor(
-            endpoint_name=endpoint_name,
-            sagemaker_session=self.sagemaker_session,
-            serializer=JSONSerializer(),
-            deserializer=JSONDeserializer(),
-        )
+        if component_name is not None:
+            predictor.component_name = component_name
+
+        return predictor
 
     def deploy_model(self, model_id: str, model_args: Dict[str, Any]) -> Predictor:
         """Deploy a model with configuration defined by model_args.
@@ -339,7 +340,7 @@ class Benchmarker:
         }
 
         with open(save_file_path, "w") as file:
-            json.dump(output, file, indent=4, ensure_ascii=False)
+            json.dump(output, file, indent=4, ensure_ascii=False, default=lambda x: "<not serializable>")
 
         return output
 
@@ -366,6 +367,8 @@ class Benchmarker:
         df: pd.DataFrame,
         value_format_dict: Optional[Dict[str, Callable]] = None,
         value_name_dict: Optional[Dict[str, str]] = None,
+        index_columns: Optional[List[str]] = None,
+        index_names: Optional[List[str]] = None,
         fillna_str: str = "--",
     ) -> pd.DataFrame:
         """Pivot concurrency probe pandas DataFrame to show specified values across models and concurrent requests."""
@@ -384,35 +387,39 @@ class Benchmarker:
 
         df_copy = df.copy()
 
-        index_cols = [
-            "ModelID",
-            "metrics.ProductionVariant.InstanceType",
-            "PayloadName",
-        ]
+        if index_columns is None:
+            index_columns = [
+                "ModelID",
+                "metrics.ProductionVariant.InstanceType",
+                "PayloadName",
+            ]
+        if index_names is None:
+            index_names = ["model ID", "instance type", "payload"]
+
         columns_cols = ["ConcurrentRequests"]
         value_cols = value_format_dict.keys()
 
         for value_name, mapping_function in value_format_dict.items():
             df_copy[value_name] = df_copy[value_name].map(mapping_function)
 
-        df_pivot = df_copy.pivot(index=index_cols, columns=columns_cols, values=value_cols).fillna(fillna_str)
+        df_pivot = df_copy.pivot(index=index_columns, columns=columns_cols, values=value_cols).fillna(fillna_str)
         df_pivot = df_pivot.rename(columns=value_name_dict)
-        df_pivot.index = df_pivot.index.rename(["model ID", "instance type", "payload"])
+        df_pivot.index = df_pivot.index.rename(index_names)
         df_pivot.columns = df_pivot.columns.rename([None, "concurrent requests"])
         return df_pivot
 
     def clean_up_resources(self) -> None:
         """Delete model and endpoint for all endpoints attached to this benchmarker."""
         for model_id, endpoint_name in self.model_id_to_endpoint_name.items():
-            predictor = self.retrieve_predictor_from_endpoint(endpoint_name)
+            component_name = self.model_id_to_component_name.get(model_id)
+            predictor = self.retrieve_predictor_from_endpoint(endpoint_name, component_name=component_name)
             self.clean_up_predictor(model_id, predictor)
 
     @classmethod
     def clean_up_predictor(cls, model_id: str, predictor: CustomPredictor) -> None:
         """Delete model and endpoint for a single predictor."""
         logging.info(f"{logging_prefix(model_id)} Cleaning up resources ...")
-        predictor.delete_model()
-        predictor.delete_endpoint()
+        predictor.delete_predictor()
 
     @staticmethod
     def load_metrics_json(

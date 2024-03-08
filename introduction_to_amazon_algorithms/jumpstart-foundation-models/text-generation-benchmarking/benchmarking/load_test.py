@@ -68,9 +68,14 @@ class PredictionResult(NamedTuple):
         """The word count of the output sequence."""
         return self._num_words(self.output_sequence())
 
-    def num_tokens(self, tokenizer: PreTrainedTokenizerBase) -> int:
+    def num_tokens(self, tokenizer: Optional[PreTrainedTokenizerBase] = None) -> Optional[int]:
         """The token count of the output sequence."""
-        return len(tokenizer.encode(self.output_sequence()))
+        if isinstance(self.result, list) and isinstance(self.result[0], dict) and "details" in self.result[0]:
+            return self.result[0]["details"]["generated_tokens"]
+        elif tokenizer is not None:
+            return len(tokenizer.encode(self.output_sequence(), add_special_tokens=False))
+        else:
+            return None
 
     def _text_inputs(self) -> str:
         if "inputs" in self.payload:
@@ -108,6 +113,21 @@ class BatchInvocationStatistics(NamedTuple):
             for i, result in enumerate(self.results)
         ]
         return self._collect_statistics(throughput_values)["Maximum"]
+    
+    def _gather_per_unit_latencies(
+        self, use_tokens: bool = True, tokenizer: Optional[PreTrainedTokenizerBase] = None
+    ) -> List[float]:
+        """Gather the average latency for each generated token across requests in a single list."""
+        per_unit_latencies = []
+        for result in self.results:
+            client_latency = result.client_latency()
+            if use_tokens is True:
+                unit_count = result.num_tokens(tokenizer)
+            else:
+                unit_count = result.num_words()
+            if unit_count > 0:
+                per_unit_latencies.extend([client_latency / unit_count] * unit_count)
+        return per_unit_latencies
 
     def get_statistics(
         self,
@@ -115,9 +135,7 @@ class BatchInvocationStatistics(NamedTuple):
         price_per_endpoint: Optional[float] = None,
     ) -> Dict[str, Any]:
         """Collect statistics on the number of input/output sequence words, the latency, and the latency per word."""
-        latency_per_word = self._collect_statistics(
-            [x.client_latency() / x.num_words() for x in self.results if x.num_words() > 0]
-        )
+        latency_per_word = self._collect_statistics(self._gather_per_unit_latencies(use_tokens=False))
         word_throughput_robust = self._throughput_robust([x.num_words() for x in self.results])
         time_to_generate_1m_words = 1e6 / word_throughput_robust / 3600
         statistics: Dict[str, Any] = {
@@ -132,11 +150,10 @@ class BatchInvocationStatistics(NamedTuple):
             "WordThroughput": self._throughput([x.num_words() for x in self.results]),
             "TimeToGenerate1MWords": time_to_generate_1m_words,
         }
-        if tokenizer is not None:
-            output_sequence_tokens = [x.num_tokens(tokenizer) for x in self.results]
-            latency_per_token = self._collect_statistics(
-                [x.client_latency() / x.num_tokens(tokenizer) for x in self.results if x.num_tokens(tokenizer) > 0]
-            )
+        output_sequence_tokens = [x.num_tokens(tokenizer) for x in self.results]
+        token_statistics_exist = any(output_sequence_tokens)
+        if token_statistics_exist:
+            latency_per_token = self._collect_statistics(self._gather_per_unit_latencies(tokenizer=tokenizer))
             token_throughput = self._throughput(output_sequence_tokens)
             token_throughput_robust = self._throughput_robust(output_sequence_tokens)
             time_to_generate_1m_tokens = 1e6 / token_throughput / 3600
@@ -150,8 +167,8 @@ class BatchInvocationStatistics(NamedTuple):
                 }
             )
         if price_per_endpoint is not None:
-            statistics.update({"CostToGenerate1MTokens": time_to_generate_1m_tokens * price_per_endpoint})
-            if tokenizer is not None:
+            statistics.update({"CostToGenerate1MWords": time_to_generate_1m_words * price_per_endpoint})
+            if token_statistics_exist:
                 statistics.update({"CostToGenerate1MTokens": time_to_generate_1m_tokens * price_per_endpoint})
         return statistics
 
