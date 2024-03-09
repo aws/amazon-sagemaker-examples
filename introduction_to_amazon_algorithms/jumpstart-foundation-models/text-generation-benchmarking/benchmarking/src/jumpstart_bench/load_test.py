@@ -8,19 +8,16 @@ import time
 
 import boto3
 import numpy as np
-from sagemaker.predictor import Predictor
 from transformers import AutoTokenizer
 from transformers import PreTrainedTokenizerBase
 
-from benchmarking.concurrency_probe import ConcurrentProbeIteratorBase
-from benchmarking.constants import (
-    CLOUDWATCH_PERIOD_SECONDS,
-    SM_INVOCATION_TIMEOUT_SECONDS,
-)
-from benchmarking.constants import MAX_TOTAL_RETRY_TIME_SECONDS
-from benchmarking.constants import RETRY_WAIT_TIME_SECONDS
-from benchmarking.logging import logging_prefix
-from benchmarking.custom_predictor import CustomPredictor
+from jumpstart_bench.concurrency_probe import ConcurrentProbeIteratorBase
+from jumpstart_bench.constants import CLOUDWATCH_PERIOD_SECONDS
+from jumpstart_bench.constants import SM_INVOCATION_TIMEOUT_SECONDS
+from jumpstart_bench.constants import MAX_TOTAL_RETRY_TIME_SECONDS
+from jumpstart_bench.constants import RETRY_WAIT_TIME_SECONDS
+from jumpstart_bench.logging import logging_prefix
+from jumpstart_bench.custom_predictor import CustomPredictor
 
 
 class PredictionResult(NamedTuple):
@@ -272,7 +269,7 @@ class LoadTester:
         metrics["Client"] = statistics_latency.get_statistics(self.tokenizer, self.price_per_endpoint)
         metrics["ModelID"] = self.model_id
         metrics["Invocations"] = num_invocations
-        metrics["ConcurrentRequests"] = max_workers
+        metrics["ConcurrentRequests"] = 1
         metrics["PayloadName"] = self.payload_name
         return metrics
 

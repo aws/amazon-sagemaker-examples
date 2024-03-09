@@ -18,20 +18,21 @@ from sagemaker.utils import name_from_base
 from sagemaker import image_uris
 from sagemaker.model import Model
 
-from benchmarking.clients import PricingClient
-from benchmarking.clients import SageMakerClient
-from benchmarking.concurrency_probe import num_invocation_scaler
-from benchmarking.concurrency_probe import ConcurrentProbeIteratorBase
-from benchmarking.concurrency_probe import ConcurrentProbeExponentialScalingIterator
-from benchmarking.constants import MAX_CONCURRENT_BENCHMARKS, SAVE_METRICS_FILE_PATH
-from benchmarking.constants import MAX_CONCURRENT_INVOCATIONS_PER_MODEL
-from benchmarking.constants import MAX_TOTAL_RETRY_TIME_SECONDS
-from benchmarking.constants import NUM_INVOCATIONS
-from benchmarking.constants import RETRY_WAIT_TIME_SECONDS
-from benchmarking.constants import SM_SESSION
-from benchmarking.load_test import LoadTester
-from benchmarking.logging import logging_prefix
-from benchmarking.custom_predictor import CustomPredictor
+from jumpstart_bench.clients import PricingClient
+from jumpstart_bench.clients import SageMakerClient
+from jumpstart_bench.concurrency_probe import num_invocation_scaler
+from jumpstart_bench.concurrency_probe import ConcurrentProbeIteratorBase
+from jumpstart_bench.concurrency_probe import ConcurrentProbeExponentialScalingIterator
+from jumpstart_bench.constants import MAX_CONCURRENT_BENCHMARKS
+from jumpstart_bench.constants import SAVE_METRICS_FILE_PATH
+from jumpstart_bench.constants import MAX_CONCURRENT_INVOCATIONS_PER_MODEL
+from jumpstart_bench.constants import MAX_TOTAL_RETRY_TIME_SECONDS
+from jumpstart_bench.constants import NUM_INVOCATIONS
+from jumpstart_bench.constants import RETRY_WAIT_TIME_SECONDS
+from jumpstart_bench.constants import SM_SESSION
+from jumpstart_bench.load_test import LoadTester
+from jumpstart_bench.logging import logging_prefix
+from jumpstart_bench.custom_predictor import CustomPredictor
 
 
 class Benchmarker:
@@ -374,8 +375,8 @@ class Benchmarker:
         """Pivot concurrency probe pandas DataFrame to show specified values across models and concurrent requests."""
         if value_format_dict is None:
             value_format_dict = {
-                "TokenThroughput": "{:.2f}".format,
-                "LatencyPerToken.p90": int,
+                "TokenThroughput": "{:.0f}".format,
+                "LatencyPerToken.p90": "{:.0f}".format,
                 "CostToGenerate1MTokens": "${:,.2f}".format,
             }
         if value_name_dict is None:
@@ -411,9 +412,12 @@ class Benchmarker:
     def clean_up_resources(self) -> None:
         """Delete model and endpoint for all endpoints attached to this benchmarker."""
         for model_id, endpoint_name in self.model_id_to_endpoint_name.items():
-            component_name = self.model_id_to_component_name.get(model_id)
-            predictor = self.retrieve_predictor_from_endpoint(endpoint_name, component_name=component_name)
-            self.clean_up_predictor(model_id, predictor)
+            try:
+                component_name = self.model_id_to_component_name.get(model_id)
+                predictor = self.retrieve_predictor_from_endpoint(endpoint_name, component_name=component_name)
+                self.clean_up_predictor(model_id, predictor)
+            except Exception as e:
+                logging.info(f"{logging_prefix(model_id)} Cleaning resources failed: {e}")
 
     @classmethod
     def clean_up_predictor(cls, model_id: str, predictor: CustomPredictor) -> None:

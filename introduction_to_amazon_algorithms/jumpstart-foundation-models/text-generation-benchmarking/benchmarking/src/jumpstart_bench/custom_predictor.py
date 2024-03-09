@@ -1,12 +1,8 @@
 import requests
 from typing import Optional
-from urllib.parse import urlparse
 import json
-import sagemaker
 
 from sagemaker.predictor import Predictor
-from sagemaker.serializers import JSONSerializer
-from sagemaker.deserializers import JSONDeserializer
 
 
 class CustomPredictor:
@@ -25,8 +21,10 @@ class CustomPredictor:
         self.instance_type = instance_type
         if self.predictor is not None:
             self.endpoint_name = self.predictor.endpoint_name
+            self.component_name = self.predictor.component_name
         else:
             self.endpoint_name = self.endpoint_url
+            self.component_name = None
 
     def predict(self, payload):
         if self.predictor is None:

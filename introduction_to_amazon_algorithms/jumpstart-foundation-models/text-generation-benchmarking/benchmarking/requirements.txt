@@ -1,0 +1,6 @@
+boto3
+botocore
+numpy
+pandas
+sagemaker
+transformers
