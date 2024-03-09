@@ -2,5 +2,5 @@ boto3
 botocore
 numpy
 pandas
-sagemaker
+sagemaker>=2.199.0
 transformers
