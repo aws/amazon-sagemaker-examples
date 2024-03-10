@@ -140,7 +140,11 @@ class Benchmarker:
                 "ContainerStartupHealthCheckTimeoutInSeconds": 3600,
             }
 
-        price_per_instance = self._pricing_client.get_price_per_unit(instance_type, SM_SESSION._region_name)
+        try:
+            price_per_instance = self._pricing_client.get_price_per_unit(instance_type, SM_SESSION._region_name)
+        except Exception as e:
+            logging.info(f"{logging_prefix(model_id)} Error getting price per instance, setting to $0: {e}")
+            price_per_instance = 0.
         price_per_endpoint = production_variant["InitialInstanceCount"] * price_per_instance
         metrics_pricing = {
             "PricePerInstance": price_per_instance,
