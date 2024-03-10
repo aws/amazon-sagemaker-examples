@@ -330,8 +330,9 @@ class Benchmarker:
                     endpoints[model_id] = predictor.endpoint_name
                     metrics.extend(metrics_model_id)
                 except Exception as e:
-                    errors[model_id] = e
-                    logging.error(f"{logging_prefix(model_id)} Benchmarking failed: {e}")
+                    raise e
+                    # errors[model_id] = e
+                    # logging.error(f"{logging_prefix(model_id)} Benchmarking failed: {e}")
 
         output = {
             "models": models,
