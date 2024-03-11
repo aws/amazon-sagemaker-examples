@@ -19,8 +19,8 @@ The overall topics covered in the series of notebook are the following:
 * Basic data cleaning and preprocessing using SageMaker Data Wrangler
 * SageMaker Processing for heavy-duty feature engineering steps
 * Model building using XGBoost
-* Hyperparamter tuning using SageMaker Automatic Tuning
-* Deplying and getting predictions using Batch Transform
+* Hyperparameter tuning using SageMaker Automatic Tuning
+* Deploying and getting predictions using Batch Transform
 * SageMaker Clarify for model explainability
 
 ### What is customer churn and why is it important for businesses? 
@@ -52,7 +52,7 @@ To run this notebook under your own AWS account, you'll need to first create an 
 As part of the solution, the following services are used:
 
 * [Amazon S3](https://aws.amazon.com/s3/): Used to store datasets.
-* [Amazon SageMaker Data Wrangler](): Inital data cleaning and analysis. 
+* [Amazon SageMaker Data Wrangler](): Initial data cleaning and analysis. 
 * [Amazon SageMaker Studio Notebooks](https://aws.amazon.com/sagemaker/): Used to preprocess and visualize the data, and to train model.
 * [Amazon SageMaker Endpoint](https://aws.amazon.com/sagemaker/): Used to deploy the trained model.
 
