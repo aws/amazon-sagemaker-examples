@@ -1,0 +1,78 @@
+{
+    "training": {
+        "processors": [
+            "gpu"
+        ],
+        "version_aliases": {
+            "1.12": "1.12.0",
+            "1.13": "1.13.1"
+        },
+        "versions": {
+            "1.12.0": {
+                "py_versions": [
+                    "py38"
+                ],
+                "registries": {
+                    "af-south-1": "626614931356",
+                    "il-central-1": "780543022126",
+                    "ap-east-1": "871362719292",
+                    "ap-northeast-1": "763104351884",
+                    "ap-northeast-2": "763104351884",
+                    "ap-northeast-3": "364406365360",
+                    "ap-south-1": "763104351884",
+                    "ap-south-2": "772153158452",
+                    "ap-southeast-1": "763104351884",
+                    "ap-southeast-2": "763104351884",
+                    "ap-southeast-4": "457447274322",
+                    "ca-central-1": "763104351884",
+                    "eu-central-1": "763104351884",
+                    "eu-central-2": "380420809688",
+                    "eu-north-1": "763104351884",
+                    "eu-west-1": "763104351884",
+                    "eu-west-2": "763104351884",
+                    "eu-west-3": "763104351884",
+                    "eu-south-1": "692866216735",
+                    "eu-south-2": "503227376785",
+                    "me-south-1": "217643126080",
+                    "sa-east-1": "763104351884",
+                    "us-east-1": "763104351884",
+                    "us-east-2": "763104351884",
+                    "us-west-1": "763104351884",
+                    "us-west-2": "763104351884"
+                },
+                "repository": "pytorch-trcomp-training"
+            },
+            "1.13.1": {
+                "py_versions": [
+                    "py39"
+                ],
+                "registries": {
+                    "af-south-1": "626614931356",
+                    "il-central-1": "780543022126",
+                    "ap-east-1": "871362719292",
+                    "ap-northeast-1": "763104351884",
+                    "ap-northeast-2": "763104351884",
+                    "ap-northeast-3": "364406365360",
+                    "ap-south-1": "763104351884",
+                    "ap-southeast-1": "763104351884",
+                    "ap-southeast-2": "763104351884",
+                    "ap-southeast-4": "457447274322",
+                    "ca-central-1": "763104351884",
+                    "eu-central-1": "763104351884",
+                    "eu-north-1": "763104351884",
+                    "eu-west-1": "763104351884",
+                    "eu-west-2": "763104351884",
+                    "eu-west-3": "763104351884",
+                    "eu-south-1": "692866216735",
+                    "me-south-1": "217643126080",
+                    "sa-east-1": "763104351884",
+                    "us-east-1": "763104351884",
+                    "us-east-2": "763104351884",
+                    "us-west-1": "763104351884",
+                    "us-west-2": "763104351884"
+                },
+                "repository": "pytorch-trcomp-training"
+            }
+        }
+    }
+}

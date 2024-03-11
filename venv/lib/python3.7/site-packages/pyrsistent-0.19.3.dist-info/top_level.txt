@@ -1,0 +1,2 @@
+_pyrsistent_version
+pyrsistent

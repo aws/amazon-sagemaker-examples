@@ -1,0 +1,46 @@
+{
+    "processors": ["cpu", "gpu"],
+    "scope": ["training"],
+    "versions": {
+        "0.8.5": {
+            "py_versions": ["py36"],
+            "registries": {
+                "ap-northeast-1": "462105765813",
+                "ap-northeast-2": "462105765813",
+                "ap-south-1": "462105765813",
+                "ap-southeast-1": "462105765813",
+                "ap-southeast-2": "462105765813",
+                "ca-central-1": "462105765813",
+                "eu-central-1": "462105765813",
+                "eu-west-1": "462105765813",
+                "eu-west-2": "462105765813",
+                "us-east-1": "462105765813",
+                "us-east-2": "462105765813",
+                "us-west-1": "462105765813",
+                "us-west-2": "462105765813"
+            },
+            "repository": "sagemaker-rl-ray-container",
+            "tag_prefix": "ray-0.8.5-torch"
+        },
+        "1.6.0": {
+            "py_versions": ["py36"],
+            "registries": {
+                "ap-northeast-1": "462105765813",
+                "ap-northeast-2": "462105765813",
+                "ap-south-1": "462105765813",
+                "ap-southeast-1": "462105765813",
+                "ap-southeast-2": "462105765813",
+                "ca-central-1": "462105765813",
+                "eu-central-1": "462105765813",
+                "eu-west-1": "462105765813",
+                "eu-west-2": "462105765813",
+                "us-east-1": "462105765813",
+                "us-east-2": "462105765813",
+                "us-west-1": "462105765813",
+                "us-west-2": "462105765813"
+            },
+            "repository": "sagemaker-rl-ray-container",
+            "tag_prefix": "ray-1.6.0-torch"
+        }
+    }
+}

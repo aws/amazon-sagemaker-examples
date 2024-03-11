@@ -1,0 +1,62 @@
+{
+  "processing": {
+    "versions": {
+      "1.x": {
+        "registries": {
+          "af-south-1": "143210264188",
+          "ap-east-1": "707077482487",
+          "ap-northeast-1": "649008135260",
+          "ap-northeast-2": "131546521161",
+          "ap-northeast-3": "913387583493",
+          "ap-south-1": "089933028263",
+          "ap-southeast-1": "119527597002",
+          "ap-southeast-2": "422173101802",
+          "ca-central-1": "557239378090",
+          "eu-central-1": "024640144536",
+          "eu-north-1": "054986407534",
+          "eu-south-1": "488287956546",
+          "eu-west-1": "245179582081",
+          "eu-west-2": "894491911112",
+          "eu-west-3": "807237891255",
+          "me-south-1": "376037874950",
+          "sa-east-1": "424196993095",
+          "us-east-1": "663277389841",
+          "us-east-2": "415577184552",
+          "us-west-1": "926135532090",
+          "us-west-2": "174368400705",
+          "cn-north-1": "245909111842",
+          "cn-northwest-1": "249157047649"
+        },
+        "repository": "sagemaker-data-wrangler-container"
+      },
+      "2.x": {
+        "registries": {
+          "af-south-1": "143210264188",
+          "ap-east-1": "707077482487",
+          "ap-northeast-1": "649008135260",
+          "ap-northeast-2": "131546521161",
+          "ap-northeast-3": "913387583493",
+          "ap-south-1": "089933028263",
+          "ap-southeast-1": "119527597002",
+          "ap-southeast-2": "422173101802",
+          "ca-central-1": "557239378090",
+          "eu-central-1": "024640144536",
+          "eu-north-1": "054986407534",
+          "eu-south-1": "488287956546",
+          "eu-west-1": "245179582081",
+          "eu-west-2": "894491911112",
+          "eu-west-3": "807237891255",
+          "me-south-1": "376037874950",
+          "sa-east-1": "424196993095",
+          "us-east-1": "663277389841",
+          "us-east-2": "415577184552",
+          "us-west-1": "926135532090",
+          "us-west-2": "174368400705",
+          "cn-north-1": "245909111842",
+          "cn-northwest-1": "249157047649"
+        },
+        "repository": "sagemaker-data-wrangler-container"
+      }
+    }
+  }
+}

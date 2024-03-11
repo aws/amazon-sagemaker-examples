@@ -1,0 +1,25 @@
+{
+    "processors": ["cpu"],
+    "scope": ["training"],
+    "versions": {
+        "8.7.0": {
+            "registries": {
+                "ap-northeast-1": "462105765813",
+                "ap-northeast-2": "462105765813",
+                "ap-south-1": "462105765813",
+                "ap-southeast-1": "462105765813",
+                "ap-southeast-2": "462105765813",
+                "ca-central-1": "462105765813",
+                "eu-central-1": "462105765813",
+                "eu-west-1": "462105765813",
+                "eu-west-2": "462105765813",
+                "us-east-1": "462105765813",
+                "us-east-2": "462105765813",
+                "us-west-1": "462105765813",
+                "us-west-2": "462105765813"
+            },
+            "repository": "sagemaker-rl-vw-container",
+            "tag_prefix": "vw-8.7.0"
+        }
+    }
+}

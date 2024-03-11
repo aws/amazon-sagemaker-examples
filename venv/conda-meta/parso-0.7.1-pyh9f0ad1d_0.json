@@ -1,0 +1,444 @@
+{
+  "build": "pyh9f0ad1d_0",
+  "build_number": 0,
+  "channel": "https://conda.anaconda.org/conda-forge/noarch",
+  "constrains": [],
+  "depends": [
+    "python"
+  ],
+  "extracted_package_dir": "/opt/conda/pkgs/parso-0.7.1-pyh9f0ad1d_0",
+  "files": [
+    "lib/python3.7/site-packages/parso-0.7.1.dist-info/AUTHORS.txt",
+    "lib/python3.7/site-packages/parso-0.7.1.dist-info/INSTALLER",
+    "lib/python3.7/site-packages/parso-0.7.1.dist-info/LICENSE.txt",
+    "lib/python3.7/site-packages/parso-0.7.1.dist-info/METADATA",
+    "lib/python3.7/site-packages/parso-0.7.1.dist-info/RECORD",
+    "lib/python3.7/site-packages/parso-0.7.1.dist-info/WHEEL",
+    "lib/python3.7/site-packages/parso-0.7.1.dist-info/direct_url.json",
+    "lib/python3.7/site-packages/parso-0.7.1.dist-info/top_level.txt",
+    "lib/python3.7/site-packages/parso/__init__.py",
+    "lib/python3.7/site-packages/parso/_compatibility.py",
+    "lib/python3.7/site-packages/parso/cache.py",
+    "lib/python3.7/site-packages/parso/file_io.py",
+    "lib/python3.7/site-packages/parso/grammar.py",
+    "lib/python3.7/site-packages/parso/normalizer.py",
+    "lib/python3.7/site-packages/parso/parser.py",
+    "lib/python3.7/site-packages/parso/pgen2/__init__.py",
+    "lib/python3.7/site-packages/parso/pgen2/generator.py",
+    "lib/python3.7/site-packages/parso/pgen2/grammar_parser.py",
+    "lib/python3.7/site-packages/parso/python/__init__.py",
+    "lib/python3.7/site-packages/parso/python/diff.py",
+    "lib/python3.7/site-packages/parso/python/errors.py",
+    "lib/python3.7/site-packages/parso/python/grammar27.txt",
+    "lib/python3.7/site-packages/parso/python/grammar310.txt",
+    "lib/python3.7/site-packages/parso/python/grammar33.txt",
+    "lib/python3.7/site-packages/parso/python/grammar34.txt",
+    "lib/python3.7/site-packages/parso/python/grammar35.txt",
+    "lib/python3.7/site-packages/parso/python/grammar36.txt",
+    "lib/python3.7/site-packages/parso/python/grammar37.txt",
+    "lib/python3.7/site-packages/parso/python/grammar38.txt",
+    "lib/python3.7/site-packages/parso/python/grammar39.txt",
+    "lib/python3.7/site-packages/parso/python/parser.py",
+    "lib/python3.7/site-packages/parso/python/pep8.py",
+    "lib/python3.7/site-packages/parso/python/prefix.py",
+    "lib/python3.7/site-packages/parso/python/token.py",
+    "lib/python3.7/site-packages/parso/python/tokenize.py",
+    "lib/python3.7/site-packages/parso/python/tree.py",
+    "lib/python3.7/site-packages/parso/tree.py",
+    "lib/python3.7/site-packages/parso/utils.py",
+    "lib/python3.7/site-packages/parso/__pycache__/__init__.cpython-37.pyc",
+    "lib/python3.7/site-packages/parso/__pycache__/_compatibility.cpython-37.pyc",
+    "lib/python3.7/site-packages/parso/__pycache__/cache.cpython-37.pyc",
+    "lib/python3.7/site-packages/parso/__pycache__/file_io.cpython-37.pyc",
+    "lib/python3.7/site-packages/parso/__pycache__/grammar.cpython-37.pyc",
+    "lib/python3.7/site-packages/parso/__pycache__/normalizer.cpython-37.pyc",
+    "lib/python3.7/site-packages/parso/__pycache__/parser.cpython-37.pyc",
+    "lib/python3.7/site-packages/parso/pgen2/__pycache__/__init__.cpython-37.pyc",
+    "lib/python3.7/site-packages/parso/pgen2/__pycache__/generator.cpython-37.pyc",
+    "lib/python3.7/site-packages/parso/pgen2/__pycache__/grammar_parser.cpython-37.pyc",
+    "lib/python3.7/site-packages/parso/python/__pycache__/__init__.cpython-37.pyc",
+    "lib/python3.7/site-packages/parso/python/__pycache__/diff.cpython-37.pyc",
+    "lib/python3.7/site-packages/parso/python/__pycache__/errors.cpython-37.pyc",
+    "lib/python3.7/site-packages/parso/python/__pycache__/parser.cpython-37.pyc",
+    "lib/python3.7/site-packages/parso/python/__pycache__/pep8.cpython-37.pyc",
+    "lib/python3.7/site-packages/parso/python/__pycache__/prefix.cpython-37.pyc",
+    "lib/python3.7/site-packages/parso/python/__pycache__/token.cpython-37.pyc",
+    "lib/python3.7/site-packages/parso/python/__pycache__/tokenize.cpython-37.pyc",
+    "lib/python3.7/site-packages/parso/python/__pycache__/tree.cpython-37.pyc",
+    "lib/python3.7/site-packages/parso/__pycache__/tree.cpython-37.pyc",
+    "lib/python3.7/site-packages/parso/__pycache__/utils.cpython-37.pyc"
+  ],
+  "fn": "parso-0.7.1-pyh9f0ad1d_0.tar.bz2",
+  "license": "MIT",
+  "link": {
+    "source": "/opt/conda/pkgs/parso-0.7.1-pyh9f0ad1d_0",
+    "type": 1
+  },
+  "md5": "f66647d1ec805566d72ac26f62b19c01",
+  "name": "parso",
+  "noarch": "python",
+  "package_tarball_full_path": "/opt/conda/pkgs/parso-0.7.1-pyh9f0ad1d_0.tar.bz2",
+  "package_type": "noarch_python",
+  "paths_data": {
+    "paths": [
+      {
+        "_path": "site-packages/parso-0.7.1.dist-info/AUTHORS.txt",
+        "path_type": "hardlink",
+        "sha256": "de6629726c74513549581ca545b42a72c222d204c197068b05c593299c5b7d99",
+        "sha256_in_prefix": "de6629726c74513549581ca545b42a72c222d204c197068b05c593299c5b7d99",
+        "size_in_bytes": 1974
+      },
+      {
+        "_path": "site-packages/parso-0.7.1.dist-info/INSTALLER",
+        "path_type": "hardlink",
+        "sha256": "d0edee15f91b406f3f99726e44eb990be6e34fd0345b52b910c568e0eef6a2a8",
+        "sha256_in_prefix": "d0edee15f91b406f3f99726e44eb990be6e34fd0345b52b910c568e0eef6a2a8",
+        "size_in_bytes": 5
+      },
+      {
+        "_path": "site-packages/parso-0.7.1.dist-info/LICENSE.txt",
+        "path_type": "hardlink",
+        "sha256": "fa67973073753d17624caf8684d5ee816d70c89d912c5bca7ca0f08e7b150edb",
+        "sha256_in_prefix": "fa67973073753d17624caf8684d5ee816d70c89d912c5bca7ca0f08e7b150edb",
+        "size_in_bytes": 4176
+      },
+      {
+        "_path": "site-packages/parso-0.7.1.dist-info/METADATA",
+        "path_type": "hardlink",
+        "sha256": "3c29ec2ee8ecb5d75ce34cb8547ebc8ebda5bbc584890162b842dd3bcf61896a",
+        "sha256_in_prefix": "3c29ec2ee8ecb5d75ce34cb8547ebc8ebda5bbc584890162b842dd3bcf61896a",
+        "size_in_bytes": 7001
+      },
+      {
+        "_path": "site-packages/parso-0.7.1.dist-info/RECORD",
+        "path_type": "hardlink",
+        "sha256": "c881981fa69905a13015e3f9c83ad64a2a624193281fd4c5b0508fdbbc5db08c",
+        "sha256_in_prefix": "c881981fa69905a13015e3f9c83ad64a2a624193281fd4c5b0508fdbbc5db08c",
+        "size_in_bytes": 4058
+      },
+      {
+        "_path": "site-packages/parso-0.7.1.dist-info/WHEEL",
+        "path_type": "hardlink",
+        "sha256": "9064fbe0b5b245466b2f85602e1ebf835d8879597ff6ef5956169dae05d95046",
+        "sha256_in_prefix": "9064fbe0b5b245466b2f85602e1ebf835d8879597ff6ef5956169dae05d95046",
+        "size_in_bytes": 110
+      },
+      {
+        "_path": "site-packages/parso-0.7.1.dist-info/direct_url.json",
+        "path_type": "hardlink",
+        "sha256": "8d5b71a9b16424e6aa85aafcf34527e5592db67a10dbcbf08ce124c4b2742c9e",
+        "sha256_in_prefix": "8d5b71a9b16424e6aa85aafcf34527e5592db67a10dbcbf08ce124c4b2742c9e",
+        "size_in_bytes": 101
+      },
+      {
+        "_path": "site-packages/parso-0.7.1.dist-info/top_level.txt",
+        "path_type": "hardlink",
+        "sha256": "18e38a4023dc9ebd3fec8440af1c88d025f92cbbb858b973211015592faf278b",
+        "sha256_in_prefix": "18e38a4023dc9ebd3fec8440af1c88d025f92cbbb858b973211015592faf278b",
+        "size_in_bytes": 6
+      },
+      {
+        "_path": "site-packages/parso/__init__.py",
+        "path_type": "hardlink",
+        "sha256": "301eb01f9fcdf03f1ab3152848fbc664cac43ef1814bcd9ad474c3fe85d7b473",
+        "sha256_in_prefix": "301eb01f9fcdf03f1ab3152848fbc664cac43ef1814bcd9ad474c3fe85d7b473",
+        "size_in_bytes": 1607
+      },
+      {
+        "_path": "site-packages/parso/_compatibility.py",
+        "path_type": "hardlink",
+        "sha256": "78eb069349b3532ac3710bf7d7630b3dbbfc3723ad0364f381e36ff813a392f5",
+        "sha256_in_prefix": "78eb069349b3532ac3710bf7d7630b3dbbfc3723ad0364f381e36ff813a392f5",
+        "size_in_bytes": 2452
+      },
+      {
+        "_path": "site-packages/parso/cache.py",
+        "path_type": "hardlink",
+        "sha256": "5dc5d92f1d5fd912f3438f3be4a0a7d3a906659ebf13f9d662399d17f2bdde94",
+        "sha256_in_prefix": "5dc5d92f1d5fd912f3438f3be4a0a7d3a906659ebf13f9d662399d17f2bdde94",
+        "size_in_bytes": 8668
+      },
+      {
+        "_path": "site-packages/parso/file_io.py",
+        "path_type": "hardlink",
+        "sha256": "d0dd06897a8eedff0a4c1897933ca1ba5ad5af2f0fccdcb4fd50de7509e795c3",
+        "sha256_in_prefix": "d0dd06897a8eedff0a4c1897933ca1ba5ad5af2f0fccdcb4fd50de7509e795c3",
+        "size_in_bytes": 1333
+      },
+      {
+        "_path": "site-packages/parso/grammar.py",
+        "path_type": "hardlink",
+        "sha256": "5a1f907dc8a405147009f30bf834d5fa4762b5832d978cf9867ce2d9c6f52be5",
+        "sha256_in_prefix": "5a1f907dc8a405147009f30bf834d5fa4762b5832d978cf9867ce2d9c6f52be5",
+        "size_in_bytes": 10504
+      },
+      {
+        "_path": "site-packages/parso/normalizer.py",
+        "path_type": "hardlink",
+        "sha256": "b41434f90008045ee4972ec0aeedbdc6bcd219a5599299f7f40c571bd5fec653",
+        "sha256_in_prefix": "b41434f90008045ee4972ec0aeedbdc6bcd219a5599299f7f40c571bd5fec653",
+        "size_in_bytes": 5754
+      },
+      {
+        "_path": "site-packages/parso/parser.py",
+        "path_type": "hardlink",
+        "sha256": "7fc95aab350758d853d1785d8658ae466e23eb5672bf9d7efecba893754435fb",
+        "sha256_in_prefix": "7fc95aab350758d853d1785d8658ae466e23eb5672bf9d7efecba893754435fb",
+        "size_in_bytes": 7161
+      },
+      {
+        "_path": "site-packages/parso/pgen2/__init__.py",
+        "path_type": "hardlink",
+        "sha256": "9057d166c49178ce3d57460827f706d3f4cc4dec36b7820c6c6f7928ed8123c1",
+        "sha256_in_prefix": "9057d166c49178ce3d57460827f706d3f4cc4dec36b7820c6c6f7928ed8123c1",
+        "size_in_bytes": 382
+      },
+      {
+        "_path": "site-packages/parso/pgen2/generator.py",
+        "path_type": "hardlink",
+        "sha256": "d2d7e9788bedc7d72fac08f8aff28a35c3ae9f7674d84d2efcfa6bf05e980414",
+        "sha256_in_prefix": "d2d7e9788bedc7d72fac08f8aff28a35c3ae9f7674d84d2efcfa6bf05e980414",
+        "size_in_bytes": 14242
+      },
+      {
+        "_path": "site-packages/parso/pgen2/grammar_parser.py",
+        "path_type": "hardlink",
+        "sha256": "0e6feffbf9354e01f89226f07684d34c52bbdfea8b53ae560f6046a8e32bdbce",
+        "sha256_in_prefix": "0e6feffbf9354e01f89226f07684d34c52bbdfea8b53ae560f6046a8e32bdbce",
+        "size_in_bytes": 5399
+      },
+      {
+        "_path": "site-packages/parso/python/__init__.py",
+        "path_type": "hardlink",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "sha256_in_prefix": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "size_in_bytes": 0
+      },
+      {
+        "_path": "site-packages/parso/python/diff.py",
+        "path_type": "hardlink",
+        "sha256": "1e9018aa0951e702c50e9e3d153e50667b38958973d11dc651d5043553905774",
+        "sha256_in_prefix": "1e9018aa0951e702c50e9e3d153e50667b38958973d11dc651d5043553905774",
+        "size_in_bytes": 34230
+      },
+      {
+        "_path": "site-packages/parso/python/errors.py",
+        "path_type": "hardlink",
+        "sha256": "122cdc20a7e5965ad31d854408521b8ae3859cd02511d40dd5e95705e2b9dad0",
+        "sha256_in_prefix": "122cdc20a7e5965ad31d854408521b8ae3859cd02511d40dd5e95705e2b9dad0",
+        "size_in_bytes": 48022
+      },
+      {
+        "_path": "site-packages/parso/python/grammar27.txt",
+        "path_type": "hardlink",
+        "sha256": "6d232b9f3f0f23ebfb9102e2b5dff2f4b2e49fc8fe37800ebfaf7078e5cd944f",
+        "sha256_in_prefix": "6d232b9f3f0f23ebfb9102e2b5dff2f4b2e49fc8fe37800ebfaf7078e5cd944f",
+        "size_in_bytes": 5958
+      },
+      {
+        "_path": "site-packages/parso/python/grammar310.txt",
+        "path_type": "hardlink",
+        "sha256": "e85ddf309f48e24cb3f72037c8cb2d3c184fa0c51c0c468ffafbd40ba487d7dc",
+        "sha256_in_prefix": "e85ddf309f48e24cb3f72037c8cb2d3c184fa0c51c0c468ffafbd40ba487d7dc",
+        "size_in_bytes": 7552
+      },
+      {
+        "_path": "site-packages/parso/python/grammar33.txt",
+        "path_type": "hardlink",
+        "sha256": "6c09e655520004dfc8bd4e25d62c862c57e7737e0930546da11152baec6730de",
+        "sha256_in_prefix": "6c09e655520004dfc8bd4e25d62c862c57e7737e0930546da11152baec6730de",
+        "size_in_bytes": 6124
+      },
+      {
+        "_path": "site-packages/parso/python/grammar34.txt",
+        "path_type": "hardlink",
+        "sha256": "6b2315dc591b96e724e8be6cc778aba58a42a341ccce29859a4f9e32cc63deb3",
+        "sha256_in_prefix": "6b2315dc591b96e724e8be6cc778aba58a42a341ccce29859a4f9e32cc63deb3",
+        "size_in_bytes": 6128
+      },
+      {
+        "_path": "site-packages/parso/python/grammar35.txt",
+        "path_type": "hardlink",
+        "sha256": "fd444bebe02730c97625a6ddfd8e7dc8915ddea7f8ef9df70f25c6c7ba27bb81",
+        "sha256_in_prefix": "fd444bebe02730c97625a6ddfd8e7dc8915ddea7f8ef9df70f25c6c7ba27bb81",
+        "size_in_bytes": 6933
+      },
+      {
+        "_path": "site-packages/parso/python/grammar36.txt",
+        "path_type": "hardlink",
+        "sha256": "f7a98839b1efe9095a8cdde6ad413e5bcc44da792aaf580a8d68dd39f5b1ba60",
+        "sha256_in_prefix": "f7a98839b1efe9095a8cdde6ad413e5bcc44da792aaf580a8d68dd39f5b1ba60",
+        "size_in_bytes": 6933
+      },
+      {
+        "_path": "site-packages/parso/python/grammar37.txt",
+        "path_type": "hardlink",
+        "sha256": "593d51111df2a7984c5d14ec09b1fb4e1c5fa86889ca077d5efe8caf989e2ebc",
+        "sha256_in_prefix": "593d51111df2a7984c5d14ec09b1fb4e1c5fa86889ca077d5efe8caf989e2ebc",
+        "size_in_bytes": 6784
+      },
+      {
+        "_path": "site-packages/parso/python/grammar38.txt",
+        "path_type": "hardlink",
+        "sha256": "794994e8c72bcddf8bc978960663bebe60131acc6abf01ffbf1454a9d8dda96e",
+        "sha256_in_prefix": "794994e8c72bcddf8bc978960663bebe60131acc6abf01ffbf1454a9d8dda96e",
+        "size_in_bytes": 7571
+      },
+      {
+        "_path": "site-packages/parso/python/grammar39.txt",
+        "path_type": "hardlink",
+        "sha256": "e85ddf309f48e24cb3f72037c8cb2d3c184fa0c51c0c468ffafbd40ba487d7dc",
+        "sha256_in_prefix": "e85ddf309f48e24cb3f72037c8cb2d3c184fa0c51c0c468ffafbd40ba487d7dc",
+        "size_in_bytes": 7552
+      },
+      {
+        "_path": "site-packages/parso/python/parser.py",
+        "path_type": "hardlink",
+        "sha256": "078faf1bbbae2d458a1a5a35382a356971b73d11336384135555a2978ead259f",
+        "sha256_in_prefix": "078faf1bbbae2d458a1a5a35382a356971b73d11336384135555a2978ead259f",
+        "size_in_bytes": 8579
+      },
+      {
+        "_path": "site-packages/parso/python/pep8.py",
+        "path_type": "hardlink",
+        "sha256": "8a068c59801fb5acdea3195c355ac46030a87c8f289a7f122973ec6c9b04ce11",
+        "sha256_in_prefix": "8a068c59801fb5acdea3195c355ac46030a87c8f289a7f122973ec6c9b04ce11",
+        "size_in_bytes": 32216
+      },
+      {
+        "_path": "site-packages/parso/python/prefix.py",
+        "path_type": "hardlink",
+        "sha256": "28d2303a117a8cfe84e10484a55ddd76b8fdd709bd6bb3fc39841bf6a7bfce97",
+        "sha256_in_prefix": "28d2303a117a8cfe84e10484a55ddd76b8fdd709bd6bb3fc39841bf6a7bfce97",
+        "size_in_bytes": 2405
+      },
+      {
+        "_path": "site-packages/parso/python/token.py",
+        "path_type": "hardlink",
+        "sha256": "a6b4591ebe2f54c2b7e49516542f4cf64c9eaaa1162c3c8e2a38302d0378873a",
+        "sha256_in_prefix": "a6b4591ebe2f54c2b7e49516542f4cf64c9eaaa1162c3c8e2a38302d0378873a",
+        "size_in_bytes": 811
+      },
+      {
+        "_path": "site-packages/parso/python/tokenize.py",
+        "path_type": "hardlink",
+        "sha256": "773bb8216d9583ebac775f632efedf57c5d0d8778d2f926493aaca177b19593f",
+        "sha256_in_prefix": "773bb8216d9583ebac775f632efedf57c5d0d8778d2f926493aaca177b19593f",
+        "size_in_bytes": 27649
+      },
+      {
+        "_path": "site-packages/parso/python/tree.py",
+        "path_type": "hardlink",
+        "sha256": "a5c628d1ff00d23b7a9166861483e0ba7f0c169b53a697fe4b111c749b3401a2",
+        "sha256_in_prefix": "a5c628d1ff00d23b7a9166861483e0ba7f0c169b53a697fe4b111c749b3401a2",
+        "size_in_bytes": 38111
+      },
+      {
+        "_path": "site-packages/parso/tree.py",
+        "path_type": "hardlink",
+        "sha256": "15b813efa9d8bee6f640329737f06d20a2406c466c40b4edd91835d45118ca55",
+        "sha256_in_prefix": "15b813efa9d8bee6f640329737f06d20a2406c466c40b4edd91835d45118ca55",
+        "size_in_bytes": 11572
+      },
+      {
+        "_path": "site-packages/parso/utils.py",
+        "path_type": "hardlink",
+        "sha256": "3cc8047a92b691838ba2448f1d84b6d0d7932c8888927273162957ed055b6479",
+        "sha256_in_prefix": "3cc8047a92b691838ba2448f1d84b6d0d7932c8888927273162957ed055b6479",
+        "size_in_bytes": 6504
+      },
+      {
+        "_path": "lib/python3.7/site-packages/parso/__pycache__/__init__.cpython-37.pyc",
+        "path_type": "pyc_file"
+      },
+      {
+        "_path": "lib/python3.7/site-packages/parso/__pycache__/_compatibility.cpython-37.pyc",
+        "path_type": "pyc_file"
+      },
+      {
+        "_path": "lib/python3.7/site-packages/parso/__pycache__/cache.cpython-37.pyc",
+        "path_type": "pyc_file"
+      },
+      {
+        "_path": "lib/python3.7/site-packages/parso/__pycache__/file_io.cpython-37.pyc",
+        "path_type": "pyc_file"
+      },
+      {
+        "_path": "lib/python3.7/site-packages/parso/__pycache__/grammar.cpython-37.pyc",
+        "path_type": "pyc_file"
+      },
+      {
+        "_path": "lib/python3.7/site-packages/parso/__pycache__/normalizer.cpython-37.pyc",
+        "path_type": "pyc_file"
+      },
+      {
+        "_path": "lib/python3.7/site-packages/parso/__pycache__/parser.cpython-37.pyc",
+        "path_type": "pyc_file"
+      },
+      {
+        "_path": "lib/python3.7/site-packages/parso/pgen2/__pycache__/__init__.cpython-37.pyc",
+        "path_type": "pyc_file"
+      },
+      {
+        "_path": "lib/python3.7/site-packages/parso/pgen2/__pycache__/generator.cpython-37.pyc",
+        "path_type": "pyc_file"
+      },
+      {
+        "_path": "lib/python3.7/site-packages/parso/pgen2/__pycache__/grammar_parser.cpython-37.pyc",
+        "path_type": "pyc_file"
+      },
+      {
+        "_path": "lib/python3.7/site-packages/parso/python/__pycache__/__init__.cpython-37.pyc",
+        "path_type": "pyc_file"
+      },
+      {
+        "_path": "lib/python3.7/site-packages/parso/python/__pycache__/diff.cpython-37.pyc",
+        "path_type": "pyc_file"
+      },
+      {
+        "_path": "lib/python3.7/site-packages/parso/python/__pycache__/errors.cpython-37.pyc",
+        "path_type": "pyc_file"
+      },
+      {
+        "_path": "lib/python3.7/site-packages/parso/python/__pycache__/parser.cpython-37.pyc",
+        "path_type": "pyc_file"
+      },
+      {
+        "_path": "lib/python3.7/site-packages/parso/python/__pycache__/pep8.cpython-37.pyc",
+        "path_type": "pyc_file"
+      },
+      {
+        "_path": "lib/python3.7/site-packages/parso/python/__pycache__/prefix.cpython-37.pyc",
+        "path_type": "pyc_file"
+      },
+      {
+        "_path": "lib/python3.7/site-packages/parso/python/__pycache__/token.cpython-37.pyc",
+        "path_type": "pyc_file"
+      },
+      {
+        "_path": "lib/python3.7/site-packages/parso/python/__pycache__/tokenize.cpython-37.pyc",
+        "path_type": "pyc_file"
+      },
+      {
+        "_path": "lib/python3.7/site-packages/parso/python/__pycache__/tree.cpython-37.pyc",
+        "path_type": "pyc_file"
+      },
+      {
+        "_path": "lib/python3.7/site-packages/parso/__pycache__/tree.cpython-37.pyc",
+        "path_type": "pyc_file"
+      },
+      {
+        "_path": "lib/python3.7/site-packages/parso/__pycache__/utils.cpython-37.pyc",
+        "path_type": "pyc_file"
+      }
+    ],
+    "paths_version": 1
+  },
+  "requested_spec": "None",
+  "sha256": "9424a1e9728b31bf76609e3334ce959293f67151014c1cba7c5b7a6556200746",
+  "size": 71749,
+  "subdir": "noarch",
+  "timestamp": 1595549060000,
+  "url": "https://conda.anaconda.org/conda-forge/noarch/parso-0.7.1-pyh9f0ad1d_0.tar.bz2",
+  "version": "0.7.1"
+}

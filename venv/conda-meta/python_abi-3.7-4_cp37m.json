@@ -1,0 +1,31 @@
+{
+  "build": "4_cp37m",
+  "build_number": 4,
+  "channel": "https://conda.anaconda.org/conda-forge/linux-64",
+  "constrains": [
+    "python 3.7.* *_cpython"
+  ],
+  "depends": [],
+  "extracted_package_dir": "/opt/conda/pkgs/python_abi-3.7-4_cp37m",
+  "files": [],
+  "fn": "python_abi-3.7-4_cp37m.conda",
+  "license": "BSD-3-Clause",
+  "link": {
+    "source": "/opt/conda/pkgs/python_abi-3.7-4_cp37m",
+    "type": 1
+  },
+  "md5": "d5fa71a1bac31ad985348ffff6b399c4",
+  "name": "python_abi",
+  "package_tarball_full_path": "/opt/conda/pkgs/python_abi-3.7-4_cp37m.conda",
+  "paths_data": {
+    "paths": [],
+    "paths_version": 1
+  },
+  "requested_spec": "None",
+  "sha256": "41e24c44ace2f1c1e72995deb7feb00d537eb2327d8d3fea35e5042015e4dcab",
+  "size": 6388,
+  "subdir": "linux-64",
+  "timestamp": 1695147335000,
+  "url": "https://conda.anaconda.org/conda-forge/linux-64/python_abi-3.7-4_cp37m.conda",
+  "version": "3.7"
+}

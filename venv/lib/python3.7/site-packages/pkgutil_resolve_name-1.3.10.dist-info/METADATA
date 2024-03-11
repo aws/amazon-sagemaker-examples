@@ -1,0 +1,19 @@
+Metadata-Version: 2.1
+Name: pkgutil_resolve_name
+Version: 1.3.10
+Summary: Resolve a name to an object.
+Home-page: https://github.com/graingert/pkgutil-resolve-name
+Author: Vinay Sajip
+Author-email: vinay_sajip@yahoo.co.uk
+Maintainer: Thomas Grainger
+Maintainer-email: pkgutil-resolve-name@graingert.co.uk
+Requires-Python: >=3.6
+Description-Content-Type: text/x-rst
+Classifier: License :: OSI Approved :: MIT License
+
+pkgutil-resolve-name
+====================
+
+A backport of Python 3.9's ``pkgutil.resolve_name``.
+See the `Python 3.9 documentation <https://docs.python.org/3.9/library/pkgutil.html#pkgutil.resolve_name>`__.
+

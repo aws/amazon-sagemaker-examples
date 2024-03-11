@@ -1,0 +1,114 @@
+{
+  "build": "pyhd8ed1ab_0",
+  "build_number": 0,
+  "channel": "https://conda.anaconda.org/conda-forge/noarch",
+  "constrains": [],
+  "depends": [
+    "backports",
+    "python >=3.6",
+    "setuptools"
+  ],
+  "extracted_package_dir": "/opt/conda/pkgs/backports.functools_lru_cache-2.0.0-pyhd8ed1ab_0",
+  "files": [
+    "lib/python3.7/site-packages/backports.functools_lru_cache-2.0.0.dist-info/INSTALLER",
+    "lib/python3.7/site-packages/backports.functools_lru_cache-2.0.0.dist-info/LICENSE",
+    "lib/python3.7/site-packages/backports.functools_lru_cache-2.0.0.dist-info/METADATA",
+    "lib/python3.7/site-packages/backports.functools_lru_cache-2.0.0.dist-info/RECORD",
+    "lib/python3.7/site-packages/backports.functools_lru_cache-2.0.0.dist-info/REQUESTED",
+    "lib/python3.7/site-packages/backports.functools_lru_cache-2.0.0.dist-info/WHEEL",
+    "lib/python3.7/site-packages/backports.functools_lru_cache-2.0.0.dist-info/direct_url.json",
+    "lib/python3.7/site-packages/backports.functools_lru_cache-2.0.0.dist-info/top_level.txt",
+    "lib/python3.7/site-packages/backports/functools_lru_cache.py",
+    "lib/python3.7/site-packages/backports/__pycache__/functools_lru_cache.cpython-37.pyc"
+  ],
+  "fn": "backports.functools_lru_cache-2.0.0-pyhd8ed1ab_0.conda",
+  "license": "MIT",
+  "link": {
+    "source": "/opt/conda/pkgs/backports.functools_lru_cache-2.0.0-pyhd8ed1ab_0",
+    "type": 1
+  },
+  "md5": "c3e2817c65ba08250093d59860fe0b0e",
+  "name": "backports.functools_lru_cache",
+  "noarch": "python",
+  "package_tarball_full_path": "/opt/conda/pkgs/backports.functools_lru_cache-2.0.0-pyhd8ed1ab_0.conda",
+  "package_type": "noarch_python",
+  "paths_data": {
+    "paths": [
+      {
+        "_path": "site-packages/backports.functools_lru_cache-2.0.0.dist-info/INSTALLER",
+        "path_type": "hardlink",
+        "sha256": "d0edee15f91b406f3f99726e44eb990be6e34fd0345b52b910c568e0eef6a2a8",
+        "sha256_in_prefix": "d0edee15f91b406f3f99726e44eb990be6e34fd0345b52b910c568e0eef6a2a8",
+        "size_in_bytes": 5
+      },
+      {
+        "_path": "site-packages/backports.functools_lru_cache-2.0.0.dist-info/LICENSE",
+        "path_type": "hardlink",
+        "sha256": "86da0f01aeae46348a3c3d465195dc1ceccde79f79e87769a64b8da04b2a4741",
+        "sha256_in_prefix": "86da0f01aeae46348a3c3d465195dc1ceccde79f79e87769a64b8da04b2a4741",
+        "size_in_bytes": 1023
+      },
+      {
+        "_path": "site-packages/backports.functools_lru_cache-2.0.0.dist-info/METADATA",
+        "path_type": "hardlink",
+        "sha256": "9412e7ddc51165b6e5214dfd7d7bebc3688d782c011fdbd186715bad02a607e9",
+        "sha256_in_prefix": "9412e7ddc51165b6e5214dfd7d7bebc3688d782c011fdbd186715bad02a607e9",
+        "size_in_bytes": 3493
+      },
+      {
+        "_path": "site-packages/backports.functools_lru_cache-2.0.0.dist-info/RECORD",
+        "path_type": "hardlink",
+        "sha256": "c2aea4bb6a22e003badd373c3f1e57e658b4fe0300f7b96200c64265d935e278",
+        "sha256_in_prefix": "c2aea4bb6a22e003badd373c3f1e57e658b4fe0300f7b96200c64265d935e278",
+        "size_in_bytes": 1118
+      },
+      {
+        "_path": "site-packages/backports.functools_lru_cache-2.0.0.dist-info/REQUESTED",
+        "path_type": "hardlink",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "sha256_in_prefix": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "size_in_bytes": 0
+      },
+      {
+        "_path": "site-packages/backports.functools_lru_cache-2.0.0.dist-info/WHEEL",
+        "path_type": "hardlink",
+        "sha256": "f86fedd281ae13b503d03ad2a55667ab584730157d0c3d97912e6fed7a664e79",
+        "sha256_in_prefix": "f86fedd281ae13b503d03ad2a55667ab584730157d0c3d97912e6fed7a664e79",
+        "size_in_bytes": 110
+      },
+      {
+        "_path": "site-packages/backports.functools_lru_cache-2.0.0.dist-info/direct_url.json",
+        "path_type": "hardlink",
+        "sha256": "39b3bf80e70a43a3bf97497a244b210ead96aee7d0a8b76dedbc2a945eca2367",
+        "sha256_in_prefix": "39b3bf80e70a43a3bf97497a244b210ead96aee7d0a8b76dedbc2a945eca2367",
+        "size_in_bytes": 125
+      },
+      {
+        "_path": "site-packages/backports.functools_lru_cache-2.0.0.dist-info/top_level.txt",
+        "path_type": "hardlink",
+        "sha256": "7068da2cc3a8051d452b4029a23b73595995893b49ec91882bf1f05e212cbed5",
+        "sha256_in_prefix": "7068da2cc3a8051d452b4029a23b73595995893b49ec91882bf1f05e212cbed5",
+        "size_in_bytes": 10
+      },
+      {
+        "_path": "site-packages/backports/functools_lru_cache.py",
+        "path_type": "hardlink",
+        "sha256": "230412419dbabbbe872260b2c5be6c1eca359fd99dd4af360cfdbc28bbf0df52",
+        "sha256_in_prefix": "230412419dbabbbe872260b2c5be6c1eca359fd99dd4af360cfdbc28bbf0df52",
+        "size_in_bytes": 9152
+      },
+      {
+        "_path": "lib/python3.7/site-packages/backports/__pycache__/functools_lru_cache.cpython-37.pyc",
+        "path_type": "pyc_file"
+      }
+    ],
+    "paths_version": 1
+  },
+  "requested_spec": "None",
+  "sha256": "cfe96c3344a000348951499daa2f767cec09d0a0a956bbdb4e5d2f3e1436a9c5",
+  "size": 12253,
+  "subdir": "noarch",
+  "timestamp": 1702571858000,
+  "url": "https://conda.anaconda.org/conda-forge/noarch/backports.functools_lru_cache-2.0.0-pyhd8ed1ab_0.conda",
+  "version": "2.0.0"
+}

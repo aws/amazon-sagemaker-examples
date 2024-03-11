@@ -1,0 +1,36 @@
+{
+    "processing": {
+        "versions": {
+            "1.0": {
+                "registries": {
+                    "af-south-1": "811711786498",
+                    "ap-east-1": "098760798382",
+                    "ap-northeast-1": "377024640650",
+                    "ap-northeast-2": "263625296855",
+                    "ap-northeast-3": "912233562940",
+                    "ap-south-1": "452307495513",
+                    "ap-southeast-1": "834264404009",
+                    "ap-southeast-2": "007051062584",
+                    "ap-southeast-3": "705930551576",
+                    "ca-central-1": "675030665977",
+                    "cn-north-1": "122526803553",
+                    "cn-northwest-1": "122578899357",
+                    "eu-central-1": "017069133835",
+                    "eu-north-1": "763603941244",
+                    "eu-south-1": "638885417683",
+                    "eu-west-1": "131013547314",
+                    "eu-west-2": "440796970383",
+                    "eu-west-3": "341593696636",
+                    "me-south-1": "835444307964",
+                    "sa-east-1": "520018980103",
+                    "us-east-1": "205585389593",
+                    "us-east-2": "211330385671",
+                    "us-west-1": "740489534195",
+                    "us-west-2": "306415355426",
+                    "us-gov-west-1": "598674086554"
+                },
+                "repository": "sagemaker-clarify-processing"
+            }
+        }
+    }
+}
