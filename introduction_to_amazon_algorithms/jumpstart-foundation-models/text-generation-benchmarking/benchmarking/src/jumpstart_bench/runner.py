@@ -3,11 +3,16 @@ from datetime import datetime
 import json
 import logging
 from pathlib import Path
-from typing import Any, Callable, Optional, Tuple, Type
+from typing import Any
+from typing import Callable
 from typing import Dict
 from typing import List
+from typing import Optional
+from typing import Tuple
+from typing import Type
 
 import pandas as pd
+from datasets import Dataset
 from sagemaker.jumpstart.model import JumpStartModel
 from sagemaker.predictor import Predictor
 from sagemaker.predictor import retrieve_default
@@ -30,15 +35,18 @@ from jumpstart_bench.constants import MAX_TOTAL_RETRY_TIME_SECONDS
 from jumpstart_bench.constants import NUM_INVOCATIONS
 from jumpstart_bench.constants import RETRY_WAIT_TIME_SECONDS
 from jumpstart_bench.constants import SM_SESSION
+from jumpstart_bench.custom_predictor import CustomPredictor
 from jumpstart_bench.load_test import LoadTester
 from jumpstart_bench.logging import logging_prefix
-from jumpstart_bench.custom_predictor import CustomPredictor
+from jumpstart_bench.payload import add_items_to_dict
 
 
 class Benchmarker:
     def __init__(
         self,
-        payloads: Dict[str, Dict[str, Any]],
+        payloads: Optional[Dict[str, Dict[str, Any]]] = None,
+        datasets: Optional[Dict[str, Dataset]] = None,
+        dataset_payload_keys: Optional[Dict[str, Any]] = None,
         max_concurrent_benchmarks: int = MAX_CONCURRENT_BENCHMARKS,
         sagemaker_session: Session = SM_SESSION,
         num_invocations: int = NUM_INVOCATIONS,
@@ -54,7 +62,7 @@ class Benchmarker:
         attempt_retrieve_predictor: bool = True,
         saved_metrics_path: Path = SAVE_METRICS_FILE_PATH,
     ):
-        self.payloads = payloads
+        self._prepare_datasets(payloads, datasets, dataset_payload_keys)
         self.max_concurrent_benchmarks = max_concurrent_benchmarks
         self.sagemaker_session = sagemaker_session
         self.num_invocations = num_invocations
@@ -84,12 +92,32 @@ class Benchmarker:
             self.model_id_to_endpoint_name = self.load_metrics_json(saved_metrics_path).get("endpoints", {})
             self.model_id_to_component_name = self.load_metrics_json(saved_metrics_path).get("components", {})
 
+    def _prepare_datasets(
+        self,
+        payloads: Optional[Dict[str, Dict[str, Any]]] = None,
+        datasets: Optional[Dict[str, Dataset]] = None,
+        dataset_payload_keys: Optional[Dict[str, Any]] = None,
+    ):
+        self.datasets: Dict[str, Dataset] = {}
+        
+        if payloads is not None:
+            for payload_name, payload in payloads.items():
+                self.datasets[payload_name] = Dataset.from_list([payload])
+
+        if datasets is not None:
+            for dataset_name, dataset in datasets.items():
+                self.datasets[dataset_name] = dataset.map(add_items_to_dict, fn_kwargs={"items": dataset_payload_keys})
+
+        if len(self.datasets) == 0:
+            raise ValueError("Either a payload or dataset must be provided.")
+
+
     def _run_benchmarking_tests(
         self,
         predictor: CustomPredictor,
-        payload: Dict[str, Any],
+        dataset: Dataset,
         model_id: str,
-        payload_name: str,
+        dataset_name: str,
         tokenizer_model_id: str,
         huggingface_hub_token: Optional[str] = None,
     ) -> Dict[str, Any]:
@@ -153,9 +181,9 @@ class Benchmarker:
 
         tester = LoadTester(
             predictor,
-            payload,
+            dataset,
             model_id,
-            payload_name,
+            dataset_name,
             tokenizer_model_id,
             huggingface_hub_token,
             price_per_endpoint,
@@ -191,12 +219,12 @@ class Benchmarker:
         """Run benchmarker given a Predictor for an in-service model endpoint."""
         metrics = []
         try:
-            for payload_name, payload in self.payloads.items():
+            for dataset_name, dataset in self.datasets.items():
                 metrics_payload = self._run_benchmarking_tests(
                     predictor,
-                    payload,
+                    dataset,
                     model_id,
-                    payload_name,
+                    dataset_name,
                     tokenizer_model_id,
                     huggingface_hub_token,
                 )
@@ -259,18 +287,17 @@ class Benchmarker:
                     model_version=jumpstart_model_args.get("model_version", "*"),
                     sagemaker_session=self.sagemaker_session,
                 )
-        else:
-            predictor = Predictor(
-                endpoint_name=endpoint_name,
-                sagemaker_session=self.sagemaker_session,
-                serializer=JSONSerializer(),
-                deserializer=JSONDeserializer(),
-            )
+                if component_name is not None:
+                    predictor.component_name = component_name
+                return predictor
 
-        if component_name is not None:
-            predictor.component_name = component_name
-
-        return predictor
+        return Predictor(
+            endpoint_name=endpoint_name,
+            sagemaker_session=self.sagemaker_session,
+            serializer=JSONSerializer(),
+            deserializer=JSONDeserializer(),
+            component_name=component_name,
+        )
 
     def deploy_model(self, model_id: str, model_args: Dict[str, Any]) -> Predictor:
         """Deploy a model with configuration defined by model_args.
@@ -304,12 +331,14 @@ class Benchmarker:
                 name=endpoint_name,
                 **model_specs["model_args"],
             )
-            return model.deploy(
+            predictor = model.deploy(
                 serializer=JSONSerializer(),
                 deserializer=JSONDeserializer(),
                 endpoint_name=endpoint_name,
                 **model_specs["deploy_args"],
             )
+            predictor.sagemaker_session = self.sagemaker_session
+            return predictor
         else:
             raise ValueError(f"{logging_prefix(model_id)} No model arguments discovered for deployment.")
 
@@ -339,7 +368,6 @@ class Benchmarker:
 
         output = {
             "models": models,
-            "payloads": self.payloads,
             "endpoints": endpoints,
             "metrics": metrics,
         }
