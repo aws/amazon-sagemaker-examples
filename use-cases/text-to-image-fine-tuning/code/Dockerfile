@@ -82,7 +82,7 @@ RUN apt-get update && \
 RUN ln -s /usr/lib/x86_64-linux-gnu/libnvinfer.so /usr/lib/x86_64-linux-gnu/libnvinfer.so.7 && \
     ln -s /usr/lib/x86_64-linux-gnu/libnvinfer_plugin.so /usr/lib/x86_64-linux-gnu/libnvinfer_plugin.so.7
 
-# Copy the train file to the specified directory that SageMaker training jobs will use
+# SAGEMAKER: Copy the train file to the specified directory that SageMaker training jobs will use
 COPY ./train /opt/program/
 
 # Create user
@@ -104,6 +104,7 @@ COPY --chown=$UID:0 --chmod=775 . .
 # Copy licenses (OpenShift Policy)
 COPY --chmod=775 LICENSE.md /licenses/LICENSE.md
 
+# SAGEMAKER: Add /opt/program to the path. The "train" program resides here.
 ENV PATH="/home/$UID/.local/bin:$PATH:/opt/program"
 ENV PYTHONPATH="${PYTHONPATH}:/home/$UID/.local/lib/python3.10/site-packages" 
 ENV LD_PRELOAD=libtcmalloc.so
@@ -114,6 +115,8 @@ VOLUME [ "/dataset" ]
 # 7860: Kohya GUI
 # 6006: TensorBoard
 EXPOSE 7860 6006
+
+USER $UID
 
 STOPSIGNAL SIGINT
 

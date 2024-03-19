@@ -46,7 +46,7 @@ noise_offset_type = "Original"
 optimizer_type = "Adafactor" #Optimizer to use. AdamW (default), AdamW8bit, PagedAdamW8bit, Lion8bit, PagedLion8bit, Lion, SGDNesterov, SGDNesterov8bit, DAdaptation, DAdaptAdaGrad, DAdaptAdam, DAdaptAdan, DAdaptAdanIP, DAdaptAdamPreprint, DAdaptLion, DAdaptSGD, Adafactor, Prodigy
 optimizer_args = [ "scale_parameter=False", "relative_step=False", "warmup_init=False" ] #additional arguments for optimizer (like "weight_decay=0.01 betas=0.9,0.999 ...")
 output_dir = "/opt/ml/model" #directory to output trained model #do not modify the output directory, as it is used by SageMaker training
-output_name = "dwjz_lora_model" #base name of trained model file
+output_name = "custom_lora_model" #base name of trained model file
 persistent_data_loader_workers = false #persistent DataLoader workers (useful for reduce time gap between epoch, but may use more memory)
 pretrained_model_name_or_path = "stabilityai/stable-diffusion-xl-base-1.0" #pretrained model to train, directory to Diffusers model or StableDiffusion checkpoint
 prior_loss_weight = 1.0 #loss weight for regularization images
