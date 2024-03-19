@@ -146,21 +146,17 @@ Resources:
               - Name: InputS3DatasetLocation
                 Type: String
                 Description: S3 URI of the training dataset
-                DefaultValue: !Join
-                  - ''
-                  - - 's3://'
-                    - !Ref TrainingS3Bucket
-                    - '/'
-                    - '0001-dataset'
+                DefaultValue:
+                  !Sub
+                    - 's3://${TrainingS3Bucket}/0001-dataset'
+                    - { TrainingS3Bucket: !Ref TrainingS3Bucket }
               - Name: OutputS3ModelLocation
                 Type: String
                 Description: The S3 location where the model will be output to
-                DefaultValue: !Join
-                  - ''
-                  - - 's3://'
-                    - !Ref TrainingS3Bucket
-                    - '/'
-                    - 'model-outputs'
+                DefaultValue: 
+                  !Sub
+                    - 's3://${TrainingS3Bucket}/model-outputs'
+                    - { TrainingS3Bucket: !Ref TrainingS3Bucket }
               - Name: TrainingDockerImage
                 Type: String
                 Description: The ECR docker image that will be used for training
@@ -281,7 +277,7 @@ Resources:
                   - codebuild:UpdateReport
                   - codebuild:BatchPutTestCases
                   - codebuild:BatchPutCodeCoverages
-                Resource: !Sub 'arn:aws:codebuild:${AWS::Region}:${AWS::AccountId}:report-group/${TrainingContainerBuildProjectName}*'
+                Resource: !Sub 'arn:${AWS::Partition}:codebuild:${AWS::Region}:${AWS::AccountId}:report-group/${TrainingContainerBuildProjectName}*'
               - Effect: Allow
                 Action: 
                   - codecommit:GitPull
@@ -306,8 +302,8 @@ Resources:
                   - logs:CreateLogStream
                   - logs:PutLogEvents
                 Resource: 
-                  - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/${TrainingContainerBuildProjectName}'
-                  - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/${TrainingContainerBuildProjectName}:*'
+                  - !Sub 'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/${TrainingContainerBuildProjectName}'
+                  - !Sub 'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/${TrainingContainerBuildProjectName}:*'
       RoleName: custom-codebuild-service-role
 
   # The role used by SageMaker to execute commands
