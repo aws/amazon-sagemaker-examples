@@ -37,13 +37,17 @@ As of February 7, 2022, the default branch is named "main". See our [announcemen
 
 These examples introduce SageMaker geospatial capabilities which makes it easy to build, train, and deploy ML models using geospatial data.
 
+- [How to use SageMaker Processing with geospatial image](sagemaker-geospatial/processing-geospatial-ndvi/geospatial-processing-ndvi-intro.ipynb) shows how to compute the normalized difference vegetation index (NDVI) which indicates health and density of vegetation using SageMaker Processing and satellite imagery
 - [Monitoring Lake Drought with SageMaker Geospatial Capabilities](sagemaker-geospatial/lake-mead-drought-monitoring) shows how to monitor Lake Mead drought using SageMaker geospatial capabilities.
 - [Digital Farming with Amazon SageMaker Geospatial Capabilities](sagemaker-geospatial/digital-farming-pipelines) shows how geospatial capabilities can help accelerating, optimizing, and easing the processing of the geospatial data for the Digital Farming use cases.
 - [Assess wildfire damage with Amazon SageMaker Geospatial Capabilities](sagemaker-geospatial/dixie-wildfire-damage-assessment/dixie-wildfire-damage-assessment.ipynb) demonstrates how Amazon SageMaker geospatial capabilities can be used to identify and assess vegetation loss caused by the Dixie wildfire in Northern California.
+- [Monitoring Glacier Melting with SageMaker Geospatial Capabilities](sagemaker-geospatial/mount-shasta-glacier-melting-monitoring) shows how to monitor glacier melting at Mount Shasta using SageMaker geospatial capabilities.
+- [Monitoring of methane (CH4) emission point sources using Amazon SageMaker Geospatial Capabilities](sagemaker-geospatial/methane-emission-monitoring/monitor_methane_ch4_emission_point_sources.ipynb) demonstrates how methane emissions can be detected by using open data Satellite imagery (Sentinel-2).
+- [Segmenting aerial imagery using geospatial GPU notebook](sagemaker-geospatial/segment-aerial-naip/segment_naip_geospatial_notebook.ipynb) shows how to use the geospatial GPU notebook with open-source libraries to perform segmentation on aerial imagery.
+- [Perform Sentinel-1 InSAR using ESA SNAP Toolkit](sagemaker-geospatial/sentinel1-insar-snap/sentinel1_insar_kumamoto.ipynb) shows how the SNAP toolkit can be used within Amazon SageMaker geospatial capabilities to create interferograms on Sentinel-1 SAR data.
 - [How to use Vector Enrichment Jobs for Map Matching](sagemaker-geospatial/vector-enrichment-map-matching/vector-enrichment-map-matching.ipynb) shows how to use vector enrichtment operations with Amazon SageMaker Geospatial capabilities to snap GPS coordinates to road segments.
 - [How to use Vector Enrichment Jobs for Reverse Geocoding](sagemaker-geospatial/vector-enrichment-reverse-geocoding/vector-enrichment-reverse-geocoding.ipynb) shows how to use Amazon SageMaker Geospatial capabilities for reverse geocoding to obtain human readable addresses from data with latitude/longitude information.
-- [Monitoring Glacier Melting with SageMaker Geospatial Capabilities](sagemaker-geospatial/mount-shasta-glacier-melting-monitoring) shows how to monitor glacier melting at Mount Shasta using SageMaker geospatial capabilities.
-- [SageMaker Pipelines with Amazon SageMaker Geospatial Capabilities](sagemaker-geospatial/geospatial-pipeline/geospatial-pipelines.ipynb) shows how a geospatial data processing workflow can be automated by using an Amazon SageMaker Pipeline.
+- [Building geospatial pipelines with SageMaker Pipelines](sagemaker-geospatial/geospatial-processing-pipeline/geospatial_pipeline_processing.ipynb) shows how a geospatial data processing workflow can be automated by using Amazon SageMaker Pipelines.
 
 ### Introduction to Ground Truth Labeling Jobs
 
@@ -189,6 +193,13 @@ More examples for models such as BERT and YOLOv5 can be found in [distributed_tr
 - [Train EleutherAI GPT-J with Model Parallel](https://github.com/aws/amazon-sagemaker-examples/blob/main/training/distributed_training/pytorch/model_parallel/gpt-j/11_train_gptj_smp_tensor_parallel_notebook.ipynb) shows how to train EleutherAI GPT-J with PyTorch and Tensor Parallelism technique in the SageMaker Model Parallelism Library.
 - [Train MaskRCNN with Data Parallel](https://github.com/aws/amazon-sagemaker-examples/blob/main/training/distributed_training/pytorch/data_parallel/maskrcnn/pytorch_smdataparallel_maskrcnn_demo.ipynb) shows how to train MaskRCNN with PyTorch and SageMaker Data Parallelism Library.
 
+### Amazon SageMaker Smart Sifting
+
+These examples provide an Introduction to Smart Sifting library. Smart Sifting is a framework to speed up training of PyTorch models. The framework implements a set of algorithms that filter out inconsequential training examples during training, reducing the computational cost and accelerating the training process. It is configuration-driven and extensible, allowing users to add custom logic to transform their training examples into a filterable format. Smart sifting provides a generic utility for any DNN model, and can reduce the training cost by up to 35% in infrastructure cost.
+  
+- [Train Image Classification using Vision Transformer with Smart Sifting](https://github.com/aws/amazon-sagemaker-examples/tree/main/training/smart_sifting/Image_Classification_VIT/Train_Image_classification.ipynb): This Example shows how to use Smart sifting to fine tune Vision Transformers for Image Classification.
+- [Train Text Classification using BERT with Smart Sifting](https://github.com/aws/amazon-sagemaker-examples/tree/main/training/smart_sifting/Text_Classification_BERT/Train_text_classification.ipynb): This Example shows how to use Smart Sifting to fine tune BERT for Text Classification.
+
 ### Amazon SageMaker Clarify
 
 These examples provide an introduction to SageMaker Clarify which provides machine learning developers with greater visibility into their training data and models so they can identify and limit bias and explain predictions.
@@ -209,6 +220,7 @@ These examples show you how to run R examples, and publish applications in RStud
 These examples showcase unique functionality available in Amazon SageMaker. They cover a broad range of topics and utilize a variety of methods, but aim to provide the user with sufficient insight or inspiration to develop within Amazon SageMaker.
 
 - [Data Distribution Types](advanced_functionality/data_distribution_types) showcases the difference between two methods for sending data from S3 to Amazon SageMaker Training instances. This has particular implication for scalability and accuracy of distributed training.
+- [Distributed Training and Batch Transform with Sentiment Classification](advanced_functionality/sentiment_parallel_batch) shows how to use SageMaker Distributed Data Parallelism, SageMaker Debugger, and distrubted SageMaker Batch Transform on a HuggingFace Estimator, in a sentiment classification use case.
 - [Encrypting Your Data](advanced_functionality/handling_kms_encrypted_data) shows how to use Server Side KMS encrypted data with Amazon SageMaker training. The IAM role used for S3 access needs to have permissions to encrypt and decrypt data with the KMS key.
 - [Using Parquet Data](advanced_functionality/parquet_to_recordio_protobuf) shows how to bring [Parquet](https://parquet.apache.org/) data sitting in S3 into an Amazon SageMaker Notebook and convert it into the recordIO-protobuf format that many SageMaker algorithms consume.
 - [Connecting to Redshift](advanced_functionality/working_with_redshift_data) demonstrates how to copy data from Redshift to S3 and vice-versa without leaving Amazon SageMaker Notebooks.
@@ -259,6 +271,7 @@ These examples show you how to use [SageMaker Pipelines](https://aws.amazon.com/
 - [SageMaker Pipeline Local Mode with FrameworkProcessor and BYOC for PyTorch with sagemaker-training-toolkig](sagemaker-pipelines/tabular/local-mode/framework-processor-byoc)
 - [SageMaker Pipeline Step Caching](sagemaker-pipelines/tabular/caching) shows how you can leverage pipeline step caching while building pipelines and shows expected cache hit / cache miss behavior.
 - [Native AutoML step in SageMaker Pipelines](sagemaker-pipelines/tabular/automl-step/sagemaker_autopilot_pipelines_native_auto_ml_step.ipynb) shows how you can use SageMaker Autopilot with a native AutoML step in SageMaker Pipelines for end-to-end AutoML training automation.
+- [Computer Vision Pipeline using step decorator](sagemaker-pipelines/step-decorator/computer-vision-examples/computer-vision-pipeline.ipynb) shows how you can augment a dataset, train a computer vision model, and evaluate the model using a combination of built-in steps and the step decorator.
 
 ### Amazon SageMaker Pre-Built Framework Containers and the Python SDK
 
