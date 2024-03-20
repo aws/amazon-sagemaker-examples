@@ -56,3 +56,16 @@ Launch AutoML with Pipelines
    tabular/automl-step/sagemaker_autopilot_pipelines_native_auto_ml_step
 
 
+Build pipelines with step decorator
+============================
+
+.. toctree::
+   :maxdepth: 1
+
+   step-decorator/batch-examples/basic-pipeline-batch-inference
+   step-decorator/computer-vision-examples/computer-vision-pipeline
+   step-decorator/emr-examples/using_step_decorator_with_emr_step
+   step-decorator/quick-start/notebooks/using_step_decorator
+   step-decorator/quick-start/notebooks/using_step_decorator_with_classic_training_step
+   step-decorator/quick-start/notebooks/using_step_decorator_with_condition_step
+

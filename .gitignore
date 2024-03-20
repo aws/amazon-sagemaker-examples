@@ -7,3 +7,6 @@
 **/_build
 *.iml
 tox.ini
+
+**/sagemaker-pipelines/step-decorator/**/emr-examples/code
+**/sagemaker-pipelines/step-decorator/**/quick-start/**/dummy_train.py

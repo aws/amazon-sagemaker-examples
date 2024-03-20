@@ -1,0 +1,5 @@
+sagemaker>=2.199.0,<3
+pandas>=2.0.0
+numpy
+imageio
+s3fs
