@@ -1,0 +1,7 @@
+boto3
+botocore
+datasets
+numpy
+pandas
+sagemaker>=2.199.0
+transformers

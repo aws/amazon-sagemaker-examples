@@ -1,8 +1,7 @@
 from abc import abstractmethod
 from typing import Any, Dict, Optional
 
-from sagemaker.predictor import Predictor
-from benchmarking.custom_predictor import CustomPredictor
+from jumpstart_bench.custom_predictor import CustomPredictor
 
 
 class ConcurrentProbeIteratorBase:
