@@ -154,7 +154,8 @@ def train_step(  # pylint: disable=too-many-arguments,too-many-branches,too-many
 
     if batch_idx >= nvtx_warmup_iters:
         torch.cuda.nvtx.range_push("backward")
-
+    
+    loss = loss / args.gradient_accumulation_steps
     loss.backward()
 
     if batch_idx >= nvtx_warmup_iters:
@@ -169,8 +170,10 @@ def train_step(  # pylint: disable=too-many-arguments,too-many-branches,too-many
         torch.cuda.nvtx.range_push("opt_step")
 
     grad_norm = clip_grad_norm_(model, args.grad_clip)
-    optimizer.step()
-    lr_scheduler.step()
+    
+    if (batch_idx + 1) % args.gradient_accumulation_steps == 0:
+        optimizer.step()
+        lr_scheduler.step()
 
     if batch_idx >= nvtx_warmup_iters:
         # for opt step
