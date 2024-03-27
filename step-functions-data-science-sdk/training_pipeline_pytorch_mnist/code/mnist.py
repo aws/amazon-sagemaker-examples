@@ -3,7 +3,7 @@ import json
 import logging
 import os
 import sys
-
+import random
 import sagemaker_containers
 import torch
 import torch.distributed as dist
@@ -12,7 +12,15 @@ import torch.nn.functional as F
 import torch.optim as optim
 import torch.utils.data
 import torch.utils.data.distributed
+import numpy as np
 from torchvision import datasets, transforms
+
+# Set a fixed random seed for reproducibility
+
+SEED = 42
+torch.manual_seed(SEED)
+np.random.seed(SEED)
+random.seed(SEED)
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
