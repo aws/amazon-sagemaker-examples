@@ -225,6 +225,10 @@ def train(
         dp_rank //= tsm.state.tensor_parallel_degree
         dp_size //= tsm.state.tensor_parallel_degree
 
+    if tsm.state.expert_parallel_degree > 1:
+        dp_rank //= tsm.state.expert_parallel_degree
+        dp_size //= tsm.state.expert_parallel_degree
+
     if global_rank == 0:
         logger.info("Creating train dataloader")
 
@@ -304,7 +308,7 @@ def train(
                         grad_norm,
                         throughputs,
                         num_params,
-                        world_size,
+                        dp_size,
                         batch_seqlen,
                     )
 
@@ -360,6 +364,7 @@ def train(
                     args.num_kept_checkpoints[0],
                     checkpointing_pg_metadata,
                     tensor_parallel_degree=int(tsm.state.tensor_parallel_degree),
+                    expert_parallel_degree=int(tsm.state.expert_parallel_degree),
                     checkpoint_type=args.checkpoint_type,
                 )
                 if args.enable_memory_profiling > 0:
@@ -448,6 +453,7 @@ def main(args):
             * args.max_context_width
             * args.train_batch_size
             / tsm.state.tensor_parallel_degree
+            / tsm.state.expert_parallel_degree
         )
         logger.info("Global batch size in tokens: %10d (%5.2fM).", gbs, gbs / 1024 ** 2)
 
@@ -506,8 +512,23 @@ def main(args):
             num_params = compute_num_params(model)
 
         if args.use_smp_implementation:
+            if args.moe:
+                from torch.sagemaker.moe.moe_config import MoEConfig
+                moe_config = MoEConfig(
+                    smp_moe=args.use_smp_implementation > 0,
+                    random_seed=args.seed,
+                    moe_load_balancing=args.moe_load_balancing,
+                    global_token_shuffle=args.global_token_shuffle > 0,
+                    moe_all_to_all_dispatcher=args.moe_all_to_all_dispatcher > 0,
+                )
+            else:
+                moe_config = None
             load_state_dict_from_rank0 = finetune_with_pretrained_weights_check(args)
-            model = transform(model, load_state_dict_from_rank0=load_state_dict_from_rank0)
+            if args.moe and args.delayed_param and (not load_state_dict_from_rank0 or dist.get_rank() != 0):
+                with init_empty_weights():
+                    model = transform(model, config=moe_config, load_state_dict_from_rank0=load_state_dict_from_rank0)
+            else:
+                model = transform(model, config=moe_config, load_state_dict_from_rank0=load_state_dict_from_rank0)
 
         if args.delayed_param:
             # param init fn for delayed param creation
@@ -526,7 +547,8 @@ def main(args):
             "Created model with total parameters: %d (%.2f B)", num_params, num_params * 1e-9
         )
 
-    transformer_layer = get_transformer_layer(args.model_type, args.use_smp_implementation)
+    transformer_layer = get_transformer_layer(args.model_type, args.use_smp_implementation,
+                                              args.moe)
 
     if args.auto_wrap_policy == "transformer_auto_wrap_policy":
         gpt_auto_wrap_policy = functools.partial(
@@ -642,6 +664,7 @@ def main(args):
             sharding_strategy,
             checkpointing_pg_metadata,
             tensor_parallel_degree=int(tsm.state.tensor_parallel_degree),
+            expert_parallel_degree=int(tsm.state.expert_parallel_degree),
             checkpoint_type=args.checkpoint_type,
         )
 
@@ -688,6 +711,7 @@ def main(args):
             1,
             None,
             int(tsm.state.tensor_parallel_degree),
+            int(tsm.state.expert_parallel_degree),
             checkpoint_type=CheckpointingMethod.FULL,
         )
 
