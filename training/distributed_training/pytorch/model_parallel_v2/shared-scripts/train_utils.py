@@ -311,7 +311,7 @@ def apply_activation_checkpoint(args, model=None):
         checkpoint_wrapper,
     )
 
-    transformer_layer = get_transformer_layer(args.model_type, args.use_smp_implementation)
+    transformer_layer = get_transformer_layer(args.model_type, args.use_smp_implementation, moe=args.moe > 0)
     check_fn_gpt = lambda submodule: isinstance(  # pylint: disable=unnecessary-lambda-assignment
         submodule, transformer_layer
     )

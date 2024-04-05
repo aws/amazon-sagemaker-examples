@@ -225,10 +225,6 @@ def train(
         dp_rank //= tsm.state.tensor_parallel_degree
         dp_size //= tsm.state.tensor_parallel_degree
 
-    if tsm.state.expert_parallel_degree > 1:
-        dp_rank //= tsm.state.expert_parallel_degree
-        dp_size //= tsm.state.expert_parallel_degree
-
     if global_rank == 0:
         logger.info("Creating train dataloader")
 
@@ -453,7 +449,6 @@ def main(args):
             * args.max_context_width
             * args.train_batch_size
             / tsm.state.tensor_parallel_degree
-            / tsm.state.expert_parallel_degree
         )
         logger.info("Global batch size in tokens: %10d (%5.2fM).", gbs, gbs / 1024 ** 2)
 
