@@ -22,7 +22,7 @@ resource:
     evaluation_fleet:
       instance_type: "ml.c5.4xlarge"
 # Vowpal Wabbit container
-image: "462105765813.dkr.ecr.{AWS_REGION}.amazonaws.com/sagemaker-rl-vw-container:vw-8.7.0-cpu"
+image: "<YOUR_IMAGE_URL_HERE>"
 # Vowpal Wabbit algorithm parameters
 algor:
   algorithms_parameters:
