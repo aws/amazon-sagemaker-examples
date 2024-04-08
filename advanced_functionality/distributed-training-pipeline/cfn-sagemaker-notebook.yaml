@@ -6,30 +6,30 @@ Description: >-
   the EFS file-system for staging Training data on EFS file-system.
 Parameters:
   VpcCIDR:
-    Default: 172.30.0.0/25
+    Default: 172.30.0.0/16
     Description: Vpc CIDR
     AllowedPattern: '(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})'
     Type: String
   AvailabilityZones:
-    Description: Comma separated list of exactly 3 availability zones
+    Description: Comma separated list of exactly 3 availability zones, in the order of preference.
     Type: CommaDelimitedList
   PublicSubnetCIDR:
-    Default: 172.30.0.0/27
+    Default: 172.30.0.0/24
     Description: Public Subnet CIDR in Vpc CIDR
     AllowedPattern: '(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})'
     Type: String
   PrivateSubnet1CIDR:
-    Default: 172.30.0.32/27
+    Default: 172.30.64.0/18
     Description: Private Subnet1 CIDR in Vpc CIDR
     AllowedPattern: '(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})'
     Type: String
   PrivateSubnet2CIDR:
-    Default: 172.30.0.64/27
+    Default: 172.30.128.0/18
     Description: Private Subnet2 CIDR in Vpc CIDR
     AllowedPattern: '(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})'
     Type: String
   PrivateSubnet3CIDR:
-    Default: 172.30.0.96/27
+    Default: 172.30.192.0/18
     Description: Private Subnet2 CIDR in Vpc CIDR
     AllowedPattern: '(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})'
     Type: String
