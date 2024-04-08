@@ -1,0 +1,17 @@
+pipeline:
+  name: "neuronx-nemo-megatron-llama2-7b"
+  version: "v1"
+  container: pytorch-neuronx
+  steps:
+    - name: redpajama
+      description: "download redpajama data"
+      config: redpajama.yaml
+    - name: preprocess
+      description: "preprocess data"
+      config: preprocess.yaml
+    - name: compile
+      description: "compile model"
+      config: compile.yaml
+    - name: pretrain
+      description: "pretrain model"
+      config: pretrain.yaml
