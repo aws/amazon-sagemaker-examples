@@ -37,15 +37,17 @@ As of February 7, 2022, the default branch is named "main". See our [announcemen
 
 These examples introduce SageMaker geospatial capabilities which makes it easy to build, train, and deploy ML models using geospatial data.
 
+- [How to use SageMaker Processing with geospatial image](sagemaker-geospatial/processing-geospatial-ndvi/geospatial-processing-ndvi-intro.ipynb) shows how to compute the normalized difference vegetation index (NDVI) which indicates health and density of vegetation using SageMaker Processing and satellite imagery
 - [Monitoring Lake Drought with SageMaker Geospatial Capabilities](sagemaker-geospatial/lake-mead-drought-monitoring) shows how to monitor Lake Mead drought using SageMaker geospatial capabilities.
 - [Digital Farming with Amazon SageMaker Geospatial Capabilities](sagemaker-geospatial/digital-farming-pipelines) shows how geospatial capabilities can help accelerating, optimizing, and easing the processing of the geospatial data for the Digital Farming use cases.
 - [Assess wildfire damage with Amazon SageMaker Geospatial Capabilities](sagemaker-geospatial/dixie-wildfire-damage-assessment/dixie-wildfire-damage-assessment.ipynb) demonstrates how Amazon SageMaker geospatial capabilities can be used to identify and assess vegetation loss caused by the Dixie wildfire in Northern California.
 - [Monitoring Glacier Melting with SageMaker Geospatial Capabilities](sagemaker-geospatial/mount-shasta-glacier-melting-monitoring) shows how to monitor glacier melting at Mount Shasta using SageMaker geospatial capabilities.
-- [Monitoring of methane (CH4) emission point sources using Amazon SageMaker Geospatial Capabilities](sagemaker-geospatial/dixie-wildfire-damage-assessment/dixie-wildfire-damage-assessment.ipynb) demonstrates how methane emissions can be detected by using open data Satellite imagery (Sentinel-2).
+- [Monitoring of methane (CH4) emission point sources using Amazon SageMaker Geospatial Capabilities](sagemaker-geospatial/methane-emission-monitoring/monitor_methane_ch4_emission_point_sources.ipynb) demonstrates how methane emissions can be detected by using open data Satellite imagery (Sentinel-2).
+- [Segmenting aerial imagery using geospatial GPU notebook](sagemaker-geospatial/segment-aerial-naip/segment_naip_geospatial_notebook.ipynb) shows how to use the geospatial GPU notebook with open-source libraries to perform segmentation on aerial imagery.
 - [Perform Sentinel-1 InSAR using ESA SNAP Toolkit](sagemaker-geospatial/sentinel1-insar-snap/sentinel1_insar_kumamoto.ipynb) shows how the SNAP toolkit can be used within Amazon SageMaker geospatial capabilities to create interferograms on Sentinel-1 SAR data.
 - [How to use Vector Enrichment Jobs for Map Matching](sagemaker-geospatial/vector-enrichment-map-matching/vector-enrichment-map-matching.ipynb) shows how to use vector enrichtment operations with Amazon SageMaker Geospatial capabilities to snap GPS coordinates to road segments.
 - [How to use Vector Enrichment Jobs for Reverse Geocoding](sagemaker-geospatial/vector-enrichment-reverse-geocoding/vector-enrichment-reverse-geocoding.ipynb) shows how to use Amazon SageMaker Geospatial capabilities for reverse geocoding to obtain human readable addresses from data with latitude/longitude information.
-- [SageMaker Pipelines with Amazon SageMaker Geospatial Capabilities](sagemaker-geospatial/geospatial-pipeline/geospatial-pipelines.ipynb) shows how a geospatial data processing workflow can be automated by using an Amazon SageMaker Pipeline.
+- [Building geospatial pipelines with SageMaker Pipelines](sagemaker-geospatial/geospatial-processing-pipeline/geospatial_pipeline_processing.ipynb) shows how a geospatial data processing workflow can be automated by using Amazon SageMaker Pipelines.
 
 ### Introduction to Ground Truth Labeling Jobs
 
@@ -269,6 +271,7 @@ These examples show you how to use [SageMaker Pipelines](https://aws.amazon.com/
 - [SageMaker Pipeline Local Mode with FrameworkProcessor and BYOC for PyTorch with sagemaker-training-toolkig](sagemaker-pipelines/tabular/local-mode/framework-processor-byoc)
 - [SageMaker Pipeline Step Caching](sagemaker-pipelines/tabular/caching) shows how you can leverage pipeline step caching while building pipelines and shows expected cache hit / cache miss behavior.
 - [Native AutoML step in SageMaker Pipelines](sagemaker-pipelines/tabular/automl-step/sagemaker_autopilot_pipelines_native_auto_ml_step.ipynb) shows how you can use SageMaker Autopilot with a native AutoML step in SageMaker Pipelines for end-to-end AutoML training automation.
+- [Computer Vision Pipeline using step decorator](sagemaker-pipelines/step-decorator/computer-vision-examples/computer-vision-pipeline.ipynb) shows how you can augment a dataset, train a computer vision model, and evaluate the model using a combination of built-in steps and the step decorator.
 
 ### Amazon SageMaker Pre-Built Framework Containers and the Python SDK
 

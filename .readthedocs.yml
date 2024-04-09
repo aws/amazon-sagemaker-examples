@@ -10,7 +10,7 @@ conda:
 build:
   os: ubuntu-22.04
   tools:
-    python: "mambaforge-4.10"  # or, ideally, "mambaforge-4.10"
+    python: "mambaforge-22.9"
 
 sphinx:
   configuration: conf.py

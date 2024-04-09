@@ -2,6 +2,7 @@ from abc import abstractmethod
 from typing import Any, Dict, Optional
 
 from sagemaker.predictor import Predictor
+from benchmarking.custom_predictor import CustomPredictor
 
 
 class ConcurrentProbeIteratorBase:
@@ -19,7 +20,7 @@ class ConcurrentProbeIteratorBase:
     def __next__(self) -> int:
         raise NotImplementedError
 
-    def send(self, result: Dict[str, Any], predictor: Predictor) -> bool:
+    def send(self, result: Dict[str, Any], predictor: CustomPredictor) -> bool:
         """Send load test results to the iterator and return whether to use results.
 
         Some iterators may make internal adjustments (e.g., scale endpoint instances and repeat load test for the same
@@ -32,7 +33,13 @@ class ConcurrentProbeIteratorBase:
 class ConcurrentProbeExponentialScalingIterator(ConcurrentProbeIteratorBase):
     """An iterator used during a concurrency probe to exponentially scale concurrent requests."""
 
-    def __init__(self, model_id: str, payload_name: str, start: int = 1, scale_factor: float = 2.0) -> None:
+    def __init__(
+        self,
+        model_id: str,
+        payload_name: str,
+        start: int = 1,
+        scale_factor: float = 2.0,
+    ) -> None:
         self.concurrent_requests = start
         self.scale_factor = scale_factor
         super().__init__(model_id, payload_name)
