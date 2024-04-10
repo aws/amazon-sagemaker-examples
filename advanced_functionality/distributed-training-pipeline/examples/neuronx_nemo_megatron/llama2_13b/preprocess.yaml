@@ -1,0 +1,50 @@
+resources:
+  instance_count: 1
+  instance_type: ml.trn1.32xlarge
+  volume_size: 200
+git:
+  repo_url: "https://github.com/aws-neuron/neuronx-nemo-megatron.git"
+  commit: 1f3bbcc8774ff9b07e6f3151951a52ddef19cbbf
+  branch: main
+pre_script: 
+  - pip3 install --upgrade pip
+  - ./build.sh && pip3 install ./build/*.whl
+  - pip3 install Cython==3.0.9
+  - pip3 install -r requirements.txt protobuf==3.20.3
+  - 'python3 -c "from nemo.collections.nlp.data.language_modeling.megatron.dataset_utils import compile_helper; compile_helper()"'
+  - 'if [ -d $DATA_ROOT ]; then echo "$DATA_ROOT exists" && exit 0; fi'
+  - mkdir -p $DATA_ROOT
+  - SCRIPT_DIR=$GIT_CLONE_DIR/nemo/scripts/nlp_language_modeling/
+  - cd $SCRIPT_DIR
+  - mkdir -p $LOG_ROOT
+  - OUTPUT_LOG=$LOG_ROOT/preprocess.log
+  - mkdir -p $SM_OUTPUT_DATA_DIR/datasets
+post_script:
+  - cp -r $SM_OUTPUT_DATA_DIR/datasets/* $DATA_ROOT/
+  - rm -rf $SM_OUTPUT_DATA_DIR/datasets
+train:
+  env:
+    - name: HOME
+      value: $SM_OUTPUT_DATA_DIR
+    - name: LOG_ROOT
+      value: $SM_CHANNEL_EFS/home/$RELEASE_NAME/logs
+    - name: DATA_ROOT
+      value: $SM_CHANNEL_FSX/home/$RELEASE_NAME/datasets
+    - name: INPUT_DATA_PATH
+      value: $SM_CHANNEL_FSX/data/redpajama/data.jsonl
+    - name: MODEL_PATH
+      value: $SM_CHANNEL_FSX/pretrained-models/meta-llama/Llama-2-7b-hf
+  command:
+    - python3
+  args:
+    - preprocess_data_for_megatron.py
+    - --input=$INPUT_DATA_PATH
+    - --json-keys=text
+    - --tokenizer-library=huggingface
+    - --tokenizer-type=$MODEL_PATH
+    - --dataset-impl=mmap
+    - --output-prefix=$SM_OUTPUT_DATA_DIR/datasets/tokenized
+    - --append-eod
+    - --need-pad-id
+    - --workers=32
+    - '2>&1 | tee $OUTPUT_LOG'
