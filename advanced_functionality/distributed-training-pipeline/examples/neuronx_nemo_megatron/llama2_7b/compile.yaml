@@ -104,7 +104,7 @@ pre_script:
     exp_manager.resume_ignore_no_checkpoint=False 
     exp_manager.create_checkpoint_callback=$CHECKPOINT_CALLBACK 
     exp_manager.explicit_log_dir=$LOGS_DIR 
-    +exp_manager.checkpoint_callback_params.train_time_interval=36000 
+    +exp_manager.checkpoint_callback_params.train_time_interval=360000 
     model.use_cpu_initialization=True"
   - echo DISTRIBUTED_ARGS=$DISTRIBUTED_ARGS
   - echo "#!/bin/bash" >  compile.sh
