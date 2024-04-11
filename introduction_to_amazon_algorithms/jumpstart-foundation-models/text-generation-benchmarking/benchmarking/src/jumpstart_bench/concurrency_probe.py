@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 from jumpstart_bench.custom_predictor import CustomPredictor
 
@@ -56,6 +56,27 @@ class ConcurrentProbeExponentialScalingIterator(ConcurrentProbeIteratorBase):
 
         return self.concurrent_requests
 
+
+class ConcurrentProbeListIterator(ConcurrentProbeIteratorBase):
+    """A custom concurrency probe iterator to explore a list of concurrent requests."""
+
+    def __init__(
+        self,
+        model_id: str,
+        payload_name: str,
+        concurrent_requests: List[int],
+    ) -> None:
+        self.concurrent_requests = iter(concurrent_requests)
+        super().__init__(model_id, payload_name)
+
+    def __next__(self) -> int:
+        if self.exception is not None:
+            e = self.exception
+            self.stop_reason = "".join([type(e).__name__, f": {e}" if str(e) else ""])
+            raise StopIteration
+
+        return next(self.concurrent_requests)
+    
 
 def num_invocation_scaler(concurrent_requests: int, num_invocation_factor: int = 3) -> int:
     return concurrent_requests * num_invocation_factor

@@ -102,7 +102,7 @@ class PredictionResult(NamedTuple):
 
     @staticmethod
     def _num_words(text: str) -> int:
-        return len(text.split())
+        return max(len(text.split()), 1)
 
 
 class BatchInvocationStatistics(NamedTuple):

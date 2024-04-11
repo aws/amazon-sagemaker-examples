@@ -13,6 +13,8 @@ from typing import Type
 
 import pandas as pd
 from datasets import Dataset
+from sagemaker.compute_resource_requirements.resource_requirements import ResourceRequirements
+from sagemaker.enums import EndpointType
 from sagemaker.jumpstart.model import JumpStartModel
 from sagemaker.predictor import Predictor
 from sagemaker.predictor import retrieve_default
@@ -247,7 +249,7 @@ class Benchmarker:
         an `endpoint_name` is not provided, then the model is deployed prior to benchmarking run.
         """
         endpoint_name = model_args.get("endpoint_name") or self.model_id_to_endpoint_name.get(model_id)
-        component_name = model_args.get("component_name")
+        component_name = model_args.get("component_name") or self.model_id_to_component_name.get(model_id)
         endpoint_url = model_args.get("endpoint_url")
         instance_type = model_args.get("instance_type")
         if endpoint_url is not None:
@@ -311,6 +313,16 @@ class Benchmarker:
         """
         jumpstart_model_specs: Optional[Dict[str, Any]] = model_args.get("jumpstart_model_specs")
         model_specs: Optional[Dict[str, Any]] = model_args.get("model_specs")
+
+        resource_requirements: Optional[Dict[str, Any]] = model_args.get("resource_requirements")
+        if resource_requirements:
+            resources = ResourceRequirements(**resource_requirements)
+            endpoint_type = EndpointType.INFERENCE_COMPONENT_BASED
+        else:
+            resources = None
+            endpoint_type = EndpointType.MODEL_BASED
+
+
         endpoint_name = name_from_base(f"bm-{model_id.replace('huggingface', 'hf')}")
         logging.info(f"{logging_prefix(model_id)} Deploying endpoint {endpoint_name} ...")
         if jumpstart_model_specs:
@@ -320,10 +332,17 @@ class Benchmarker:
             )
             return model.deploy(
                 endpoint_name=endpoint_name,
+                endpoint_type=endpoint_type,
+                resources=resources,
                 **jumpstart_model_specs.get("deploy_args", {}),
             )
         elif model_specs:
-            image_uri = image_uris.retrieve(region=SM_SESSION._region_name, **model_specs["image_uri_args"])
+            if "image_uri" in model_specs:
+                image_uri = model_specs.pop("image_uri")
+            elif "image_uri_args" in model_specs:
+                image_uri = image_uris.retrieve(region=SM_SESSION._region_name, **model_specs["image_uri_args"])
+            else:
+                raise ValueError("Either 'image_uri' or 'image_uri_args' key must be provided in 'model_specs'.")
             model = Model(
                 image_uri=image_uri,
                 role=SM_SESSION.get_caller_identity_arn(),
@@ -335,6 +354,8 @@ class Benchmarker:
                 serializer=JSONSerializer(),
                 deserializer=JSONDeserializer(),
                 endpoint_name=endpoint_name,
+                endpoint_type=endpoint_type,
+                resources=resources,
                 **model_specs["deploy_args"],
             )
             predictor.sagemaker_session = self.sagemaker_session
@@ -351,6 +372,7 @@ class Benchmarker:
         metrics = []
         errors = {}
         endpoints: Dict[str, str] = {}
+        components: Dict[str, str] = {}
 
         with futures.ThreadPoolExecutor(max_workers=self.max_concurrent_benchmarks) as executor:
             future_to_model_id = {
@@ -361,6 +383,7 @@ class Benchmarker:
                 try:
                     metrics_model_id, predictor = future.result()
                     endpoints[model_id] = predictor.endpoint_name
+                    components[model_id] = predictor.component_name
                     metrics.extend(metrics_model_id)
                 except Exception as e:
                     errors[model_id] = e
@@ -369,6 +392,7 @@ class Benchmarker:
         output = {
             "models": models,
             "endpoints": endpoints,
+            "components": components,
             "metrics": metrics,
         }
 
@@ -408,12 +432,12 @@ class Benchmarker:
         if value_format_dict is None:
             value_format_dict = {
                 "TokenThroughput": "{:.0f}".format,
-                "LatencyPerToken.p90": "{:.0f}".format,
+                "LatencyPerToken.Average": "{:.0f}".format,
                 "CostToGenerate1MTokens": "${:,.2f}".format,
             }
         if value_name_dict is None:
             value_name_dict = {
-                "LatencyPerToken.p90": "p90 latency (ms/token)",
+                "LatencyPerToken.Average": "average latency (ms/token)",
                 "TokenThroughput": "throughput (tokens/s)",
                 "CostToGenerate1MTokens": "cost to generate 1M tokens ($)",
             }

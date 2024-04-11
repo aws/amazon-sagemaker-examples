@@ -5,6 +5,7 @@ import logging
 from pathlib import Path
 
 from datasets import Dataset
+from jumpstart_bench.concurrency_probe import ConcurrentProbeListIterator
 from jumpstart_bench.concurrency_probe import num_invocation_scaler
 from jumpstart_bench.constants import SAVE_METRICS_FILE_PATH
 from jumpstart_bench.payload import create_test_payload
@@ -12,27 +13,36 @@ from jumpstart_bench.payload import create_test_payload_args
 from jumpstart_bench.runner import Benchmarker
 
 
-
 def main() -> None:
     args = get_args()
     
     payloads = {
         f"input_{in_tokens:04}_output_{out_tokens:04}": create_test_payload(
-            in_tokens - 1, out_tokens, details=True, set_high_temperature=True
+            in_tokens - 1, out_tokens, details=True, set_high_temperature=(not args.no_temperature)
         )
-        for in_tokens in args.input_length for out_tokens in args.output_tokens
+        for (in_tokens, out_tokens) in zip(args.input_length, args.output_tokens)
     }
 
     datasets = {Path(file_name).stem: Dataset.from_json(file_name) for file_name in args.datasets}
 
     num_invocation_hook = partial(num_invocation_scaler, num_invocation_factor=args.num_invocations)
+    if len(args.concurrent_requests) > 0:
+        concurrent_request_iterator_cls = partial(
+            ConcurrentProbeListIterator, concurrent_requests=args.concurrent_requests
+        )
+    else:
+        concurrent_request_iterator_cls = None
+
     benchmarker = Benchmarker(
         payloads=payloads,
         datasets=datasets,
-        dataset_payload_keys=create_test_payload_args(args.output_tokens[0], details=True, set_high_temperature=True),
+        dataset_payload_keys=create_test_payload_args(
+            args.output_tokens[0], details=True, set_high_temperature=(not args.no_temperature)
+        ),
         run_concurrency_probe=True,
         saved_metrics_path=args.metrics_file,
         concurrency_probe_num_invocation_hook=num_invocation_hook,
+        concurrency_probe_concurrent_request_iterator_cls=concurrent_request_iterator_cls,
     )
 
     if args.skip_run is not True:
@@ -80,7 +90,7 @@ def get_args() -> argparse.Namespace:
         "-o",
         nargs="+",
         type=int,
-        default=[256],
+        default=[],
         help="Specify output sequence lengths to benchmark. This can be an arbitrary number, e.g., `-o 256 512`."
     )
     parser.add_argument(
@@ -91,6 +101,14 @@ def get_args() -> argparse.Namespace:
         help="Specify the multiplication factor for the number of invocations. Default is 3."
     )
     parser.add_argument(
+        "--concurrent-requests",
+        "-c",
+        nargs="+",
+        type=int,
+        default=[],
+        help="Specify a list of concurrent requests to benchmark. This can be an arbitrary number, e.g., `-c 1 2 10`."
+    )
+    parser.add_argument(
         "--skip-run",
         action="store_true",
         help="Flag to skip running benchmarking. Use this to display output of a saved benchmarking file.",
@@ -99,6 +117,11 @@ def get_args() -> argparse.Namespace:
         "--skip-clean",
         action="store_true",
         help="Flag to skip cleaning up predictor resources after benchmarking.",
+    )
+    parser.add_argument(
+        "--no-temperature",
+        action="store_true",
+        help="Flag to avoid setting high temperature for benchmarking.",
     )
     parser.add_argument(
         "--metrics-file",
