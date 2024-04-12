@@ -33,17 +33,28 @@ def compute_num_params(model):
     return num_params
 
 
-def compute_tflops(throughput, num_params, dp_size, seq_len):
-    """
-    Compute TFLOPs by using the 6 factor which gives us model tflops.
-    This makes it easier to compare with frameworks such as megatron
-    which may not use activation checkpointing.
-    Using factor 8 gives us hardware tflops when using activation checkpointing.
-
-    Based on the formula in
-    https://developer.nvidia.com/blog/scaling-language-model-training-to-a-trillion-parameters-using-megatron/
-    """
-    return 6 * throughput * num_params / dp_size * seq_len * 1e-12
+def compute_tflops(args, global_batch_size, step_time, world_size):
+    # Based on 
+    # https://github.com/NVIDIA/Megatron-LM/blob/ba773259dbe5735fbd91ca41e7f4ded60b335c52/megatron/training/training.py#L65
+    num_experts_routed_to = 1 if args.moe > 1 else args.num_experts_per_tok
+    num_flops = (
+        12
+        * global_batch_size
+        * args.max_context_width
+        * args.num_layers
+        * args.hidden_width
+        * args.hidden_width
+        * (
+            1
+            + ((args.intermediate_size / args.hidden_width) * num_experts_routed_to)
+            + (args.num_key_value_heads / args.num_heads)
+            + (args.max_context_width / args.hidden_width)
+            + (args.vocab_size / (2 * args.num_layers * args.hidden_width))
+        )
+    )
+    tflops_per_gpu = num_flops / (
+                 step_time * 10**12 * world_size)
+    return tflops_per_gpu
 
 
 def get_learning_rate_scheduler(optimizer, args):
