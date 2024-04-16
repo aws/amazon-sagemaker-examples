@@ -19,6 +19,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 logger.addHandler(logging.StreamHandler(sys.stdout))
 
+torch.manual_seed(0)
 
 class Net(nn.Module):
     def __init__(self):
