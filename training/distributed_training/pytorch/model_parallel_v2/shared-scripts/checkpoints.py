@@ -247,6 +247,7 @@ def save_checkpoint(  # pylint: disable=too-many-arguments,too-many-locals
     num_kept_checkpoints: int,
     checkpointing_pg_metadata,
     tensor_parallel_degree: int,
+    expert_parallel_degree: int,
     checkpoint_type=CheckpointingMethod.LOCAL,
 ):
     """Export checkpoint."""
@@ -274,12 +275,14 @@ def save_checkpoint(  # pylint: disable=too-many-arguments,too-many-locals
     if checkpoint_type == CheckpointingMethod.SHARDED:
         if tensor_parallel_degree > 1:
             save_dir = os.path.join(save_dir, f"tp{tensor_parallel_degree}-{state.tp_rank}")
+        if expert_parallel_degree > 1:
+            save_dir = os.path.join(save_dir, f"ep{expert_parallel_degree}-{state.ep_rank}")
         _save_sharded(
             model, optimizer, scheduler, user_content, save_dir, checkpointing_pg_metadata
         )
     elif checkpoint_type == CheckpointingMethod.LOCAL:
-        if tensor_parallel_degree > 1:
-            raise NotImplementedError("Local checkpointing unsupported with tensor parallelism")
+        if tensor_parallel_degree > 1 or expert_parallel_degree > 1:
+            raise NotImplementedError("Local checkpointing unsupported with tensor/expert parallelism")
         _save_local(model, optimizer, scheduler, user_content, save_dir)
     elif checkpoint_type == CheckpointingMethod.FULL:
         _save_full(model, save_dir, user_content)
@@ -464,6 +467,7 @@ def load_checkpoint(
     sharding_strategy,
     checkpointing_pg_metadata,
     tensor_parallel_degree: int,
+    expert_parallel_degree: int,
     checkpoint_type=CheckpointingMethod.LOCAL,
 ):
     """Load checkpoint."""
@@ -489,6 +493,10 @@ def load_checkpoint(
         if tensor_parallel_degree > 1:
             checkpoint_dir = os.path.join(
                 checkpoint_dir, f"tp{tensor_parallel_degree}-{state.tp_rank}"
+            )
+        if expert_parallel_degree > 1:
+            checkpoint_dir = os.path.join(
+                checkpoint_dir, f"ep{expert_parallel_degree}-{state.ep_rank}"
             )
         loaded = _load_sharded(
             model, optimizer, scheduler, checkpoint_dir, checkpointing_pg_metadata

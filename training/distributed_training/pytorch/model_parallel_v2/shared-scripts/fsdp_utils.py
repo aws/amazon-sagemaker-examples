@@ -24,9 +24,9 @@ def get_backward_fetch_policy(policy: str):
     return backward_fetch_policy
 
 
-def get_transformer_layer(model_type="gpt2", use_smp_implementation=False):
+def get_transformer_layer(model_type="gpt2", use_smp_implementation=False, moe=False):
     """Get transformer layer."""
-    if use_smp_implementation:
+    if use_smp_implementation and not moe:
         # For pt-2.1-tsm-2.1 releases and below,
         # We can't checkpoint our transformer.TransformerLayer class as it takes a tuple as input,
         # so we checkpoint the te.TETransformerLayer directly instead.
@@ -70,4 +70,12 @@ def get_transformer_layer(model_type="gpt2", use_smp_implementation=False):
         from transformers.models.llama.modeling_llama import LlamaDecoderLayer
 
         transformer_layer = LlamaDecoderLayer
+    elif model_type == "mistral":
+        from transformers.models.mistral.modeling_mistral import MistralDecoderLayer
+
+        transformer_layer = MistralDecoderLayer
+    elif model_type == "mixtral":
+        from transformers.models.mixtral.modeling_mixtral import MixtralDecoderLayer
+
+        transformer_layer = MixtralDecoderLayer
     return transformer_layer

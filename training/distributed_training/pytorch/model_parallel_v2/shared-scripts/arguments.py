@@ -202,7 +202,7 @@ def parse_args():  # pylint: disable=too-many-statements
     model_grp.add_argument("--summary_first_pdrop", type=float, default=0.1)
     model_grp.add_argument("--initializer_range", type=float, default=0.02)
     model_grp.add_argument(
-        "--model_type", type=str, default="gpt_neox", choices=["gpt_neox", "llama_v2", "gpt2"]
+        "--model_type", type=str, default="gpt_neox", choices=["gpt_neox", "llama_v2", "gpt2", "mistral", "mixtral"]
     )
     model_grp.add_argument("--rotary_pct", type=float, default=0.25)
     model_grp.add_argument("--rotary_emb_base", type=int, default=10000)
@@ -214,10 +214,53 @@ def parse_args():  # pylint: disable=too-many-statements
         help="intermediate_size for Llama v2, a dimension associated with MLP",
     )
     model_grp.add_argument(
+        "--intermediate_size",
+        type=int,
+        default=14336,
+        help="A specified intermediate_size, a dimension associated with MLP",
+    )
+    model_grp.add_argument(
+        "--sliding_window",
+        type=int,
+        default=None,
+        help="Sliding window attention window size",
+    )
+    model_grp.add_argument(
         "--num_key_value_heads",
         type=int,
         default=None,
         help="The number of heads for key and value in GQA",
+    )
+    model_grp.add_argument(
+        "--num_experts_per_tok",
+        type=int,
+        default=2,
+        help="The number of experts to root per-token",
+    )
+    model_grp.add_argument(
+        "--num_local_experts",
+        type=int,
+        default=8,
+        help="Number of experts per Sparse MLP layer",
+    )
+    model_grp.add_argument(
+        "--moe_load_balancing",
+        type=str,
+        default="sinkhorn",
+        choices=["sinkhorn", "balanced", "aux_loss", "none"],
+        help="Load balancing type of MoE router",
+    )
+    model_grp.add_argument(
+        "--global_token_shuffle",
+        type=int,
+        default=0,
+        help="Global token shuffle for MoE router",
+    )
+    model_grp.add_argument(
+        "--moe_all_to_all_dispatcher",
+        type=int,
+        default=1,
+        help="Use MoE All to All token dispatcher",
     )
     model_grp.add_argument(
         "--use_smp_implementation",
@@ -227,7 +270,13 @@ def parse_args():  # pylint: disable=too-many-statements
         "All models may not be supported."
         "When using tensor_parallel_degree, this is automatically enabled.",
     )
-
+    model_grp.add_argument(
+        "--moe",
+        type=int,
+        default=0,
+        help="Whether to use MoE implementation of Megatron. "
+        "All models may not be supported."
+    )
     ### FSDP args
     fsdp_grp = parser.add_argument_group(
         title="fsdp", description="arguments for fully sharded data parallel"
@@ -246,23 +295,6 @@ def parse_args():  # pylint: disable=too-many-statements
         type=int,
         help="This flag needs to be set when you need multiple param groups for optimizer, such as for weight decay",
     )
-    # Note that `shard_degree` might rewrite `sharding_strategy`:
-    #
-    # 1. When there is no explicit `shard_degree` or `0`, will fall back to native PyTorch, for all
-    #    `sharding_strategy` cases.
-    #
-    # 2. When there is explicit `shard_degree` and it's in `[1, world_size]`:
-    #    - Will rewrite `sharding_strategy` to `HYBRID_SHARD`, when and only when it's not either of
-    #      the two native hybrid strategies, i.e. `{HYBRID_SHARD, _HYBRID_SHARD_ZERO2}`.
-    #
-    #    - Will use hybrid sharding implementation by SageMaker:
-    #      - 1: Should be equivalent to native PyTorch's `NO_SHARD`.
-    #           - Might have some issues when exporting checkpoints to the disk in native PyTorch.
-    #      - 8: Should be equivalent to native PyTorch's `HYBRID_SHARD`.
-    #      - $world_size: Should be equivalent to native PyTorch's `FULL_SHARD`, though throughput
-    #                     might be worse with unnecessary communications.
-    #      - Other values e.g. 2, 4, 16, etc, as long as $world_size is divisible by them:
-    #          - Newly supported sharding implementation by SageMaker.
     fsdp_grp.add_argument(
         "--backward_fetch_policy",
         type=str,
