@@ -1,0 +1,34 @@
+huggingface:
+  model: "mistralai/Mistral-7B-Instruct-v0.2"
+  revision: "41b61a33a2483885c981aa79e0df6b32407ed873"
+  download: true
+djl:
+  engine: "Python"
+  option.tensor_parallel_degree: 12
+  option.data_type: "bf16"
+  option.n_positions: 1024
+  option.max_rolling_batch_size: 64
+  option.model_loading_timeout: 1800
+sagemaker:
+  model:
+    name: "mistral-7b-instruct-v0-2-transformers-neuronx-1024"
+    container: "containers/pytorch-inf2"
+    env: 
+      HUGGINGFACE_HUB_CACHE: "/tmp"
+      TRANSFORMERS_CACHE: "/tmp"
+      FI_EFA_FORK_SAFE: "1"
+  endpoint:
+    name: "mistral-7b-instruct-v0-2-transformers-neuronx-1024"
+    instance_type: "ml.inf2.24xlarge"
+    initial_instance_count: 1
+    variant_name: "test"
+    model_data_download_timeout_secs: 1800
+    container_startup_health_check_timeout_secs: 1200
+test:
+  module_name: "prompt_generator"
+  module_dir: "modules/inst-semeval2017"
+  prompt_generator: "PromptGenerator"
+  params: { "sequence_length": 1024, "top_k": 50 }
+  warmup_iters: 1
+  max_iters: 10
+  output_dir: "output/mistral-7b-instruct-v0.2-1024/transformers-neuronx"
