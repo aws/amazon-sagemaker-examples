@@ -1,12 +1,12 @@
 resources:
-  instance_count: 4
+  instance_count: 32
   instance_type: ml.trn1.32xlarge 
   volume_size: 200
 git:
   repo_url: "https://github.com/aws-neuron/neuronx-nemo-megatron.git"
   commit: 1f3bbcc8774ff9b07e6f3151951a52ddef19cbbf
   branch: main
-pre_script:
+pre_script: 
   - pip3 install --upgrade pip
   - ./build.sh && pip3 install ./build/*.whl
   - pip3 install Cython==3.0.9
@@ -22,18 +22,19 @@ pre_script:
   - DATASET_PATH="$DATA_ROOT/tokenized_text_document"
   - DISTRIBUTED_ARGS="--nproc_per_node $PET_NPROC_PER_NODE --nnodes $PET_NNODES --node_rank $PET_NODE_RANK --master_addr $PET_MASTER_ADDR --master_port $PET_MASTER_PORT"
   - SEQ_LENGTH=4096
-  - HS=4096
+  - HS=8192
   - TP=8
-  - PP=1
-  - N_LAYERS=32
-  - N_AH=32
-  - FFN_HS=11008
-  - GBS=256
+  - PP=16
+  - N_LAYERS=80
+  - N_AH=64
+  - FFN_HS=28672
+  - GBS=512
   - UBS=1
-  - INIT_METHOD_STD=0.021
+  - KV_HEADS=8
+  - INIT_METHOD_STD=0.02
   - LAYERNORM_EPSILON=1e-5
   - WARMUP_STEPS=2000
-  - TRAIN_ITERS=10000
+  - TRAIN_ITERS=20000
   - export HYDRA_FULL_ERROR=1
   - export NEURON_RT_EXEC_TIMEOUT=100
   - export BUCKET_CAP_MB=1024
@@ -52,59 +53,61 @@ pre_script:
   - export zero_use_master_weight=false
   - export CREATE_TB_LOGGER=True
   - export CHECKPOINT_CALLBACK=True
-  - LLAMA2_ARGS="--config-path=conf 
-    --config-name=megatron_llama_config 
-    trainer.devices=$PET_NPROC_PER_NODE 
-    trainer.num_nodes=$PET_NNODES 
-    trainer.max_epochs=null 
-    trainer.max_steps=$TRAIN_ITERS 
-    trainer.val_check_interval=$TRAIN_ITERS 
-    trainer.log_every_n_steps=1 
-    trainer.limit_val_batches=1 
-    trainer.limit_test_batches=1 
-    trainer.accumulate_grad_batches=1 
-    trainer.precision=32 
-    model.megatron_amp_O2=$megatron_amp_O2 
-    model.tokenizer.type=$MODEL_PATH 
-    model.micro_batch_size=$UBS 
-    model.global_batch_size=$GBS 
-    model.tensor_model_parallel_size=$TP 
-    model.pipeline_model_parallel_size=$PP 
-    model.max_position_embeddings=$SEQ_LENGTH 
-    model.encoder_seq_length=$SEQ_LENGTH 
-    model.hidden_size=$HS 
-    model.ffn_hidden_size=$FFN_HS 
-    model.num_layers=$N_LAYERS 
-    model.num_attention_heads=$N_AH 
-    model.init_method_std=$INIT_METHOD_STD 
-    model.hidden_dropout=0 
-    model.layernorm_epsilon=$LAYERNORM_EPSILON 
+  - LLAMA2_ARGS="--config-path=conf
+    --config-name=megatron_llama_70b_config
+    trainer.devices=$PET_NPROC_PER_NODE
+    trainer.num_nodes=$PET_NNODES
+    trainer.max_epochs=null
+    trainer.max_steps=$TRAIN_ITERS
+    trainer.val_check_interval=$TRAIN_ITERS
+    trainer.log_every_n_steps=1
+    trainer.limit_val_batches=1
+    trainer.limit_test_batches=1
+    trainer.accumulate_grad_batches=1
+    trainer.precision=32
+    model.megatron_amp_O2=$megatron_amp_O2
+    +trainer.num_sanity_val_steps=0
+    model.tokenizer.type=$MODEL_PATH
+    model.micro_batch_size=$UBS
+    model.global_batch_size=$GBS
+    model.tensor_model_parallel_size=$TP
+    model.pipeline_model_parallel_size=$PP
+    model.max_position_embeddings=$SEQ_LENGTH
+    model.encoder_seq_length=$SEQ_LENGTH
+    model.hidden_size=$HS
+    model.ffn_hidden_size=$FFN_HS
+    model.num_layers=$N_LAYERS
+    model.num_attention_heads=$N_AH
+    model.init_method_std=$INIT_METHOD_STD
+    model.hidden_dropout=0
+    model.num_kv_heads=$KV_HEADS
+    model.layernorm_epsilon=$LAYERNORM_EPSILON
     model.data.data_prefix=[1.0,$DATASET_PATH]
-    model.data.num_workers=1 
-    model.data.seq_length=$SEQ_LENGTH 
-    model.optim.name=$OPTIM_NAME 
-    model.optim.lr=3.0e-4 
-    model.optim.betas=[0.9,0.95] 
-    model.optim.weight_decay=0.1 
-    model.optim.sched.name=CosineAnnealing 
-    model.optim.sched.warmup_steps=$WARMUP_STEPS 
-    model.optim.sched.constant_steps=0 
-    model.optim.sched.min_lr=3.0e-5 
-    model.optim.capturable=True 
-    model.sequence_parallel=True  
-    model.activations_checkpoint_granularity=full 
-    model.activations_checkpoint_method=uniform 
-    model.activations_checkpoint_num_layers=1 
-    model.convert_to_hf=True
-    model.output_dir=$LOGS_DIR
+    model.data.num_workers=1
+    model.data.seq_length=$SEQ_LENGTH
+    model.optim.name=$OPTIM_NAME
+    model.optim.lr=3e-4
+    model.optim.betas=[0.9,0.95]
+    model.optim.weight_decay=0.1
+    model.optim.sched.name=CosineAnnealing
+    model.optim.sched.warmup_steps=$WARMUP_STEPS
+    model.optim.sched.constant_steps=0
+    model.optim.sched.min_lr=3e-5
+    model.optim.capturable=True
+    model.sequence_parallel=True 
+    model.activations_checkpoint_granularity=full
+    model.activations_checkpoint_method=uniform
+    model.activations_checkpoint_num_layers=1
+    model.wrap_with_zero=$wrap_with_zero
+    model.zero_use_master_weight=$zero_use_master_weight
     +model.save_xser=True
     +model.load_xser=True
-    exp_manager.create_tensorboard_logger=$CREATE_TB_LOGGER 
-    exp_manager.resume_if_exists=False 
-    exp_manager.resume_ignore_no_checkpoint=False 
-    exp_manager.create_checkpoint_callback=$CHECKPOINT_CALLBACK 
-    exp_manager.explicit_log_dir=$LOGS_DIR 
-    +exp_manager.checkpoint_callback_params.train_time_interval=3600000 
+    exp_manager.create_tensorboard_logger=$CREATE_TB_LOGGER
+    exp_manager.resume_if_exists=False
+    exp_manager.resume_ignore_no_checkpoint=False
+    exp_manager.create_checkpoint_callback=$CHECKPOINT_CALLBACK
+    +exp_manager.checkpoint_callback_params.train_time_interval=3600000
+    exp_manager.checkpoint_callback_params.save_last=False
     model.use_cpu_initialization=True"
   - echo DISTRIBUTED_ARGS=$DISTRIBUTED_ARGS
   - TMP_CACHE_DIR=$SM_OUTPUT_DATA_DIR/cache
@@ -119,12 +122,12 @@ train:
   env:
     - name: HOME
       value: $SM_OUTPUT_DATA_DIR
+    - name: MODEL_PATH
+      value: $SM_CHANNEL_FSX/pretrained-models/meta-llama/Llama-2-70b-hf
     - name: LOG_ROOT
       value: $SM_CHANNEL_EFS/home/$RELEASE_NAME/logs
     - name: DATA_ROOT
       value: $SM_CHANNEL_FSX/home/$RELEASE_NAME/datasets
-    - name: MODEL_PATH
-      value: $SM_CHANNEL_FSX/pretrained-models/meta-llama/Llama-2-7b-hf
     - name: CACHE_ROOT
       value: $SM_CHANNEL_EFS/home/$RELEASE_NAME/cache
     - name: CCOM_SOCKET_IFNAME

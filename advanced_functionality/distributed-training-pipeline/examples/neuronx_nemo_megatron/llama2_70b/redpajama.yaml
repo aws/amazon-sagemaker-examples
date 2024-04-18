@@ -1,0 +1,20 @@
+resources:
+  instance_count: 1
+  instance_type: ml.trn1.2xlarge
+  volume_size: 200
+pre_script: 
+  - 'if [ -d $DATA_DIR ]; then echo "$DATA_DIR exists" && exit 0; fi'
+  - mkdir -p $DATA_DIR
+train:
+  env:
+    - name: HOME
+      value: $SM_OUTPUT_DATA_DIR
+    - name: DATA_DIR
+      value: $SM_CHANNEL_FSX/data/redpajama
+  command:
+    - wget
+  args:
+    - -q -O
+    - $DATA_DIR/data.jsonl
+    - https://data.together.xyz/redpajama-data-1T/v1.0.0/book/book.jsonl
+    
