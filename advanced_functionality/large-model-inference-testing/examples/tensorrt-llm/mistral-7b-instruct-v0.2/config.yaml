@@ -4,11 +4,11 @@ huggingface:
   download: true
 djl:
   engine: "MPI"
+  option.entryPoint: "djl_python.tensorrt_llm"
   option.tensor_parallel_degree: 4
-  option.max_rolling_batch_size: 64
   option.max_input_len: 1024
   option.max_output_len: 2048
-  option.data_type: "bf16"
+  option.dtype: "bf16"
 sagemaker:
   model:
     name: "mistral-7b-instruct-v0-2-tensorrt-llm"
@@ -27,7 +27,7 @@ test:
   module_name: "prompt_generator"
   module_dir: "modules/inst-semeval2017"
   prompt_generator: "PromptGenerator"
-  params: { "request_output_len": 2048, "runtime_top_k": 50 }
+  params: { "do_sample": true, "max_new_tokens": 1024, "top_k": 50, "top_p": 1.0, "temperature": 1.0 }
   warmup_iters: 1
   max_iters: 10
   output_dir: "output/mistral-7b-instruct-v0.2/tensorrt-llm"
