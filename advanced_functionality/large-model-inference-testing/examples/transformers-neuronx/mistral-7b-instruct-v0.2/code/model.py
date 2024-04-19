@@ -1,6 +1,6 @@
 import os
 from djl_python import Input, Output
-from transformers_neuronx import NeuronAutoModelForCausalLM
+from transformers_neuronx import MistralForSampling
 from transformers import AutoTokenizer
 import torch
 import logging
@@ -18,7 +18,7 @@ def load_model(properties):
     n_positions = int(properties.get("n_positions", 2048))
     logging.info(f"Creating model and tokenizer using: {model_location}")
     tokenizer = AutoTokenizer.from_pretrained(model_location)
-    model = NeuronAutoModelForCausalLM.from_pretrained(model_location,
+    model = MistralForSampling.from_pretrained(model_location,
                                                        n_positions=n_positions, 
                                                        tp_degree=tp_degree, 
                                                        amp=amp)
