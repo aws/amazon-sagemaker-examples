@@ -16,7 +16,7 @@ djl:
 sagemaker:
   model:
     name: "llama-2-70b-chat-hf-tensorrt-llm"
-    image: "807253771232.dkr.ecr.us-west-2.amazonaws.com/lmi-djl-serving:0.27.0-tensorrt-llm"
+    container: "containers/tensorrt-llm"
     env: 
       HUGGINGFACE_HUB_CACHE: "/tmp"
       TRANSFORMERS_CACHE: "/tmp"
