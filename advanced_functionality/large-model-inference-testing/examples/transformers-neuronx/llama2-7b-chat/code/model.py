@@ -13,7 +13,7 @@ def load_model(properties):
     
     # model location on the serving host
     model_location = properties["model_id"]
-    amp=properties.get("amp", properties.get("dtype", "fp16"))
+    amp=properties.get("amp", properties.get("dtype", "f16"))
     tp_degree = int(properties.get("tensor_parallel_degree", 8))
     n_positions = int(properties.get("n_positions", 2048))
     logging.info(f"Creating model and tokenizer using: {model_location}")

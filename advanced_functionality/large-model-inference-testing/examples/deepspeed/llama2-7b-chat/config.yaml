@@ -7,7 +7,7 @@ djl:
   option.entryPoint: "djl_python.deepspeed"
   option.tensor_parallel_degree: 4
   option.model_loading_timeout: 1800
-  option.dtype: "bf16"
+  option.dtype: "fp16"
   option.max_tokens: 2048
   option.task: "text-generation"
 sagemaker:
@@ -28,7 +28,7 @@ test:
   module_name: "prompt_generator"
   module_dir: "modules/inst-semeval2017"
   prompt_generator: "PromptGenerator"
-  params: { "do_sample": true, "max_new_tokens": 1024, "top_k": 50, "top_p": 1.0, "temperature": 1.0 }
+  params: { "do_sample": true, "max_new_tokens": 1024, "top_k": 50 }
   warmup_iters: 1
   max_iters: 10
   output_dir: "output/llama-2-7b-chat-hf/deepspeed"
