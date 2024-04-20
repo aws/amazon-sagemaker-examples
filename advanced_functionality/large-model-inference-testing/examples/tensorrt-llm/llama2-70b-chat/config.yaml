@@ -4,13 +4,15 @@ huggingface:
   download: true
 djl:
   engine: "MPI"
+  option.entryPoint: "djl_python.tensorrt_llm"
   option.tensor_parallel_degree: 8
-  option.max_rolling_batch_size: 64
   option.max_input_len: 1024
   option.max_output_len: 2048
   option.use_custom_all_reduce: true
-  option.model_loading_timeout: 1800
   option.dtype: "fp16"
+  option.use_fused_mlp: true
+  option.multi_query_mode: true
+  option.model_loading_timeout: 3600
 sagemaker:
   model:
     name: "llama-2-70b-chat-hf-tensorrt-llm"
@@ -23,13 +25,13 @@ sagemaker:
     instance_type: "ml.p4d.24xlarge"
     initial_instance_count: 1
     variant_name: "test"
-    model_data_download_timeout_secs: 1800
-    container_startup_health_check_timeout_secs: 1200
+    model_data_download_timeout_secs: 3600
+    container_startup_health_check_timeout_secs: 1800
 test:
   module_name: "prompt_generator"
   module_dir: "modules/inst-semeval2017"
   prompt_generator: "PromptGenerator"
-  params:  { "request_output_len": 2048, "runtime_top_k": 50 }
+  params: { "do_sample": true, "max_new_tokens": 1024, "top_k": 50 }
   warmup_iters: 1
   max_iters: 10
   output_dir: "output/llama-2-70b-chat-hf/tensorrt-llm"

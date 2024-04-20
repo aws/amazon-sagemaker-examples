@@ -4,10 +4,10 @@ huggingface:
   download: true
 djl:
   engine: "Python"
-  option.tensor_parallel_degree: 12
+  option.tensor_parallel_degree: 24
   option.amp: "f16"
   option.n_positions: 2048
-  option.model_loading_timeout: 1800
+  option.model_loading_timeout: 3600
 sagemaker:
   model:
     name: "llama-2-70b-chat-hf-transformers-neuronx"
@@ -21,9 +21,9 @@ sagemaker:
     instance_type: "ml.inf2.48xlarge"
     initial_instance_count: 1
     variant_name: "test"
-    model_data_download_timeout_secs: 1800
-    container_startup_health_check_timeout_secs: 1200
-    volume_size_gb: 400
+    model_data_download_timeout_secs: 3600
+    container_startup_health_check_timeout_secs: 3600
+    volume_size_gb: 500
 test:
   module_name: "prompt_generator"
   module_dir: "modules/inst-semeval2017"
