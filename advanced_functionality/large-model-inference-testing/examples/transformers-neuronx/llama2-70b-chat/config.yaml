@@ -1,0 +1,34 @@
+huggingface:
+  model: "meta-llama/Llama-2-70b-chat-hf"
+  revision: "e9149a12809580e8602995856f8098ce973d1080"
+  download: true
+djl:
+  engine: "Python"
+  option.tensor_parallel_degree: 12
+  option.amp: "f16"
+  option.n_positions: 2048
+  option.model_loading_timeout: 1800
+sagemaker:
+  model:
+    name: "llama-2-70b-chat-hf-transformers-neuronx"
+    image: "807253771232.dkr.ecr.us-west-2.amazonaws.com/lmi-djl-serving:0.27.0-pytorch-inf2"
+    env: 
+      HUGGINGFACE_HUB_CACHE: "/tmp"
+      TRANSFORMERS_CACHE: "/tmp"
+      NEURON_CC_FLAGS: "--enable-mixed-precision-accumulation"
+  endpoint:
+    name: "llama-2-70b-chat-hf-transformers-neuronx"
+    instance_type: "ml.inf2.48xlarge"
+    initial_instance_count: 1
+    variant_name: "test"
+    model_data_download_timeout_secs: 1800
+    container_startup_health_check_timeout_secs: 1200
+    volume_size_gb: 400
+test:
+  module_name: "prompt_generator"
+  module_dir: "modules/inst-semeval2017"
+  prompt_generator: "PromptGenerator"
+  params: { "sequence_length": 2048, "top_k": 50 }
+  warmup_iters: 1
+  max_iters: 10
+  output_dir: "output/llama-2-70b-chat-hf/transformers-neuronx"

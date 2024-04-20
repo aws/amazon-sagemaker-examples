@@ -1,0 +1,33 @@
+huggingface:
+  model: "meta-llama/Llama-2-13b-chat-hf"
+  revision: "a2cb7a712bb6e5e736ca7f8cd98167f81a0b5bd8"
+  download: true
+djl:
+  engine: "MPI"
+  option.entryPoint: "djl_python.tensorrt_llm"
+  option.tensor_parallel_degree: 4
+  option.max_input_len: 1024
+  option.max_output_len: 2048
+  option.dtype: "fp16"
+sagemaker:
+  model:
+    name: "llama-2-13b-chat-hf-tensorrt-llm"
+    container: "containers/tensorrt-llm"
+    env: 
+      HUGGINGFACE_HUB_CACHE: "/tmp"
+      TRANSFORMERS_CACHE: "/tmp"
+  endpoint:
+    name: "llama-2-13b-chat-hf-tensorrt-llm"
+    instance_type: "ml.g5.12xlarge"
+    initial_instance_count: 1
+    variant_name: "test"
+    model_data_download_timeout_secs: 1800
+    container_startup_health_check_timeout_secs: 1200
+test:
+  module_name: "prompt_generator"
+  module_dir: "modules/inst-semeval2017"
+  prompt_generator: "PromptGenerator"
+  params: { "do_sample": true, "max_new_tokens": 1024, "top_k": 50 }
+  warmup_iters: 1
+  max_iters: 10
+  output_dir: "output/llama-2-13b-chat-hf/tensorrt-llm"
