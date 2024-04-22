@@ -94,17 +94,21 @@ pre_script:
     model.sequence_parallel=True  
     model.activations_checkpoint_granularity=full 
     model.activations_checkpoint_method=uniform 
-    model.activations_checkpoint_num_layers=1 
-    model.convert_to_hf=True
+    model.activations_checkpoint_num_layers=1
+    model.convert_to_hf=False
     model.output_dir=$LOGS_DIR
+    model.config_path=$MODEL_PATH/config.json
     +model.save_xser=True
     +model.load_xser=True
+    exp_manager.name=$EXP_NAME
     exp_manager.create_tensorboard_logger=$CREATE_TB_LOGGER 
-    exp_manager.resume_if_exists=False 
-    exp_manager.resume_ignore_no_checkpoint=False 
+    exp_manager.resume_if_exists=True 
+    exp_manager.resume_ignore_no_checkpoint=True 
     exp_manager.create_checkpoint_callback=$CHECKPOINT_CALLBACK 
-    exp_manager.explicit_log_dir=$LOGS_DIR 
-    +exp_manager.checkpoint_callback_params.train_time_interval=3600000 
+    exp_manager.explicit_log_dir=$LOG_ROOT/nemo_experiments/$EXP_NAME
+    exp_manager.checkpoint_callback_params.save_top_k=1
+    exp_manager.checkpoint_callback_params.save_last=False
+    +exp_manager.checkpoint_callback_params.every_n_train_steps=100
     model.use_cpu_initialization=True"
   - echo DISTRIBUTED_ARGS=$DISTRIBUTED_ARGS
   - TMP_CACHE_DIR=$SM_OUTPUT_DATA_DIR/cache
@@ -113,7 +117,6 @@ pre_script:
   - NEURON_COMPILE_CACHE_URL=$TMP_CACHE_DIR neuron_parallel_compile --command clear-locks
 post_script:
   - rm -rf $TMP_CACHE_DIR
-  - 'if [ -d $PWD/nemo_experiments ]; then cp -r $PWD/nemo_experiments  $LOG_ROOT; fi'
 train:
   distribution: "torch"
   env:
@@ -124,7 +127,7 @@ train:
     - name: DATA_ROOT
       value: $SM_CHANNEL_FSX/home/$RELEASE_NAME/datasets
     - name: MODEL_PATH
-      value: $SM_CHANNEL_FSX/pretrained-models/meta-llama/Llama-2-7b-hf
+      value: $SM_CHANNEL_FSX/huggingface/models/$HF_MODEL_ID/$HF_MODEL_REVISION
     - name: CACHE_ROOT
       value: $SM_CHANNEL_EFS/home/$RELEASE_NAME/cache
     - name: CCOM_SOCKET_IFNAME
@@ -135,8 +138,6 @@ train:
       value: "efa"
     - name: FI_EFA_FORK_SAFE
       value: "1"
-    - name: SLURM_JOB_ID
-      value: ""
     - name: EXP_NAME
       value: "pretrain"
   command:

@@ -124,7 +124,7 @@ train:
     - name: DATA_ROOT
       value: $SM_CHANNEL_FSX/home/$RELEASE_NAME/datasets
     - name: MODEL_PATH
-      value: $SM_CHANNEL_FSX/pretrained-models/meta-llama/Llama-2-7b-hf
+      value: $SM_CHANNEL_FSX/huggingface/models/$HF_MODEL_ID/$HF_MODEL_REVISION
     - name: CACHE_ROOT
       value: $SM_CHANNEL_EFS/home/$RELEASE_NAME/cache
     - name: CCOM_SOCKET_IFNAME

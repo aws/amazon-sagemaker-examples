@@ -1,3 +1,7 @@
+huggingface:
+  model: "meta-llama/Llama-2-70b-hf"
+  revision: "3aba440b59558f995867ba6e1f58f21d0336b5bb"
+  tensors: false
 pipeline:
   name: "neuronx-nemo-megatron-llama2-70b"
   version: "v1"

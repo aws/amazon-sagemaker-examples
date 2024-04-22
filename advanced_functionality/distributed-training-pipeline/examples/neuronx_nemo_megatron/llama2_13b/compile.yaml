@@ -120,7 +120,7 @@ train:
     - name: HOME
       value: $SM_OUTPUT_DATA_DIR
     - name: MODEL_PATH
-      value: $SM_CHANNEL_FSX/pretrained-models/meta-llama/Llama-2-13b-hf
+      value: $SM_CHANNEL_FSX/huggingface/models/$HF_MODEL_ID/$HF_MODEL_REVISION
     - name: LOG_ROOT
       value: $SM_CHANNEL_EFS/home/$RELEASE_NAME/logs
     - name: DATA_ROOT

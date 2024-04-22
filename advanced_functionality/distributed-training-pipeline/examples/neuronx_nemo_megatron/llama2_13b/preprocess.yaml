@@ -33,7 +33,7 @@ train:
     - name: INPUT_DATA_PATH
       value: $SM_CHANNEL_FSX/data/redpajama/data.jsonl
     - name: MODEL_PATH
-      value: $SM_CHANNEL_FSX/pretrained-models/meta-llama/Llama-2-7b-hf
+      value: $SM_CHANNEL_FSX/huggingface/models/$HF_MODEL_ID/$HF_MODEL_REVISION
   command:
     - python3
   args:
