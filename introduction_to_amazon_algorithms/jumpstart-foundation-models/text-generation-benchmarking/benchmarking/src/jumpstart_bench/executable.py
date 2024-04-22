@@ -18,7 +18,7 @@ def main() -> None:
     
     payloads = {
         f"input_{in_tokens:04}_output_{out_tokens:04}": create_test_payload(
-            in_tokens - 1, out_tokens, details=True, set_high_temperature=(not args.no_temperature)
+            in_tokens - 1, out_tokens, details=(not args.no_temperature), set_high_temperature=(not args.no_temperature)
         )
         for (in_tokens, out_tokens) in zip(args.input_length, args.output_tokens)
     }
@@ -37,7 +37,7 @@ def main() -> None:
         payloads=payloads,
         datasets=datasets,
         dataset_payload_keys=create_test_payload_args(
-            args.output_tokens[0], details=True, set_high_temperature=(not args.no_temperature)
+            args.output_tokens[0], details=(not args.no_temperature), set_high_temperature=(not args.no_temperature)
         ),
         run_concurrency_probe=True,
         saved_metrics_path=args.metrics_file,
