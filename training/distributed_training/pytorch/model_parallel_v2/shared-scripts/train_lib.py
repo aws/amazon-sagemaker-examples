@@ -273,7 +273,7 @@ def train(
             throughput = sample_processed / step_time
             throughputs.append(throughput)
 
-            tflops_per_gpu = compute_tflops(throughput, num_params, world_size, batch_seqlen)
+            tflops_per_gpu = compute_tflops(args, sample_processed, step_time, dp_size)
 
             if not total_steps % args.logging_freq and args.log_reduced_training_loss > 0:
                 loss_scalar = reduce_loss(loss)

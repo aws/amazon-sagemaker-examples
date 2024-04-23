@@ -37,6 +37,8 @@ def compute_tflops(args, global_batch_size, step_time, world_size):
     # Based on 
     # https://github.com/NVIDIA/Megatron-LM/blob/ba773259dbe5735fbd91ca41e7f4ded60b335c52/megatron/training/training.py#L65
     num_experts_routed_to = 1 if args.moe > 1 else args.num_experts_per_tok
+    if args.num_key_value_heads is None:
+        args.num_key_value_heads = args.num_heads
     num_flops = (
         12
         * global_batch_size
