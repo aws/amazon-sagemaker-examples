@@ -1,0 +1,12 @@
+huggingface:
+  model: "meta-llama/Llama-2-70b-chat-hf"
+  revision: "e9149a12809580e8602995856f8098ce973d1080"
+  tensors: true
+pipeline:
+  name: "accelerate-llama2-70b-ft"
+  version: "v1"
+  image: '763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training:2.2.0-gpu-py310-cu121-ubuntu20.04-sagemaker'
+  steps:
+    - name: finetune
+      description: "fine tune model"
+      config: finetune.yaml

@@ -1,0 +1,90 @@
+resources:
+  instance_count: 2
+  instance_type: ml.p3dn.24xlarge
+  volume_size: 200
+git:
+  repo_url: 'https://github.com/pacman100/DHS-LLM-Workshop.git'
+  branch: main
+  commit: 88a84227c533a27eec5867e265774aee8de060ec
+pre_script: 
+  - pip3 install --upgrade pip
+  - pip3 install transformers==4.38.1 datasets==2.17.1 evaluate==0.4.1 accelerate==0.27.2
+  - pip3 install trl==0.7.11 peft==0.9.0 bitsandbytes==0.43.0
+  - LOGS_DIR=$LOG_ROOT/$HOSTNAME
+  - mkdir -p $LOGS_DIR
+  - export OUTPUT_LOG=$LOGS_DIR/fsdp-sft.log
+  - export CKPT_DIR=$CKPT_ROOT/checkpoints
+  - mkdir -p $CKPT_DIR
+  - export DISTRIBUTED_ARGS="--nproc_per_node $PET_NPROC_PER_NODE --nnodes $PET_NNODES --node_rank $PET_NODE_RANK --master_addr $PET_MASTER_ADDR --master_port $PET_MASTER_PORT"
+  - echo "DISTRIBUTED_ARGS=$DISTRIBUTED_ARGS"
+  - cd chat_assistant/sft/training
+train:
+  distribution: "torch"
+  env:
+    - name: HOME
+      value: $SM_OUTPUT_DATA_DIR
+    - name: LOG_ROOT
+      value: "$SM_CHANNEL_EFS/home/$RELEASE_NAME/logs"
+    - name: MODEL_PATH
+      value: "$SM_CHANNEL_FSX/huggingface/models/$HF_MODEL_ID/$HF_MODEL_REVISION"
+    - name: CKPT_ROOT
+      value: "$SM_CHANNEL_EFS/home/$RELEASE_NAME/checkpoints"
+    - name: ACCELERATE_USE_FSDP
+      value: "true"
+    - name: FSDP_AUTO_WRAP_POLICY
+      value: "TRANSFORMER_BASED_WRAP"
+    - name: FSDP_BACKWARD_PREFETCH
+      value: "BACKWARD_PRE"
+    - name: FSDP_CPU_RAM_EFFICIENT_LOADING
+      value: "true"
+    - name: FSDP_FORWARD_PREFETCH
+      value: "false"
+    - name: FSDP_OFFLOAD_PARAMS
+      value: "false"
+    - name: FSDP_SHARDING_STRATEGY
+      value: "1"
+    - name: FSDP_STATE_DICT_TYPE
+      value: "SHARDED_STATE_DICT"
+    - name: FSDP_SYNC_MODULE_STATES
+      value: "true"
+    - name: FSDP_USE_ORIG_PARAMS
+      value: "true"
+  command:
+    - torchrun 
+  args:
+    - $DISTRIBUTED_ARGS
+    - train.py 
+    - --seed 100 
+    - --model_name_or_path "$MODEL_PATH" 
+    - --dataset_name "smangrul/code-chat-assistant-v1" 
+    - --chat_template_format "none" 
+    - --add_special_tokens False 
+    - --append_concat_token False 
+    - --splits "train,test" 
+    - --max_seq_len 2048 
+    - --max_steps 500 
+    - --logging_steps 25 
+    - --log_level "info" 
+    - --eval_steps 100 
+    - --save_steps 250 
+    - --logging_strategy "steps" 
+    - --evaluation_strategy "steps" 
+    - --save_strategy "steps"
+    - --bf16 False 
+    - --packing False 
+    - --learning_rate 5e-5 
+    - --lr_scheduler_type "cosine" 
+    - --weight_decay 0.01 
+    - --warmup_ratio 0.03 
+    - --max_grad_norm 1.0 
+    - --per_device_train_batch_size 1 
+    - --per_device_eval_batch_size 1 
+    - --gradient_accumulation_steps 1 
+    - --gradient_checkpointing True 
+    - --use_reentrant False 
+    - --dataset_text_field "content" 
+    - --use_flash_attn False 
+    - --ddp_timeout 36000 
+    - --optim paged_adamw_32bit 
+    - --output_dir $CKPT_DIR
+    - '2>&1 | tee $OUTPUT_LOG' 
