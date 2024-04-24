@@ -33,17 +33,28 @@ def compute_num_params(model):
     return num_params
 
 
-def compute_tflops(throughput, num_params, world_size, seq_len):
-    """
-    Compute TFLOPs by using the 6 factor which gives us model tflops.
-    This makes it easier to compare with frameworks such as megatron
-    which may not use activation checkpointing.
-    Using factor 8 gives us hardware tflops when using activation checkpointing.
-
-    Based on the formula in
-    https://developer.nvidia.com/blog/scaling-language-model-training-to-a-trillion-parameters-using-megatron/
-    """
-    return 6 * throughput * num_params / world_size * seq_len * 1e-12
+def compute_tflops(args, global_batch_size, step_time, world_size):
+    # Based on 
+    # https://github.com/NVIDIA/Megatron-LM/blob/ba773259dbe5735fbd91ca41e7f4ded60b335c52/megatron/training/training.py#L65
+    num_experts_routed_to = 1 if args.moe > 1 else args.num_experts_per_tok
+    num_flops = (
+        12
+        * global_batch_size
+        * args.max_context_width
+        * args.num_layers
+        * args.hidden_width
+        * args.hidden_width
+        * (
+            1
+            + ((args.intermediate_size / args.hidden_width) * num_experts_routed_to)
+            + (args.num_key_value_heads / args.num_heads)
+            + (args.max_context_width / args.hidden_width)
+            + (args.vocab_size / (2 * args.num_layers * args.hidden_width))
+        )
+    )
+    tflops_per_gpu = num_flops / (
+                 step_time * 10**12 * world_size)
+    return tflops_per_gpu
 
 
 def get_learning_rate_scheduler(optimizer, args):
@@ -248,6 +259,56 @@ def get_model_config(args):
             tie_word_embeddings=False,
             rope_scaling=None,
         )
+    elif "mistral" in args.model_type:
+        from transformers import MistralConfig
+
+        model_config = MistralConfig(
+            vocab_size=args.vocab_size, # 32000
+            hidden_size=args.hidden_width, # 4096
+            intermediate_size=args.intermediate_size, # 14336
+            num_hidden_layers=args.num_layers, # 32
+            num_attention_heads=args.num_heads, # 32
+            num_key_value_heads=args.num_key_value_heads, # 8
+            hidden_act="silu",
+            max_position_embeddings=args.max_context_width, # 4096 * 32
+            initializer_range=args.initializer_range, # 0.02
+            rms_norm_eps=1e-6,
+            use_cache=False,
+            pad_token_id=None,
+            bos_token_id=1,
+            eos_token_id=2,
+            tie_word_embeddings=False,
+            rope_theta=10000.0,
+            sliding_window=args.sliding_window, # 4096
+            attention_dropout=0.0,
+        )
+    elif "mixtral" in args.model_type:
+        from transformers import MixtralConfig
+
+        model_config = MixtralConfig(
+            vocab_size=args.vocab_size, # 32000,
+            hidden_size=args.hidden_width, # 4096,
+            intermediate_size=args.intermediate_size, # 14336,
+            num_hidden_layers=args.num_layers, # 32,
+            num_attention_heads=args.num_heads, # 32,
+            num_key_value_heads=args.num_key_value_heads, # 8,
+            hidden_act="silu",
+            max_position_embeddings=args.max_context_width, # 4096 * 32,
+            initializer_range=args.initializer_range, # 0.02,
+            rms_norm_eps=1e-5,
+            use_cache=False,
+            pad_token_id=None,
+            bos_token_id=1,
+            eos_token_id=2,
+            tie_word_embeddings=False,
+            rope_theta=1e6,
+            sliding_window=args.sliding_window, # None,
+            attention_dropout=0.0,
+            num_experts_per_tok=args.num_experts_per_tok, # 2,
+            num_local_experts=args.num_local_experts, # 8,
+            output_router_logits=False,
+            router_aux_loss_coef=0.001,
+        )
     else:
         raise NotImplementedError
     return model_config
@@ -261,7 +322,7 @@ def apply_activation_checkpoint(args, model=None):
         checkpoint_wrapper,
     )
 
-    transformer_layer = get_transformer_layer(args.model_type, args.use_smp_implementation)
+    transformer_layer = get_transformer_layer(args.model_type, args.use_smp_implementation, moe=args.moe > 0)
     check_fn_gpt = lambda submodule: isinstance(  # pylint: disable=unnecessary-lambda-assignment
         submodule, transformer_layer
     )
@@ -279,7 +340,6 @@ def apply_activation_checkpoint(args, model=None):
     else:
         checkpoint_fn = None
         checkpoint_impl=CheckpointImpl.REENTRANT
-
 
     # flash attn v2 does not work with no_reentrant
     # our activation offloading for 2.0 also does not work with no_reentrant
