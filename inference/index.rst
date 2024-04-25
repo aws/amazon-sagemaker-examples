@@ -109,3 +109,4 @@ Nvidia Triton Inference
 
    ../sagemaker-triton/resnet50/triton_resnet50
    ../sagemaker-triton/nlp_bert/triton_nlp_bert
+   ../sagemaker-triton/mme-triton-custom-faster-whisper/mme-triton-custom-faster-whisper
