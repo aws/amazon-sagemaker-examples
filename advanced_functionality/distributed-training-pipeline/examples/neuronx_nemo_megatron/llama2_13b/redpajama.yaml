@@ -1,6 +1,6 @@
 resources:
   instance_count: 1
-  instance_type: ml.trn1.2xlarge
+  instance_type: ml.m5.12xlarge
   volume_size: 200
 pre_script: 
   - 'if [ -d $DATA_DIR ]; then echo "$DATA_DIR exists" && exit 0; fi'
@@ -16,5 +16,5 @@ train:
   args:
     - -q -O
     - $DATA_DIR/data.jsonl
-    - https://data.together.xyz/redpajama-data-1T/v1.0.0/book/book.jsonl
+    - https://data.together.xyz/redpajama-data-1T/v1.0.0/wikipedia/wiki.jsonl
     

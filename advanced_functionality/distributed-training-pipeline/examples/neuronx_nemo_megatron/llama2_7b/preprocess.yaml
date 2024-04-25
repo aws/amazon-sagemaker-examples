@@ -1,6 +1,6 @@
 resources:
   instance_count: 1
-  instance_type: ml.trn1.32xlarge
+  instance_type: ml.m5.24xlarge
   volume_size: 200
 git:
   repo_url: "https://github.com/aws-neuron/neuronx-nemo-megatron.git"
