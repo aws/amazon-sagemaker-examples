@@ -5,7 +5,6 @@ dependencies:
    - IPython==7.6.1
    - sphinx==4.2.0
    - Jinja2==3.0.2
-   - pytorch==1.4.0
    - pip
    - pip:
       - nbsphinx==0.8.7
