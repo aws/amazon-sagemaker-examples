@@ -1,0 +1,14 @@
+pipeline:
+  name: "neuronx-distributed-gpt-neox-6-9b"
+  version: "v1"
+  container: pytorch-neuronx
+  steps:
+    - name: preprocess
+      description: "preprocess data"
+      config: preprocess.yaml
+    - name: compile
+      description: "compile model"
+      config: compile.yaml
+    - name: pretrain
+      description: "pretrain model"
+      config: pretrain.yaml

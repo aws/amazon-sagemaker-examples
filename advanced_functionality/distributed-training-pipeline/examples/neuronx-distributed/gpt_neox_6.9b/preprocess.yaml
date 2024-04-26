@@ -1,0 +1,22 @@
+resources:
+  instance_count: 1
+  instance_type: ml.m5.12xlarge 
+  volume_size: 200
+git:
+  repo_url: "https://github.com/aws-neuron/neuronx-distributed.git"
+  commit: 8520967d0a39e703e03ba0edbe595230f7e16bde
+  branch: main
+pre_script: 
+  - pip3 install --upgrade pip
+  - pip3 install -r $GIT_CLONE_DIR/examples/training/tp_dp_gpt_neox_hf_pretrain/common/requirements.txt 
+  - mkdir -p $DATA_ROOT
+train:
+  env:
+    - name: HOME
+      value: $SM_OUTPUT_DATA_DIR
+    - name: DATA_ROOT
+      value: $SM_CHANNEL_FSX/home/$RELEASE_NAME
+  command:
+    -  HOME=$DATA_ROOT python3 
+  args:
+    - $GIT_CLONE_DIR/examples/training/tp_dp_gpt_neox_hf_pretrain/common/get_dataset.py 

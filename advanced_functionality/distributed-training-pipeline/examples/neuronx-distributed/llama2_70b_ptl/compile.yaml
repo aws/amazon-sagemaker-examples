@@ -1,0 +1,103 @@
+resources:
+  instance_count: 32
+  instance_type: ml.trn1.32xlarge 
+  volume_size: 200
+git:
+  repo_url: "https://github.com/aws-neuron/neuronx-distributed.git"
+  branch: main
+  commit: 8520967d0a39e703e03ba0edbe595230f7e16bde
+pre_script: 
+  - pip3 install --upgrade pip
+  - SCRIPT_DIR=$GIT_CLONE_DIR/examples/training/llama2/lightning
+  - cp -r $GIT_CLONE_DIR/examples/training/llama2/tp_pp_llama2_hf_pretrain/70B_config $SCRIPT_DIR/
+  - cp $GIT_CLONE_DIR/examples/training/llama2/*.* $SCRIPT_DIR
+  - cd $SCRIPT_DIR
+  - pip3 install -r requirements.txt
+  - pip3 install -r requirements_ptl.txt
+  - LOGS_DIR=$LOG_ROOT/$PET_NODE_RANK
+  - 'if [ -d $LOGS_DIR ]; then rm -rf $LOGS_DIR; fi'
+  - mkdir -p $LOGS_DIR 
+  - OUTPUT_LOG=$LOGS_DIR/compile.log
+  - CACHE_DIR=$CACHE_ROOT/$PET_NODE_RANK
+  - 'if [ -d $CACHE_DIR ]; then rm -rf $CACHE_DIR; fi'
+  - mkdir -p $CACHE_DIR
+  - TMP_CACHE_DIR=$SM_OUTPUT_DATA_DIR/cache
+  - mkdir -p $CKPT_ROOT
+  - tb_dir=$HOME/tb/compile
+  - '[[ -d $tb_dir ]] && rm -rf $tb_dir'
+  - mkdir -p $tb_dir
+  - DATA_PATH="$DATA_ROOT/examples_datasets/wikicorpus_llama2_7B_tokenized_4k"
+  - DISTRIBUTED_ARGS="--nproc_per_node $PET_NPROC_PER_NODE --nnodes $PET_NNODES --node_rank $PET_NODE_RANK --master_addr $PET_MASTER_ADDR --master_port $PET_MASTER_PORT"
+  - GBS=1024
+  - SEQ_LEN=4096
+  - PP_DEGREE=4
+  - TP_DEGREE=32
+  - DP=$(($PET_NPROC_PER_NODE * $PET_NNODES / $TP_DEGREE / $PP_DEGREE))
+  - BS=$(($GBS / $DP))
+  - NUM_MICROBATCHES=$BS
+  - max_steps=10
+  - LLAMA2_ARGS="--train_batch_size $BS 
+    --use_meta_device_init 1 
+    --data_dir $DATA_PATH 
+    --model_path $SCRIPT_DIR/70B_config 
+    --max_steps $max_steps 
+    --seq_len $SEQ_LEN 
+    --pipeline_parallel_size $PP_DEGREE 
+    --tensor_parallel_size $TP_DEGREE 
+    --num_microbatches $NUM_MICROBATCHES 
+    --lr 0.00015 
+    --min_lr 1e-05 
+    --beta1 0.9 
+    --beta2 0.95 
+    --weight_decay 0.1 
+    --warmup_steps 2000 
+    --constant_steps 0 
+    --use_zero1_optimizer 1 
+    --use_selective_checkpoint 1 
+    --qkv_linear 1 
+    --kv_replicator 4 
+    --scheduler_type cosine 
+    --tb_dir $tb_dir"
+  - echo DISTRIBUTED_ARGS=$DISTRIBUTED_ARGS
+  - echo "#!/bin/bash" >  compile.sh
+  - echo export NEURON_CC_FLAGS=\"--model-type transformer --distribution-strategy=llm-training --cache_dir=$TMP_CACHE_DIR\" >> ./compile.sh
+  - echo "torchrun  $DISTRIBUTED_ARGS run_llama_nxd_ptl.py $LLAMA2_ARGS --checkpoint_dir $CKPT_ROOT 2>&1 | tee $OUTPUT_LOG"  >> compile.sh 
+  - chmod u+x ./compile.sh
+post_script:
+  - cp -r $TMP_CACHE_DIR/* $CACHE_DIR
+train:
+  distribution: "torch"
+  env:
+    - name: HOME
+      value: $SM_OUTPUT_DATA_DIR
+    - name: LOG_ROOT
+      value: $SM_CHANNEL_EFS/home/$RELEASE_NAME/logs
+    - name: DATA_ROOT
+      value: $SM_CHANNEL_FSX/home/$RELEASE_NAME
+    - name: CACHE_ROOT
+      value: $SM_CHANNEL_EFS/home/$RELEASE_NAME/cache
+    - name: CKPT_ROOT
+      value: "$SM_OUTPUT_DATA_DIR/checkpoints"
+    - name: CCOM_SOCKET_IFNAME
+      value: "eth0"
+    - name: FI_EFA_USE_DEVICE_RDMA
+      value: "1"
+    - name: FI_PROVIDER
+      value: "efa"
+    - name: FI_EFA_FORK_SAFE
+      value: "1"
+    - name:  NEURON_FUSE_SOFTMAX
+      value: "1"
+    - name: NEURON_RT_STOCHASTIC_ROUNDING_EN
+      value: "1"
+    - name: NEURON_RT_ASYNC_EXEC_MAX_INFLIGHT_REQUESTS
+      value: "7"
+    - name: MALLOC_ARENA_MAX
+      value: "128"
+    - name: "XLA_DOWNCAST_BF16"
+      value: "1"
+  command:
+    -  neuron_parallel_compile
+  args:
+    - './compile.sh'
+    - '2>&1 | tee $LOGS_DIR/neuron_parallel_compile.log'

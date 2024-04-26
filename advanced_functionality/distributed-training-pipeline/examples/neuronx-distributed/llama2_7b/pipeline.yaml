@@ -1,0 +1,18 @@
+huggingface:
+  model: "meta-llama/Llama-2-7b-hf"
+  revision: "01c7f73d771dfac7d292323805ebc428287df4f9"
+  tensors: false
+pipeline:
+  name: "neuronx-distributed-llama2-7b"
+  version: "v1"
+  container: pytorch-neuronx
+  steps:
+    - name: preprocess
+      description: "preprocess data"
+      config: preprocess.yaml
+    - name: compile
+      description: "compile model"
+      config: compile.yaml
+    - name: pretrain
+      description: "pretrain model"
+      config: pretrain.yaml

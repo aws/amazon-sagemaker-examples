@@ -1,0 +1,33 @@
+resources:
+  instance_count: 1
+  instance_type: ml.m5.12xlarge 
+  volume_size: 200
+git:
+  repo_url: "https://github.com/aws-neuron/neuronx-distributed.git"
+  commit: 8520967d0a39e703e03ba0edbe595230f7e16bde
+  branch: main
+pre_script: 
+  - pip3 install --upgrade pip
+  - 'if [ -d $DATA_ROOT ]; then echo "$DATA_ROOT exists" && exit 0; fi'
+  - mkdir -p $DATA_ROOT
+  - SCRIPT_DIR=$GIT_CLONE_DIR/examples/training/llama2/lightning
+  - cp $GIT_CLONE_DIR/examples/training/llama2/lightning/finetune_config/config.json $SCRIPT_DIR
+  - cp $GIT_CLONE_DIR/examples/training/llama2/*.* $SCRIPT_DIR
+  - cp $TOKENIZER_MODEL $SCRIPT_DIR
+  - cd $SCRIPT_DIR
+  - pip3 install -r requirements.txt
+  - pip3 install -r requirements_ptl.txt
+train:
+  env:
+    - name: HOME
+      value: $SM_OUTPUT_DATA_DIR
+    - name: XDG_CACHE_HOME
+      value: $SM_OUTPUT_DATA_DIR
+    - name: DATA_ROOT
+      value: $SM_CHANNEL_FSX/home/$RELEASE_NAME
+    - name: TOKENIZER_MODEL
+      value: $SM_CHANNEL_FSX/huggingface/models/$HF_MODEL_ID/$HF_MODEL_REVISION/tokenizer.model
+  command:
+    -  HOME=$DATA_ROOT python3 
+  args:
+    - get_dataset.py 
