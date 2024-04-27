@@ -82,7 +82,7 @@ RUN apt-get update && \
 RUN ln -s /usr/lib/x86_64-linux-gnu/libnvinfer.so /usr/lib/x86_64-linux-gnu/libnvinfer.so.7 && \
     ln -s /usr/lib/x86_64-linux-gnu/libnvinfer_plugin.so /usr/lib/x86_64-linux-gnu/libnvinfer_plugin.so.7
 
-# SAGEMAKER: Copy the train file to the specified directory that SageMaker training jobs will use
+# Amazon SageMaker: Copy the train file to the specified directory that Amazon SageMaker Training jobs will use
 COPY ./train /opt/program/
 
 # Create user
@@ -104,7 +104,7 @@ COPY --chown=$UID:0 --chmod=775 . .
 # Copy licenses (OpenShift Policy)
 COPY --chmod=775 LICENSE.md /licenses/LICENSE.md
 
-# SAGEMAKER: Add /opt/program to the path. The "train" program resides here.
+# Amazon SageMaker: Add /opt/program to the path. The "train" program resides here.
 ENV PATH="/home/$UID/.local/bin:$PATH:/opt/program"
 ENV PYTHONPATH="${PYTHONPATH}:/home/$UID/.local/lib/python3.10/site-packages" 
 ENV LD_PRELOAD=libtcmalloc.so
@@ -116,7 +116,8 @@ VOLUME [ "/dataset" ]
 # 6006: TensorBoard
 EXPOSE 7860 6006
 
-USER $UID
+# Amazon SageMaker: Commenting out to avoid permission issues with access to /opt/ml when invoked by an Amazon SageMaker training job
+# USER $UID
 
 STOPSIGNAL SIGINT
 
