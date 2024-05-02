@@ -1,60 +1,40 @@
 # Import necessary libraries and modules
 import argparse
-import codecs
 import json
 import logging
-import numpy as np
 import os
 import sys
-
-# Set TensorFlow logging level to suppress unnecessary output
-os.environ["TF_CPP_MIN_LOG_LEVEL"] = "1"
-
-# Install or upgrade the SageMaker package
-os.system("pip install -U sagemaker")
-
+import subprocess
 # Import TensorFlow and related modules
 import tensorflow as tf
 from tensorflow import data as tf_data
 import tensorflow.keras.backend as K
-from tensorflow.keras.callbacks import TensorBoard, ModelCheckpoint
-import boto3
-from sagemaker.session import Session
-import sagemaker.experiments
-from sagemaker.experiments import load_run
-from sagemaker.utils import retry_with_backoff
-import re
+from tensorflow.keras.callbacks import  ModelCheckpoint
 import keras
 import keras_cv
 from keras_cv import bounding_box
-import uuid
 
+# Set TensorFlow logging level to suppress unnecessary output
+#os.environ["TF_CPP_MIN_LOG_LEVEL"] = "1"
+tf.get_logger().setLevel(1)
 
 # Enable eager execution (optional)
 #tf.compat.v1.enable_eager_execution
 
 # Configure GPU settings for TensorFlow
-config = tf.compat.v1.ConfigProto()
-config.gpu_options.allow_growth = True
-session = tf.compat.v1.Session(config=config)
+gpus = tf.config.experimental.list_physical_devices("GPU")
+for gpu in gpus:
+    tf.config.experimental.set_memory_growth(gpu, True)
 os.environ["KERAS_BACKEND"] = "tensorflow"
 
 # Set logging levels
 logging.getLogger().setLevel(logging.INFO)
 tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 
-
-environment = sagemaker.experiments._environment._RunEnvironment.load()
-print(f"{environment.source_arn=}")
-job_name = environment.source_arn.split("/")[-1]
-print(f"job_name: {job_name}")
-print(f"environment: {environment}")
-
 # Create directories for storing model and checkpoints
-os.system('mkdir /opt/ml/model/code')
-os.system('mkdir /opt/ml/checkpoints')
-#os.system('cp inference.py /opt/ml/model/code')
-os.system('cp requirements.txt /opt/ml/model/code')
+subprocess.run(['mkdir','/opt/ml/model/code'])
+subprocess.run(['mkdir', '/opt/ml/checkpoints'])
+subprocess.run(['cp', 'requirements.txt', '/opt/ml/model/code'])
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
