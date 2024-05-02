@@ -67,6 +67,11 @@ Resources:
       #     - ServerSideEncryptionByDefault: 
       #         SSEAlgorithm: AES256
       BucketName: !Sub '${TrainingS3BucketNamePrefix}-${AWS::AccountId}'
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
 
   # The CodeBuild project that build the training container image and pushes the image to ECR
   TrainingContainerBuildProject:
@@ -247,8 +252,11 @@ Resources:
             Version: '2012-10-17'
             Statement:
               - Effect: Allow
-                Action: '*'
+                Action: ["sagemaker:Create*", "sagemaker:Describe*", "sagemaker:AddTags", "s3:GetObject"]
                 Resource: '*'
+              - Effect: Allow
+                Action: "iam:PassRole"
+                Resource: !GetAtt SageMakerServiceRole.Arn
       RoleName: custom-sagemaker-pipeline-execution-role
 
   # The role used by CodeBuild to execute commands
@@ -285,17 +293,19 @@ Resources:
               - Effect: Allow
                 Action: 
                   - ecr:GetAuthorizationToken
-                  - ecr:DescribeRepositories
                   - ecr:CreateRepository
+                Resource: '*'
+              - Effect: Allow
+                Action: 
+                  - ecr:DescribeRepositories
                   - ecr:InitiateLayerUpload
                   - ecr:UploadLayerPart
                   - ecr:CompleteLayerUpload
                   - ecr:BatchCheckLayerAvailability
                   - ecr:PutImage
-                  - ecs:UpdateService
                   - ecr:BatchGetImage
                   - ecr:GetDownloadUrlForLayer
-                Resource: '*'
+                Resource: !GetAtt TrainingContainerECRRepository.Arn
               - Effect: Allow
                 Action: 
                   - logs:CreateLogGroup
