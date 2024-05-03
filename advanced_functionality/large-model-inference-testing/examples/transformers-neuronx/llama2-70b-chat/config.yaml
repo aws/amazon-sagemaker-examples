@@ -4,10 +4,12 @@ huggingface:
   download: true
 djl:
   engine: "Python"
+  option.entryPoint: "djl_python.transformers_neuronx"
   option.tensor_parallel_degree: 24
   option.amp: "f16"
   option.n_positions: 2048
   option.model_loading_timeout: 3600
+  option.model_loader: "tnx"
 sagemaker:
   model:
     name: "llama-2-70b-chat-hf-transformers-neuronx"
@@ -15,7 +17,6 @@ sagemaker:
     env: 
       HUGGINGFACE_HUB_CACHE: "/tmp"
       TRANSFORMERS_CACHE: "/tmp"
-      NEURON_CC_FLAGS: "--enable-mixed-precision-accumulation"
   endpoint:
     name: "llama-2-70b-chat-hf-transformers-neuronx"
     instance_type: "ml.inf2.48xlarge"
@@ -28,7 +29,7 @@ test:
   module_name: "prompt_generator"
   module_dir: "modules/inst-semeval2017"
   prompt_generator: "PromptGenerator"
-  params: { "sequence_length": 2048, "top_k": 50 }
+  params: { "do_sample": true, "max_new_tokens": 1024, "top_k": 50 }
   warmup_iters: 1
   max_iters: 10
   output_dir: "output/llama-2-70b-chat-hf/transformers-neuronx"

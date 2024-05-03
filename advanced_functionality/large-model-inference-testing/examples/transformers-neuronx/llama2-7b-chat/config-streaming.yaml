@@ -4,21 +4,25 @@ huggingface:
   download: true
 djl:
   engine: "Python"
-  option.entryPoint: "djl_python.transformers_neuronx"
+  ooption.entryPoint: "djl_python.transformers_neuronx"
   option.tensor_parallel_degree: 12
   option.amp: "f16"
   option.n_positions: 2048
   option.model_loading_timeout: 1800
+  option.rolling_batch: "auto"
+  option.rolling_batch_strategy: "continuous_batching"
+  option.max_rolling_batch_size: 1
+  option.output_formatter: "jsonlines"
   option.model_loader: "tnx"
 sagemaker:
   model:
-    name: "llama-2-7b-chat-hf-transformers-neuronx"
+    name: "llama-2-7b-chat-hf-transformers-neuronx-streaming"
     container: "containers/pytorch-inf2"
     env: 
       HUGGINGFACE_HUB_CACHE: "/tmp"
       TRANSFORMERS_CACHE: "/tmp"
   endpoint:
-    name: "llama-2-7b-chat-hf-transformers-neuronx"
+    name: "llama-2-7b-chat-hf-transformers-neuronx-streamimg"
     instance_type: "ml.inf2.24xlarge"
     initial_instance_count: 1
     variant_name: "test"
@@ -31,4 +35,4 @@ test:
   params: { "do_sample": true, "max_new_tokens": 1024, "top_k": 50 }
   warmup_iters: 1
   max_iters: 10
-  output_dir: "output/llama-2-7b-chat-hf/transformers-neuronx"
+  output_dir: "output/llama-2-7b-chat-hf/transformers-neuronx-streaming"

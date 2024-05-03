@@ -3,27 +3,29 @@ huggingface:
   revision: "92011f62d7604e261f748ec0cfe6329f31193e33"
   download: true
 djl:
-  engine: "Python"
-  option.entryPoint: "djl_python.transformers_neuronx"
-  option.tensor_parallel_degree: 12
-  option.amp: "f16"
-  option.n_positions: 2048
+  engine: "MPI"
+  option.entryPoint: "djl_python.deepspeed"
+  option.tensor_parallel_degree: 4
   option.model_loading_timeout: 1800
-  option.model_loader: "tnx"
+  option.dtype: "fp16"
+  option.max_tokens: 2048
+  option.rolling_batch: "auto"
+  option.max_rolling_batch_size: 1
+  option.output_formatter: "jsonlines"
 sagemaker:
   model:
-    name: "llama-2-7b-chat-hf-transformers-neuronx"
-    container: "containers/pytorch-inf2"
+    name: "llama-2-7b-chat-hf-deepspeed-streaming"
+    container: "containers/deepspeed"
     env: 
       HUGGINGFACE_HUB_CACHE: "/tmp"
       TRANSFORMERS_CACHE: "/tmp"
   endpoint:
-    name: "llama-2-7b-chat-hf-transformers-neuronx"
-    instance_type: "ml.inf2.24xlarge"
+    name: "llama-2-7b-chat-hf-deepspeed-streaming"
+    instance_type: "ml.g5.12xlarge"
     initial_instance_count: 1
     variant_name: "test"
     model_data_download_timeout_secs: 1800
-    container_startup_health_check_timeout_secs: 600
+    container_startup_health_check_timeout_secs: 1200
 test:
   module_name: "prompt_generator"
   module_dir: "modules/inst-semeval2017"
@@ -31,4 +33,4 @@ test:
   params: { "do_sample": true, "max_new_tokens": 1024, "top_k": 50 }
   warmup_iters: 1
   max_iters: 10
-  output_dir: "output/llama-2-7b-chat-hf/transformers-neuronx"
+  output_dir: "output/llama-2-7b-chat-hf/deepspeed-streaming"

@@ -4,10 +4,12 @@ huggingface:
   download: true
 djl:
   engine: "Python"
+  option.entryPoint: "djl_python.transformers_neuronx"
   option.tensor_parallel_degree: 12
   option.amp: "f16"
   option.n_positions: 2048
   option.model_loading_timeout: 1800
+  option.model_loader: "tnx"
 sagemaker:
   model:
     name: "mistral-7b-instruct-v0-2-transformers-neuronx"
@@ -15,8 +17,6 @@ sagemaker:
     env: 
       HUGGINGFACE_HUB_CACHE: "/tmp"
       TRANSFORMERS_CACHE: "/tmp"
-      FI_EFA_FORK_SAFE: "1"
-      NEURON_CC_FLAGS: "--enable-mixed-precision-accumulation"
   endpoint:
     name: "mistral-7b-instruct-v0-2-transformers-neuronx"
     instance_type: "ml.inf2.24xlarge"
@@ -28,7 +28,7 @@ test:
   module_name: "prompt_generator"
   module_dir: "modules/inst-semeval2017"
   prompt_generator: "PromptGenerator"
-  params: { "sequence_length": 2048, "top_k": 50 }
+  params: { "use_sample": true, "max_new_tokens": 1024, "top_k": 50 }
   warmup_iters: 1
   max_iters: 10
   output_dir: "output/mistral-7b-instruct-v0.2/transformers-neuronx"
