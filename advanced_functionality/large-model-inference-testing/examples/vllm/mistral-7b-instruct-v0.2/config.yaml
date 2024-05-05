@@ -1,0 +1,34 @@
+huggingface:
+  model: "mistralai/Mistral-7B-Instruct-v0.2"
+  revision: "41b61a33a2483885c981aa79e0df6b32407ed873"
+  download: true
+djl:
+  engine: Python
+  option.dtype: fp16
+  option.task: text-generation
+  option.rolling_batch: vllm
+  option.tensor_parallel_degree: 4
+  option.model_loading_timeout: 1200
+  option.max_model_len: 8192
+sagemaker:
+  model:
+    name: "mistral-7b-instruct-v0-2-vllm"
+    container: "containers/deepspeed"
+    env: 
+      HUGGINGFACE_HUB_CACHE: "/tmp"
+      TRANSFORMERS_CACHE: "/tmp"
+  endpoint:
+    name: "mistral-7b-instruct-v0-2-vllm"
+    instance_type: "ml.g5.12xlarge"
+    initial_instance_count: 1
+    variant_name: "test"
+    model_data_download_timeout_secs: 1200
+    container_startup_health_check_timeout_secs: 600
+test:
+  module_name: "prompt_generator"
+  module_dir: "modules/inst-semeval2017"
+  prompt_generator: "PromptGenerator"
+  params: { "do_sample": true, "max_new_tokens": 1024, "top_k": 50 }
+  warmup_iters: 1
+  max_iters: 10
+  output_dir: "output/mistral-7b-instruct-v0.2-vllm"
