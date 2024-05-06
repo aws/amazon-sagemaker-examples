@@ -5,9 +5,10 @@
 ![Architecture Diagram](kohya-ss-fine-tuning.jpg)
 
 *Prerequisites:*
-1. SageMaker Domain configured (to be used with SageMaker Studio), with the proper permissions assigned to the SageMaker Execution Role.
-2. SageMaker Domain User Profile configured.
-3. If you will run the Cloudformation template via the console, the proper IAM permissions must be assigned to your user.
+1. SageMaker Domain configured (to be used with SageMaker Studio).
+2. Add the [required permissions](https://aws-blogs-artifacts-public.s3.amazonaws.com/artifacts/ML-16550/sagemaker-policy.json) to the SageMaker Execution Role for your domain.
+3. SageMaker Domain User Profile configured.
+4. If you will run the Cloudformation template via the console, the proper IAM permissions must be assigned to your user.
 
 *Follow these steps to get started:*
 
@@ -15,7 +16,9 @@
 2. In the "Utilities and files" section, click "System terminal".
 3. You will check out just the required directories of the SageMaker Examples git repository next (so you don't have to download the entire repo). Run the following commands from the System terminal. If successful, you should see the output "Your branch is up to date with 'origin/main'".
 
-        git clone --no-checkout https://github.com/aws/amazon-sagemaker-examples.git
+        git clone --no-checkout https://github.com/azograby/amazon-sagemaker-examples.git
+        # TODO: change to official aws examples repo once personal repo PR is approved and merged. PR: https://github.com/aws/amazon-sagemaker-examples/pull/4481
+        # git clone --no-checkout https://github.com/aws/amazon-sagemaker-examples.git
         cd amazon-sagemaker-examples/
         git sparse-checkout set use-cases/text-to-image-fine-tuning
         git checkout
