@@ -124,7 +124,7 @@ def create_model(args, model_config, dtype, pretrained_model_weights=None):
     if pretrained_model_weights:
         _logger.info("Loading pretrained weights from %s.", pretrained_model_weights)
         if pversion.parse(transformers.__version__) < pversion.parse("4.37.1"):
-            model = AutoModelForCausalLM.from_pretrained(pretrained_model_weights, config=model)
+            model = AutoModelForCausalLM.from_pretrained(pretrained_model_weights, config=model_config)
         else:
             model = AutoModelForCausalLM.from_pretrained(
                  pretrained_model_weights,
