@@ -12,9 +12,9 @@
 
 *Follow these steps to get started:*
 
-1. Navigate to Amazon SageMaker Studio in your AWS account. On the home screen, click "Open Launcher".
-2. In the "Utilities and files" section, click "System terminal".
-3. You will check out just the required directories of the SageMaker Examples git repository next (so you don't have to download the entire repo). Run the following commands from the System terminal. If successful, you should see the output "Your branch is up to date with 'origin/main'".
+1. Navigate to Amazon SageMaker Studio in your AWS account. Run your JupyterLab space.
+2. Click on "Terminal".
+3. You will check out just the required directories of the SageMaker Examples git repository next (so you don't have to download the entire repo). Run the following commands from the terminal. If successful, you should see the output "Your branch is up to date with 'origin/main'".
 
         git clone --no-checkout https://github.com/azograby/amazon-sagemaker-examples.git
         # TODO: change to official aws examples repo once personal repo PR is approved and merged. PR: https://github.com/aws/amazon-sagemaker-examples/pull/4481
@@ -24,7 +24,7 @@
         git checkout
 
 4. In Amazon SageMaker Studio, in the left-hand navigation pane, click the File Browser and navigate to the project directory (amazon-sagemaker-examples/use-cases/text-to-image-fine-tuning). Open the Jupyter Notebook named "kohya-ss-fine-tuning.ipynb".
-5. Select the runtime (defaults are fine - Data Science 3.0, Python 3, ml.t3.medium) and wait for the notebook kernel to boot. You may now continue with this Notebook to start setting up your solution.
+5. The default runtime kernel is set to use Python 3 automatically. You now have a kernel that is ready to run commands. You may now continue with this Notebook to start setting up your solution.
 
 ---
 ---
