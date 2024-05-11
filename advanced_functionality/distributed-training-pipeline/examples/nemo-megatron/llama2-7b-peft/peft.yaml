@@ -1,0 +1,97 @@
+resources:
+  instance_count: 2
+  instance_type: ml.p3.16xlarge
+  volume_size: 400
+pre_script: 
+  - export DISTRIBUTED_ARGS="--nproc_per_node $PET_NPROC_PER_NODE --nnodes $PET_NNODES --node_rank $PET_NODE_RANK --master_addr $PET_MASTER_ADDR --master_port $PET_MASTER_PORT"
+  - echo "DISTRIBUTED_ARGS=$DISTRIBUTED_ARGS"
+  - export LOGS_DIR=$LOG_ROOT/$PET_NODE_RANK
+  - mkdir -p $LOGS_DIR
+  - export OUTPUT_LOG=$LOGS_DIR/peft.log
+  - MODEL="$MODEL_PATH/nemo"
+  - TRAIN_DS="[$DATA_ROOT/pubmedqa_train.jsonl]"
+  - VALID_DS="[$DATA_ROOT/pubmedqa_val.jsonl]"
+  - TEST_DS="[$DATA_ROOT/pubmedqa_test.jsonl]"
+  - TEST_NAMES="[pubmedqa]"
+  - SCHEME="lora"
+  - CONCAT_SAMPLING_PROBS="[1.0]"
+  - TP_SIZE=8
+  - PP_SIZE=1
+  - export HYDRA_FULL_ERROR=1
+  - export PEFT_ARGS="
+    trainer.log_every_n_steps=1
+    trainer.precision=bf16
+    trainer.devices=$PET_NPROC_PER_NODE
+    trainer.num_nodes=$PET_NNODES 
+    trainer.val_check_interval=20
+    trainer.max_epochs=$MAX_EPOCHS
+    model.restore_from_path=${MODEL}
+    model.peft.peft_scheme=${SCHEME}
+    model.micro_batch_size=1
+    model.global_batch_size=128
+    model.tensor_model_parallel_size=${TP_SIZE}
+    model.pipeline_model_parallel_size=${PP_SIZE}
+    model.megatron_amp_O2=True
+    model.activations_checkpoint_granularity=selective
+    model.activations_checkpoint_num_layers=null
+    model.activations_checkpoint_method=uniform
+    model.optim.name=fused_adam
+    model.optim.lr=1e-4
+    model.answer_only_loss=True
+    model.data.train_ds.file_names=${TRAIN_DS}
+    model.data.validation_ds.file_names=${VALID_DS}
+    model.data.test_ds.file_names=${TEST_DS}
+    model.data.train_ds.concat_sampling_probabilities=${CONCAT_SAMPLING_PROBS}
+    model.data.train_ds.max_seq_length=2048
+    model.data.validation_ds.max_seq_length=2048
+    model.data.train_ds.micro_batch_size=1
+    model.data.train_ds.global_batch_size=128
+    model.data.validation_ds.micro_batch_size=1
+    model.data.validation_ds.global_batch_size=128
+    model.data.train_ds.num_workers=0
+    model.data.validation_ds.num_workers=0
+    model.data.test_ds.num_workers=0
+    model.data.validation_ds.metric.name=loss
+    model.data.test_ds.metric.name=loss
+    exp_manager.create_wandb_logger=False
+    exp_manager.checkpoint_callback_params.mode=min
+    exp_manager.explicit_log_dir=$LOG_ROOT/nemo_experiments/$EXP_NAME
+    exp_manager.resume_if_exists=True
+    exp_manager.resume_ignore_no_checkpoint=True
+    exp_manager.create_checkpoint_callback=True
+    exp_manager.checkpoint_callback_params.monitor=validation_loss
+    ++exp_manager.checkpoint_callback_params.save_best_model=False
+    exp_manager.checkpoint_callback_params.save_nemo_on_train_end=True
+    model.save_nemo_on_validation_end=False"
+  - SCRIPT_DIR=/NeMo/examples/nlp/language_modeling/tuning
+  - cd $HOME
+train:
+  distribution: "torch"
+  env:
+    - name: HOME
+      value: $SM_OUTPUT_DATA_DIR
+    - name: TMPDIR
+      value: $SM_OUTPUT_DATA_DIR
+    - name: TMP
+      value: $SM_OUTPUT_DATA_DIR
+    - name: MODEL_PATH
+      value: "$SM_CHANNEL_FSX/huggingface/models/$HF_MODEL_ID/$HF_MODEL_REVISION"
+    - name: LOG_ROOT
+      value: "$SM_CHANNEL_EFS/home/$RELEASE_NAME/logs"
+    - name: DATA_ROOT
+      value: "$SM_CHANNEL_FSX/home/$RELEASE_NAME/data"
+    - name: EXP_NAME
+      value: "peft_pubmedqa"
+    - name: MAX_EPOCHS
+      value: "2"
+    - name: NCCL_DEBUG
+      value: "INFO"
+    - name: NCCL_SOCKET_IFNAME 
+      value: "eth0"
+  command:
+    -  "torchrun"
+  args: 
+    - $DISTRIBUTED_ARGS
+    - $SCRIPT_DIR/megatron_gpt_finetuning.py
+    - $PEFT_ARGS
+    - '2>&1 | tee $OUTPUT_LOG' 

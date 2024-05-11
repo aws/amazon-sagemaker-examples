@@ -1,0 +1,25 @@
+resources:
+  instance_count: 1
+  instance_type: ml.p3.16xlarge
+  volume_size: 400
+pre_script: 
+  - 'if [ -f $MODEL_PATH/nemo ]; then echo "$MODEL_PATH/nemo exists" && exit 0; fi'
+  - SCRIPT_DIR=/NeMo/scripts/checkpoint_converters
+  - cd $SCRIPT_DIR
+  - mkdir -p $LOG_ROOT
+  - OUTPUT_LOG=$LOG_ROOT/hf_to_nemo.log
+post_script:
+  - cp -r $SM_OUTPUT_DATA_DIR/nemo $MODEL_PATH/
+train:
+  env:
+    - name: LOG_ROOT
+      value: $SM_CHANNEL_EFS/home/$RELEASE_NAME/logs
+    - name: MODEL_PATH
+      value: "$SM_CHANNEL_FSX/huggingface/models/$HF_MODEL_ID/$HF_MODEL_REVISION"
+  command:
+    - python3
+  args:
+    - convert_mistral_7b_hf_to_nemo.py
+    - --input_name_or_path=$MODEL_PATH/ 
+    - --output_path=$SM_OUTPUT_DATA_DIR/nemo 
+    - '2>&1 | tee $OUTPUT_LOG'
