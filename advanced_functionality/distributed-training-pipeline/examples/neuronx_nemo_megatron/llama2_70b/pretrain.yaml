@@ -4,7 +4,7 @@ resources:
   volume_size: 200
 git:
   repo_url: "https://github.com/aws-neuron/neuronx-nemo-megatron.git"
-  commit: 1f3bbcc8774ff9b07e6f3151951a52ddef19cbbf
+  commit: 273dc42addd84407e7950d0cf35d501ae50ccd1b
   branch: main
 pre_script: 
   - pip3 install --upgrade pip
