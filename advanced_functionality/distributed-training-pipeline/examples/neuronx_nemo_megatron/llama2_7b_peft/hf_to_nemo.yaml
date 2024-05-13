@@ -1,0 +1,40 @@
+resources:
+  instance_count: 1
+  instance_type: ml.trn1.32xlarge 
+  volume_size: 400
+git:
+  repo_url: "https://github.com/aws-neuron/neuronx-nemo-megatron.git"
+  commit: 273dc42addd84407e7950d0cf35d501ae50ccd1b
+  branch: main
+pre_script: 
+  - pip3 install --upgrade pip
+  - ./build.sh && pip3 install ./build/*.whl
+  - pip3 install Cython==3.0.9
+  - pip3 install -r requirements.txt protobuf==3.20.3
+  - 'python3 -c "from nemo.collections.nlp.data.language_modeling.megatron.dataset_utils import compile_helper; compile_helper()"'
+  - SCRIPT_DIR=$GIT_CLONE_DIR/nemo/examples/nlp/language_modeling/checkpoint_conversion
+  - cd $SCRIPT_DIR
+  - mkdir -p $LOG_ROOT
+  - OUTPUT_LOG=$LOG_ROOT/convert.log
+  - TP=8
+  - PP=1
+train:
+  env:
+    - name: HOME
+      value: $SM_OUTPUT_DATA_DIR
+    - name: LOG_ROOT
+      value: $SM_CHANNEL_EFS/home/$RELEASE_NAME/logs
+    - name: MODEL_PATH
+      value: $SM_CHANNEL_FSX/huggingface/models/$HF_MODEL_ID/$HF_MODEL_REVISION
+    - name: EXP_NAME
+      value: "peft"
+  command:
+    - python3
+  args:
+    - convert_hf_checkpoint_to_nemo_llama.py
+    - --path_to_checkpoint $MODEL_PATH 
+    - --config_file $MODEL_PATH/config.json 
+    - --output_path $LOG_ROOT/nemo_experiments/$EXP_NAME/checkpoints 
+    - --tp_degree $TP 
+    - --pp_degree $PP 
+    - '2>&1 | tee $OUTPUT_LOG'

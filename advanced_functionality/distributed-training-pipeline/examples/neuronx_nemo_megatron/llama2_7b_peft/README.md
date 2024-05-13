@@ -1,0 +1,3 @@
+# Fine-tune Llama2 7B on PubMedQA dataset using Neuronx-Nemo-Megatron
+
+This example shows how to use [pytorch-distributed](../../../charts/machine-learning/training/pytorchjob-elastic/Chart.yaml) Helm chart to fine-tune (PEFT with LoRA) Llama2-7B model on [pubmedqa](https://github.com/pubmedqa/pubmedqa/tree/master) dataset with [Neuronx-Nemo-Megatron](https://github.com/aws-neuron/neuronx-nemo-megatron).
