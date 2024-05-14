@@ -1,0 +1,33 @@
+huggingface:
+  model: "BAAI/bge-reranker-large"
+  revision: "bc0c7056d15eaea221616887bf15da63743d19e1"
+  download: true
+djl:
+  engine: "Python"
+  option.model_loading_timeout: 1800
+  option.max_dynamic_batch_size: 16
+sagemaker:
+  model:
+    name: "baai-bge-reranker-large-python"
+    container: "containers/deepspeed"
+    env: 
+      HUGGINGFACE_HUB_CACHE: "/tmp"
+      TRANSFORMERS_CACHE: "/tmp"
+      TOKENIZERS_PARALLELISM: "false"
+     
+  endpoint:
+    name: "baai-bge-reranker-large-python"
+    instance_type: "ml.g5.2xlarge"
+    initial_instance_count: 1
+    variant_name: "test"
+    model_data_download_timeout_secs: 1800
+    container_startup_health_check_timeout_secs: 1200
+test:
+  module_name: "reranker_pair"
+  module_dir: "modules/inst-semeval2017"
+  prompt_generator: "RerankerPair"
+  task_name: "reranker"
+  params: {}
+  warmup_iters: 1
+  max_iters: 10
+  output_dir: "output/baai-bge-reranker-large/python"
