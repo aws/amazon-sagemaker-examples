@@ -8,7 +8,7 @@ djl:
   option.max_dynamic_batch_size: 16
 sagemaker:
   model:
-    name: "baai-bge-reranker-large-transformers-neuronx"
+    name: "baai-bge-reranker-large-pytorch-neuronx"
     container: "containers/pytorch-inf2"
     env: 
       HUGGINGFACE_HUB_CACHE: "/tmp"
@@ -16,7 +16,7 @@ sagemaker:
       TOKENIZERS_PARALLELISM: "false"
     
   endpoint:
-    name: "baai-bge-reranker-large-transformers-neuronx"
+    name: "baai-bge-reranker-large-pytorch-neuronx"
     instance_type: "ml.inf2.xlarge"
     initial_instance_count: 1
     variant_name: "test"
@@ -30,4 +30,4 @@ test:
   params: {}
   warmup_iters: 1
   max_iters: 10
-  output_dir: "output/baai-bge-reranker-large/transformers-neuronx"
+  output_dir: "output/baai-bge-reranker-large/pytorch-neuronx"
