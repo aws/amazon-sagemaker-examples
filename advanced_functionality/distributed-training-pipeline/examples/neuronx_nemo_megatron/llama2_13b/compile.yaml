@@ -98,7 +98,7 @@ pre_script:
     model.activations_checkpoint_granularity=full 
     model.activations_checkpoint_method=uniform 
     model.activations_checkpoint_num_layers=1 
-    +model.save_xser=True
+    +model.save_xser=False
     exp_manager.create_tensorboard_logger=$CREATE_TB_LOGGER 
     exp_manager.resume_if_exists=False 
     exp_manager.resume_ignore_no_checkpoint=False 

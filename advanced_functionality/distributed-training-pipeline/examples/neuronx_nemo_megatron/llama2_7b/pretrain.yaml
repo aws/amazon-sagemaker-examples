@@ -98,8 +98,8 @@ pre_script:
     model.convert_to_hf=False
     model.output_dir=$LOGS_DIR
     model.config_path=$MODEL_PATH/config.json
-    +model.save_xser=True
-    +model.load_xser=True
+    +model.save_xser=False
+    +model.load_xser=False
     exp_manager.name=$EXP_NAME
     exp_manager.create_tensorboard_logger=$CREATE_TB_LOGGER 
     exp_manager.resume_if_exists=True 
