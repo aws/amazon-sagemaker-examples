@@ -273,7 +273,7 @@ def train(
             throughput = sample_processed / step_time
             throughputs.append(throughput)
 
-            tflops_per_gpu = compute_tflops(throughput, num_params, world_size, batch_seqlen)
+            tflops_per_gpu = compute_tflops(args, sample_processed, step_time, world_size)
 
             if not total_steps % args.logging_freq and args.log_reduced_training_loss > 0:
                 loss_scalar = reduce_loss(loss)
@@ -467,6 +467,8 @@ def main(args):
 
         # Using config for finetune mode, else uses args to create model
         model_config = AutoConfig.from_pretrained(args.hf_pretrained_model_name_or_dir)
+        if hasattr(model_config, "use_cache"):
+             model_config.use_cache = False
     else:
         model_config = get_model_config(args)
 
@@ -515,6 +517,7 @@ def main(args):
                     moe_load_balancing=args.moe_load_balancing,
                     global_token_shuffle=args.global_token_shuffle > 0,
                     moe_all_to_all_dispatcher=args.moe_all_to_all_dispatcher > 0,
+                    use_cpu_initialization=finetune_with_pretrained_weights_check(args) and dist.get_rank() == 0,
                 )
             else:
                 moe_config = None
