@@ -1,0 +1,47 @@
+resources:
+  instance_count: 1
+  instance_type: ml.m5.xlarge
+  volume_size: 200
+pre_script:
+  - |+
+    cat > $SM_OUTPUT_DATA_DIR/run_accuracy_metric_calculation.py <<EOF
+    
+    import json
+    import os
+    from sklearn.metrics import accuracy_score, f1_score
+
+    results = []
+    output_prefix = os.environ['OUTPUT_PREFIX']
+    results_path = f"{output_prefix}_test_pubmedqa_inputs_preds_labels.jsonl"
+    with open(results_path,'rt') as f:
+      while st := f.readline():
+        results.append(json.loads(st))
+
+    truth = []
+    preds = []
+    
+    for result in results:
+      truth.append(result['label'])
+      preds.append(result['pred'])
+
+    acc = accuracy_score(truth, preds)
+    maf = f1_score(truth, preds, average='macro')
+
+    print('Accuracy %f' % acc)
+    print('Macro-F1 %f' % maf)
+
+    EOF
+
+  - export OUTPUT_PREFIX=$LOG_ROOT/nemo_experiments/$EXP_NAME/eval_results
+  - OUTPUT_LOG=$LOG_ROOT/peft_accuracy.log
+train:
+  env:
+    - name: LOG_ROOT
+      value: "$SM_CHANNEL_EFS/home/$RELEASE_NAME/logs"
+    - name: EXP_NAME
+      value: "peft_pubmedqa"
+  command:
+    -  "python"
+  args: 
+    - $SM_OUTPUT_DATA_DIR/run_accuracy_metric_calculation.py
+    - '2>&1 | tee $OUTPUT_LOG' 

@@ -16,3 +16,9 @@ pipeline:
     - name: peft
       description: "peft of model"
       config: peft.yaml
+    - name: peft_eval
+      description: "peft evaluation of model"
+      config: peft_eval.yaml
+    - name: peft_accuracy
+      description: "peft accuracy of model"
+      config: peft_accuracy.yaml

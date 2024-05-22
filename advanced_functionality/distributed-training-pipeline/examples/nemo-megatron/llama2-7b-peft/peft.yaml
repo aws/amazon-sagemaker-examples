@@ -8,7 +8,7 @@ pre_script:
   - export LOGS_DIR=$LOG_ROOT/$PET_NODE_RANK
   - mkdir -p $LOGS_DIR
   - export OUTPUT_LOG=$LOGS_DIR/peft.log
-  - MODEL="$MODEL_PATH/nemo"
+  - MODEL="$MODEL_PATH/ckpt.nemo"
   - TRAIN_DS="[$DATA_ROOT/pubmedqa_train.jsonl]"
   - VALID_DS="[$DATA_ROOT/pubmedqa_val.jsonl]"
   - TEST_DS="[$DATA_ROOT/pubmedqa_test.jsonl]"
@@ -17,6 +17,7 @@ pre_script:
   - CONCAT_SAMPLING_PROBS="[1.0]"
   - TP_SIZE=8
   - PP_SIZE=1
+  - MAX_STEPS=10000
   - export HYDRA_FULL_ERROR=1
   - export PEFT_ARGS="
     trainer.log_every_n_steps=1
@@ -24,7 +25,7 @@ pre_script:
     trainer.devices=$PET_NPROC_PER_NODE
     trainer.num_nodes=$PET_NNODES 
     trainer.val_check_interval=20
-    trainer.max_epochs=$MAX_EPOCHS
+    trainer.max_steps=$MAX_STEPS
     model.restore_from_path=${MODEL}
     model.peft.peft_scheme=${SCHEME}
     model.micro_batch_size=1
@@ -53,6 +54,7 @@ pre_script:
     model.data.test_ds.num_workers=0
     model.data.validation_ds.metric.name=loss
     model.data.test_ds.metric.name=loss
+    exp_manager.name=$EXP_NAME
     exp_manager.create_wandb_logger=False
     exp_manager.checkpoint_callback_params.mode=min
     exp_manager.explicit_log_dir=$LOG_ROOT/nemo_experiments/$EXP_NAME
@@ -60,8 +62,11 @@ pre_script:
     exp_manager.resume_ignore_no_checkpoint=True
     exp_manager.create_checkpoint_callback=True
     exp_manager.checkpoint_callback_params.monitor=validation_loss
-    ++exp_manager.checkpoint_callback_params.save_best_model=False
+    ++exp_manager.checkpoint_callback_params.save_best_model=True
     exp_manager.checkpoint_callback_params.save_nemo_on_train_end=True
+    exp_manager.early_stopping_callback_params.monitor=val_loss
+    exp_manager.early_stopping_callback_params.patience=10
+    exp_manager.early_stopping_callback_params.min_delta=0.001
     model.save_nemo_on_validation_end=False"
   - SCRIPT_DIR=/NeMo/examples/nlp/language_modeling/tuning
   - cd $HOME
@@ -82,8 +87,6 @@ train:
       value: "$SM_CHANNEL_FSX/home/$RELEASE_NAME/data"
     - name: EXP_NAME
       value: "peft_pubmedqa"
-    - name: MAX_EPOCHS
-      value: "2"
     - name: NCCL_DEBUG
       value: "INFO"
     - name: NCCL_SOCKET_IFNAME 
