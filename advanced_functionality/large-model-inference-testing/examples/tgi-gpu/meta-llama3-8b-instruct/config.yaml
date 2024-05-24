@@ -1,0 +1,34 @@
+sagemaker:
+  model:
+    name: "meta-llama-3-8b-instruct-tgi-gpu"
+    image: "763104351884.dkr.ecr.us-west-2.amazonaws.com/huggingface-pytorch-tgi-inference:2.3.0-tgi2.0.3-gpu-py310-cu121-ubuntu22.04-v2.0"
+    env: 
+      HUGGINGFACE_HUB_CACHE: "/tmp"
+      TRANSFORMERS_CACHE: "/tmp"
+      HF_MODEL_ID: "meta-llama/Meta-Llama-3-8B-Instruct"
+      HF_MODEL_REVISION: "c4a54320a52ed5f88b7a2f84496903ea4ff07b45"
+      HF_TRUST_REMOTE_CODE: "True"
+      HF_TASK: "text-generation"
+      HF_NUM_CORES: "4"
+      HF_BATCH_SIZE: "1"
+      HF_SEQUENCE_LENGTH: "2048"
+      HF_AUTO_CAST_TYPE: "fp16"  
+      MAX_BATCH_SIZE: "4"
+      MAX_INPUT_LENGTH: "1024"
+      MAX_TOTAL_TOKENS: "2048"
+  endpoint:
+    name: "meta-llama-3-8b-instruct-tgi-gpu"
+    instance_type: "ml.g5.12xlarge"
+    initial_instance_count: 1
+    variant_name: "test"
+    model_data_download_timeout_secs: 1200
+    container_startup_health_check_timeout_secs: 600
+test:
+  module_name: "llama3_prompt_generator"
+  module_dir: "modules/inst-semeval2017"
+  prompt_generator: "PromptGenerator"
+  params: { "do_sample": true, "max_new_tokens": 1024, "top_k": 50, "stop": ["<|start_header_id|>", "<|end_header_id|>", "<|eot_id|>", "<|reserved_special_token|>"] }
+  warmup_iters: 1
+  max_iters: 10
+  output_dir: "output/meta-llama-3-8b-instruct/tgi-gpu"
+  input_type: "string"

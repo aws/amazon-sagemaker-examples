@@ -13,12 +13,13 @@ def test_task(s3_client,
               test_spec: dict,
               endpoint_name: str,
               results_path: str,
-              streaming_enabled: bool):
+              streaming_enabled: bool,
+              hf_token:str=None):
 
     task_name = test_spec.get('task_name', "text-generation")
 
     if task_name == "text-generation":
-        tokenizer = get_tokenizer(s3_client, model_id)
+        tokenizer = get_tokenizer(s3_client, model_id, hf_token=hf_token)
         return _test_text_generation(sm_runtime_client=sm_runtime_client, 
                        tokenizer=tokenizer, 
                        test_spec=test_spec,
@@ -66,6 +67,7 @@ def _test_text_generation(sm_runtime_client,
     warmup_iters = int(test_spec.get('warmup_iters', 1))
     max_iters = int(test_spec.get('max_iters', 10))
     params = test_spec.get("params", None)
+    input_type = test_spec.get("input_type", "list")
     
     cumu_time = 0.0
     cumu_tokens = 0
@@ -80,7 +82,11 @@ def _test_text_generation(sm_runtime_client,
                 ttft = None
                 start_time = time.time()
                 
-                text, ttft = generate(sm_runtime_client, endpoint_name, prompt, params=params, stream=streaming_enabled)
+                text, ttft = generate(sm_runtime_client, 
+                                      endpoint_name, 
+                                      [prompt] if input_type == "list" else prompt, 
+                                      params=params, 
+                                      stream=streaming_enabled)
                 latency = time.time() - start_time
                     
                 count += 1

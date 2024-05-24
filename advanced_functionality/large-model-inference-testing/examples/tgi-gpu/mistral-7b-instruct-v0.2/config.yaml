@@ -1,0 +1,34 @@
+sagemaker:
+  model:
+    name: "mistral-7b-instruct-v0-2-tgi-gpu"
+    image: "763104351884.dkr.ecr.us-west-2.amazonaws.com/huggingface-pytorch-tgi-inference:2.3.0-tgi2.0.3-gpu-py310-cu121-ubuntu22.04-v2.0"
+    env: 
+      HUGGINGFACE_HUB_CACHE: "/tmp"
+      TRANSFORMERS_CACHE: "/tmp"
+      HF_MODEL_ID: "mistralai/Mistral-7B-Instruct-v0.2"
+      HF_MODEL_REVISION: "41b61a33a2483885c981aa79e0df6b32407ed873"
+      HF_TRUST_REMOTE_CODE: "True"
+      HF_TASK: "text-generation"
+      HF_NUM_CORES: "4"
+      HF_BATCH_SIZE: "1"
+      HF_SEQUENCE_LENGTH: "2048"
+      HF_AUTO_CAST_TYPE: "fp16"  
+      MAX_BATCH_SIZE: "4"
+      MAX_INPUT_LENGTH: "1024"
+      MAX_TOTAL_TOKENS: "2048"
+  endpoint:
+    name: "mistral-7b-instruct-v0-2-tgi-gpu"
+    instance_type: "ml.g5.12xlarge"
+    initial_instance_count: 1
+    variant_name: "test"
+    model_data_download_timeout_secs: 1200
+    container_startup_health_check_timeout_secs: 600
+test:
+  module_name: "prompt_generator"
+  module_dir: "modules/inst-semeval2017"
+  prompt_generator: "PromptGenerator"
+  params: { "do_sample": true, "max_new_tokens": 1024, "top_k": 50 }
+  warmup_iters: 1
+  max_iters: 10
+  output_dir: "output/mistral-7b-instruct-v0.2/tgi-gpu"
+  input_type: "string"

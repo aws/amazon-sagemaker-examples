@@ -26,6 +26,7 @@ class EndpointClient:
         self.params = json.loads(os.getenv("MODEL_PARAMS", "{}"))
         self.streaming_enabled = os.getenv("STREAMING_ENABLED", "false").lower() in [ "true"]
         self.task_name = os.getenv("TASK_NAME", "text-generation")
+        self.input_type = os.getenv("INPUT_TYPE", "list")
 
         self.__init_prompt_generator()
     
@@ -43,6 +44,7 @@ class EndpointClient:
 
     def __text_generation_request(self, request_meta:dict):
         prompt = next(self.prompt_generator)
+        prompt = [prompt] if self.input_type == "list" else prompt
         text, ttft = generate(self.smr_client, self.endpoint_name, 
                                     prompt=prompt, 
                                     params=self.params, 

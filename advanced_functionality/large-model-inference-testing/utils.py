@@ -25,7 +25,7 @@ def s3_download_model(s3_client, bucket: str, prefix: str, local_dir: str, inclu
         local_path = os.path.join(local_dir, os.path.basename(path))
         s3_client.download_file(bucket, path, local_path)
                     
-def get_tokenizer(s3_client, model_id: str):
+def get_tokenizer(s3_client, model_id: str, hf_token:str=None):
     tokenizer = None
     if re.match(r"^s3://([^/]+)/?(.*)?", model_id):
         s3_uri_parse = urlparse(model_id)
@@ -37,6 +37,6 @@ def get_tokenizer(s3_client, model_id: str):
                            includes=[".json", ".model"])
             tokenizer = AutoTokenizer.from_pretrained(local_dir)
     else:
-        tokenizer = AutoTokenizer.from_pretrained(model_id)
+        tokenizer = AutoTokenizer.from_pretrained(model_id, token=hf_token)
         
     return tokenizer

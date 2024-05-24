@@ -1,0 +1,35 @@
+huggingface:
+  model: "meta-llama/Meta-Llama-3-8B-Instruct"
+  revision: "c4a54320a52ed5f88b7a2f84496903ea4ff07b45"
+  download: true
+djl:
+  engine: "Python"
+  option.entryPoint: "djl_python.transformers_neuronx"
+  option.tensor_parallel_degree: 12
+  option.amp: "f16"
+  option.n_positions: 2048
+  option.model_loading_timeout: 1800
+  option.model_loader: "tnx"
+sagemaker:
+  model:
+    name: "meta-llama-3-8b-instruct-transformers-neuronx"
+    container: "containers/pytorch-inf2"
+    env: 
+      HUGGINGFACE_HUB_CACHE: "/tmp"
+      TRANSFORMERS_CACHE: "/tmp"
+  endpoint:
+    name: "meta-llama-3-8b-instruct-transformers-neuronx"
+    instance_type: "ml.inf2.24xlarge"
+    initial_instance_count: 1
+    variant_name: "test"
+    model_data_download_timeout_secs: 1800
+    container_startup_health_check_timeout_secs: 1200
+    volume_size_gb: 200
+test:
+  module_name: "llama3_prompt_generator"
+  module_dir: "modules/inst-semeval2017"
+  prompt_generator: "PromptGenerator"
+  params: { "do_sample": true, "max_new_tokens": 1024, "top_k": 50 }
+  warmup_iters: 1
+  max_iters: 10
+  output_dir: "output/meta-llama-3-8b-instruct/transformers-neuronx"

@@ -32,7 +32,7 @@ class LineIterator:
             self.buffer.write(chunk['PayloadPart']['Bytes'])
 
 def __invoke_endpoint(client, endpoint_name, prompt, params):
-    data= { "inputs": [prompt] }
+    data= { "inputs": prompt }
     data["parameters"] = params
     body = json.dumps(data).encode("utf-8")
     response = client.invoke_endpoint(EndpointName=endpoint_name, 
@@ -44,7 +44,7 @@ def __invoke_endpoint(client, endpoint_name, prompt, params):
     return json_obj
 
 def __invoke_streaming_endpoint(client, endpoint_name, prompt, params):
-    data= { "inputs": [prompt] }
+    data= { "inputs": prompt }
     data["parameters"] = params
     body = json.dumps(data).encode("utf-8")
     response = client.invoke_endpoint_with_response_stream(EndpointName=endpoint_name, 
