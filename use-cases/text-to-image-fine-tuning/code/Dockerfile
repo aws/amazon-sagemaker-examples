@@ -6,7 +6,9 @@ ARG UID=1000
 ARG VERSION=EDGE
 ARG RELEASE=0
 
-FROM python:3.10-slim as build
+# Use the image from ECR to avoid potential Docker Hub rate limits for unauthenticated requests https://www.docker.com/increase-rate-limits/
+# FROM python:3.10-slim as build
+FROM public.ecr.aws/docker/library/python:3.10-slim as build
 
 # RUN mount cache for multi-arch: https://github.com/docker/buildx/issues/549#issuecomment-1788297892
 ARG TARGETARCH
@@ -54,7 +56,9 @@ RUN if [ "$TARGETPLATFORM" = "linux/amd64" ]; then \
     CC="cc -mavx2" pip install -U --force-reinstall pillow-simd; \
     fi
 
-FROM python:3.10-slim as final
+# Use the image from ECR to avoid potential Docker Hub rate limits for unauthenticated requests https://www.docker.com/increase-rate-limits/
+# FROM python:3.10-slim as final
+FROM public.ecr.aws/docker/library/python:3.10-slim as final
 
 ARG UID
 ARG VERSION
