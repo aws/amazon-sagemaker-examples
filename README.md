@@ -209,6 +209,7 @@ These examples provide an Introduction to Smart Sifting library. Smart Sifting i
 These examples provide an introduction to SageMaker Clarify which provides machine learning developers with greater visibility into their training data and models so they can identify and limit bias and explain predictions.
 
 * [Fairness and Explainability with SageMaker Clarify](sagemaker-clarify/fairness_and_explainability) shows how to use SageMaker Clarify Processor API to measure the pre-training bias of a dataset and post-training bias of a model, and explain the importance of the input features on the model's decision.
+* [TimeSeries Explainability with SageMaker Clarify](sagemaker-clarify/time_series_deepar) shows how to use SageMaker Clarify Processor API to explain the importance of the input features on the time-series model's decision.
 * [Amazon SageMaker Clarify Model Monitors](sagemaker_model_monitor/fairness_and_explainability) shows how to use SageMaker Clarify Model Monitor API to schedule bias monitor to monitor predictions for bias drift on a regular basis, and schedule explainability monitor to monitor predictions for feature attribution drift on a regular basis.
 
 ### Publishing content from RStudio on Amazon SageMaker to RStudio Connect

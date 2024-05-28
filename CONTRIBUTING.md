@@ -39,11 +39,11 @@ Before sending us a pull request, please ensure that:
 
 ### Run the Linter
 
-Apply Python code formatting to Jupyter notebook files using [black-nb](https://pypi.org/project/black-nb/).
+Apply Python code formatting to Jupyter notebook files using [black](https://pypi.org/project/black/).
 
-1. Install black-nb using `pip install black-nb`
-1. Run the following black-nb command on each of your ipynb notebook files and verify that the linter passes: `black-nb -l 100 {path}/{notebook-name}.ipynb`
-1. Some notebook features such as `%` bash commands or `%%` cell magic cause black-nb to fail. As long as you run the above command to format as much as possible, that is sufficient, even if the check fails
+1. Install black using `pip3 install black`
+1. In terminal, run the following black command on each of your ipynb notebook files and verify that the linter passes: `python3 -m black -l 100 {path}/{notebook-name}.ipynb`
+1. Some notebook features such as `%` bash commands or `%%` cell magic cause black to fail. As long as you run the above command to format as much as possible, that is sufficient, even if the check fails
 
 
 ### Test Your Notebook End-to-End
