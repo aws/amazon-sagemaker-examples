@@ -31,4 +31,3 @@ test:
   warmup_iters: 1
   max_iters: 10
   output_dir: "output/mistral-7b-instruct-v0.2/tgi-gpu"
-  input_type: "string"

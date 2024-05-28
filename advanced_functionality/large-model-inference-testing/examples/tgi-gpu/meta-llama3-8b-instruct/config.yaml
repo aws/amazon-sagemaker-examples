@@ -31,4 +31,3 @@ test:
   warmup_iters: 1
   max_iters: 10
   output_dir: "output/meta-llama-3-8b-instruct/tgi-gpu"
-  input_type: "string"

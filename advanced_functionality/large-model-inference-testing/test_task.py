@@ -6,41 +6,66 @@ import json
 from generate import generate
 from utils import get_tokenizer
 import os
+import boto3
+import multiprocessing as mp
 
-def test_task(s3_client, 
-              sm_runtime_client, 
-              model_id: str,
+def test_task(model_id: str,
               test_spec: dict,
               endpoint_name: str,
               results_path: str,
-              streaming_enabled: bool,
-              hf_token:str=None):
+              streaming_enabled: bool=False,
+              hf_token:str=None) -> None:
 
     task_name = test_spec.get('task_name', "text-generation")
 
+    n_concurrent = test_spec.get('n_concurrent', 1)
+    task_args = {}
     if task_name == "text-generation":
-        tokenizer = get_tokenizer(s3_client, model_id, hf_token=hf_token)
-        return _test_text_generation(sm_runtime_client=sm_runtime_client, 
-                       tokenizer=tokenizer, 
-                       test_spec=test_spec,
-                       endpoint_name=endpoint_name,
-                       results_path=results_path,
-                       streaming_enabled=streaming_enabled)
+        task_fn = _test_text_generation 
+        task_args = {
+            "model_id": model_id,
+            "hf_token": hf_token,
+            "test_spec": test_spec,
+            "endpoint_name": endpoint_name,
+            "results_path": results_path,
+            "streaming_enabled": streaming_enabled
+        }
     elif task_name == "reranker":
-        return _test_reranker(sm_runtime_client=sm_runtime_client,
-                              test_spec=test_spec,
-                              endpoint_name=endpoint_name,
-                              results_path=results_path)
+        task_fn = _test_reranker
+        task_args = {
+            "test_spec": test_spec,
+            "endpoint_name": endpoint_name,
+            "results_path": results_path
+        }
     else:
         raise ValueError(f"Unknown task: {task_name}")
 
+    os.makedirs(results_path, exist_ok=True)
+    print(f"Running {task_name} test with {n_concurrent} concurrent processes...")
+    pool = mp.Pool(n_concurrent)
+    pool.map(__call_fn, [ (task_fn, task_args) ] * n_concurrent)
+    pool.close()
+    pool.join()
+    
 
-def _test_text_generation(sm_runtime_client, 
-                    tokenizer,
+def __call_fn(t: tuple):
+    fn = t[0]
+    kwargs = t[1]
+    fn(**kwargs)
+    
+def _test_text_generation(model_id:str, 
+                    hf_token: str,
                     test_spec: dict, 
                     endpoint_name:str, 
                     results_path: str,
                     streaming_enabled: bool) -> None:
+    
+    pid = os.getpid()
+
+    sm_runtime_client = boto3.client("runtime.sagemaker")
+    s3_client = boto3.client('s3')
+    tokenizer = get_tokenizer(s3_client, model_id, hf_token=hf_token)
+    
     module_name = test_spec.get('module_name', None)
     assert module_name, "'test.module_name' is required"
     
@@ -54,44 +79,43 @@ def _test_text_generation(sm_runtime_client,
     
     requirements_path = os.path.join(module_dir, "requirements.txt")
     if os.path.isfile(requirements_path):
-        print(f"Installing test module requirements...")
+        print(f"{pid}: Installing test module requirements...")
         subprocess.check_output(f"pip install -r {requirements_path}", shell=True, stderr=subprocess.STDOUT)
     
-    print(f"Loading test module: {module_name} from {module_dir}")
+    print(f"{pid}: Loading test module: {module_name} from {module_dir}")
     mod=import_module(module_name)
     prompt_generator_class = getattr(mod, prompt_generator)
     
-    print(f"Creating prompt generator object for class: {prompt_generator_class}")
+    print(f"{pid}: Creating prompt generator object for class: {prompt_generator_class}")
     prompt_generator = prompt_generator_class()()
 
     warmup_iters = int(test_spec.get('warmup_iters', 1))
     max_iters = int(test_spec.get('max_iters', 10))
     params = test_spec.get("params", None)
-    input_type = test_spec.get("input_type", "list")
-    
+
     cumu_time = 0.0
     cumu_tokens = 0
     cumu_ttft = 0.0
     
     try:
+        results_path = os.path.join(results_path, f"{pid}.json")
         with open(results_path, "w") as results:
             count = 0
             
-            print("Start testing...")
+            print(f"{pid}: Start testing...")
             while prompt := next(prompt_generator):
                 ttft = None
                 start_time = time.time()
-                
                 text, ttft = generate(sm_runtime_client, 
-                                      endpoint_name, 
-                                      [prompt] if input_type == "list" else prompt, 
-                                      params=params, 
-                                      stream=streaming_enabled)
+                                    endpoint_name, 
+                                    prompt = prompt, 
+                                    params=params, 
+                                    stream=streaming_enabled)
                 latency = time.time() - start_time
                     
                 count += 1
                 if count <= warmup_iters:
-                    print(f"Warm up iteration: {count} of {warmup_iters}. latency: {latency}, ttft: {ttft}")
+                    print(f"{pid}: Warm up iteration: {count} of {warmup_iters}. latency: {latency}, ttft: {ttft}")
                     continue
                 
                 if ttft:
@@ -122,18 +146,20 @@ def _test_text_generation(sm_runtime_client,
                 avg_tokens = cumu_tokens/iter_count
                 avg_ttft = cumu_ttft/iter_count
                 
-                print(f"Iterations completed: {iter_count} of {max_iters}; avg_tokens: {avg_tokens}, avg_latency: {avg_latency} secs, avg_tps: {avg_tps}, avg_ttft: {avg_ttft}")
+                print(f"{pid}: Iterations completed: {iter_count} of {max_iters}; avg_tokens: {avg_tokens}, avg_latency: {avg_latency} secs, avg_tps: {avg_tps}, avg_ttft: {avg_ttft}")
                 if iter_count >= max_iters:
                     break    
     except StopIteration as e:
-        print(f"Error: {e}")
+        print(f"{pid}: Error: {e}")
 
-    print(f"Testing completed. Results file: {results_path}")
+    print(f"{pid}: Testing completed. Results file: {results_path}")
 
-def _test_reranker(sm_runtime_client, 
-                    test_spec: dict, 
+def _test_reranker(test_spec: dict, 
                     endpoint_name:str, 
                     results_path: str) -> None:
+    
+    pid = os.getpid()
+    sm_runtime_client = boto3.client("runtime.sagemaker")
     module_name = test_spec.get('module_name', None)
     assert module_name, "'test.module_name' is required"
     
@@ -147,14 +173,14 @@ def _test_reranker(sm_runtime_client,
     
     requirements_path = os.path.join(module_dir, "requirements.txt")
     if os.path.isfile(requirements_path):
-        print(f"Installing test module requirements...")
+        print(f"{pid}: Installing test module requirements...")
         subprocess.check_output(f"pip install -r {requirements_path}", shell=True, stderr=subprocess.STDOUT)
     
-    print(f"Loading test module: {module_name} from {module_dir}")
+    print(f"{pid}: Loading test module: {module_name} from {module_dir}")
     mod=import_module(module_name)
     prompt_generator_class = getattr(mod, prompt_generator)
     
-    print(f"Creating prompt generator object for class: {prompt_generator_class}")
+    print(f"{pid}: Creating prompt generator object for class: {prompt_generator_class}")
     prompt_generator = prompt_generator_class()()
 
     warmup_iters = int(test_spec.get('warmup_iters', 1))
@@ -163,10 +189,11 @@ def _test_reranker(sm_runtime_client,
     cumu_time = 0.0
 
     try:
+        results_path = os.path.join(results_path, f"{os.getpid()}.json")
         with open(results_path, "w") as results:
             count = 0
             
-            print("Start testing...")
+            print(f"{pid}: Start testing...")
             while prompt := next(prompt_generator):
                 start_time = time.time()
                 
@@ -180,7 +207,7 @@ def _test_reranker(sm_runtime_client,
                     
                 count += 1
                 if count <= warmup_iters:
-                    print(f"Warm up iteration: {count} of {warmup_iters}. latency: {latency}")
+                    print(f"{pid}: Warm up iteration: {count} of {warmup_iters}. latency: {latency}")
                     continue
                 
                 iter_count = count - warmup_iters
@@ -196,9 +223,9 @@ def _test_reranker(sm_runtime_client,
                 results.write(json.dumps( json_obj )+"\n")   
                 avg_latency = cumu_time/iter_count
                 
-                print(f"Iterations completed: {iter_count} of {max_iters}; avg_latency: {avg_latency} secs")
+                print(f"{pid}: Iterations completed: {iter_count} of {max_iters}; avg_latency: {avg_latency} secs")
                 if iter_count >= max_iters:
                     break
     except StopIteration as e:
-        print(f"Error: {e}")    
-    print(f"Testing completed. Results file: {results_path}")
+        print(f"{pid}: Error: {e}")    
+    print(f"{pid}: Testing completed. Results file: {results_path}")
