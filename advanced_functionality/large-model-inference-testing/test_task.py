@@ -195,7 +195,6 @@ def _test_reranker(test_spec: dict,
             print(f"{pid}: Start testing...")
             while prompt := next(prompt_generator):
 
-                assert type(prompt) is str, f"prompt must be a string, {prompt}"
                 start_time = time.time()
                 
                 data= { "inputs": prompt }
