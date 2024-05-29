@@ -54,7 +54,7 @@ def __invoke_streaming_endpoint(client, endpoint_name, prompt, params):
     return event_stream
 
 
-def __generate(client, endpoint_name, prompt, params=dict()):
+def __generate(client, endpoint_name, prompt, prompt_token_len, params=dict()):
     json_obj = __invoke_endpoint(client, endpoint_name, prompt, params)
     json_obj_type = type(json_obj)
     while json_obj_type is list:
@@ -78,28 +78,36 @@ def __generate(client, endpoint_name, prompt, params=dict()):
 
     return generated_text, None
 
-def __generate_streaming(client, endpoint_name, prompt, params=dict()):
+def __generate_streaming(client, endpoint_name, prompt, prompt_token_len, params=dict()):
 
     event_stream = __invoke_streaming_endpoint(client, endpoint_name, prompt, params)
     start_time = time.time()
     ttft = None
     generated_text =  ''
 
+    n_tokens = 0
     for json_line in LineIterator(event_stream):
-
-        if ttft is None:
-            ttft = time.time() - start_time
 
         json_obj = json.loads(json_line)
         if "token" in json_obj and "text" in json_obj["token"]:
+            n_tokens += 1
+            if ttft is None and n_tokens > prompt_token_len:
+                ttft = time.time() - start_time
             generated_text += json_obj["token"]["text"]
                 
     return generated_text, ttft
 
-def generate(client, endpoint_name, prompt, params=dict(), stream=False):
+def generate(client, endpoint_name, prompt, prompt_token_len, params=dict(), stream=False):
+    text = None
     if stream:
-        return __generate_streaming(client, endpoint_name, prompt, params)
+        text = __generate_streaming(client, endpoint_name, prompt, prompt_token_len, params)
     else:
-        return __generate(client, endpoint_name, prompt, params)
+        text = __generate(client, endpoint_name, prompt, params)
+
+    index = text.find(prompt)
+    if index != -1:
+        text = text[len(prompt):]
+
+    return text
     
     

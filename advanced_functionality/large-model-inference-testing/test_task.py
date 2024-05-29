@@ -105,10 +105,13 @@ def _test_text_generation(model_id:str,
             print(f"{pid}: Start testing...")
             while prompt := next(prompt_generator):
                 ttft = None
+                
+                n_tokens = len(tokenizer.encode(text))
                 start_time = time.time()
                 text, ttft = generate(sm_runtime_client, 
                                     endpoint_name, 
                                     prompt = prompt, 
+                                    prompt_token_len=n_tokens,
                                     params=params, 
                                     stream=streaming_enabled)
                 latency = time.time() - start_time
@@ -123,12 +126,7 @@ def _test_text_generation(model_id:str,
                 
                 iter_count = count - warmup_iters
                 
-                cumu_time += latency
-                index = text.find(prompt)
-                if index != -1:
-                    text = text[len(prompt):]
-                    
-                n_tokens = len(tokenizer.encode(text))
+                cumu_time += latency    
                 cumu_tokens += n_tokens
                 
                 tps = n_tokens/latency
