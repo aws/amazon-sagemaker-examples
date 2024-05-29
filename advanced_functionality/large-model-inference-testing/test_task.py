@@ -106,12 +106,10 @@ def _test_text_generation(model_id:str,
             while prompt := next(prompt_generator):
                 ttft = None
                 
-                prompt_token_len = len(tokenizer.encode(prompt)) 
                 start_time = time.time()
                 text, ttft = generate(sm_runtime_client, 
                                     endpoint_name, 
-                                    prompt=prompt, 
-                                    prompt_token_len=prompt_token_len,
+                                    prompt=prompt,
                                     params=params, 
                                     stream=streaming_enabled)
                 latency = time.time() - start_time

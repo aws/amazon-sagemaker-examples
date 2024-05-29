@@ -78,7 +78,7 @@ def __generate(client, endpoint_name:str, prompt:str, params=dict()):
 
     return generated_text, None
 
-def __generate_streaming(client, endpoint_name:str, prompt:str, prompt_token_len:int, params: dict):
+def __generate_streaming(client, endpoint_name:str, prompt:str, params: dict):
 
     event_stream = __invoke_streaming_endpoint(client, endpoint_name, prompt, params)
     start_time = time.time()
@@ -91,20 +91,19 @@ def __generate_streaming(client, endpoint_name:str, prompt:str, prompt_token_len
         json_obj = json.loads(json_line)
         if "token" in json_obj and "text" in json_obj["token"]:
             n_tokens += 1
-            if ttft is None and n_tokens > prompt_token_len:
+            if ttft is None:
                 ttft = time.time() - start_time
             generated_text += json_obj["token"]["text"]
                 
     return generated_text, ttft
 
-def generate(client, endpoint_name:str, prompt:str, prompt_token_len:int, params:dict, stream:bool):
+def generate(client, endpoint_name:str, prompt:str, params:dict, stream:bool):
     text = None
     ttft = None
     if stream:
         text, ttft = __generate_streaming(client=client, 
                                           endpoint_name=endpoint_name, 
                                           prompt=prompt, 
-                                          prompt_token_len=prompt_token_len, 
                                           params=params)
     else:
         text, ttft = __generate(client=client, 
