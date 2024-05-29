@@ -1,0 +1,38 @@
+huggingface:
+  model: "meta-llama/Meta-Llama-3-8B-Instruct"
+  revision: "c4a54320a52ed5f88b7a2f84496903ea4ff07b45"
+  download: true
+djl:
+  engine: "MPI"
+  option.entryPoint: "djl_python.tensorrt_llm"
+  option.tensor_parallel_degree: 4
+  option.rolling_batch: 
+  option.max_input_len: 1024
+  option.max_output_len: 4096
+  option.dtype: "fp16"
+  option.rolling_batch: "trtllm"
+  option.max_rolling_batch_size: 4
+  option.output_formatter: "json"
+sagemaker:
+  model:
+    name: "meta-llama-3-8b-instruct-tensorrt-llm"
+    container: "containers/tensorrt-llm"
+    env: 
+      HUGGINGFACE_HUB_CACHE: "/tmp"
+      TRANSFORMERS_CACHE: "/tmp"
+  endpoint:
+    name: "meta-llama-3-8b-instruct-tensorrt-llm"
+    instance_type: "ml.g5.48xlarge"
+    initial_instance_count: 1
+    variant_name: "test"
+    model_data_download_timeout_secs: 1800
+    container_startup_health_check_timeout_secs: 1200
+test:
+  module_name: "llama3_prompt_generator"
+  module_dir: "modules/inst-semeval2017"
+  prompt_generator: "PromptGenerator"
+  params: { "do_sample": true, "max_new_tokens": 1024, "top_k": 50, "stop_words": ["<|start_header_id|>", "<|end_header_id|>", "<|eot_id|>", "<|reserved_special_token|>"] }
+  warmup_iters: 1
+  max_iters: 10
+  n_concurrent: 4
+  output_dir: "output/meta-llama-3-8b-instruct/tensorrt-llm"
