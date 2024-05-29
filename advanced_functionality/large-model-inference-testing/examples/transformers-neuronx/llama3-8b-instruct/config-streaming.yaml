@@ -13,15 +13,16 @@ djl:
   option.rolling_batch: "auto"
   option.rolling_batch_strategy: "continuous_batching"
   option.max_rolling_batch_size: 4
+  option.output_formatter: "jsonlines"
 sagemaker:
   model:
-    name: "meta-llama-3-8b-instruct-transformers-neuronx"
+    name: "meta-llama-3-8b-instruct-transformers-neuronx-streaming"
     container: "containers/pytorch-inf2"
     env: 
       HUGGINGFACE_HUB_CACHE: "/tmp"
       TRANSFORMERS_CACHE: "/tmp"
   endpoint:
-    name: "meta-llama-3-8b-instruct-transformers-neuronx"
+    name: "meta-llama-3-8b-instruct-transformers-neuronx-streaming"
     instance_type: "ml.inf2.48xlarge"
     initial_instance_count: 1
     variant_name: "test"
@@ -36,4 +37,4 @@ test:
   warmup_iters: 1
   max_iters: 10
   n_concurrent: 4
-  output_dir: "output/meta-llama-3-8b-instruct/transformers-neuronx"
+  output_dir: "output/meta-llama-3-8b-instruct/transformers-neuronx-streaming"

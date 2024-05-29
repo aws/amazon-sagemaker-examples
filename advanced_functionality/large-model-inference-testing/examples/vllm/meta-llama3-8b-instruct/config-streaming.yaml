@@ -8,19 +8,19 @@ djl:
   option.task: text-generation
   option.rolling_batch: vllm
   option.max_rolling_batch_size: 4
+  option.output_formatter: "jsonlines"
   option.tensor_parallel_degree: 4
-  option.output_formatter: "json"
   option.model_loading_timeout: 1200
   option.max_model_len: 4096
 sagemaker:
   model:
-    name: "meta-llama-3-8b-instruct-vllm"
+    name: "meta-llama-3-8b-instruct-vllm-streaming"
     container: "containers/deepspeed"
     env: 
       HUGGINGFACE_HUB_CACHE: "/tmp"
       TRANSFORMERS_CACHE: "/tmp"
   endpoint:
-    name: "meta-llama-3-8b-instruct-vllm"
+    name: "meta-llama-3-8b-instruct-vllm-streaming"
     instance_type: "ml.g5.48xlarge"
     initial_instance_count: 1
     variant_name: "test"
@@ -32,6 +32,6 @@ test:
   prompt_generator: "PromptGenerator"
   params: { "do_sample": true, "max_new_tokens": 1024, "top_k": 50, "stop": ["<|start_header_id|>", "<|end_header_id|>", "<|eot_id|>", "<|reserved_special_token|>"] }
   warmup_iters: 1
-  n_concurrent: 4
   max_iters: 10
-  output_dir: "output/meta-llama-3-8b-instruct/vllm"
+  n_concurrent: 4
+  output_dir: "output/meta-llama-3-8b-instruct/vllm-streaming"
