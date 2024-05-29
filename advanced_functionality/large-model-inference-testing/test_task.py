@@ -106,12 +106,12 @@ def _test_text_generation(model_id:str,
             while prompt := next(prompt_generator):
                 ttft = None
                 
-                n_tokens = len(tokenizer.encode(text))
+                prompt_token_len = len(tokenizer.encode(prompt)) 
                 start_time = time.time()
                 text, ttft = generate(sm_runtime_client, 
                                     endpoint_name, 
-                                    prompt = prompt, 
-                                    prompt_token_len=n_tokens,
+                                    prompt=prompt, 
+                                    prompt_token_len=prompt_token_len,
                                     params=params, 
                                     stream=streaming_enabled)
                 latency = time.time() - start_time
@@ -126,7 +126,8 @@ def _test_text_generation(model_id:str,
                 
                 iter_count = count - warmup_iters
                 
-                cumu_time += latency    
+                cumu_time += latency   
+                n_tokens = len(tokenizer.encode(text)) 
                 cumu_tokens += n_tokens
                 
                 tps = n_tokens/latency
@@ -193,6 +194,8 @@ def _test_reranker(test_spec: dict,
             
             print(f"{pid}: Start testing...")
             while prompt := next(prompt_generator):
+
+                assert type(prompt) is str, f"prompt must be a string, {prompt}"
                 start_time = time.time()
                 
                 data= { "inputs": prompt }

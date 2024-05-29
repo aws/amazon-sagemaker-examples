@@ -31,7 +31,7 @@ class LineIterator:
             self.buffer.seek(0, io.SEEK_END)
             self.buffer.write(chunk['PayloadPart']['Bytes'])
 
-def __invoke_endpoint(client, endpoint_name, prompt, params):
+def __invoke_endpoint(client, endpoint_name:str, prompt:str, params:dict):
     data= { "inputs": prompt }
     data["parameters"] = params
     body = json.dumps(data).encode("utf-8")
@@ -43,7 +43,7 @@ def __invoke_endpoint(client, endpoint_name, prompt, params):
     json_obj = json.loads(json_str)
     return json_obj
 
-def __invoke_streaming_endpoint(client, endpoint_name, prompt, params):
+def __invoke_streaming_endpoint(client, endpoint_name:str, prompt:str, params:dict):
     data= { "inputs": prompt }
     data["parameters"] = params
     body = json.dumps(data).encode("utf-8")
@@ -54,7 +54,7 @@ def __invoke_streaming_endpoint(client, endpoint_name, prompt, params):
     return event_stream
 
 
-def __generate(client, endpoint_name, prompt, prompt_token_len, params=dict()):
+def __generate(client, endpoint_name:str, prompt:str, params=dict()):
     json_obj = __invoke_endpoint(client, endpoint_name, prompt, params)
     json_obj_type = type(json_obj)
     while json_obj_type is list:
@@ -78,7 +78,7 @@ def __generate(client, endpoint_name, prompt, prompt_token_len, params=dict()):
 
     return generated_text, None
 
-def __generate_streaming(client, endpoint_name, prompt, prompt_token_len, params=dict()):
+def __generate_streaming(client, endpoint_name:str, prompt:str, prompt_token_len:int, params: dict):
 
     event_stream = __invoke_streaming_endpoint(client, endpoint_name, prompt, params)
     start_time = time.time()
@@ -97,17 +97,25 @@ def __generate_streaming(client, endpoint_name, prompt, prompt_token_len, params
                 
     return generated_text, ttft
 
-def generate(client, endpoint_name, prompt, prompt_token_len, params=dict(), stream=False):
+def generate(client, endpoint_name:str, prompt:str, prompt_token_len:int, params:dict, stream:bool):
     text = None
+    ttft = None
     if stream:
-        text = __generate_streaming(client, endpoint_name, prompt, prompt_token_len, params)
+        text, ttft = __generate_streaming(client=client, 
+                                          endpoint_name=endpoint_name, 
+                                          prompt=prompt, 
+                                          prompt_token_len=prompt_token_len, 
+                                          params=params)
     else:
-        text = __generate(client, endpoint_name, prompt, params)
+        text, ttft = __generate(client=client, 
+                                endpoint_name=endpoint_name, 
+                                prompt=prompt, 
+                                params=params)
 
     index = text.find(prompt)
     if index != -1:
         text = text[len(prompt):]
 
-    return text
+    return text, ttft
     
     
