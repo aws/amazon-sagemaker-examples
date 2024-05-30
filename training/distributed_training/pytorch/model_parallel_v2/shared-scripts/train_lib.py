@@ -530,7 +530,7 @@ def main(args):
 
         if args.delayed_param:
             # param init fn for delayed param creation
-            if finetune_check(args):
+            if finetune_with_pretrained_weights_check(args):
                 if dist.get_rank() != 0:
                     delayed_param_initer = DelayedParamIniter(model)
             else:
