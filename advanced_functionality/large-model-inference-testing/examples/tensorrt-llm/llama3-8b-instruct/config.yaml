@@ -7,8 +7,8 @@ djl:
   option.entryPoint: "djl_python.tensorrt_llm"
   option.tensor_parallel_degree: 4
   option.rolling_batch: 
-  option.max_input_len: 1024
-  option.max_output_len: 4096
+  option.max_input_len: 4096
+  option.max_output_len: 1024
   option.dtype: "fp16"
   option.rolling_batch: "trtllm"
   option.max_rolling_batch_size: 4
@@ -31,7 +31,7 @@ test:
   module_name: "llama3_prompt_generator"
   module_dir: "modules/inst-semeval2017"
   prompt_generator: "PromptGenerator"
-  params: { "do_sample": true, "max_new_tokens": 1024, "top_k": 50, "stop_words": ["<|start_header_id|>", "<|end_header_id|>", "<|eot_id|>", "<|reserved_special_token|>"] }
+  params: { "do_sample": true, "max_new_tokens": 1024, "top_k": 50 }
   warmup_iters: 1
   max_iters: 10
   n_concurrent: 4

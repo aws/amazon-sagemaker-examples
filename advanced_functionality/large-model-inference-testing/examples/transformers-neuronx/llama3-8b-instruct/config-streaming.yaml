@@ -33,7 +33,7 @@ test:
   module_name: "llama3_prompt_generator"
   module_dir: "modules/inst-semeval2017"
   prompt_generator: "PromptGenerator"
-  params: { "do_sample": true, "max_new_tokens": 1024, "top_k": 50, "stop": ["<|start_header_id|>", "<|end_header_id|>", "<|eot_id|>", "<|reserved_special_token|>"] }
+  params: { "do_sample": true, "max_new_tokens": 1024, "top_k": 50 }
   warmup_iters: 1
   max_iters: 10
   n_concurrent: 4
