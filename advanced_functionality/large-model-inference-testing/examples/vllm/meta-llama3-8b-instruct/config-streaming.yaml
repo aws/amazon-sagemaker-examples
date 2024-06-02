@@ -34,4 +34,6 @@ test:
   warmup_iters: 1
   max_iters: 10
   n_concurrent: 4
-  output_dir: "output/meta-llama-3-8b-instruct/vllm-streaming"
+  output_dir: "output"
+  locust_users: 24
+  locust_workers: 4

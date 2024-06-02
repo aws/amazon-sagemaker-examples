@@ -31,4 +31,4 @@ test:
   params: { "do_sample": true, "max_new_tokens": 1024, "top_k": 50 }
   warmup_iters: 1
   max_iters: 10
-  output_dir: "output/llama-2-7b-chat-hf/transformers-neuronx"
+  output_dir: "output"

@@ -30,4 +30,4 @@ test:
   params: { "do_sample": true, "max_new_tokens": 1024, "top_k": 50 }
   warmup_iters: 1
   max_iters: 10
-  output_dir: "output/mistral-7b-instruct-v0.2/tgi-gpu"
+  output_dir: "output"

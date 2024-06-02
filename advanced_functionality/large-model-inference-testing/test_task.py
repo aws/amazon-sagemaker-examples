@@ -98,7 +98,8 @@ def _test_text_generation(model_id:str,
     cumu_ttft = 0.0
     
     try:
-        results_path = os.path.join(results_path, f"{pid}.json")
+        ts = round(time.time() * 1000)
+        results_path = os.path.join(results_path, f"results-{pid}-{ts}.json")
         with open(results_path, "w") as results:
             count = 0
             
@@ -113,6 +114,9 @@ def _test_text_generation(model_id:str,
                                     params=params, 
                                     stream=streaming_enabled)
                 latency = time.time() - start_time
+                
+                if ttft is None:
+                    ttft = latency
                     
                 count += 1
                 if count <= warmup_iters:
@@ -186,7 +190,8 @@ def _test_reranker(test_spec: dict,
     cumu_time = 0.0
 
     try:
-        results_path = os.path.join(results_path, f"{os.getpid()}.json")
+        ts = round(time.time() * 1000)
+        results_path = os.path.join(results_path, f"results-{pid}-{ts}.json")
         with open(results_path, "w") as results:
             count = 0
             

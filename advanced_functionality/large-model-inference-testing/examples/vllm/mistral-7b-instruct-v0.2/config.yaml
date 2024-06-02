@@ -7,9 +7,11 @@ djl:
   option.dtype: fp16
   option.task: text-generation
   option.rolling_batch: vllm
-  option.tensor_parallel_degree: 4
+  option.max_rolling_batch_size: 2
+  option.tensor_parallel_degree: 2
+  option.output_formatter: "json"
   option.model_loading_timeout: 1200
-  option.max_model_len: 8192
+  option.max_model_len: 2048
 sagemaker:
   model:
     name: "mistral-7b-instruct-v0-2-vllm"
@@ -31,4 +33,6 @@ test:
   params: { "do_sample": true, "max_new_tokens": 1024, "top_k": 50 }
   warmup_iters: 1
   max_iters: 10
-  output_dir: "output/mistral-7b-instruct-v0.2/vllm"
+  output_dir: "output"
+  locust_users: 8
+  locust_workers: 2

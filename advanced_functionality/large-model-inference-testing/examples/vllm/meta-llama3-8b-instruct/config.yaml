@@ -34,4 +34,6 @@ test:
   warmup_iters: 1
   n_concurrent: 4
   max_iters: 10
-  output_dir: "output/meta-llama-3-8b-instruct/vllm"
+  output_dir: "output"
+  locust_users: 24
+  locust_workers: 4

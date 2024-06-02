@@ -6,8 +6,7 @@ djl:
   engine: "MPI"
   option.entryPoint: "djl_python.tensorrt_llm"
   option.tensor_parallel_degree: 4
-  option.max_input_len: 1024
-  option.max_output_len: 2048
+  option.max_num_tokens: 2048
   option.dtype: "fp16"
 sagemaker:
   model:
@@ -30,4 +29,4 @@ test:
   params: { "do_sample": true, "max_new_tokens": 1024, "top_k": 50 }
   warmup_iters: 1
   max_iters: 10
-  output_dir: "output/llama-2-13b-chat-hf/tensorrt-llm"
+  output_dir: "output"

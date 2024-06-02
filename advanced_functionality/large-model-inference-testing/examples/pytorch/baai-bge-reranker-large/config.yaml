@@ -30,4 +30,4 @@ test:
   params: {}
   warmup_iters: 1
   max_iters: 10
-  output_dir: "output/baai-bge-reranker-large/pytorch"
+  output_dir: "output"

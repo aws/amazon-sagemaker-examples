@@ -13,6 +13,7 @@ djl:
   option.rolling_batch: "auto"
   option.rolling_batch_strategy: "continuous_batching"
   option.max_rolling_batch_size: 4
+  option.output_formatter: "json"
 sagemaker:
   model:
     name: "meta-llama-3-8b-instruct-transformers-neuronx"
@@ -36,4 +37,6 @@ test:
   warmup_iters: 1
   max_iters: 10
   n_concurrent: 4
-  output_dir: "output/meta-llama-3-8b-instruct/transformers-neuronx"
+  output_dir: "output"
+  locust_users: 24
+  locust_workers: 4
