@@ -23,25 +23,19 @@ class SkipDataLoader(DataLoader):
     def __init__(self, *args, resume_from_sequence_number=0, **kwargs):
         super().__init__(*args, **kwargs)
         self.resume_from_sequence_number = resume_from_sequence_number
-        self.passed_epoch = False
+        self.cur_seq_index = 0
 
     def __iter__(self):
-        if not self.passed_epoch:
-            cur_seq_index = 0
-            for batch in super().__iter__():
-                num_seq = int(self.batch_size)
-                if cur_seq_index + num_seq > self.resume_from_sequence_number % (len(self) * self.batch_size):
-                    yield batch
-                else:
-                    if dist.get_rank() == 0:
-                        print(
-                            f"Dataloader skipping {num_seq} sequences in this batch as starting from {self.resume_from_sequence_number} sequences"
-                        )
-                cur_seq_index += num_seq
-            self.passed_epoch = True
-        else:
-            for batch in super().__iter__():
+        for batch in super().__iter__():
+            num_seq = int(self.batch_size)
+            if self.cur_seq_index + num_seq > self.resume_from_sequence_number:
                 yield batch
+            else:
+                if dist.get_rank() == 0:
+                    print(
+                        f"Dataloader skipping {num_seq} sequences in this batch as starting from {self.resume_from_sequence_number} sequences"
+                    )
+            self.cur_seq_index += num_seq
 
 
 class DataPipeline:
