@@ -98,6 +98,7 @@ def eval_model(model, data_pipeline, num_batches):
         loss /= n_batches
         ppl = math.exp(loss)
     else:
+        logger.warn(f"Running validation loop with 0 validation batches. Increase args.validation_batches to rectify")
         loss = -1.0
         ppl = -1.0
 
@@ -205,6 +206,7 @@ def train(
     start_epoch,
     start_train_path_index,
     resume_from_sequence_number,
+    val_resume_from_sequence_number,
     num_params,
     total_steps,
     args,
@@ -233,7 +235,7 @@ def train(
     set_seed(args.seed)
 
     data_pipeline = create_data_pipeline(
-        args, start_train_path_index, resume_from_sequence_number, dp_rank, dp_size
+        args, start_train_path_index, resume_from_sequence_number, val_resume_from_sequence_number, dp_rank, dp_size
     )
     cur_seq_index = resume_from_sequence_number
     epoch = start_epoch
@@ -313,6 +315,7 @@ def train(
                 cur_state = np.random.get_state()
                 torch.cuda.empty_cache()
                 val_loss, val_ppl = eval_model(model, data_pipeline, args.validation_batches)
+                cur_val_seq_index += args.val_batch_size * args.validation_batches
                 if global_rank == 0:
                     log_and_write_eval_metrics(writers, display_step, val_loss, val_ppl)
                 model = model.train()
@@ -327,6 +330,7 @@ def train(
                 else:
                     save_train_path_index = 0
                 save_train_seq_index = cur_seq_index
+                save_val_seq_index = cur_val_seq_index
                 # technically we have processed save_train_seq_index sequences in this file
                 # and so index to start from is save_train_seq_index
                 user_content = {
@@ -337,6 +341,7 @@ def train(
                     "epoch": epoch,
                     "start_train_path_index": save_train_path_index,
                     "resume_from_sequence_number": save_train_seq_index,
+                    "val_resume_from_sequence_number": save_val_seq_index,
                 }
 
                 subdir = f"{args.model_type}-{total_steps}steps"
@@ -653,6 +658,7 @@ def main(args):
             total_steps,
             start_train_path_index,
             resume_from_sequence_number,
+            val_resume_from_sequence_number,
         ) = load_checkpoint(
             args,
             model,
@@ -665,12 +671,14 @@ def main(args):
             expert_parallel_degree=int(tsm.state.expert_parallel_degree),
             checkpoint_type=args.checkpoint_type,
         )
+        torch.cuda.empty_cache()
 
     else:
         total_steps = 0
         epoch = 0
         start_train_path_index = 0
         resume_from_sequence_number = 0
+        val_resume_from_sequence_number = 0
 
     train_start_time = time.time()
     # total_steps, throughput, loss
@@ -683,6 +691,7 @@ def main(args):
         epoch,
         start_train_path_index,
         resume_from_sequence_number,
+        val_resume_from_sequence_number,
         num_params,
         total_steps,
         args,

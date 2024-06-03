@@ -46,6 +46,7 @@ class DataPipeline:
         seed=1234,
         num_workers=0,
         resume_from_sequence_number=0,
+        val_resume_from_sequence_number=0,
         dp_rank=0,
         dp_size=1,
         shuffle=False,
@@ -54,6 +55,7 @@ class DataPipeline:
         self.seed = seed
         self.num_workers = num_workers
         self.resume_from_sequence_number = resume_from_sequence_number
+        self.val_resume_from_sequence_number = val_resume_from_sequence_number
         self.dp_rank = dp_rank
         self.dp_size = dp_size
         self.shuffle = shuffle
@@ -67,7 +69,7 @@ class DataPipeline:
         self.train_dataloader = None
         self.val_dataloader = None
 
-    def _create_dataloader(self, dataset, batch_size):
+    def _create_dataloader(self, dataset, batch_size, resume_from_sequence_number):
         # TODO: set sampler.epoch to correctly shuffle across epochs, else same order will be used for
         # all epochs not relevant now as we have no epochs
         sampler = torch.utils.data.DistributedSampler(
@@ -88,9 +90,9 @@ class DataPipeline:
             "drop_last": True,
         }
 
-        if self.resume_from_sequence_number > 0:
+        if resume_from_sequence_number > 0:
             dataloader = SkipDataLoader(
-                dataset, resume_from_sequence_number=self.resume_from_sequence_number, **kwargs
+                dataset, resume_from_sequence_number=resume_from_sequence_number, **kwargs
             )
         else:
             dataloader = torch.utils.data.DataLoader(dataset, **kwargs)
