@@ -12,7 +12,7 @@ djl:
   option.model_loader: "tnx"
   option.rolling_batch: "auto"
   option.rolling_batch_strategy: "continuous_batching"
-  option.max_rolling_batch_size: 4
+  option.max_rolling_batch_size: 8
   option.output_formatter: "jsonlines"
 sagemaker:
   model:
