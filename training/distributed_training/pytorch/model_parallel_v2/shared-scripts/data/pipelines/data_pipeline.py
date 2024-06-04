@@ -28,7 +28,7 @@ class SkipDataLoader(DataLoader):
     def __iter__(self):
         for batch in super().__iter__():
             num_seq = int(self.batch_size)
-            if self.cur_seq_index + num_seq > self.resume_from_sequence_number:
+            if self.cur_seq_index + num_seq > self.resume_from_sequence_number % (len(self) * self.batch_size):
                 yield batch
             else:
                 if dist.get_rank() == 0:
