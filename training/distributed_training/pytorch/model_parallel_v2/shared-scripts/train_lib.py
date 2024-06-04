@@ -98,7 +98,6 @@ def eval_model(model, data_pipeline, num_batches):
         loss /= n_batches
         ppl = math.exp(loss)
     else:
-        logger.warn(f"Running validation loop with 0 validation batches. Increase args.validation_batches to rectify")
         loss = -1.0
         ppl = -1.0
 
@@ -238,6 +237,7 @@ def train(
         args, start_train_path_index, resume_from_sequence_number, val_resume_from_sequence_number, dp_rank, dp_size
     )
     cur_seq_index = resume_from_sequence_number
+    cur_val_seq_index = val_resume_from_sequence_number
     epoch = start_epoch
     while total_steps < args.max_steps:
         nvtx_warmup_iters = 3
