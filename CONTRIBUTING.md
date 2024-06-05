@@ -26,6 +26,7 @@ Before sending us a pull request, please ensure that:
 * You are working against the latest source on the *main* branch.
 * You check the existing open and recently merged pull requests to make sure someone else hasn't already addressed the problem.
 * You open an issue to discuss any significant work - we would hate for your time to be wasted.
+* **NOTE:: If you are submitting an entirely new notebook, please ensure it demonstrates a functionality of SageMaker not yet showcased by any other existing notebook in this repository. If you don't meet this criteria, your PR will be rejected.**
 
 
 ### Pull Down the Code
