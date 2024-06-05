@@ -179,37 +179,55 @@ Resources:
                 Description: The maximum time a training run is allowed to run
                 DefaultValue: 86400 #24 hours
             Steps:
-              - Name: TrainNewFineTunedModel
-                DisplayName: Train new fine-tuned model
-                Description: Trains a new model with a custom dataset
-                Type: Training
+              - Name: InputsValid
+                DisplayName: Inputs valid
+                Description: Validate the input values before continuing
+                Type: Condition
                 Arguments:
-                  AlgorithmSpecification:
-                    TrainingImage: 
-                      Get: Parameters.TrainingDockerImage
-                    TrainingInputMode: File
-                  InputDataConfig:
-                    - ChannelName: train
-                      DataSource:
-                        S3DataSource:
-                          S3DataType: S3Prefix
-                          S3Uri: 
-                            Get: Parameters.InputS3DatasetLocation
-                          S3DataDistributionType: FullyReplicated
-                      InputMode: File
-                  OutputDataConfig:
-                    S3OutputPath: 
-                      Get: Parameters.OutputS3ModelLocation
-                  ResourceConfig:
-                    InstanceCount: 1
-                    InstanceType: 
-                      Get: Parameters.TrainingInstanceType
-                    VolumeSizeInGB: 
-                      Get: Parameters.TrainingVolumeSizeInGB
-                  RoleArn: !GetAtt SageMakerServiceRole.Arn
-                  StoppingCondition:  
-                    MaxRuntimeInSeconds: 
-                      Get: Parameters.MaxTrainingRuntimeInSeconds
+                  Conditions:
+                    - LeftValue:
+                        Get: Parameters.TrainingVolumeSizeInGB
+                      Type: GreaterThanOrEqualTo
+                      RightValue: 50
+                  IfSteps:
+                    - Name: TrainNewFineTunedModel
+                      DisplayName: Train new fine-tuned model
+                      Description: Trains a new model with a custom dataset
+                      Type: Training
+                      Arguments:
+                        AlgorithmSpecification:
+                          TrainingImage: 
+                            Get: Parameters.TrainingDockerImage
+                          TrainingInputMode: File
+                        InputDataConfig:
+                          - ChannelName: train
+                            DataSource:
+                              S3DataSource:
+                                S3DataType: S3Prefix
+                                S3Uri: 
+                                  Get: Parameters.InputS3DatasetLocation
+                                S3DataDistributionType: FullyReplicated
+                            InputMode: File
+                        OutputDataConfig:
+                          S3OutputPath: 
+                            Get: Parameters.OutputS3ModelLocation
+                        ResourceConfig:
+                          InstanceCount: 1
+                          InstanceType: 
+                            Get: Parameters.TrainingInstanceType
+                          VolumeSizeInGB: 
+                            Get: Parameters.TrainingVolumeSizeInGB
+                        RoleArn: !GetAtt SageMakerServiceRole.Arn
+                        StoppingCondition:  
+                          MaxRuntimeInSeconds: 
+                            Get: Parameters.MaxTrainingRuntimeInSeconds
+                  ElseSteps:
+                    - Name: Fail
+                      DisplayName: Fail
+                      Description: Failed validation of input parameters
+                      Type: Fail
+                      Arguments:
+                        ErrorMessage: Input parameter validation failed, the training can not continue. Make sure the volume size is at least 50GB.
       RoleArn: !GetAtt PipelineExecutionRole.Arn
 
   # Updating the CodeCommit repository will trigger the CodeBuild project that builds a new training container image
