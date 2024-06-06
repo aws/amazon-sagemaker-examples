@@ -49,6 +49,12 @@ class CheckpointingMethod(Enum):
     FULL = auto()
     USE_PG_WITH_UTIL = auto()
 
+def backward_compat_get_val_resume_from_sequence_number(state_dict):
+    if "val_resume_from_sequence_number" not in state_dict:
+
+        logger.warn("Did not find validation dataloader's sequence number, validation dataloader will start from batch 0")
+        return 0
+    return state_dict["val_resume_from_sequence_number"]
 
 def backward_compat_get_resume_from_sequence_number(args, state_dict):
     if "resume_from_sequence_number" not in state_dict:
@@ -379,7 +385,7 @@ def _load_sharded(model, optimizer, scheduler, checkpoint_dir, checkpointing_pg_
             # cannot load the optimizer state_dict together with the model state_dict
         }
 
-        def _load_from_disk():
+        def _load_from_disk(state_dict):
             # NOTE: `_{save, load}_sharded` need to be consistent using the `process_group`s.
             checkpoint.load_state_dict(
                 state_dict=state_dict,
@@ -390,13 +396,19 @@ def _load_sharded(model, optimizer, scheduler, checkpoint_dir, checkpointing_pg_
             )
 
         try:
-            _load_from_disk()
-        except KeyError():
+            _load_from_disk(state_dict)
+        except KeyError:
             # when loading old checkpoints which had start_batch_index instead of resume_from_sequence_number
             # replace the key in dummy state_dict, and retry
             del state_dict["resume_from_sequence_number"]
             state_dict["start_batch_index"] = 0
-            _load_from_disk()
+            _load_from_disk(state_dict)
+        try:
+            val_state_dict = {"val_resume_from_sequence_number": 0}
+            _load_from_disk(val_state_dict)
+            state_dict.update(val_state_dict)
+        except:
+            pass
 
         if dist.get_rank() == 0:
             logger.info("Loaded model state from disk")
@@ -524,6 +536,7 @@ def load_checkpoint(
         state_dict = loaded
 
     resume_from_sequence_number = backward_compat_get_resume_from_sequence_number(args, state_dict)
+    val_resume_from_sequence_number = backward_compat_get_val_resume_from_sequence_number(state_dict)
     if dist.get_rank() == 0:
         logger.info(
             "Loaded state from disk: epoch %d, start_train_path_index %d, resume_from_sequence_number %d.",
@@ -540,4 +553,5 @@ def load_checkpoint(
         state_dict["total_steps"],
         state_dict["start_train_path_index"],
         resume_from_sequence_number,
+        val_resume_from_sequence_number,
     )

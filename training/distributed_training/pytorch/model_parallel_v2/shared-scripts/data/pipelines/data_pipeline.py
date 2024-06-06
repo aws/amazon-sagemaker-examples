@@ -23,25 +23,19 @@ class SkipDataLoader(DataLoader):
     def __init__(self, *args, resume_from_sequence_number=0, **kwargs):
         super().__init__(*args, **kwargs)
         self.resume_from_sequence_number = resume_from_sequence_number
-        self.passed_epoch = False
+        self.cur_seq_index = 0
 
     def __iter__(self):
-        if not self.passed_epoch:
-            cur_seq_index = 0
-            for batch in super().__iter__():
-                num_seq = int(self.batch_size)
-                if cur_seq_index + num_seq > self.resume_from_sequence_number % (len(self) * self.batch_size):
-                    yield batch
-                else:
-                    if dist.get_rank() == 0:
-                        print(
-                            f"Dataloader skipping {num_seq} sequences in this batch as starting from {self.resume_from_sequence_number} sequences"
-                        )
-                cur_seq_index += num_seq
-            self.passed_epoch = True
-        else:
-            for batch in super().__iter__():
+        for batch in super().__iter__():
+            num_seq = int(self.batch_size)
+            if self.cur_seq_index + num_seq > self.resume_from_sequence_number % (len(self) * self.batch_size):
                 yield batch
+            else:
+                if dist.get_rank() == 0:
+                    print(
+                        f"Dataloader skipping {num_seq} sequences in this batch as starting from {self.resume_from_sequence_number} sequences"
+                    )
+            self.cur_seq_index += num_seq
 
 
 class DataPipeline:
@@ -52,6 +46,7 @@ class DataPipeline:
         seed=1234,
         num_workers=0,
         resume_from_sequence_number=0,
+        val_resume_from_sequence_number=0,
         dp_rank=0,
         dp_size=1,
         shuffle=False,
@@ -60,6 +55,7 @@ class DataPipeline:
         self.seed = seed
         self.num_workers = num_workers
         self.resume_from_sequence_number = resume_from_sequence_number
+        self.val_resume_from_sequence_number = val_resume_from_sequence_number
         self.dp_rank = dp_rank
         self.dp_size = dp_size
         self.shuffle = shuffle
@@ -73,7 +69,7 @@ class DataPipeline:
         self.train_dataloader = None
         self.val_dataloader = None
 
-    def _create_dataloader(self, dataset, batch_size):
+    def _create_dataloader(self, dataset, batch_size, resume_from_sequence_number):
         # TODO: set sampler.epoch to correctly shuffle across epochs, else same order will be used for
         # all epochs not relevant now as we have no epochs
         sampler = torch.utils.data.DistributedSampler(
@@ -94,9 +90,9 @@ class DataPipeline:
             "drop_last": True,
         }
 
-        if self.resume_from_sequence_number > 0:
+        if resume_from_sequence_number > 0:
             dataloader = SkipDataLoader(
-                dataset, resume_from_sequence_number=self.resume_from_sequence_number, **kwargs
+                dataset, resume_from_sequence_number=resume_from_sequence_number, **kwargs
             )
         else:
             dataloader = torch.utils.data.DataLoader(dataset, **kwargs)
