@@ -8,6 +8,7 @@
 
 _Put an `x` in the boxes that apply. You can also fill these out after creating the PR. If you're unsure about any of them, don't hesitate to ask. We're here to help! This is simply a reminder of what we are going to look for before merging your pull request._
 
+- [ ] I have verified that my PR does not contain any new notebook/s which demonstrate a SageMaker functionality already showcased by another existing notebook in the repository.
 - [ ] I have read the [CONTRIBUTING](https://github.com/aws/amazon-sagemaker-examples/blob/master/CONTRIBUTING.md) doc and adhered to the example notebook best practices
 - [ ] I have updated any necessary documentation, including [READMEs](https://github.com/aws/amazon-sagemaker-examples/blob/master/README.md)
 - [ ] I have tested my notebook(s) and ensured it runs end-to-end

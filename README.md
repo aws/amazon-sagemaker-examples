@@ -4,14 +4,18 @@
 
 Example Jupyter notebooks that demonstrate how to build, train, and deploy machine learning models using Amazon SageMaker.
 
-## :books: Background
+## :books: Read this before you proceed further
 
-[Amazon SageMaker](https://aws.amazon.com/sagemaker/) is a fully managed service for data science and machine learning (ML) workflows.
-You can use Amazon SageMaker to simplify the process of building, training, and deploying ML models.
+Amazon SageMaker examples are divided in two repositories:
 
-The [SageMaker example notebooks](https://sagemaker-examples.readthedocs.io/en/latest/) are Jupyter notebooks that demonstrate the usage of Amazon SageMaker.
+- [SageMaker example notebooks](https://github.com/aws/amazon-sagemaker-examples) is the official repository, containing examples that demonstrate the usage of Amazon SageMaker. This repository is entirely focussed on covering the breadth of features provided by SageMaker, and is maintained directly by Amazon SageMaker team.
 
-The [Sagemaker Example Community repository](https://github.com/aws/amazon-sagemaker-examples-community) are additional notebooks, beyond those critical for showcasing key SageMaker functionality, can be shared and explored by the commmunity.
+- [Sagemaker Example Community repository](https://github.com/aws/amazon-sagemaker-examples-community) is another SageMaker repository which contains additional examples and reference solutions, beyond the examples showcased in the [official repository](https://github.com/aws/amazon-sagemaker-examples). This repository is maintained by community of engineers and solution architects at AWS.
+
+## Planning to submit a PR to this repository? read this first:
+- This repository will only accept notebooks/examples which demonstrate a feature of SageMaker, not yet covered anywhere in this repository. PR submitters are requested to check this before submitting the PR to avoid getting it rejected.
+
+- If you still would like to contribute your example, please submit a PR to [Sagemaker Example Community repository](https://github.com/aws/amazon-sagemaker-examples-community) instead.
 
 
 ## :hammer_and_wrench: Setup
@@ -205,6 +209,7 @@ These examples provide an Introduction to Smart Sifting library. Smart Sifting i
 These examples provide an introduction to SageMaker Clarify which provides machine learning developers with greater visibility into their training data and models so they can identify and limit bias and explain predictions.
 
 * [Fairness and Explainability with SageMaker Clarify](sagemaker-clarify/fairness_and_explainability) shows how to use SageMaker Clarify Processor API to measure the pre-training bias of a dataset and post-training bias of a model, and explain the importance of the input features on the model's decision.
+* [TimeSeries Explainability with SageMaker Clarify](sagemaker-clarify/time_series_deepar) shows how to use SageMaker Clarify Processor API to explain the importance of the input features on the time-series model's decision.
 * [Amazon SageMaker Clarify Model Monitors](sagemaker_model_monitor/fairness_and_explainability) shows how to use SageMaker Clarify Model Monitor API to schedule bias monitor to monitor predictions for bias drift on a regular basis, and schedule explainability monitor to monitor predictions for feature attribution drift on a regular basis.
 
 ### Publishing content from RStudio on Amazon SageMaker to RStudio Connect
