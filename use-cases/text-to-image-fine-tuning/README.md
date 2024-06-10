@@ -16,9 +16,7 @@ This solution creates all the necessary components to get you started quickly wi
 2. Click on "Terminal".
 3. You will check out just the required directories of the SageMaker Examples git repository next (so you don't have to download the entire repo). Run the following commands from the terminal. If successful, you should see the output "Your branch is up to date with 'origin/main'".
 
-        git clone --no-checkout https://github.com/azograby/amazon-sagemaker-examples.git
-        # TODO: change to official aws examples repo once personal repo PR is approved and merged. PR: https://github.com/aws/amazon-sagemaker-examples/pull/4481
-        # git clone --no-checkout https://github.com/aws/amazon-sagemaker-examples.git
+        git clone --no-checkout https://github.com/aws/amazon-sagemaker-examples.git
         cd amazon-sagemaker-examples/
         git sparse-checkout set use-cases/text-to-image-fine-tuning
         git checkout
