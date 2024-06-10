@@ -47,7 +47,7 @@ This solution creates all the necessary components to get you started quickly wi
 * **CodeBuild Project: kohya-ss-fine-tuning-build-container**
     * Builds the training container image and pushes it to ECR
     * Environment variables in template.yml can be modified to change the Kohya SS version
-    * The GitHub repository (https://github.com/bmaltais/kohya_ss.git) has been tested as of version v22.1.1
+    * The GitHub repository (https://github.com/bmaltais/kohya_ss.git) has been tested as of version v22.6.2
     * If you use newer versions, you will want to check the Dockerfile and the docker-compose.yaml file in the repository, and the training entrypoint for SDXL (sdxl_train_network.py) in the custom "train" file located in this repository to see if any modifications need to be made
 
 * **EventBridge Rule: kohya-ss-fine-tuning-trigger-new-image-build-rule**
