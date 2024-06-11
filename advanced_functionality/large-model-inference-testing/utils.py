@@ -34,9 +34,9 @@ def get_tokenizer(s3_client, model_id: str, hf_token:str=None):
         with TemporaryDirectory(suffix="snapshot", prefix="model", dir=".") as local_dir:
             s3_download_model(s3_client, bucket=model_bucket, 
                            prefix=model_prefix, local_dir=local_dir, 
-                           includes=[".json", ".model"])
-            tokenizer = AutoTokenizer.from_pretrained(local_dir)
+                           includes=[".json", ".model", ".py"])
+            tokenizer = AutoTokenizer.from_pretrained(local_dir, trust_remote_code=True)
     else:
-        tokenizer = AutoTokenizer.from_pretrained(model_id, token=hf_token)
+        tokenizer = AutoTokenizer.from_pretrained(model_id, token=hf_token, trust_remote_code=True)
         
     return tokenizer
