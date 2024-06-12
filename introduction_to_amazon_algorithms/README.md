@@ -26,3 +26,4 @@ These examples provide quick walkthroughs to get you up and running with Amazon 
 - [Object2Vec for sentence similarity](object2vec_sentence_similarity) explains how to train Object2Vec using sequence pairs as input using sentence similarity analysis as the application.
 - [IP Insights for suspicious logins](ipinsights_login) shows how to train IP Insights on login events for a web server to identify suspicious login attempts.
 - [Semantic Segmentation](semantic_segmentation_pascalvoc) shows how to train a semantic segmentation algorithm using the Amazon SageMaker Semantic Segmentation algorithm. It also demonstrates how to host the model and produce segmentation masks and probability of segmentation.
+- [DenseClus](denseclus) shows how to use Amazon DenseClus to cluster data with both numerical and categorial features using the [Census Income Dataset](https://archive.ics.uci.edu/dataset/2/adult)

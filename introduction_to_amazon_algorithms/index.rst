@@ -59,6 +59,7 @@ Tabular
    autogluon_tabular/Amazon_Tabular_Classification_AutoGluon
    tabtransformer_tabular/Amazon_Tabular_Regression_TabTransformer
    tabtransformer_tabular/Amazon_Tabular_Classification_TabTransformer
+   introduction_to_amazon_algorithms/denseclus/Amazon_DenseClus_Clustering_Census
 
 
 Text
