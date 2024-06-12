@@ -1,0 +1,80 @@
+Metadata-Version: 2.1
+Name: sphinxcontrib-applehelp
+Version: 1.0.4
+Summary: sphinxcontrib-applehelp is a Sphinx extension which outputs Apple help books
+Author-email: Georg Brandl <georg@python.org>
+License: BSD-2-Clause
+Project-URL: Changelog, https://www.sphinx-doc.org/en/master/changes.html
+Project-URL: Code, https://github.com/sphinx-doc/sphinxcontrib-applehelp
+Project-URL: Download, https://pypi.org/project/sphinxcontrib-applehelp/
+Project-URL: Homepage, https://www.sphinx-doc.org/
+Project-URL: Issue tracker, https://github.com/sphinx-doc/sphinx/issues
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Environment :: Console
+Classifier: Environment :: Web Environment
+Classifier: Intended Audience :: Developers
+Classifier: Intended Audience :: Education
+Classifier: License :: OSI Approved :: BSD License
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3 :: Only
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
+Classifier: Framework :: Sphinx
+Classifier: Framework :: Sphinx :: Extension
+Classifier: Topic :: Documentation
+Classifier: Topic :: Documentation :: Sphinx
+Classifier: Topic :: Text Processing
+Classifier: Topic :: Utilities
+Requires-Python: >=3.8
+Description-Content-Type: text/x-rst
+License-File: LICENSE
+Provides-Extra: lint
+Requires-Dist: flake8 ; extra == 'lint'
+Requires-Dist: mypy ; extra == 'lint'
+Requires-Dist: docutils-stubs ; extra == 'lint'
+Provides-Extra: test
+Requires-Dist: pytest ; extra == 'test'
+
+=======================
+sphinxcontrib-applehelp
+=======================
+
+sphinxcontrib-applehelp is a sphinx extension which outputs Apple help books.
+
+For more details, please visit http://www.sphinx-doc.org/.
+
+Installing
+==========
+
+Install from PyPI::
+
+   pip install -U sphinxcontrib-applehelp
+
+Release signatures
+==================
+
+Releases are signed with following keys:
+
+* `498D6B9E <https://pgp.mit.edu/pks/lookup?op=vindex&search=0x102C2C17498D6B9E>`_
+* `5EBA0E07 <https://pgp.mit.edu/pks/lookup?op=vindex&search=0x1425F8CE5EBA0E07>`_
+
+Testing
+=======
+
+To run the tests with the interpreter available as ``python``, use::
+
+    tox
+
+Continuous testing runs on travis: https://travis-ci.org/sphinx-doc/sphinxcontrib-applehelp
+
+Contributing
+============
+
+See `CONTRIBUTING.rst`__
+
+.. __: https://github.com/sphinx-doc/sphinx/blob/master/CONTRIBUTING.rst

@@ -1,0 +1,2 @@
+[console_scripts]
+sagemaker-upgrade-v2 = sagemaker.cli.compatibility.v2.sagemaker_upgrade_v2:main

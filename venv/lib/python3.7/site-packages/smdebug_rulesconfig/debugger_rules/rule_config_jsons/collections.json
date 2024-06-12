@@ -1,0 +1,42 @@
+{
+  "weights": {
+    "CollectionName": "weights",
+    "CollectionParameters": {
+          "save_interval": "500"
+    }
+  },
+  "gradients": {
+    "CollectionName": "gradients",
+    "CollectionParameters": {
+          "save_interval": "500"
+    }
+  },
+  "losses": {
+    "CollectionName": "losses",
+    "CollectionParameters": {
+        "save_interval": "500"
+    }
+  },
+  "input_image": {
+    "CollectionName": "input_image",
+    "CollectionParameters": {
+      "include_regex": ".*hybridsequential0_input_0",
+      "save_interval" : "500"
+    }
+  },
+  "relu_output": {
+    "include_regex": ".*relu_output",
+    "save_interval": "500"
+  },
+  "relu_input": {
+    "include_regex": ".*relu_input",
+    "save_interval": "500"
+  },
+  "input_sequence": {
+    "CollectionName": "input_sequence",
+    "CollectionParameters": {
+      "include_regex": ".*embedding0_input_0",
+      "save_interval" : "500"
+    }
+  }
+}

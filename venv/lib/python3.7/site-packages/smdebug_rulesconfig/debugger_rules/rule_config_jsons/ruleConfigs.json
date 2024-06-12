@@ -1,0 +1,271 @@
+{
+  "VanishingGradient": {
+    "DebugRuleConfiguration": {
+      "RuleConfigurationName": "VanishingGradient",
+      "RuleParameters": {
+        "rule_to_invoke": "VanishingGradient"
+      }
+    },
+    "CollectionConfigurations": [
+      {
+        "CollectionName": "gradients",
+        "CollectionParameters": {
+          "save_interval": "500"
+        }
+      }
+    ]
+  },
+  "LossNotDecreasing" : {
+    "DebugRuleConfiguration": {
+      "RuleConfigurationName": "LossNotDecreasing",
+      "RuleParameters": {
+        "rule_to_invoke": "LossNotDecreasing"
+      }
+    },
+    "CollectionConfigurations": [
+      {
+        "CollectionName": "losses",
+        "CollectionParameters": {
+          "save_interval": "500"
+        }
+      }
+    ]
+  },
+  "WeightUpdateRatio": {
+    "DebugRuleConfiguration": {
+      "RuleConfigurationName": "WeightUpdateRatio",
+      "RuleParameters": {
+        "rule_to_invoke": "WeightUpdateRatio"
+      }
+    },
+    "CollectionConfigurations": [
+      {
+        "CollectionName": "weights",
+        "CollectionParameters": {
+          "save_interval": "500"
+        }
+
+      }
+    ]
+  },
+  "CheckInputImages" : {
+    "DebugRuleConfiguration": {
+      "RuleConfigurationName": "CheckInputImages",
+      "RuleParameters": {
+        "rule_to_invoke": "CheckInputImages"
+      }
+    },
+    "CollectionConfigurations": [
+      {
+        "CollectionName": "input_image",
+        "CollectionParameters": {
+          "include_regex": ".*hybridsequential0_input_0",
+          "save_interval": "500"
+        }
+      }
+    ]
+  },
+  "DeadRelu" : {
+    "DebugRuleConfiguration": {
+      "RuleConfigurationName": "DeadRelu",
+      "RuleParameters": {
+        "rule_to_invoke": "DeadRelu"
+      }
+    },
+    "CollectionConfigurations": [
+      {
+        "CollectionName": "relu_output",
+        "CollectionParameters": {
+          "include_regex": ".*relu_output",
+          "save_interval": "500"
+        }
+      }
+    ]
+  },
+  "AllZero": {
+    "DebugRuleConfiguration": {
+      "RuleConfigurationName": "AllZero",
+      "RuleParameters": {
+        "rule_to_invoke": "AllZero"
+      }
+    }
+  },
+  "ExplodingTensor" : {
+    "DebugRuleConfiguration": {
+      "RuleConfigurationName": "ExplodingTensor",
+      "RuleParameters": {
+        "rule_to_invoke": "ExplodingTensor"
+      }
+    }
+  },
+  "UnchangedTensor" : {
+    "DebugRuleConfiguration": {
+      "RuleConfigurationName": "UnchangedTensor",
+      "RuleParameters": {
+        "rule_to_invoke": "UnchangedTensor"
+      }
+    }
+  },
+  "SimilarAcrossRuns": {
+    "DebugRuleConfiguration": {
+      "RuleConfigurationName": "SimilarAcrossRuns",
+      "RuleParameters": {
+        "rule_to_invoke": "SimilarAcrossRuns"
+      }
+    }
+  },
+  "TreeDepth": {
+    "DebugRuleConfiguration": {
+      "RuleConfigurationName": "TreeDepth",
+      "RuleParameters": {
+        "rule_to_invoke": "TreeDepth"
+      }
+    }
+  },
+  "ClassImbalance": {
+    "DebugRuleConfiguration": {
+      "RuleConfigurationName": "ClassImbalance",
+      "RuleParameters": {
+        "rule_to_invoke": "ClassImbalance"
+      }
+    }
+  },
+  "Confusion": {
+    "DebugRuleConfiguration": {
+      "RuleConfigurationName": "Confusion",
+      "RuleParameters": {
+        "rule_to_invoke": "Confusion"
+      }
+    }
+  },
+  "Overfit": {
+    "DebugRuleConfiguration": {
+      "RuleConfigurationName": "Overfit",
+      "RuleParameters": {
+        "rule_to_invoke": "Overfit"
+      }
+    }
+  },
+  "TensorVariance" : {
+    "DebugRuleConfiguration": {
+      "RuleConfigurationName": "TensorVariance",
+      "RuleParameters": {
+        "rule_to_invoke": "TensorVariance"
+      }
+    }
+  },
+  "Overtraining": {
+    "DebugRuleConfiguration": {
+      "RuleConfigurationName": "Overtraining",
+      "RuleParameters": {
+        "rule_to_invoke": "Overtraining"
+      }
+    }
+  },
+  "PoorWeightInitialization" : {
+    "DebugRuleConfiguration": {
+      "RuleConfigurationName": "PoorWeightInitialization",
+      "RuleParameters": {
+        "rule_to_invoke": "PoorWeightInitialization"
+      }
+    },
+    "CollectionConfigurations": [
+      {
+        "CollectionName": "relu_input",
+        "CollectionParameters": {
+          "include_regex": ".*relu_input",
+          "save_interval": "500"
+        }
+      }
+    ]
+  },
+  "SaturatedActivation" : {
+    "DebugRuleConfiguration": {
+      "RuleConfigurationName": "SaturatedActivation",
+      "RuleParameters": {
+        "rule_to_invoke": "SaturatedActivation"
+      }
+    }
+  },
+  "NLPSequenceRatio" : {
+    "DebugRuleConfiguration": {
+      "RuleConfigurationName": "NLPSequenceRatio",
+      "RuleParameters": {
+        "rule_to_invoke": "NLPSequenceRatio"
+      }
+    },
+    "CollectionConfigurations": [
+      {
+        "CollectionName": "input_sequence",
+        "CollectionParameters": {
+          "include_regex": ".*embedding0_input_0",
+          "save_interval": "500"
+        }
+      }
+    ]
+  },
+  "StalledTrainingRule" : {
+    "DebugRuleConfiguration": {
+      "RuleConfigurationName": "StalledTrainingRule",
+      "RuleParameters": {
+        "rule_to_invoke": "StalledTrainingRule"
+      }
+    }
+  },
+   "FeatureImportanceOverweight": {
+    "DebugRuleConfiguration": {
+      "RuleConfigurationName": "FeatureImportanceOverweight",
+      "RuleParameters": {
+        "rule_to_invoke": "FeatureImportanceOverweight"
+      }
+    },
+    "CollectionConfigurations": [
+      {
+        "CollectionName": "feature_importance",
+        "CollectionParameters": {
+          "save_interval": "500"
+        }
+      }
+    ]
+  },
+  "CreateXgboostReport": {
+    "DebugRuleConfiguration": {
+      "RuleConfigurationName": "CreateXgboostReport",
+      "RuleParameters": {
+        "rule_to_invoke": "CreateXgboostReport"
+      }
+    },
+    "CollectionConfigurations": [
+      {
+        "CollectionName": "metrics",
+        "CollectionParameters": {
+          "save_interval": "5"
+        }
+      },
+      {
+        "CollectionName": "feature_importance",
+        "CollectionParameters": {
+          "save_interval": "5"
+        }
+      },
+      {
+        "CollectionName": "hyperparameters",
+        "CollectionParameters": {
+          "save_steps": "0"
+        }
+      },
+      {
+        "CollectionName": "predictions",
+        "CollectionParameters": {
+          "save_interval": "5"
+        }
+      },
+      {
+        "CollectionName": "labels",
+        "CollectionParameters": {
+          "save_interval": "5"
+        }
+      }
+    ]
+  }
+}

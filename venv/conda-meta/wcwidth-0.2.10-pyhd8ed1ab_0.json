@@ -1,0 +1,186 @@
+{
+  "build": "pyhd8ed1ab_0",
+  "build_number": 0,
+  "channel": "https://conda.anaconda.org/conda-forge/noarch",
+  "constrains": [],
+  "depends": [
+    "backports.functools_lru_cache",
+    "python >=3.6"
+  ],
+  "extracted_package_dir": "/opt/conda/pkgs/wcwidth-0.2.10-pyhd8ed1ab_0",
+  "files": [
+    "lib/python3.7/site-packages/wcwidth-0.2.10.dist-info/INSTALLER",
+    "lib/python3.7/site-packages/wcwidth-0.2.10.dist-info/LICENSE",
+    "lib/python3.7/site-packages/wcwidth-0.2.10.dist-info/METADATA",
+    "lib/python3.7/site-packages/wcwidth-0.2.10.dist-info/RECORD",
+    "lib/python3.7/site-packages/wcwidth-0.2.10.dist-info/REQUESTED",
+    "lib/python3.7/site-packages/wcwidth-0.2.10.dist-info/WHEEL",
+    "lib/python3.7/site-packages/wcwidth-0.2.10.dist-info/direct_url.json",
+    "lib/python3.7/site-packages/wcwidth-0.2.10.dist-info/top_level.txt",
+    "lib/python3.7/site-packages/wcwidth-0.2.10.dist-info/zip-safe",
+    "lib/python3.7/site-packages/wcwidth/__init__.py",
+    "lib/python3.7/site-packages/wcwidth/table_vs16.py",
+    "lib/python3.7/site-packages/wcwidth/table_wide.py",
+    "lib/python3.7/site-packages/wcwidth/table_zero.py",
+    "lib/python3.7/site-packages/wcwidth/unicode_versions.py",
+    "lib/python3.7/site-packages/wcwidth/wcwidth.py",
+    "lib/python3.7/site-packages/wcwidth/__pycache__/__init__.cpython-37.pyc",
+    "lib/python3.7/site-packages/wcwidth/__pycache__/table_vs16.cpython-37.pyc",
+    "lib/python3.7/site-packages/wcwidth/__pycache__/table_wide.cpython-37.pyc",
+    "lib/python3.7/site-packages/wcwidth/__pycache__/table_zero.cpython-37.pyc",
+    "lib/python3.7/site-packages/wcwidth/__pycache__/unicode_versions.cpython-37.pyc",
+    "lib/python3.7/site-packages/wcwidth/__pycache__/wcwidth.cpython-37.pyc"
+  ],
+  "fn": "wcwidth-0.2.10-pyhd8ed1ab_0.conda",
+  "license": "MIT",
+  "link": {
+    "source": "/opt/conda/pkgs/wcwidth-0.2.10-pyhd8ed1ab_0",
+    "type": 1
+  },
+  "md5": "48978e4e99db7d1ee0d277f6dee20684",
+  "name": "wcwidth",
+  "noarch": "python",
+  "package_tarball_full_path": "/opt/conda/pkgs/wcwidth-0.2.10-pyhd8ed1ab_0.conda",
+  "package_type": "noarch_python",
+  "paths_data": {
+    "paths": [
+      {
+        "_path": "site-packages/wcwidth-0.2.10.dist-info/INSTALLER",
+        "path_type": "hardlink",
+        "sha256": "d0edee15f91b406f3f99726e44eb990be6e34fd0345b52b910c568e0eef6a2a8",
+        "sha256_in_prefix": "d0edee15f91b406f3f99726e44eb990be6e34fd0345b52b910c568e0eef6a2a8",
+        "size_in_bytes": 5
+      },
+      {
+        "_path": "site-packages/wcwidth-0.2.10.dist-info/LICENSE",
+        "path_type": "hardlink",
+        "sha256": "70b98a95a2144eb70af8017fa8c6d95ce247e40867436e8bc649e137fe13d21a",
+        "sha256_in_prefix": "70b98a95a2144eb70af8017fa8c6d95ce247e40867436e8bc649e137fe13d21a",
+        "size_in_bytes": 1322
+      },
+      {
+        "_path": "site-packages/wcwidth-0.2.10.dist-info/METADATA",
+        "path_type": "hardlink",
+        "sha256": "e1ce7d16a24a18a3a8cdd9f7e743e02e1f7c0544e18e8b93bfc7aaa83888b7fe",
+        "sha256_in_prefix": "e1ce7d16a24a18a3a8cdd9f7e743e02e1f7c0544e18e8b93bfc7aaa83888b7fe",
+        "size_in_bytes": 14540
+      },
+      {
+        "_path": "site-packages/wcwidth-0.2.10.dist-info/RECORD",
+        "path_type": "hardlink",
+        "sha256": "b790379600a3bac2938aa7aa0e79f76c14152d4b41c398fd45b6a6d63f2a79f6",
+        "sha256_in_prefix": "b790379600a3bac2938aa7aa0e79f76c14152d4b41c398fd45b6a6d63f2a79f6",
+        "size_in_bytes": 1540
+      },
+      {
+        "_path": "site-packages/wcwidth-0.2.10.dist-info/REQUESTED",
+        "path_type": "hardlink",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "sha256_in_prefix": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "size_in_bytes": 0
+      },
+      {
+        "_path": "site-packages/wcwidth-0.2.10.dist-info/WHEEL",
+        "path_type": "hardlink",
+        "sha256": "3f64fee9ea6fb57436701384fd4d4ae3f9e8aa5245377b63d7976332012ee0d3",
+        "sha256_in_prefix": "3f64fee9ea6fb57436701384fd4d4ae3f9e8aa5245377b63d7976332012ee0d3",
+        "size_in_bytes": 110
+      },
+      {
+        "_path": "site-packages/wcwidth-0.2.10.dist-info/direct_url.json",
+        "path_type": "hardlink",
+        "sha256": "87525a33588ff280639e67dcfbfd180f5b93e7aa88dc612467d3671e8449206a",
+        "sha256_in_prefix": "87525a33588ff280639e67dcfbfd180f5b93e7aa88dc612467d3671e8449206a",
+        "size_in_bytes": 103
+      },
+      {
+        "_path": "site-packages/wcwidth-0.2.10.dist-info/top_level.txt",
+        "path_type": "hardlink",
+        "sha256": "2cb8d2f121625d7b8b11c0f604d7457468692967b9a291edbe7eca363f402112",
+        "sha256_in_prefix": "2cb8d2f121625d7b8b11c0f604d7457468692967b9a291edbe7eca363f402112",
+        "size_in_bytes": 8
+      },
+      {
+        "_path": "site-packages/wcwidth-0.2.10.dist-info/zip-safe",
+        "path_type": "hardlink",
+        "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+        "sha256_in_prefix": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+        "size_in_bytes": 1
+      },
+      {
+        "_path": "site-packages/wcwidth/__init__.py",
+        "path_type": "hardlink",
+        "sha256": "9122e25f1412eb9cb19d5768105ad60586e9e067c3f01092e7dbbd3d1ef2f325",
+        "sha256_in_prefix": "9122e25f1412eb9cb19d5768105ad60586e9e067c3f01092e7dbbd3d1ef2f325",
+        "size_in_bytes": 1076
+      },
+      {
+        "_path": "site-packages/wcwidth/table_vs16.py",
+        "path_type": "hardlink",
+        "sha256": "84f6eea05c66c6b19fb8169ea2178c4c01a6801d9ae04b9d87162c62890b7faa",
+        "sha256_in_prefix": "84f6eea05c66c6b19fb8169ea2178c4c01a6801d9ae04b9d87162c62890b7faa",
+        "size_in_bytes": 6857
+      },
+      {
+        "_path": "site-packages/wcwidth/table_wide.py",
+        "path_type": "hardlink",
+        "sha256": "7c1deda40a80fdce36f3cbc8ab15ce662ca2b479db22d658259a47c3dda294d5",
+        "sha256_in_prefix": "7c1deda40a80fdce36f3cbc8ab15ce662ca2b479db22d658259a47c3dda294d5",
+        "size_in_bytes": 100104
+      },
+      {
+        "_path": "site-packages/wcwidth/table_zero.py",
+        "path_type": "hardlink",
+        "sha256": "e317b45678a96303382b315f147a1f872392161c49a37355ad72607c6df3e0c5",
+        "sha256_in_prefix": "e317b45678a96303382b315f147a1f872392161c49a37355ad72607c6df3e0c5",
+        "size_in_bytes": 356657
+      },
+      {
+        "_path": "site-packages/wcwidth/unicode_versions.py",
+        "path_type": "hardlink",
+        "sha256": "ee74a181e458aef645906a5111dafe3e451e5e7b8cf96c5e3a61988fa40d69a1",
+        "sha256_in_prefix": "ee74a181e458aef645906a5111dafe3e451e5e7b8cf96c5e3a61988fa40d69a1",
+        "size_in_bytes": 851
+      },
+      {
+        "_path": "site-packages/wcwidth/wcwidth.py",
+        "path_type": "hardlink",
+        "sha256": "3fdf9382fbfe52120047a1c772a9faf8e3af54b3ee1f8c736401498ae384cb2a",
+        "sha256_in_prefix": "3fdf9382fbfe52120047a1c772a9faf8e3af54b3ee1f8c736401498ae384cb2a",
+        "size_in_bytes": 14315
+      },
+      {
+        "_path": "lib/python3.7/site-packages/wcwidth/__pycache__/__init__.cpython-37.pyc",
+        "path_type": "pyc_file"
+      },
+      {
+        "_path": "lib/python3.7/site-packages/wcwidth/__pycache__/table_vs16.cpython-37.pyc",
+        "path_type": "pyc_file"
+      },
+      {
+        "_path": "lib/python3.7/site-packages/wcwidth/__pycache__/table_wide.cpython-37.pyc",
+        "path_type": "pyc_file"
+      },
+      {
+        "_path": "lib/python3.7/site-packages/wcwidth/__pycache__/table_zero.cpython-37.pyc",
+        "path_type": "pyc_file"
+      },
+      {
+        "_path": "lib/python3.7/site-packages/wcwidth/__pycache__/unicode_versions.cpython-37.pyc",
+        "path_type": "pyc_file"
+      },
+      {
+        "_path": "lib/python3.7/site-packages/wcwidth/__pycache__/wcwidth.cpython-37.pyc",
+        "path_type": "pyc_file"
+      }
+    ],
+    "paths_version": 1
+  },
+  "requested_spec": "None",
+  "sha256": "e988673c05416073d0e776bac223b6c79fb5cc1207291c6c6f9e238624a135c0",
+  "size": 32557,
+  "subdir": "noarch",
+  "timestamp": 1699959343000,
+  "url": "https://conda.anaconda.org/conda-forge/noarch/wcwidth-0.2.10-pyhd8ed1ab_0.conda",
+  "version": "0.2.10"
+}

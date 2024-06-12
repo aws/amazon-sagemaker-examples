@@ -1,0 +1,26 @@
+{
+    "scope": ["inference", "training"],
+    "versions": {
+        "1": {
+            "registries": {
+                "ap-northeast-1": "258307448986",
+                "ap-northeast-2": "293181348795",
+                "ap-south-1": "991648021394",
+                "ap-southeast-1": "475088953585",
+                "ap-southeast-2": "297031611018",
+                "ca-central-1": "469771592824",
+                "eu-central-1": "353608530281",
+                "eu-west-1": "999678624901",
+                "eu-west-2": "644912444149",
+                "us-east-1": "766337827248",
+                "us-east-2": "999911452149",
+                "us-gov-west-1": "226302683700",
+                "us-iso-east-1": "490574956308",
+                "us-isob-east-1": "765400339828",
+                "us-west-1": "632365934929",
+                "us-west-2": "266724342769"
+            },
+            "repository": "lda"
+        }
+    }
+}
