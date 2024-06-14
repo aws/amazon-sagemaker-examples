@@ -1,0 +1,27 @@
+image:
+resources:
+  instance_count: 1
+  instance_type: ml.p3.16xlarge
+  volume_size: 500
+pre_script: 
+  - SCRIPT_DIR=/NeMo/scripts/checkpoint_converters
+  - cd $SCRIPT_DIR
+  - mkdir -p $LOG_ROOT
+  - OUTPUT_LOG=$LOG_ROOT/nemo_to_hf.log
+  - TMP_OUTPUT_PATH=/tmp/hf_peft_model
+post_script:
+  - cp -r $TMP_OUTPUT_PATH $MODEL_PATH/
+train:
+  env:
+    - name: LOG_ROOT
+      value: $SM_CHANNEL_EFS/home/$RELEASE_NAME/logs
+    - name: MODEL_PATH
+      value: "$SM_CHANNEL_FSX/huggingface/models/$HF_MODEL_ID/$HF_MODEL_REVISION"
+  command:
+    - python3
+  args:
+    - convert_mistral_7b_nemo_to_hf.py
+    - --input_name_or_path=$MODEL_PATH/ckpt.nemo
+    - --output_path=$TMP_OUTPUT_PATH
+    - --hf_model_name=$MODEL_PATH
+    - '2>&1 | tee $OUTPUT_LOG'
