@@ -12,6 +12,7 @@ djl:
   option.use_fused_mlp: true
   option.multi_query_mode: true
   option.model_loading_timeout: 3600
+  option.trust_remote_code: true
 sagemaker:
   model:
     name: "llama-2-70b-chat-hf-tensorrt-llm"

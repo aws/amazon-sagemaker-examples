@@ -11,6 +11,7 @@ djl:
   option.output_formatter: "json"
   option.max_num_tokens: 2048
   option.dtype: "fp16"
+  option.trust_remote_code: true
 sagemaker:
   model:
     name: "mistral-7b-instruct-v0-2-tensorrt-llm"

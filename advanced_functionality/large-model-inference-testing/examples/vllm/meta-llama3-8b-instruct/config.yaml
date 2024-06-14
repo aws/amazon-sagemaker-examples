@@ -12,6 +12,7 @@ djl:
   option.output_formatter: "json"
   option.model_loading_timeout: 1200
   option.max_model_len: 4096
+  option.trust_remote_code: true
 sagemaker:
   model:
     name: "meta-llama-3-8b-instruct-vllm"

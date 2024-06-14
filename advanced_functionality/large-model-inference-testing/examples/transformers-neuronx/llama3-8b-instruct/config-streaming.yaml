@@ -14,6 +14,7 @@ djl:
   option.rolling_batch_strategy: "continuous_batching"
   option.max_rolling_batch_size: 8
   option.output_formatter: "jsonlines"
+  option.trust_remote_code: true
 sagemaker:
   model:
     name: "meta-llama-3-8b-instruct-transformers-neuronx-streaming"

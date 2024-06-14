@@ -14,6 +14,7 @@ djl:
   option.max_rolling_batch_size: 1
   option.output_formatter: "jsonlines"
   option.model_loader: "tnx"
+  option.trust_remote_code: true
 sagemaker:
   model:
     name: "llama-2-7b-chat-hf-transformers-neuronx-streaming"

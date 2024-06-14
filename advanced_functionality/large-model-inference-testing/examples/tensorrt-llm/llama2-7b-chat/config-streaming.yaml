@@ -10,6 +10,7 @@ djl:
   option.dtype: "fp16"
   option.rolling_batch: "trtllm"
   option.output_formatter: "jsonlines"
+  option.trust_remote_code: true
 sagemaker:
   model:
     name: "llama-2-7b-chat-hf-tensorrt-llm-streaming"

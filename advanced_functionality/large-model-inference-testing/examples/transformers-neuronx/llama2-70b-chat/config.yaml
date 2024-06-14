@@ -10,6 +10,7 @@ djl:
   option.n_positions: 2048
   option.model_loading_timeout: 3600
   option.model_loader: "tnx"
+  option.trust_remote_code: true
 sagemaker:
   model:
     name: "llama-2-70b-chat-hf-transformers-neuronx"

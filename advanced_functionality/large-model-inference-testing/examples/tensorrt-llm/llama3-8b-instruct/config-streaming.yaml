@@ -12,6 +12,7 @@ djl:
   option.rolling_batch: "trtllm"
   option.max_rolling_batch_size: 4
   option.output_formatter: "jsonlines"
+  option.trust_remote_code: true
 sagemaker:
   model:
     name: "meta-llama-3-8b-instruct-tensorrt-llm-streaming"

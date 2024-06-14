@@ -12,6 +12,7 @@ djl:
   option.rolling_batch: "auto"
   option.max_rolling_batch_size: 1
   option.output_formatter: "jsonlines"
+  option.trust_remote_code: true
 sagemaker:
   model:
     name: "llama-2-7b-chat-hf-deepspeed-streaming"

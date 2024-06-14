@@ -10,6 +10,7 @@ djl:
   option.dtype: "fp16"
   option.max_tokens: 2048
   option.task: "text-generation"
+  option.trust_remote_code: true
 sagemaker:
   model:
     name: "mistral-7b-instruct-v0-2-deepspeed"

@@ -6,6 +6,7 @@ djl:
   engine: "Python"
   option.model_loading_timeout: 1800
   option.max_dynamic_batch_size: 16
+  option.trust_remote_code: true
 sagemaker:
   model:
     name: "baai-bge-reranker-large-pytorch-neuronx"

@@ -8,6 +8,7 @@ djl:
   option.tensor_parallel_degree: 4
   option.max_num_tokens: 2048
   option.dtype: "fp16"
+  option.trust_remote_code: true
 sagemaker:
   model:
     name: "llama-2-13b-chat-hf-tensorrt-llm"
