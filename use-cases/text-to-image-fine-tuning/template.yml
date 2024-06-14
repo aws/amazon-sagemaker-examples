@@ -1,0 +1,378 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::LanguageExtensions # allows you to convert object to json
+Description: Template that provides automation to fine-tune a Stable Diffusion XL (SDXL) model using a custom image dataset
+Parameters:
+  TrainingS3BucketNamePrefix:
+    Type: String
+    Default: sagemaker-kohya-ss-fine-tuning
+    Description: The S3 bucket for the custom dataset (images), config files, and model outputs. The AWS Account ID will be appended to this name automatically to ensure uniqueness.
+  TrainingContainerRepositoryName:
+    Type: String
+    Default: kohya-ss-fine-tuning
+    Description: The ECR repository name for the training container image
+  TrainingContainerCodeRepositoryName:
+    Type: String
+    Default: kohya-ss-fine-tuning-container-image
+    Description: The CodeCommit repository name for building the training container image
+  TrainingContainerBuildProjectName:
+    Type: String
+    Default: kohya-ss-fine-tuning-build-container
+    Description: The CodeBuild project for building the training container image
+  TrainingPipelineName:
+    Type: String
+    Default: kohya-ss-fine-tuning-pipeline
+    Description: The SageMaker pipeline that orchestrates training the custom model
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - 
+        Label: 
+          default: Training Data Location
+        Parameters: 
+          - TrainingS3BucketNamePrefix
+      - 
+        Label: 
+          default: Build Training Container Image
+        Parameters: 
+          - TrainingContainerRepositoryName
+          - TrainingContainerCodeRepositoryName
+          - TrainingContainerBuildProjectName
+      - 
+        Label: 
+          default: Training Pipeline
+        Parameters: 
+          - TrainingPipelineName
+    ParameterLabels:
+      TrainingS3BucketNamePrefix: 
+        default: Training Data S3 Bucket Name
+      TrainingContainerRepositoryName:
+        default: Training Container Repository Name
+      TrainingContainerCodeRepositoryName:
+        default: Training Container Code Repository Name
+      TrainingContainerBuildProjectName:
+        default: Training Container CodeBuild Project Name
+      TrainingPipelineName:
+        default: Training Pipeline Name
+
+Resources:
+  # The S3 bucket that will contain the custom dataset (images) to fine-tune a custom model,
+  # as well as any necessary configuration files, and model outputs
+  TrainingS3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      # If you are using an older version of ControlTower guardrails, this may fail if the guardrail disallows changes to the encryption config
+      # BucketEncryption: 
+      #   ServerSideEncryptionConfiguration:
+      #     - ServerSideEncryptionByDefault: 
+      #         SSEAlgorithm: AES256
+      BucketName: !Sub '${TrainingS3BucketNamePrefix}-${AWS::AccountId}'
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+  # The CodeBuild project that build the training container image and pushes the image to ECR
+  TrainingContainerBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Artifacts:
+        Type: NO_ARTIFACTS
+      ConcurrentBuildLimit: 1
+      Description: Builds the training container image and pushes the image to ECR
+      Environment: 
+        ComputeType: BUILD_GENERAL1_LARGE
+        EnvironmentVariables:
+          - Name: KOHYA_SS_VERSION
+            Type: PLAINTEXT
+            Value: v22.6.2
+          - Name: IMAGE_TAG
+            Type: PLAINTEXT
+            Value: latest
+          - Name: IMAGE_REPO_NAME
+            Type: PLAINTEXT
+            Value: !Ref TrainingContainerRepositoryName
+          - Name: AWS_ACCOUNT_ID
+            Type: PLAINTEXT
+            Value: !Sub ${AWS::AccountId}
+        Image: aws/codebuild/amazonlinux2-x86_64-standard:5.0
+        ImagePullCredentialsType: CODEBUILD
+        PrivilegedMode: true
+        Type: LINUX_CONTAINER
+      LogsConfig: 
+        CloudWatchLogs: 
+          Status: ENABLED
+      Name: !Ref TrainingContainerBuildProjectName
+      QueuedTimeoutInMinutes: 480 # 8 hours
+      ResourceAccessRole: !GetAtt CodeBuildServiceRole.Arn
+      ServiceRole: !GetAtt CodeBuildServiceRole.Arn
+      Source: 
+        GitCloneDepth: 1
+        Location: !GetAtt TrainingContainerCodeRepository.CloneUrlHttp
+        Type: CODECOMMIT
+      TimeoutInMinutes: 60
+      Visibility: PRIVATE
+
+  # The CodeCommit source code repository that contains the code to build the 
+  # training container image
+  TrainingContainerCodeRepository:
+    Type: AWS::CodeCommit::Repository
+    Properties:
+      RepositoryDescription: Source code to build the training container image using Docker, and the training code
+      RepositoryName: !Ref TrainingContainerCodeRepositoryName
+
+  # Create the ECR repository for the training container image
+  # A container image will be built and pushed to this repository, containing
+  # the Kohya SS program, which will be used to train a custom SDXL model
+  TrainingContainerECRRepository:
+    Type: AWS::ECR::Repository
+    Properties:
+      EmptyOnDelete: false
+      EncryptionConfiguration: 
+        EncryptionType: AES256
+      ImageScanningConfiguration: 
+        ScanOnPush: true
+      RepositoryName: !Ref TrainingContainerRepositoryName
+
+  # The SageMaker pipeline that orchestrates the custom model training
+  Pipeline:
+    Type: AWS::SageMaker::Pipeline
+    Properties:
+      PipelineName: !Ref TrainingPipelineName
+      PipelineDescription: A SageMaker pipeline that trains Stable Diffusion XL with a custom dataset and outputs a fine-tuned SDXL model
+      ParallelismConfiguration: 
+        MaxParallelExecutionSteps: 1 # max num of steps that can be executed in parallel
+      PipelineDefinition: 
+        PipelineDefinitionBody:
+          Fn::ToJsonString: 
+            Version: '2020-12-01'
+            Parameters: 
+              - Name: InputS3DatasetLocation
+                Type: String
+                Description: S3 URI of the training dataset
+                DefaultValue:
+                  !Sub
+                    - 's3://${TrainingS3Bucket}/0001-dataset'
+                    - { TrainingS3Bucket: !Ref TrainingS3Bucket }
+              - Name: OutputS3ModelLocation
+                Type: String
+                Description: The S3 location where the model will be output to
+                DefaultValue: 
+                  !Sub
+                    - 's3://${TrainingS3Bucket}/model-outputs'
+                    - { TrainingS3Bucket: !Ref TrainingS3Bucket }
+              - Name: TrainingDockerImage
+                Type: String
+                Description: The ECR docker image that will be used for training
+                DefaultValue: !Sub ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${TrainingContainerRepositoryName}:latest
+              - Name: TrainingInstanceType
+                Type: String
+                Description: The instance type to use for training
+                DefaultValue: ml.g5.8xlarge
+              - Name: TrainingVolumeSizeInGB
+                Type: Integer
+                Description: The instance volume size to use for training
+                DefaultValue: 50
+              - Name: MaxTrainingRuntimeInSeconds
+                Type: Integer
+                Description: The maximum time a training run is allowed to run
+                DefaultValue: 86400 #24 hours
+            Steps:
+              - Name: InputsValid
+                DisplayName: Inputs valid
+                Description: Validate the input values before continuing
+                Type: Condition
+                Arguments:
+                  Conditions:
+                    - LeftValue:
+                        Get: Parameters.TrainingVolumeSizeInGB
+                      Type: GreaterThanOrEqualTo
+                      RightValue: 50
+                  IfSteps:
+                    - Name: TrainNewFineTunedModel
+                      DisplayName: Train new fine-tuned model
+                      Description: Trains a new model with a custom dataset
+                      Type: Training
+                      Arguments:
+                        AlgorithmSpecification:
+                          TrainingImage: 
+                            Get: Parameters.TrainingDockerImage
+                          TrainingInputMode: File
+                        InputDataConfig:
+                          - ChannelName: train
+                            DataSource:
+                              S3DataSource:
+                                S3DataType: S3Prefix
+                                S3Uri: 
+                                  Get: Parameters.InputS3DatasetLocation
+                                S3DataDistributionType: FullyReplicated
+                            InputMode: File
+                        OutputDataConfig:
+                          S3OutputPath: 
+                            Get: Parameters.OutputS3ModelLocation
+                        ResourceConfig:
+                          InstanceCount: 1
+                          InstanceType: 
+                            Get: Parameters.TrainingInstanceType
+                          VolumeSizeInGB: 
+                            Get: Parameters.TrainingVolumeSizeInGB
+                        RoleArn: !GetAtt SageMakerServiceRole.Arn
+                        StoppingCondition:  
+                          MaxRuntimeInSeconds: 
+                            Get: Parameters.MaxTrainingRuntimeInSeconds
+                  ElseSteps:
+                    - Name: Fail
+                      DisplayName: Fail
+                      Description: Failed validation of input parameters
+                      Type: Fail
+                      Arguments:
+                        ErrorMessage: Input parameter validation failed, the training can not continue. Make sure the volume size is at least 50GB.
+      RoleArn: !GetAtt PipelineExecutionRole.Arn
+
+  # Updating the CodeCommit repository will trigger the CodeBuild project that builds a new training container image
+  BuildNewTrainingContainerImageRule:
+    Type: AWS::Events::Rule
+    Properties:
+      Description: Updating the CodeCommit repository will trigger the CodeBuild project that builds a new training container image
+      EventBusName: default
+      EventPattern: 
+        source:
+          - aws.codecommit
+        detail-type:
+          - CodeCommit Repository State Change
+        resources:
+          - !GetAtt TrainingContainerCodeRepository.Arn
+      Name: kohya-ss-fine-tuning-trigger-new-image-build-rule
+      State: ENABLED
+      Targets: 
+        - Id: trigger-new-image-build
+          Arn: !GetAtt TrainingContainerBuildProject.Arn
+          RoleArn: !GetAtt BuildNewTrainingContainerImageRuleRole.Arn
+
+  # The role used to execute the SageMaker pipeline
+  PipelineExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - sagemaker.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Description: The role used to execute the SageMaker pipeline
+      Policies: 
+        - PolicyName: custom-sagemaker-pipeline-execution-policy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: ["sagemaker:Create*", "sagemaker:Describe*", "sagemaker:AddTags", "s3:GetObject"]
+                Resource: '*'
+              - Effect: Allow
+                Action: "iam:PassRole"
+                Resource: !GetAtt SageMakerServiceRole.Arn
+      RoleName: custom-sagemaker-pipeline-execution-role
+
+  # The role used by CodeBuild to execute commands
+  CodeBuildServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - codebuild.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Description: The service role used by CodeBuild to execute commands
+      Policies: 
+        - PolicyName: custom-codebuild-service-policy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: 
+                  - codebuild:CreateReportGroup
+                  - codebuild:CreateReport
+                  - codebuild:UpdateReport
+                  - codebuild:BatchPutTestCases
+                  - codebuild:BatchPutCodeCoverages
+                Resource: !Sub 'arn:${AWS::Partition}:codebuild:${AWS::Region}:${AWS::AccountId}:report-group/${TrainingContainerBuildProjectName}*'
+              - Effect: Allow
+                Action: 
+                  - codecommit:GitPull
+                Resource: !GetAtt TrainingContainerCodeRepository.Arn
+              - Effect: Allow
+                Action: 
+                  - ecr:GetAuthorizationToken
+                  - ecr:CreateRepository
+                Resource: '*'
+              - Effect: Allow
+                Action: 
+                  - ecr:DescribeRepositories
+                  - ecr:InitiateLayerUpload
+                  - ecr:UploadLayerPart
+                  - ecr:CompleteLayerUpload
+                  - ecr:BatchCheckLayerAvailability
+                  - ecr:PutImage
+                  - ecr:BatchGetImage
+                  - ecr:GetDownloadUrlForLayer
+                Resource: !GetAtt TrainingContainerECRRepository.Arn
+              - Effect: Allow
+                Action: 
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: 
+                  - !Sub 'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/${TrainingContainerBuildProjectName}'
+                  - !Sub 'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/${TrainingContainerBuildProjectName}:*'
+      RoleName: custom-codebuild-service-role
+
+  # The role used by SageMaker to execute commands
+  SageMakerServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - codebuild.amazonaws.com
+                - sagemaker.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Description: The service role used by SageMaker to execute commands
+      ManagedPolicyArns: 
+        - arn:aws:iam::aws:policy/AdministratorAccess
+      RoleName: custom-sagemaker-service-role
+
+  # The role used by the EventBridge rule to initiate the CodeBuild project when the CodeCommit repo code changes
+  BuildNewTrainingContainerImageRuleRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - events.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Description: The role used by the EventBridge rule to initiate the CodeBuild project when the CodeCommit repo code changes
+      Policies: 
+        - PolicyName: custom-build-new-training-container-image-rule-policy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: 'codebuild:StartBuild'
+                Resource: !GetAtt TrainingContainerBuildProject.Arn
+      RoleName: custom-build-new-training-container-image-rule-role
