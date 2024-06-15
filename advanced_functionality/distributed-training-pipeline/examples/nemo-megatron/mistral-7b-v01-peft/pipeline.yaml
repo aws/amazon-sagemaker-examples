@@ -22,6 +22,9 @@ pipeline:
     - name: peft_accuracy
       description: "peft accuracy of model"
       config: peft_accuracy.yaml
+    - name: merge_peft_model
+      description: "Merge peft model"
+      config: merge_peft.yaml
     - name: nemo_to_hf
       description: "convert nemo model to huggingface model"
       config: nemo_to_hf.yaml
