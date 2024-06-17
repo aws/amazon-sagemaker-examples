@@ -397,7 +397,7 @@ def main(args):
         len(args.num_kept_checkpoints),
     )
     if len(set(ckpt_lens)) != 1:
-        raise ValueError(f"Len mismtach for checkpoint dir, freq vs num to keep:  {ckpt_lens}.")
+        raise ValueError(f"Len mismatch for checkpoint dir, freq vs num to keep:  {ckpt_lens}.")
 
     if args.distributed_backend == "smddp":
         import smdistributed.dataparallel.torch.torch_smddp  # pylint: disable=unused-import
