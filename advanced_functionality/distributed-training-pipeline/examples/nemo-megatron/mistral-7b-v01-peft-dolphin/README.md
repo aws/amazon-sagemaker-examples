@@ -1,0 +1,3 @@
+# Pre-train Mistral-7B-v0.1 on dolphin dataset using Nemo Meagtron-LM
+
+This example shows how to do parameter efficient fine tuning (PEFT) of [Mistral-7B-v0.1](https://huggingface.co/mistralai/Mistral-7B-v0.1/commits/main) model on [dolphin](https://huggingface.co/datasets/cognitivecomputations/dolphin) dataset using [Nemo](https://github.com/NVIDIA/NeMo) [Megatron-LM](https://github.com/NVIDIA/Megatron-LM). 

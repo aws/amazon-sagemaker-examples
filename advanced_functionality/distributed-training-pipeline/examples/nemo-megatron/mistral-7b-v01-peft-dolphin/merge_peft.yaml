@@ -1,0 +1,37 @@
+resources:
+  instance_count: 1
+  instance_type: ml.p3.16xlarge
+  volume_size: 500
+pre_script: 
+  - SCRIPT_DIR=/NeMo/scripts/nlp_language_modeling/merge_lora_weights
+  - cd $SCRIPT_DIR
+  - mkdir -p $LOG_ROOT
+  - OUTPUT_LOG=$LOG_ROOT/merge_peft.log
+  - TP_SIZE=8
+  - PP_SIZE=1
+  - PATH_TO_BASE_MODEL=$MODEL_PATH/ckpt.nemo
+  - echo "PATH_TO_BASE_MODEL=$PATH_TO_BASE_MODEL"
+  - PATH_TO_PEFT_MODEL=$LOG_ROOT/nemo_experiments/$EXP_NAME/checkpoints/$EXP_NAME.nemo
+  - echo "PATH_TO_PEFT_MODEL=$PATH_TO_PEFT_MODEL"
+  - PATH_TO_MERGED_MODEL=$LOG_ROOT/nemo_experiments/$EXP_NAME/checkpoints/merged_model.nemo
+  - echo "PATH_TO_MERGED_MODEL=$PATH_TO_MERGED_MODEL"
+  - sed -i -e '/from scripts\.nlp_language_modeling\.merge_lora_weights\.convert_lora_parallelism/ s/^#*/#/' merge.py
+train:
+  env:
+    - name: LOG_ROOT
+      value: $SM_CHANNEL_EFS/home/$RELEASE_NAME/logs
+    - name: MODEL_PATH
+      value: "$SM_CHANNEL_FSX/huggingface/models/$HF_MODEL_ID/$HF_MODEL_REVISION"
+    - name: EXP_NAME
+      value: peft_dolphin
+  command:
+    - python
+  args:
+    - merge.py
+    - trainer.accelerator=cpu
+    - tensor_model_parallel_size=$TP_SIZE
+    - pipeline_model_parallel_size=$PP_SIZE
+    - gpt_model_file=$PATH_TO_BASE_MODEL
+    - lora_model_path=$PATH_TO_PEFT_MODEL
+    - merged_model_path=$PATH_TO_MERGED_MODEL
+    - '2>&1 | tee $OUTPUT_LOG'
