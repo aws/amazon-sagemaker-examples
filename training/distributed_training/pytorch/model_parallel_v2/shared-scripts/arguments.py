@@ -20,6 +20,11 @@ def parse_args():  # pylint: disable=too-many-statements
         default=2,
         help="batch size per dp rank, for tensor parallelism degree 8 with pipeline parallel degree 1 this means 8*this batch size per node",  # pylint: disable=line-too-long
     )
+    opt_grp.add_argument(
+        "--gradient_accumulation_steps",
+        type=int,
+        default=1,
+    )
     opt_grp.add_argument("--max_steps", "--max_training_steps", type=int, default=5000)
     opt_grp.add_argument(
         "--epochs", type=int, default=3, help="times of iterating over the training dataset"
