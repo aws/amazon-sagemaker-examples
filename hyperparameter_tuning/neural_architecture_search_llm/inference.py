@@ -3,6 +3,7 @@ import os
 import json
 import torch
 import logging
+
 logging.basicConfig(level=logging.INFO)
 
 from transformers import AutoModelForSequenceClassification, AutoTokenizer
@@ -15,21 +16,24 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 def model_fn(model_dir):
     """
-    Load the model and tokenizer for inference
+    Load the sub-network and tokenizer for inference
     """
 
-    tokenizer = AutoTokenizer.from_pretrained('bert-base-cased')
+    tokenizer = AutoTokenizer.from_pretrained("bert-base-cased")
     model = AutoModelForSequenceClassification.from_pretrained(model_dir).eval()
-    
-    architecture_definition = json.loads(os.environ['SM_HPS'])
-    config = BertConfig(vocab_size=model.config.vocab_size,
-                        num_hidden_layers=architecture_definition['num-layers'],
-                        num_attention_heads=architecture_definition['num-heads'],
-                        intermediate_size=architecture_definition['num-units'],
-                        )
+
+    architecture_definition = json.loads(os.environ["SM_HPS"])
+    config = BertConfig(
+        vocab_size=model.config.vocab_size,
+        num_hidden_layers=architecture_definition["num-layers"],
+        num_attention_heads=architecture_definition["num-heads"],
+        intermediate_size=architecture_definition["num-units"],
+    )
     config.attention_head_size = int(config.hidden_size / model.config.num_attention_heads)
 
-    sub_network = get_final_bert_model(original_model=model, new_model_config=config).to(device).eval()
+    sub_network = (
+        get_final_bert_model(original_model=model, new_model_config=config).to(device).eval()
+    )
 
     return {"model": sub_network, "tokenizer": tokenizer}
 

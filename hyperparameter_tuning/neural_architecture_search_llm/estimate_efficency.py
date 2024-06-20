@@ -39,9 +39,7 @@ def compute_mac(
 ):
     mac = 0.0
     for num_heads, num_neurons in zip(num_heads_per_layer, num_neurons_per_layer):
-        attention_mac = num_heads * mac_per_head(
-            seq_len, hidden_size, attention_head_size
-        )
+        attention_mac = num_heads * mac_per_head(seq_len, hidden_size, attention_head_size)
         ffn_mac = num_neurons * mac_per_neuron(seq_len, hidden_size)
         mac += attention_mac + ffn_mac
     return mac
@@ -56,18 +54,14 @@ def compute_parameters(dmodel, dhead, num_heads_per_layer, num_neurons_per_layer
     for layer in range(num_layers):
         n_layer_norm = 2 * dmodel
         if num_heads_per_layer[layer] > 0:
-            n_attention = (
-                (dmodel * dhead + dhead) * num_heads_per_layer[layer] * 3
-            )  # attention
+            n_attention = (dmodel * dhead + dhead) * num_heads_per_layer[layer] * 3  # attention
             n_attention += dmodel * dmodel + dmodel  # output
             n_attention += n_layer_norm
         else:
             n_attention = 0
         if num_neurons_per_layer[layer] > 0:
             n_ffn = (
-                2 * dmodel * num_neurons_per_layer[layer]
-                + dmodel
-                + num_neurons_per_layer[layer]
+                2 * dmodel * num_neurons_per_layer[layer] + dmodel + num_neurons_per_layer[layer]
             )
             n_ffn += n_layer_norm
         else:
@@ -78,9 +72,7 @@ def compute_parameters(dmodel, dhead, num_heads_per_layer, num_neurons_per_layer
 
 
 def compute_latency(model, tokenizer, batch, device):
-    starter, ender = torch.cuda.Event(enable_timing=True), torch.cuda.Event(
-        enable_timing=True
-    )
+    starter, ender = torch.cuda.Event(enable_timing=True), torch.cuda.Event(enable_timing=True)
     repetitions = 300
     timings = np.zeros((repetitions, 1))
     # warm-up GPU

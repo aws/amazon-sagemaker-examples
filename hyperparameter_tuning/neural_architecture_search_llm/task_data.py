@@ -10,28 +10,39 @@
 # on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
 # express or implied. See the License for the specific language governing
 # permissions and limitations under the License.
-TASK_TO_SEQ_LEN = {
-    "stsb": 128,
-    "mrpc": 128,
-    "rte": 128,
-    "sst2": 64,
-    "qqp": 128,
-    "qnli": 128,
-    "cola": 64,
-    "mnli": 128,
-    "mnli-m": 128,
-    "mnli-mm": 128,
-}
 
-
-TASKINFO = {
-    "cola": {"metric": "matthews_correlation", "mode": "max"},
-    "mnli": {"metric": "accuracy", "mode": "max"},
-    "mrpc": {"metric": "f1", "mode": "max"},
-    "qnli": {"metric": "accuracy", "mode": "max"},
-    "qqp": {"metric": "f1", "mode": "max"},
-    "rte": {"metric": "accuracy", "mode": "max"},
-    "sst2": {"metric": "accuracy", "mode": "max"},
-    "stsb": {"metric": "spearmanr", "mode": "max"},
-    "wnli": {"metric": "accuracy", "mode": "max"},
+GLUE_TASK_INFO = {
+    "cola": {
+        "metric": "matthews_correlation",
+        "mode": "max",
+        "seq_length": 64,
+        "keys": ("sentence", None),
+    },
+    "mnli": {
+        "metric": "accuracy",
+        "mode": "max",
+        "seq_length": 128,
+        "keys": ("premise", "hypothesis"),
+    },
+    "mrpc": {"metric": "f1", "mode": "max", "seq_length": 128, "keys": ("sentence1", "sentence2")},
+    "qnli": {
+        "metric": "accuracy",
+        "mode": "max",
+        "seq_length": 128,
+        "keys": ("question", "sentence"),
+    },
+    "qqp": {"metric": "f1", "mode": "max", "seq_length": 128, "keys": ("question1", "question2")},
+    "rte": {
+        "metric": "accuracy",
+        "mode": "max",
+        "seq_length": 128,
+        "keys": ("sentence1", "sentence2"),
+    },
+    "sst2": {"metric": "accuracy", "mode": "max", "seq_length": 64, "keys": ("sentence", None)},
+    "stsb": {
+        "metric": "spearmanr",
+        "mode": "max",
+        "seq_length": 128,
+        "keys": ("sentence1", "sentence2"),
+    },
 }
