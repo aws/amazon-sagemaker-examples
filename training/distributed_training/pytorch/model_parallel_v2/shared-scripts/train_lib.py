@@ -205,6 +205,7 @@ def train(
     start_epoch,
     start_train_path_index,
     resume_from_sequence_number,
+    val_resume_from_sequence_number,
     num_params,
     total_steps,
     args,
@@ -233,9 +234,10 @@ def train(
     set_seed(args.seed)
 
     data_pipeline = create_data_pipeline(
-        args, start_train_path_index, resume_from_sequence_number, dp_rank, dp_size
+        args, start_train_path_index, resume_from_sequence_number, val_resume_from_sequence_number, dp_rank, dp_size
     )
     cur_seq_index = resume_from_sequence_number
+    cur_val_seq_index = val_resume_from_sequence_number
     epoch = start_epoch
     while total_steps < args.max_steps:
         nvtx_warmup_iters = 3
@@ -273,7 +275,7 @@ def train(
             throughput = sample_processed / step_time
             throughputs.append(throughput)
 
-            tflops_per_gpu = compute_tflops(throughput, num_params, world_size, batch_seqlen)
+            tflops_per_gpu = compute_tflops(args, sample_processed, step_time, world_size)
 
             if not total_steps % args.logging_freq and args.log_reduced_training_loss > 0:
                 loss_scalar = reduce_loss(loss)
@@ -304,7 +306,7 @@ def train(
                         grad_norm,
                         throughputs,
                         num_params,
-                        world_size,
+                        dp_size,
                         batch_seqlen,
                     )
 
@@ -313,6 +315,7 @@ def train(
                 cur_state = np.random.get_state()
                 torch.cuda.empty_cache()
                 val_loss, val_ppl = eval_model(model, data_pipeline, args.validation_batches)
+                cur_val_seq_index += args.val_batch_size * args.validation_batches
                 if global_rank == 0:
                     log_and_write_eval_metrics(writers, display_step, val_loss, val_ppl)
                 model = model.train()
@@ -327,6 +330,7 @@ def train(
                 else:
                     save_train_path_index = 0
                 save_train_seq_index = cur_seq_index
+                save_val_seq_index = cur_val_seq_index
                 # technically we have processed save_train_seq_index sequences in this file
                 # and so index to start from is save_train_seq_index
                 user_content = {
@@ -337,6 +341,7 @@ def train(
                     "epoch": epoch,
                     "start_train_path_index": save_train_path_index,
                     "resume_from_sequence_number": save_train_seq_index,
+                    "val_resume_from_sequence_number": save_val_seq_index,
                 }
 
                 subdir = f"{args.model_type}-{total_steps}steps"
@@ -360,6 +365,7 @@ def train(
                     args.num_kept_checkpoints[0],
                     checkpointing_pg_metadata,
                     tensor_parallel_degree=int(tsm.state.tensor_parallel_degree),
+                    expert_parallel_degree=int(tsm.state.expert_parallel_degree),
                     checkpoint_type=args.checkpoint_type,
                 )
                 if args.enable_memory_profiling > 0:
@@ -466,6 +472,8 @@ def main(args):
 
         # Using config for finetune mode, else uses args to create model
         model_config = AutoConfig.from_pretrained(args.hf_pretrained_model_name_or_dir)
+        if hasattr(model_config, "use_cache"):
+             model_config.use_cache = False
     else:
         model_config = get_model_config(args)
 
@@ -506,12 +514,28 @@ def main(args):
             num_params = compute_num_params(model)
 
         if args.use_smp_implementation:
+            if args.moe:
+                from torch.sagemaker.moe.moe_config import MoEConfig
+                moe_config = MoEConfig(
+                    smp_moe=args.use_smp_implementation > 0,
+                    random_seed=args.seed,
+                    moe_load_balancing=args.moe_load_balancing,
+                    global_token_shuffle=args.global_token_shuffle > 0,
+                    moe_all_to_all_dispatcher=args.moe_all_to_all_dispatcher > 0,
+                    use_cpu_initialization=finetune_with_pretrained_weights_check(args) and dist.get_rank() == 0,
+                )
+            else:
+                moe_config = None
             load_state_dict_from_rank0 = finetune_with_pretrained_weights_check(args)
-            model = transform(model, load_state_dict_from_rank0=load_state_dict_from_rank0)
+            if args.moe and args.delayed_param and (not load_state_dict_from_rank0 or dist.get_rank() != 0):
+                with init_empty_weights():
+                    model = transform(model, config=moe_config, load_state_dict_from_rank0=load_state_dict_from_rank0)
+            else:
+                model = transform(model, config=moe_config, load_state_dict_from_rank0=load_state_dict_from_rank0)
 
         if args.delayed_param:
             # param init fn for delayed param creation
-            if finetune_check(args):
+            if finetune_with_pretrained_weights_check(args):
                 if dist.get_rank() != 0:
                     delayed_param_initer = DelayedParamIniter(model)
             else:
@@ -526,7 +550,8 @@ def main(args):
             "Created model with total parameters: %d (%.2f B)", num_params, num_params * 1e-9
         )
 
-    transformer_layer = get_transformer_layer(args.model_type, args.use_smp_implementation)
+    transformer_layer = get_transformer_layer(args.model_type, args.use_smp_implementation,
+                                              args.moe)
 
     if args.auto_wrap_policy == "transformer_auto_wrap_policy":
         gpt_auto_wrap_policy = functools.partial(
@@ -633,6 +658,7 @@ def main(args):
             total_steps,
             start_train_path_index,
             resume_from_sequence_number,
+            val_resume_from_sequence_number,
         ) = load_checkpoint(
             args,
             model,
@@ -642,14 +668,17 @@ def main(args):
             sharding_strategy,
             checkpointing_pg_metadata,
             tensor_parallel_degree=int(tsm.state.tensor_parallel_degree),
+            expert_parallel_degree=int(tsm.state.expert_parallel_degree),
             checkpoint_type=args.checkpoint_type,
         )
+        torch.cuda.empty_cache()
 
     else:
         total_steps = 0
         epoch = 0
         start_train_path_index = 0
         resume_from_sequence_number = 0
+        val_resume_from_sequence_number = 0
 
     train_start_time = time.time()
     # total_steps, throughput, loss
@@ -662,6 +691,7 @@ def main(args):
         epoch,
         start_train_path_index,
         resume_from_sequence_number,
+        val_resume_from_sequence_number,
         num_params,
         total_steps,
         args,
@@ -688,6 +718,7 @@ def main(args):
             1,
             None,
             int(tsm.state.tensor_parallel_degree),
+            int(tsm.state.expert_parallel_degree),
             checkpoint_type=CheckpointingMethod.FULL,
         )
 

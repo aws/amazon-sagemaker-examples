@@ -49,6 +49,12 @@ class CheckpointingMethod(Enum):
     FULL = auto()
     USE_PG_WITH_UTIL = auto()
 
+def backward_compat_get_val_resume_from_sequence_number(state_dict):
+    if "val_resume_from_sequence_number" not in state_dict:
+
+        logger.warn("Did not find validation dataloader's sequence number, validation dataloader will start from batch 0")
+        return 0
+    return state_dict["val_resume_from_sequence_number"]
 
 def backward_compat_get_resume_from_sequence_number(args, state_dict):
     if "resume_from_sequence_number" not in state_dict:
@@ -247,6 +253,7 @@ def save_checkpoint(  # pylint: disable=too-many-arguments,too-many-locals
     num_kept_checkpoints: int,
     checkpointing_pg_metadata,
     tensor_parallel_degree: int,
+    expert_parallel_degree: int,
     checkpoint_type=CheckpointingMethod.LOCAL,
 ):
     """Export checkpoint."""
@@ -274,12 +281,14 @@ def save_checkpoint(  # pylint: disable=too-many-arguments,too-many-locals
     if checkpoint_type == CheckpointingMethod.SHARDED:
         if tensor_parallel_degree > 1:
             save_dir = os.path.join(save_dir, f"tp{tensor_parallel_degree}-{state.tp_rank}")
+        if expert_parallel_degree > 1:
+            save_dir = os.path.join(save_dir, f"ep{expert_parallel_degree}-{state.ep_rank}")
         _save_sharded(
             model, optimizer, scheduler, user_content, save_dir, checkpointing_pg_metadata
         )
     elif checkpoint_type == CheckpointingMethod.LOCAL:
-        if tensor_parallel_degree > 1:
-            raise NotImplementedError("Local checkpointing unsupported with tensor parallelism")
+        if tensor_parallel_degree > 1 or expert_parallel_degree > 1:
+            raise NotImplementedError("Local checkpointing unsupported with tensor/expert parallelism")
         _save_local(model, optimizer, scheduler, user_content, save_dir)
     elif checkpoint_type == CheckpointingMethod.FULL:
         _save_full(model, save_dir, user_content)
@@ -376,7 +385,7 @@ def _load_sharded(model, optimizer, scheduler, checkpoint_dir, checkpointing_pg_
             # cannot load the optimizer state_dict together with the model state_dict
         }
 
-        def _load_from_disk():
+        def _load_from_disk(state_dict):
             # NOTE: `_{save, load}_sharded` need to be consistent using the `process_group`s.
             checkpoint.load_state_dict(
                 state_dict=state_dict,
@@ -387,13 +396,19 @@ def _load_sharded(model, optimizer, scheduler, checkpoint_dir, checkpointing_pg_
             )
 
         try:
-            _load_from_disk()
-        except KeyError():
+            _load_from_disk(state_dict)
+        except KeyError:
             # when loading old checkpoints which had start_batch_index instead of resume_from_sequence_number
             # replace the key in dummy state_dict, and retry
             del state_dict["resume_from_sequence_number"]
             state_dict["start_batch_index"] = 0
-            _load_from_disk()
+            _load_from_disk(state_dict)
+        try:
+            val_state_dict = {"val_resume_from_sequence_number": 0}
+            _load_from_disk(val_state_dict)
+            state_dict.update(val_state_dict)
+        except:
+            pass
 
         if dist.get_rank() == 0:
             logger.info("Loaded model state from disk")
@@ -464,6 +479,7 @@ def load_checkpoint(
     sharding_strategy,
     checkpointing_pg_metadata,
     tensor_parallel_degree: int,
+    expert_parallel_degree: int,
     checkpoint_type=CheckpointingMethod.LOCAL,
 ):
     """Load checkpoint."""
@@ -489,6 +505,10 @@ def load_checkpoint(
         if tensor_parallel_degree > 1:
             checkpoint_dir = os.path.join(
                 checkpoint_dir, f"tp{tensor_parallel_degree}-{state.tp_rank}"
+            )
+        if expert_parallel_degree > 1:
+            checkpoint_dir = os.path.join(
+                checkpoint_dir, f"ep{expert_parallel_degree}-{state.ep_rank}"
             )
         loaded = _load_sharded(
             model, optimizer, scheduler, checkpoint_dir, checkpointing_pg_metadata
@@ -516,6 +536,7 @@ def load_checkpoint(
         state_dict = loaded
 
     resume_from_sequence_number = backward_compat_get_resume_from_sequence_number(args, state_dict)
+    val_resume_from_sequence_number = backward_compat_get_val_resume_from_sequence_number(state_dict)
     if dist.get_rank() == 0:
         logger.info(
             "Loaded state from disk: epoch %d, start_train_path_index %d, resume_from_sequence_number %d.",
@@ -532,4 +553,5 @@ def load_checkpoint(
         state_dict["total_steps"],
         state_dict["start_train_path_index"],
         resume_from_sequence_number,
+        val_resume_from_sequence_number,
     )
