@@ -1,0 +1,25 @@
+#frontend settings
+minWorkers: 1
+maxWorkers: 1
+maxBatchDelay: 200
+responseTimeout: 300
+parallelType: "pp"
+deviceType: "gpu"
+torchrun:
+    nproc-per-node: 4
+
+#backend settings
+pippy:
+    rpc_timeout: 1800
+    model_type: "HF"
+    chunks: 1
+    input_names: ["input_ids"]
+    num_worker_threads: 128
+
+handler:
+    model_path: "/opt/ml/model/models--facebook--opt-30b/snapshots/ceea0a90ac0f6fae7c2c34bcb40477438c152546"
+    index_filename: 'pytorch_model.bin.index.json'
+    max_length: 50
+    max_new_tokens: 60
+    manual_seed: 40
+    dtype: fp16
