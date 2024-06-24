@@ -1,5 +1,8 @@
 # Contextual Bandits with Amazon SageMaker RL
 
+> [!WARNING]
+> As of April 2024, SageMaker RL containers no longer accepts new pull requests. Please follow [SageMaker RL Container's Building Your Image](https://github.com/aws/sagemaker-rl-container/tree/master?tab=readme-ov-file#building-your-image) to build your own RL images and modify examples appropriately. Modification may include but is not limited to substituting `<YOUR_IMAGE_URL_HERE>` with your own RL image URL.
+
 This Notebook demonstrates how you can manage your own contextual multi-armed bandit workflow on SageMaker using the built-in Vowpal Wabbit (VW) container to train and deploy contextual bandit models. We show how to train these models that interact with a live environment (using a simulated client application) and continuously update the model with efficient exploration.
 
 

@@ -1,5 +1,8 @@
 # Game Server Autopilot with Amazon SageMaker RL
 
+> [!WARNING]
+> As of April 2024, SageMaker RL containers no longer accepts new pull requests. Please follow [SageMaker RL Container's Building Your Image](https://github.com/aws/sagemaker-rl-container/tree/master?tab=readme-ov-file#building-your-image) to build your own RL images and modify examples appropriately. Modification may include but is not limited to substituting `<YOUR_IMAGE_URL_HERE>` with your own RL image URL.
+
 Multiplayer game publishers often need to either over-provision resources or manually manage compute resource allocation when launching a large-scale worldwide game, to avoid the long player-wait in the game lobby. Game publishers need to develop, config, and deploy tools that helped them to monitor and control the compute allocation. This blog demonstrates GameServer Autopilot, a new machine learning-based example tool that makes it easy for game publishers to reduce the time players wait for compute to spawn, while still avoiding compute over-provisioning. It also eliminates manual configuration decisions and changes publishers need to make and reduces the opportunity for human errors.
 
 Here we describe a reinforcement learning-based system that learns to allocate resources in response to player usage patterns. The hosted model directly predicts the required number of game-servers so as to allow EKS the time to allocate instances to reduce player wait time. The training process integrates with the game eco-system, and requires minimal manual configuration.

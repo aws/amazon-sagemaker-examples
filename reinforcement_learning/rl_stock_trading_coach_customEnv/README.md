@@ -1,5 +1,8 @@
 # Stock Trading with Amazon SageMaker RL
 
+> [!WARNING]
+> As of April 2024, SageMaker RL containers no longer accepts new pull requests. Please follow [SageMaker RL Container's Building Your Image](https://github.com/aws/sagemaker-rl-container/tree/master?tab=readme-ov-file#building-your-image) to build your own RL images and modify examples appropriately. Modification may include but is not limited to substituting `<YOUR_IMAGE_URL_HERE>` with your own RL image URL.
+
 This example applies the deep Q-network method to train an agent that will trade a single share to maximize profit. The goal is to demonstrate how to go beyond the Atari games and apply RL to a different practical domain. Based on the setup in chapter 8 of [1], we use one-minute historical share price intervals, and then apply a Double DQN architecture to accommodate a simple set of discrete trading actions: do nothing, buy a single share, and close the position. The customized environment is constructed using Open AI Gym and the RL agents are trained using Amazon SageMaker. 
 
 [1] Maxim Lapan. "[Deep Reinforcement Learning Hands-On." Packt (2018)](https://github.com/PacktPublishing/Deep-Reinforcement-Learning-Hands-On/blob/master/Chapter08/lib/environ.py).
