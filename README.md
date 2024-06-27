@@ -38,19 +38,6 @@ As of February 7, 2022, the default branch is named "main". See our [announcemen
 
 ## :notebook: Examples
 
-### Introduction to geospatial capabilities
-
-These examples introduce SageMaker geospatial capabilities which makes it easy to build, train, and deploy ML models using geospatial data.
-
-- [How to use SageMaker Processing with geospatial image](sagemaker-geospatial/processing-geospatial-ndvi/geospatial-processing-ndvi-intro.ipynb) shows how to compute the normalized difference vegetation index (NDVI) which indicates health and density of vegetation using SageMaker Processing and satellite imagery
-- [Monitoring Lake Drought with SageMaker Geospatial Capabilities](sagemaker-geospatial/lake-mead-drought-monitoring) shows how to monitor Lake Mead drought using SageMaker geospatial capabilities.
-- [Digital Farming with Amazon SageMaker Geospatial Capabilities](sagemaker-geospatial/digital-farming-pipelines) shows how geospatial capabilities can help accelerating, optimizing, and easing the processing of the geospatial data for the Digital Farming use cases.
-- [Assess wildfire damage with Amazon SageMaker Geospatial Capabilities](sagemaker-geospatial/dixie-wildfire-damage-assessment/dixie-wildfire-damage-assessment.ipynb) demonstrates how Amazon SageMaker geospatial capabilities can be used to identify and assess vegetation loss caused by the Dixie wildfire in Northern California.
-- [Monitoring Glacier Melting with SageMaker Geospatial Capabilities](sagemaker-geospatial/mount-shasta-glacier-melting-monitoring) shows how to monitor glacier melting at Mount Shasta using SageMaker geospatial capabilities.
-- [Monitoring of methane (CH4) emission point sources using Amazon SageMaker Geospatial Capabilities](sagemaker-geospatial/methane-emission-monitoring/monitor_methane_ch4_emission_point_sources.ipynb) demonstrates how methane emissions can be detected by using open data Satellite imagery (Sentinel-2).
-- [How to use Vector Enrichment Jobs for Map Matching](sagemaker-geospatial/vector-enrichment-map-matching/vector-enrichment-map-matching.ipynb) shows how to use vector enrichtment operations with Amazon SageMaker Geospatial capabilities to snap GPS coordinates to road segments.
-- [How to use Vector Enrichment Jobs for Reverse Geocoding](sagemaker-geospatial/vector-enrichment-reverse-geocoding/vector-enrichment-reverse-geocoding.ipynb) shows how to use Amazon SageMaker Geospatial capabilities for reverse geocoding to obtain human readable addresses from data with latitude/longitude information.
-
 ### Introduction to Ground Truth Labeling Jobs
 
 These examples provide quick walkthroughs to get you up and running with the labeling job workflow for Amazon SageMaker Ground Truth.
