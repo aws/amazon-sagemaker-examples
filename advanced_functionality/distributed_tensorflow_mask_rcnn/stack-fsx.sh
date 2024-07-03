@@ -1,7 +1,7 @@
 #!/bin/bash
 
-if [ $# -lt 5 ]; then
-    echo "usage: $0 <aws-region> <s3-import-path> <fsx-capacity> <subnet-id> <security-group-id>"
+if [ $# -lt 6 ]; then
+    echo "usage: $0 <aws-region> <s3-import-path> <fsx-capacity> <subnet-id> <security-group-id> <stack-name>"
     exit 1
 fi
 
@@ -18,10 +18,10 @@ SUBNET_ID=$4
 
 SG_ID=$5
 
-DATE=`date +%s`
-
 #Customize stack name as needed
-STACK_NAME="fsx-stack-$DATE"
+STACK_NAME=$6
+
+DATE=`date +%s`
 
 # cfn template name
 CFN_TEMPLATE='cfn-fsx.yaml'
@@ -42,9 +42,9 @@ sleep 30
 progress=$(aws cloudformation list-stacks --stack-status-filter 'CREATE_IN_PROGRESS' | grep $STACK_NAME | wc -l)
 while [ $progress -ne 0 ]; do
 let elapsed="`date +%s` - $DATE"
-echo "Stack $STACK_NAME status: CREATE_IN_PROGRESS: [ $elapsed secs elapsed ]"
+echo "Stack $STACK_NAME status: CREATE_IN_PROGRESS: [ $elapsed secs elapsed ]" >> "$STACK_NAME.log"
 sleep 30 
 progress=$(aws cloudformation list-stacks --stack-status-filter 'CREATE_IN_PROGRESS' | grep $STACK_NAME | wc -l)
 done
-sleep 5 
-aws cloudformation describe-stacks --stack-name $STACK_NAME
+
+sleep 5

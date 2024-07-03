@@ -17,6 +17,7 @@ import argparse
 from packaging.version import Version
 import os
 import time
+from sagemaker_training import environment
 
 import torch
 import torchvision
@@ -31,37 +32,17 @@ from torchvision import datasets, transforms
 # Network definition
 from model_def import Net
 
-# Import SMDataParallel PyTorch Modules
-import smdistributed.dataparallel.torch.torch_smddp
-
-
-# override dependency on mirrors provided by torch vision package
-# from torchvision 0.9.1, 2 candidate mirror website links will be added before "resources" items automatically
-# Reference PR: https://github.com/pytorch/vision/pull/3559
-TORCHVISION_VERSION = "0.9.1"
-if Version(torchvision.__version__) < Version(TORCHVISION_VERSION):
-    # Set path to data source and include checksum key to make sure data isn't corrupted
-    datasets.MNIST.resources = [
-        (
-            "https://sagemaker-sample-files.s3.amazonaws.com/datasets/image/MNIST/train-images-idx3-ubyte.gz",
-            "f68b3c2dcbeaaa9fbdd348bbdeb94873",
-        ),
-        (
-            "https://sagemaker-sample-files.s3.amazonaws.com/datasets/image/MNIST/train-labels-idx1-ubyte.gz",
-            "d53e105ee54ea40749a09fcbcd1e9432",
-        ),
-        (
-            "https://sagemaker-sample-files.s3.amazonaws.com/datasets/image/MNIST/t10k-images-idx3-ubyte.gz",
-            "9fb629c4189551a2d022fa330f9573f3",
-        ),
-        (
-            "https://sagemaker-sample-files.s3.amazonaws.com/datasets/image/MNIST/t10k-labels-idx1-ubyte.gz",
-            "ec29112dd5afa0611ce80d1b7f02629c",
-        ),
-    ]
-else:
-    # Set path to data source
-    datasets.MNIST.mirrors = ["https://sagemaker-sample-files.s3.amazonaws.com/datasets/image/MNIST/"]
+# Import SMDataParallel PyTorch Modules, if applicable
+backend = 'nccl'
+training_env = environment.Environment()
+smdataparallel_enabled = training_env.additional_framework_parameters.get('sagemaker_distributed_dataparallel_enabled', False)
+if smdataparallel_enabled:
+    try:
+        import smdistributed.dataparallel.torch.torch_smddp
+        backend = 'smddp'
+        print('Using smddp as backend')
+    except ImportError: 
+        print('smdistributed module not available, falling back to NCCL collectives.')
 
 
 class CUDANotFoundException(Exception):
@@ -169,16 +150,47 @@ def main():
         default="/tmp/data",
         help="Path for downloading " "the MNIST dataset",
     )
+    parser.add_argument(
+        "--region",
+        type=str,
+        help="aws region",
+    )
 
-    dist.init_process_group(backend="smddp")
+    dist.init_process_group(backend=backend)
     args = parser.parse_args()
     args.world_size = dist.get_world_size()
     args.rank = rank = dist.get_rank()
     args.local_rank = local_rank = int(os.getenv("LOCAL_RANK", -1))
-    args.lr = 1.0
-    args.batch_size //= args.world_size // 8
-    args.batch_size = max(args.batch_size, 1)
     data_path = args.data_path
+    save_path = os.getenv("SM_MODEL_DIR",-1)
+    
+    # override dependency on mirrors provided by torch vision package
+    # from torchvision 0.9.1, 2 candidate mirror website links will be added before "resources" items automatically
+    # Reference PR: https://github.com/pytorch/vision/pull/3559
+    TORCHVISION_VERSION = "0.9.1"
+    if Version(torchvision.__version__) < Version(TORCHVISION_VERSION):
+        # Set path to data source and include checksum key to make sure data isn't corrupted
+        datasets.MNIST.resources = [
+            (
+                f"https://sagemaker-example-files-prod-{args.region}.s3.amazonaws.com/datasets/image/MNIST/train-images-idx3-ubyte.gz",
+                "f68b3c2dcbeaaa9fbdd348bbdeb94873",
+            ),
+            (
+                f"https://sagemaker-example-files-prod-{args.region}.s3.amazonaws.com/datasets/image/MNIST/train-labels-idx1-ubyte.gz",
+                "d53e105ee54ea40749a09fcbcd1e9432",
+            ),
+            (
+                f"https://sagemaker-example-files-prod-{args.region}.s3.amazonaws.com/datasets/image/MNIST/t10k-images-idx3-ubyte.gz",
+                "9fb629c4189551a2d022fa330f9573f3",
+            ),
+            (
+                f"https://sagemaker-example-files-prod-{args.region}.s3.amazonaws.com/datasets/image/MNIST/t10k-labels-idx1-ubyte.gz",
+                "ec29112dd5afa0611ce80d1b7f02629c",
+            ),
+        ]
+    else:
+        # Set path to data source
+        datasets.MNIST.mirrors = [f"https://sagemaker-example-files-prod-{args.region}.s3.amazonaws.com/datasets/image/MNIST/"]
 
     if args.verbose:
         print(
@@ -196,8 +208,6 @@ def main():
         )
 
     torch.manual_seed(args.seed)
-
-    device = torch.device("cuda")
 
     # select a single rank per node to download data
     is_first_local_rank = local_rank == 0
@@ -245,9 +255,10 @@ def main():
             shuffle=True,
         )
 
-    model = DDP(Net().to(device))
-    torch.cuda.set_device(local_rank)
-    model.cuda(local_rank)
+    device = torch.device(f"cuda:{local_rank}")
+    model = Net().to(device)
+    model = DDP(model, device_ids=[local_rank])
+
     optimizer = optim.Adadelta(model.parameters(), lr=args.lr)
     scheduler = StepLR(optimizer, step_size=1, gamma=args.gamma)
     for epoch in range(1, args.epochs + 1):
@@ -256,8 +267,9 @@ def main():
             test(model, device, test_loader)
         scheduler.step()
 
-    if args.save_model:
-        torch.save(model.state_dict(), "mnist_cnn.pt")
+    if rank == 0:
+        save_model_path = os.path.join(save_path,'mnist_cnn.pt')
+        torch.save(model.state_dict(), save_model_path)
 
 
 if __name__ == "__main__":

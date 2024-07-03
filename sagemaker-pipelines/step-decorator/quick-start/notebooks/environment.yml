@@ -1,0 +1,8 @@
+name: remote_conda_env
+channels:
+  - defaults
+dependencies:
+  - python=3.10
+  - pandas
+  - pip:
+      - sagemaker>=2.199.0,<3

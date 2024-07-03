@@ -26,6 +26,7 @@ Before sending us a pull request, please ensure that:
 * You are working against the latest source on the *main* branch.
 * You check the existing open and recently merged pull requests to make sure someone else hasn't already addressed the problem.
 * You open an issue to discuss any significant work - we would hate for your time to be wasted.
+* **NOTE:: If you are submitting an entirely new notebook, please ensure it demonstrates a functionality of SageMaker not yet showcased by any other existing notebook in this repository. If you don't meet this criteria, your PR will be rejected.**
 
 
 ### Pull Down the Code
@@ -38,11 +39,11 @@ Before sending us a pull request, please ensure that:
 
 ### Run the Linter
 
-Apply Python code formatting to Jupyter notebook files using [black-nb](https://pypi.org/project/black-nb/).
+Apply Python code formatting to Jupyter notebook files using [black](https://pypi.org/project/black/).
 
-1. Install black-nb using `pip install black-nb`
-1. Run the following black-nb command on each of your ipynb notebook files and verify that the linter passes: `black-nb -l 100 {path}/{notebook-name}.ipynb`
-1. Some notebook features such as `%` bash commands or `%%` cell magic cause black-nb to fail. As long as you run the above command to format as much as possible, that is sufficient, even if the check fails
+1. Install black using `pip3 install black`
+1. In terminal, run the following black command on each of your ipynb notebook files and verify that the linter passes: `python3 -m black -l 100 {path}/{notebook-name}.ipynb`
+1. Some notebook features such as `%` bash commands or `%%` cell magic cause black to fail. As long as you run the above command to format as much as possible, that is sufficient, even if the check fails
 
 
 ### Test Your Notebook End-to-End
@@ -52,6 +53,61 @@ Please ensure that your notebook runs end-to-end so that it passes our CI.
 
 The `sagemaker-bot` will comment on your PR with a link for `Build logs`.
 If your PR does not pass CI, you can view the logs to understand how to fix your notebook(s) and code.
+
+
+### Add CI badges to your notebook
+Our [CI system](https://github.com/aws/sagemaker-example-notebooks-testing) tests each notebook in this repo everyday to see if it is fully functional. We provide badges to display the results of these daily tests so you and your customers can see if your notebook is working or needs to be fixed. **It is required that all notebooks have these badges.**
+
+The badges should be added using the following steps:
+1. Insert the following markdown underneath your notebook's title. Substitute NOTEBOOK_PATH with the path of your notebook relative to the root of the repo and all "/" are replaced with "|" (i.e. sagemaker-pipeline-parameterization|parameterized-pipeline.ipynb)
+```
+---
+
+This notebook's CI test result for us-west-2 is as follows. CI test results in other regions can be found at the end of the notebook.
+
+![This us-west-2 badge failed to load. Check your device's internet connectivity, otherwise the service is currently unavailable](https://prod.us-west-2.tcx-beacon.docs.aws.dev/sagemaker-nb/us-west-2/NOTEBOOK_PATH)
+
+---
+```
+
+2. Insert the following markdown at the end of your notebook. Substitute all instances of NOTEBOOK_PATH with the path of your notebook relative to the root of the repo and all "/" are replaced with "|" (i.e. sagemaker-pipeline-parameterization|parameterized-pipeline.ipynb)
+```
+## Notebook CI Test Results
+
+This notebook was tested in multiple regions. The test results are as follows, except for us-west-2 which is shown at the top of the notebook.
+
+
+![This us-east-1 badge failed to load. Check your device's internet connectivity, otherwise the service is currently unavailable](https://prod.us-west-2.tcx-beacon.docs.aws.dev/sagemaker-nb/us-east-1/NOTEBOOK_PATH)
+
+![This us-east-2 badge failed to load. Check your device's internet connectivity, otherwise the service is currently unavailable](https://prod.us-west-2.tcx-beacon.docs.aws.dev/sagemaker-nb/us-east-2/NOTEBOOK_PATH)
+
+![This us-west-1 badge failed to load. Check your device's internet connectivity, otherwise the service is currently unavailable](https://prod.us-west-2.tcx-beacon.docs.aws.dev/sagemaker-nb/us-west-1/NOTEBOOK_PATH)
+
+![This ca-central-1 badge failed to load. Check your device's internet connectivity, otherwise the service is currently unavailable](https://prod.us-west-2.tcx-beacon.docs.aws.dev/sagemaker-nb/ca-central-1/NOTEBOOK_PATH)
+
+![This sa-east-1 badge failed to load. Check your device's internet connectivity, otherwise the service is currently unavailable](https://prod.us-west-2.tcx-beacon.docs.aws.dev/sagemaker-nb/sa-east-1/NOTEBOOK_PATH)
+
+![This eu-west-1 badge failed to load. Check your device's internet connectivity, otherwise the service is currently unavailable](https://prod.us-west-2.tcx-beacon.docs.aws.dev/sagemaker-nb/eu-west-1/NOTEBOOK_PATH)
+
+![This eu-west-2 badge failed to load. Check your device's internet connectivity, otherwise the service is currently unavailable](https://prod.us-west-2.tcx-beacon.docs.aws.dev/sagemaker-nb/eu-west-2/NOTEBOOK_PATH)
+
+![This eu-west-3 badge failed to load. Check your device's internet connectivity, otherwise the service is currently unavailable](https://prod.us-west-2.tcx-beacon.docs.aws.dev/sagemaker-nb/eu-west-3/NOTEBOOK_PATH)
+
+![This eu-central-1 badge failed to load. Check your device's internet connectivity, otherwise the service is currently unavailable](https://prod.us-west-2.tcx-beacon.docs.aws.dev/sagemaker-nb/eu-central-1/NOTEBOOK_PATH)
+
+![This eu-north-1 badge failed to load. Check your device's internet connectivity, otherwise the service is currently unavailable](https://prod.us-west-2.tcx-beacon.docs.aws.dev/sagemaker-nb/eu-north-1/NOTEBOOK_PATH)
+
+![This ap-southeast-1 badge failed to load. Check your device's internet connectivity, otherwise the service is currently unavailable](https://prod.us-west-2.tcx-beacon.docs.aws.dev/sagemaker-nb/ap-southeast-1/NOTEBOOK_PATH)
+
+![This ap-southeast-2 badge failed to load. Check your device's internet connectivity, otherwise the service is currently unavailable](https://prod.us-west-2.tcx-beacon.docs.aws.dev/sagemaker-nb/ap-southeast-2/NOTEBOOK_PATH)
+
+![This ap-northeast-1 badge failed to load. Check your device's internet connectivity, otherwise the service is currently unavailable](https://prod.us-west-2.tcx-beacon.docs.aws.dev/sagemaker-nb/ap-northeast-1/NOTEBOOK_PATH)
+
+![This ap-northeast-2 badge failed to load. Check your device's internet connectivity, otherwise the service is currently unavailable](https://prod.us-west-2.tcx-beacon.docs.aws.dev/sagemaker-nb/ap-northeast-2/NOTEBOOK_PATH)
+
+![This ap-south-1 badge failed to load. Check your device's internet connectivity, otherwise the service is currently unavailable](https://prod.us-west-2.tcx-beacon.docs.aws.dev/sagemaker-nb/ap-south-1/NOTEBOOK_PATH)
+
+```
 
 
 ### Add Your Notebook to the Website
@@ -237,7 +293,7 @@ If you determine that sequential notebooks are the most suitable format to write
 * *Each notebook in the series must independently run end-to-end so that it can be tested in the daily CI (i.e. the CI test amazon-sagemaker-example-pr must pass).*
     * This may include generating intermediate artifacts which can be immediately loaded up for use in later notebooks, etc. Depending on the situation, intermediate artifacts can be stored in the following places: 
         * The repo in the same folder where your notebook is stored: This is possible for very small files (on the order of KB)
-        * The sagemaker-sample-files S3 bucket: This is for larger files (on or above the order of MB).
+        * The sagemaker-example-files-prod-REGION S3 bucket: This is for larger files (on or above the order of MB).
 * Each notebook must have a 'Background Section' clearly stating that the notebook is part of a notebook sequence. It must contain the following elements below. You can look at the 'Background' section in [Music Recommender Data Exploration](https://github.com/aws/amazon-sagemaker-examples/blob/main/end_to_end/music_recommendation/01_data_exploration.ipynb) for an example.
     * The objective and/or short summary of the notebook series.
     * A statement that the notebook is part of a notebook series.
