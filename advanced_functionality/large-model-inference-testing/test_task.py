@@ -30,15 +30,13 @@ def test_task(model_id: str,
             "results_path": results_path,
             "streaming_enabled": streaming_enabled
         }
-    elif task_name == "reranker":
-        task_fn = _test_reranker
+    else:
+        task_fn = _test_inference
         task_args = {
             "test_spec": test_spec,
             "endpoint_name": endpoint_name,
             "results_path": results_path
         }
-    else:
-        raise ValueError(f"Unknown task: {task_name}")
 
     os.makedirs(results_path, exist_ok=True)
     print(f"Running {task_name} test with {n_concurrent} concurrent processes...")
@@ -155,7 +153,7 @@ def _test_text_generation(model_id:str,
 
     print(f"{pid}: Testing completed. Results file: {results_path}")
 
-def _test_reranker(test_spec: dict, 
+def _test_inference(test_spec: dict, 
                     endpoint_name:str, 
                     results_path: str) -> None:
     
@@ -217,10 +215,11 @@ def _test_reranker(test_spec: dict,
                 cumu_time += latency
                     
                 body = response["Body"].read()
-                scores = json.loads( body.decode("utf-8"))
+                json_obj = json.loads( body.decode("utf-8"))
+                output = json_obj["output"]
 
                 json_obj = {"prompt": prompt, 
-                            "scores": scores, 
+                            "output": output, 
                             "latency": latency}
                 
                 results.write(json.dumps( json_obj )+"\n")   
@@ -232,3 +231,4 @@ def _test_reranker(test_spec: dict,
     except StopIteration as e:
         print(f"{pid}: Error: {e}")    
     print(f"{pid}: Testing completed. Results file: {results_path}")
+

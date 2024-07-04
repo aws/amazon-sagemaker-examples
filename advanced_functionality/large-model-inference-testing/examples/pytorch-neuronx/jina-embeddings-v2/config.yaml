@@ -1,15 +1,16 @@
 huggingface:
-  model: "BAAI/bge-reranker-large"
-  revision: "bc0c7056d15eaea221616887bf15da63743d19e1"
+  model: "jinaai/jina-embeddings-v2-small-en"
+  revision: "796cff318cdd4e5fbe8b7303a1ef8cbec36996ef"
   download: true
 djl:
   engine: "Python"
   option.model_loading_timeout: 1800
-  option.max_dynamic_batch_size: 16
+  option.max_dynamic_batch_size: 8
+  option.max_model_len: 2048
   option.trust_remote_code: true
 sagemaker:
   model:
-    name: "baai-bge-reranker-large-pytorch-neuronx"
+    name: "jina-embeddings-v2-small-en-pytorch-neuronx"
     image: "763104351884.dkr.ecr.us-west-2.amazonaws.com/djl-inference:0.28.0-neuronx-sdk2.18.2"
     env: 
       HUGGINGFACE_HUB_CACHE: "/tmp"
@@ -17,17 +18,17 @@ sagemaker:
       TOKENIZERS_PARALLELISM: "false"
     
   endpoint:
-    name: "baai-bge-reranker-large-pytorch-neuronx"
+    name: "jina-embeddings-v2-small-en-pytorch-neuronx"
     instance_type: "ml.inf2.xlarge"
     initial_instance_count: 1
     variant_name: "test"
     model_data_download_timeout_secs: 1800
     container_startup_health_check_timeout_secs: 1200
 test:
-  module_name: "reranker_pair"
+  module_name: "embedding_text"
   module_dir: "modules/inst-semeval2017"
-  prompt_generator: "RerankerPair"
-  task_name: "reranker"
+  prompt_generator: "EmbeddingText"
+  task_name: "text-embedding"
   params: {}
   warmup_iters: 1
   max_iters: 10

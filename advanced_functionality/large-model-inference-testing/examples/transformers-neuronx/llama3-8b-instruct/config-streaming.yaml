@@ -18,7 +18,7 @@ djl:
 sagemaker:
   model:
     name: "meta-llama-3-8b-instruct-transformers-neuronx-streaming"
-    container: "containers/pytorch-inf2"
+    image: "763104351884.dkr.ecr.us-west-2.amazonaws.com/djl-inference:0.28.0-neuronx-sdk2.18.2"
     env: 
       HUGGINGFACE_HUB_CACHE: "/tmp"
       TRANSFORMERS_CACHE: "/tmp"

@@ -53,7 +53,7 @@ class EndpointClient:
             request_meta['response'] = {"prompt": prompt, "text": text}
       
 
-    def __reranker_request(self, request_meta:dict):
+    def __inference_request(self, request_meta:dict):
         prompt = next(self.prompt_generator)
         data= { "inputs": prompt }
         data["parameters"] = self.params
@@ -63,7 +63,7 @@ class EndpointClient:
                                             Accept="application/json", Body=body)
         body = response["Body"].read()
         result = json.loads( body.decode("utf-8"))
-        request_meta['response'] = {"prompt": prompt, "scores": result['scores']}
+        request_meta['response'] = {"prompt": prompt, "output": result['output']}
 
     def send(self):
 
@@ -81,10 +81,9 @@ class EndpointClient:
         try: 
             if self.task_name == "text-generation":
                 self.__text_generation_request(request_meta)
-            elif self.task_name == "reranker":
-                self.__reranker_request(request_meta)
             else:
-                raise ValueError("Unknown task name: " + self.task_name)
+                self.__inference_request(request_meta)
+            
         except StopIteration as se:
             self.__init_prompt_generator()
             request_meta["exception"] = se
