@@ -34,9 +34,22 @@ def compute_num_params(model):
 
 
 def compute_tflops(args, global_batch_size, step_time, world_size):
-    # Based on 
+    # Based on
     # https://github.com/NVIDIA/Megatron-LM/blob/ba773259dbe5735fbd91ca41e7f4ded60b335c52/megatron/training/training.py#L65
-    num_experts_routed_to = 1 if args.moe > 1 else args.num_experts_per_tok
+    # Attention projection size.
+    kv_channels = args.hidden_width // args.num_heads
+    query_projection_size = kv_channels * args.num_heads
+    query_projection_to_hidden_size_ratio = query_projection_size / args.hidden_width
+
+    # Group Query Attention.
+    if not args.num_key_value_heads:
+        args.num_key_value_heads = args.num_heads
+
+    # MoE.
+    num_experts_routed_to = 1 if args.moe == 0 else args.num_experts_per_tok
+    gated_linear_multiplier = 3/2 if args.moe > 0 else 1
+
+    # Compute the number of floating point operations
     num_flops = (
         12
         * global_batch_size
@@ -45,13 +58,26 @@ def compute_tflops(args, global_batch_size, step_time, world_size):
         * args.hidden_width
         * args.hidden_width
         * (
-            1
-            + ((args.intermediate_size / args.hidden_width) * num_experts_routed_to)
-            + (args.num_key_value_heads / args.num_heads)
-            + (args.max_context_width / args.hidden_width)
+            # Attention.
+            (
+                (
+                    1
+                    + (args.num_key_value_heads / args.num_heads)
+                    + (args.max_context_width / args.hidden_width)
+                ) * query_projection_to_hidden_size_ratio
+            )
+            # MLP.
+            + (
+                (args.intermediate_size / args.hidden_width)
+                * num_experts_routed_to
+                * gated_linear_multiplier
+            )
+            # Logit.
             + (args.vocab_size / (2 * args.num_layers * args.hidden_width))
         )
     )
+
+    # Convert to TFLOPs per GPU
     tflops_per_gpu = num_flops / (
                  step_time * 10**12 * world_size)
     return tflops_per_gpu
@@ -122,9 +148,13 @@ def create_model(args, model_config, dtype, pretrained_model_weights=None):
     if pretrained_model_weights:
         _logger.info("Loading pretrained weights from %s.", pretrained_model_weights)
         if pversion.parse(transformers.__version__) < pversion.parse("4.37.1"):
-            model = AutoModelForCausalLM.from_pretrained(pretrained_model_weights)
+            model = AutoModelForCausalLM.from_pretrained(pretrained_model_weights, config=model_config)
         else:
-            model = AutoModelForCausalLM.from_pretrained(pretrained_model_weights, attn_implementation="flash_attention_2")
+            model = AutoModelForCausalLM.from_pretrained(
+                 pretrained_model_weights,
+                 attn_implementation="flash_attention_2",
+                 config=model_config
+             )
     else:
         if pversion.parse(transformers.__version__) < pversion.parse("4.37.1"):
             model = AutoModelForCausalLM.from_config(model_config)

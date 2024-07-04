@@ -6,6 +6,10 @@ GREEN='\033[1;32m'
 NC='\033[0m'
 S3_PATH=$1
 
+echo "***************************************************************************"
+echo "*** If you are NOT on Amazon SageMaker Studio Classic use 'bash run.sh' ***"
+echo "***************************************************************************"
+
 # Run the Streamlit app and save the output to "temp.txt"
 streamlit run app.py > temp.txt & 
 
@@ -16,8 +20,6 @@ echo "Getting the URL to view your Streamlit app in the browser"
 sleep 5
 PORT=$(grep "Network URL" temp.txt | awk -F':' '{print $NF}' | awk '{print $1}' | tail -c 5)
 echo -e "${CYAN}${CURRENTDATE}: [INFO]:${NC} Port Number ${PORT}" 
-
-
 
 # Get Studio domain information
 DOMAIN_ID=$(jq .DomainId /opt/ml/metadata/resource-metadata.json || exit 1)
@@ -104,8 +106,14 @@ fi
 
 echo -e "${CYAN}${CURRENTDATE}: [INFO]:${NC} Studio Url ${STUDIO_URL}"
 
+JUPYTER_TYPE=
+if grep -q '^NAME="Ubuntu"' /etc/os-release; then
+    JUPYTER_TYPE="jupyterlab"
+else
+    JUPYTER_TYPE="jupyter"
+fi
 
-link="${STUDIO_URL}/jupyter/${RESOURCE_NAME}/proxy/${PORT}/"
+link="${STUDIO_URL}/${JUPYTER_TYPE}/${RESOURCE_NAME}/proxy/${PORT}/"
 
 echo -e "${CYAN}${CURRENTDATE}: [INFO]:${NC} Starting Streamlit App"
 echo -e "${CYAN}${CURRENTDATE}: [INFO]: ${GREEN}${link}${NC}"

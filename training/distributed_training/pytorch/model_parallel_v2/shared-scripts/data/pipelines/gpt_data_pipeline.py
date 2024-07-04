@@ -30,6 +30,7 @@ class GPTDataPipeline(DataPipeline):
         seed=1234,
         num_workers=0,
         resume_from_sequence_number=0,
+        val_resume_from_sequence_number=0,
         dp_rank=0,
         dp_size=1,
         shuffle=False,
@@ -40,6 +41,7 @@ class GPTDataPipeline(DataPipeline):
             seed=seed,
             num_workers=num_workers,
             resume_from_sequence_number=resume_from_sequence_number,
+            val_resume_from_sequence_number=val_resume_from_sequence_number,
             dp_rank=dp_rank,
             dp_size=dp_size,
             shuffle=shuffle,
@@ -66,7 +68,7 @@ class GPTDataPipeline(DataPipeline):
             max_sequence_length=self.sequence_length,
             zipped=self.zipped_data,
         )
-        self.val_dataloader = self._create_dataloader(self.val_dataset, self.val_batch_size)
+        self.val_dataloader = self._create_dataloader(self.val_dataset, self.val_batch_size, self.val_resume_from_sequence_number)
 
     def increment_path_in_epoch(self):
         self.cur_train_path += 1
@@ -82,7 +84,7 @@ class GPTDataPipeline(DataPipeline):
             max_sequence_length=self.sequence_length,
             zipped=self.zipped_data,
         )
-        self.train_dataloader = self._create_dataloader(self.train_dataset, self.train_batch_size)
+        self.train_dataloader = self._create_dataloader(self.train_dataset, self.train_batch_size, self.resume_from_sequence_number)
 
     def get_train_paths(
         self, data_type, training_dir, zipped_data=False
