@@ -1,5 +1,8 @@
 # HVAC with Amazon SageMaker RL
 
+> [!WARNING]
+> As of April 2024, SageMaker RL containers no longer accepts new pull requests. Please follow [SageMaker RL Container's Building Your Image](https://github.com/aws/sagemaker-rl-container/tree/master?tab=readme-ov-file#building-your-image) to build your own RL images and modify examples appropriately. Modification may include but is not limited to substituting `<YOUR_IMAGE_URL_HERE>` with your own RL image URL.
+
 ## What is HVAC and EnergyPlus?
 
 HVAC stands for Heating, Ventilation and Air Conditioning and is responsible for keeping us warm and comfortable indoors. HVAC takes up a whopping 50% of the energy in a building [1, 2] and accounts for 10% of global electricity use [3], and several control system optimizations have been proposed to reduce this energy use while ensuring thermal comfort [4, 5, 6].

@@ -1,5 +1,8 @@
 ## Contextual Bandits with Parametric Actions -- Experimentation Mode
 
+> [!WARNING]
+> As of April 2024, SageMaker RL containers no longer accepts new pull requests. Please follow [SageMaker RL Container's Building Your Image](https://github.com/aws/sagemaker-rl-container/tree/master?tab=readme-ov-file#building-your-image) to build your own RL images and modify examples appropriately. Modification may include but is not limited to substituting `<YOUR_IMAGE_URL_HERE>` with your own RL image URL.
+
 We demonstrate how you can use varying number of actions with contextual bandits algorithms in SageMaker. `bandits_movielens_testbed.ipynb` builds on 
 the [Contextual Bandits example notebook](https://github.com/awslabs/amazon-sagemaker-examples/blob/master/reinforcement_learning/bandits_statlog_vw_customEnv/bandits_statlog_vw_customEnv.ipynb) example notebook which used fixed number of actions. Please refer to that notebook for basics on contextual 
 bandits. 
