@@ -55,5 +55,5 @@ def handle(inputs: Input):
     params = data.get("parameters", {})
 
     scores = run_inference(pairs, params)
-    result = {"scores": scores}
+    result = {"output": scores}
     return Output().add_as_json(result)
