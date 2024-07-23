@@ -75,7 +75,6 @@ These examples introduce SageMaker's hyperparameter tuning functionality which h
 - [Keras BYO Tuning](hyperparameter_tuning/keras_bring_your_own) shows how to use SageMaker hyperparameter tuning with a custom container running a Keras convolutional network on CIFAR-10 data.
 - [Analyzing Results](hyperparameter_tuning/analyze_results) is a shared notebook that can be used after each of the above notebooks to provide analysis on how training jobs with different hyperparameters performed.
 - [Model tuning for distributed training](hyperparameter_tuning/model_tuning_for_distributed_training) shows how to use SageMaker hyperparameter tuning with Hyperband strategy for optimizing model in distributed training.
-- [Neural Architecture Search for Large Language Models](hyperparameter_tuning/neural_architecture_search_llm) shows how to prune fine-tuned large language models via neural architecture search.
 
 ### SageMaker Autopilot
 
@@ -83,7 +82,7 @@ These examples introduce SageMaker Autopilot. Autopilot automatically performs f
 
 - [Customer Churn AutoML](autopilot/) shows how to use SageMaker Autopilot to automatically train a model for the [Predicting Customer Churn](introduction_to_applying_machine_learning/xgboost_customer_churn) task.
 - [Targeted Direct Marketing AutoML](autopilot/) shows how to use SageMaker Autopilot to automatically train a model.
-- [Housing Prices AutoML](autopilot/autopilot_california_housing) shows how to use SageMaker Autopilot for a linear regression problem (predict housing prices).
+- [Housing Prices AutoML](autopilot/autopilot_california_housing.ipynb) shows how to use SageMaker Autopilot for a linear regression problem (predict housing prices).
 - [Portfolio Churn Prediction with Amazon SageMaker Autopilot and Neo4j](autopilot/sagemaker_autopilot_neo4j_portfolio_churn.ipynb) shows how to use SageMaker Autopilot with graph embeddings to predict investment portfolio churn.
 - [Move Amazon SageMaker Autopilot ML models from experimentation to production using Amazon SageMaker Pipelines](autopilot/sagemaker-autopilot-pipelines) shows how to use SageMaker Autopilot in combination with SageMaker Pipelines for end-to-end AutoML training automation.
 - [Amazon SageMaker Autopilot models to serverless endpoints](autopilot/autopilot-serverless-inference) shows how to deploy Autopilot generated models to serverless endpoints.
@@ -160,7 +159,6 @@ These examples provide an Introduction to Smart Sifting library. Smart Sifting i
 These examples provide an introduction to SageMaker Clarify which provides machine learning developers with greater visibility into their training data and models so they can identify and limit bias and explain predictions.
 
 - [Fairness and Explainability with SageMaker Clarify](sagemaker-clarify/fairness_and_explainability) shows how to use SageMaker Clarify Processor API to measure the pre-training bias of a dataset and post-training bias of a model, and explain the importance of the input features on the model's decision.
-- [TimeSeries Explainability with SageMaker Clarify](sagemaker-clarify/time_series_deepar) shows how to use SageMaker Clarify Processor API to explain the importance of the input features on the time-series model's decision.
 - [Amazon SageMaker Clarify Model Monitors](sagemaker_model_monitor/fairness_and_explainability) shows how to use SageMaker Clarify Model Monitor API to schedule bias monitor to monitor predictions for bias drift on a regular basis, and schedule explainability monitor to monitor predictions for feature attribution drift on a regular basis.
 
 ### Publishing content from RStudio on Amazon SageMaker to RStudio Connect
