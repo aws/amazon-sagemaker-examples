@@ -8,64 +8,39 @@ from rich import box, print
 from rich.table import Table
 
 
-# LLMPerf requires you to pass AWS Creds as ENV variables along with endpoint name as an arg
+# LLMPerf requires AWS Creds as ENV variables along with endpoint name
 def trigger_auto_scaling(creds, region, endpoint_name, num_concurrent_requests):
-    aws_access_key = creds.access_key
-    aws_secret_key = creds.secret_key
-    aws_session_token = creds.token
-
-    os.environ["AWS_ACCESS_KEY_ID"] = aws_access_key
-    os.environ["AWS_SECRET_ACCESS_KEY"] = aws_secret_key
-    os.environ["AWS_SESSION_TOKEN"] = aws_session_token
-    os.environ["AWS_REGION"] = f"{region}"
+    # Set environment variables
+    os.environ["AWS_ACCESS_KEY_ID"] = creds.access_key
+    os.environ["AWS_SECRET_ACCESS_KEY"] = creds.secret_key
+    os.environ["AWS_SESSION_TOKEN"] = creds.token
+    os.environ["AWS_REGION"] = region
     os.environ["EP_NAME"] = endpoint_name
+    os.environ["NUM_CONCURRENT_REQUESTS"] = str(num_concurrent_requests)
 
-    # Define the command to run the traffic generation script
-    command = f"""
-    echo "Installing llmperf..."
-    rm -rf llmperf && \
-    git clone https://github.com/philschmid/llmperf.git && \
-    uv pip install -e llmperf/
-
-    DIR="results"
-
-    if [ ! -d "$DIR" ]; then
-      mkdir -p "$DIR"
-      echo "Created $DIR directory."
-    else
-      echo "$DIR directory already exists."
-    fi
-
-    echo "Starting benchmarking scripts on endpoint {endpoint_name} ..."
-
-    start_time=`date +%s`
-
-    MESSAGES_API=true python llmperf/token_benchmark_ray.py \
-    --model {endpoint_name} \
-    --llm-api "sagemaker" \
-    --max-num-completed-requests 1000 \
-    --timeout 600 \
-    --num-concurrent-requests {num_concurrent_requests} \
-    --results-dir "results"
-
-    end_time=`date +%s`
-    echo execution time was `expr $end_time - $start_time` secs.
-    """
-
-    # print(command)
-
-    # Run the command in the background; pass env variables to the shell
-    print(f"Launching LLMPerf with {num_concurrent_requests} concurrent requests")
-    process = subprocess.Popen(
-        command,
-        shell=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        env=os.environ,
+    # Path to the shell script
+    # script_path = "./trigger_autoscaling.sh"
+    # current_dir = os.getcwd()
+    script_path = os.path.abspath(
+        os.path.join(os.path.dirname(__file__), "..", "trigger_autoscaling.sh")
     )
 
-    # Print the process ID
-    # print(f"Started background job with PID: {process.pid}")
+    # print(f"Current working directory: {current_dir}")
+    # print(f"Full path to script: {script_path}")
+
+    # Check if the file exists
+    if os.path.exists(script_path):
+        print(f"Calling LLMPerf shell script: {script_path}")
+    else:
+        print(f"LLMPerf shell script file not found at {script_path}")
+
+    # Make sure the script is executable
+    # os.chmod(script_path, 0o755)
+
+    # Run the shell script
+    print(f"Launching LLMPerf with {num_concurrent_requests} concurrent requests")
+    process = subprocess.Popen([script_path], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
     return process
 
 
@@ -76,6 +51,14 @@ def monitor_process(proc):
         if retcode is not None:
             # Process has terminated
             print(f"Process {proc.pid} finished with return code {retcode}")
+
+            # Capture and print any output from the process
+            stdout, stderr = proc.communicate()
+            if stdout:
+                print(f"Process output:\n{stdout.decode('utf-8')}")
+            if stderr:
+                print(f"Process errors:\n{stderr.decode('utf-8')}")
+
             break
         else:
             # Process is still running
@@ -103,9 +86,7 @@ def print_llmperf_results(num_concurrent_requests):
     perf_table.add_row("Concurrent requests", f"{num_concurrent_requests}")
     perf_table.add_row("Avg. Input token length", f"{data['mean_input_tokens']}")
     perf_table.add_row("Avg. Output token length", f"{data['mean_output_tokens']}")
-    perf_table.add_row(
-        "Avg. First-Time-To-Token", f"{data['results_ttft_s_mean']*1000:.2f}ms"
-    )
+    perf_table.add_row("Avg. First-Time-To-Token", f"{data['results_ttft_s_mean']*1000:.2f}ms")
     perf_table.add_row(
         "Avg. Thorughput",
         f"{data['results_mean_output_throughput_token_per_s']:.2f} tokens/sec",
