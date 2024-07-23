@@ -8,7 +8,7 @@ As enterprises modernize their mission-critical applications to adopt cloud-nati
 
 [Amazon SageMaker](https://aws.amazon.com/sagemaker/) is a leading machine learning platform that makes it easy to build, train, and deploy machine learning models in the cloud and at the edge. IBM has recently open-sourced its powerful [Granite](https://github.com/ibm-granite/granite-code-models) family of code LLMs that excel at code generation, translation, fixing bugs, and more across over 100 programming languages. By combining the strengths of SageMaker and Granite Code models, enterprises can now accelerate legacy code conversion projects.
 
-In this notebook, you will learn how to deploy IBM Granite models on Amazon SageMaker for accelerating legacy code conversion and modernisation use cases.
+In this [notebook](granite-code-instruct.ipynb), you will learn how to deploy IBM Granite models on Amazon SageMaker for accelerating legacy code conversion and modernisation use cases.
 
 
 ## What are Granite models
