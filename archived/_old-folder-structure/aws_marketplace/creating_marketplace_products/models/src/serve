@@ -1,6 +1,0 @@
-#!/bin/bash
-
-ls -lah /opt/ml/model
-
-# Run gunicorn server on port 8080 for SageMaker
-gunicorn --worker-tmp-dir /dev/shm --bind 0.0.0.0:8080 wsgi:app

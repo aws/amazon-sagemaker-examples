@@ -1,4 +1,0 @@
-<project name="DTDValidator" basedir="." default="build">
-  <import file="../build-java.xml"/>
-  <property name="main-class"          value="${ant.project.name}"/>
-</project>

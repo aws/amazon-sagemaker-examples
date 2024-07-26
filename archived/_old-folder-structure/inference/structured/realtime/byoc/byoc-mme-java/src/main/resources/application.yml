@@ -1,4 +1,0 @@
-java:
- memory:
-  threshold:
-   percentage: 50
