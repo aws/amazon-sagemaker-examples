@@ -36,9 +36,13 @@ Although most examples utilize key Amazon SageMaker functionality like distribut
 
 As of February 7, 2022, the default branch is named "main". See our [announcement](https://github.com/aws/amazon-sagemaker-examples/discussions/3131) for details and how to update your existing clone.
 
-## :notebook: Example Categories
+## :notebook: Example Notebook Categories
 
-### Data Preparation
+### SageMaker End-to-End
+
+These examples are a diverse collection of end-to-end notebooks that demonstrate how to build, train, and deploy machine learning models using Amazon SageMaker. These notebooks cover a wide range of machine learning tasks and use cases, providing you with a comprehensive understanding of the SageMaker workflow. Each notebook in this folder is self-contained and includes detailed documentation, code samples, and instructions for running the examples on SageMaker. Whether you're a beginner or an experienced practitioner, this folder offers a comprehensive collection of end-to-end notebooks that will help you leverage the power of Amazon SageMaker for a wide range of machine learning tasks and use cases.
+
+### Prepare Data
 
 The example notebooks within this folder showcase Sagemaker's data preparation capabilities. Data preparation in machine learning refers to the process of collecting, preprocessing, and organizing raw data to make it suitable for analysis and modeling. This step ensures that the data is in a format from which machine learning algorithms can effectively learn. Data preparation tasks may include handling missing values, removing outliers, scaling features, encoding categorical variables, assessing potential biases and taking steps to mitigate them, splitting data into training and testing sets, labeling, and other necessary transformations to optimize the quality and usability of the data for subsequent machine learning tasks.
 
@@ -51,10 +55,6 @@ Amazon SageMaker Training is a fully managed machine learning (ML) service offer
 With Amazon SageMaker, you can start getting predictions, or inferences, from your trained machine learning models. SageMaker provides a broad selection of ML infrastructure and model deployment options to help meet all your ML inference needs. With SageMaker Inference, you can scale your model deployment, manage models more effectively in production, and reduce operational burden. SageMaker provides you with various inference options, such as real-time endpoints for getting low latency inference, serverless endpoints for fully managed infrastructure and auto-scaling, and asynchronous endpoints for batches of requests. By leveraging the appropriate inference option for your use case, you can ensure efficient and model deployment and inference.
 
 After you deploy a model into your production environment, use Amazon SageMaker model monitor to continuously monitor the quality of your machine learning models in real time. Amazon SageMaker model monitor enables you to set up an automated alert triggering system when there are deviations in the model quality, such as data drift and anomalies. Amazon CloudWatch Logs collects log files of monitoring the model status and notifies when the quality of your model hits certain thresholds that you preset. CloudWatch stores the log files to an Amazon S3 bucket you specify. Early and pro-active detection of model deviations through AWS model monitor products enables you to take prompt actions to maintain and improve the quality of your deployed model.
-
-### SageMaker End-to-End
-
-These examples are a diverse collection of end-to-end notebooks that demonstrate how to build, train, and deploy machine learning models using Amazon SageMaker. These notebooks cover a wide range of machine learning tasks and use cases, providing you with a comprehensive understanding of the SageMaker workflow. Each notebook in this folder is self-contained and includes detailed documentation, code samples, and instructions for running the examples on SageMaker. Whether you're a beginner or an experienced practitioner, this folder offers a comprehensive collection of end-to-end notebooks that will help you leverage the power of Amazon SageMaker for a wide range of machine learning tasks and use cases.
 
 ### Generative AI
 
