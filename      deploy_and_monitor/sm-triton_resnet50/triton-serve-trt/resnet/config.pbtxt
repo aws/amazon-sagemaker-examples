@@ -1,0 +1,36 @@
+name: "resnet"
+platform: "tensorrt_plan"
+max_batch_size: 128
+input {
+  name: "input"
+  data_type: TYPE_FP32
+  dims: 3
+  dims: 224
+  dims: 224
+}
+output {
+  name: "output"
+  data_type: TYPE_FP32
+  dims: 1000
+}
+instance_group {
+  count: 1
+  kind: KIND_GPU
+}
+dynamic_batching {
+  preferred_batch_size: 128
+}
+model_warmup {
+    name: "bs128 Warmup"
+    batch_size: 128
+    inputs: {
+        key: "input"
+        value: {
+            data_type: TYPE_FP32
+            dims: 3
+            dims: 224
+            dims: 224
+            zero_data: false
+        }
+    }
+}

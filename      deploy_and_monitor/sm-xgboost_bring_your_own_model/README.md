@@ -1,0 +1,2 @@
+### Bring Your Own Model (XGboost)
+`xgboost_bring_your_own_model.ipynb` shows how to train an Xgboost model in scikit-learn and then inject it into Amazon SageMaker's first party XGboost container for scoring. This addresses the usecase where a customer has already trained their model outside of Amazon SageMaker, but wishes to host it for predictions within Amazon SageMaker.

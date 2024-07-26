@@ -1,0 +1,1 @@
+{"dataset_type": "text/csv", "label": "fraud", "label_values_or_threshold": [0], "facet": [{"name_or_index": "customer_gender_female", "value_or_threshold": [1]}], "methods": {"pre_training_bias": {"methods": "all"}}}

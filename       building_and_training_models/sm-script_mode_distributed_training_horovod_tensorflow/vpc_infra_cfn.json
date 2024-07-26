@@ -1,0 +1,232 @@
+{
+  "AWSTemplateFormatVersion" : "2010-09-09",
+  "Description" : "Infrastructure resources for VPC env for horovod training",
+  "Parameters": {
+    "SubnetCidrBlock1": {
+      "Description": "CidrBlock for subnet 1. CidrBlock has 256 IPs total",
+      "Type": "String",
+      "Default": "10.0.0.0/24"
+    },
+    "SubnetCidrBlock2": {
+      "Description": "CidrBlock for subnet 2. CidrBlock has 256 IPs total",
+      "Type": "String",
+      "Default": "10.0.1.0/24"
+    }
+  },
+
+  "Conditions" : {
+    "MoreThan2AZs": {
+      "Fn::Or": [
+        {"Fn::Equals" : [{"Ref" : "AWS::Region"}, "us-east-1"]},
+        {"Fn::Equals" : [{"Ref" : "AWS::Region"}, "us-west-2"]},
+        {"Fn::Equals" : [{"Ref" : "AWS::Region"}, "eu-west-1"]},
+        {"Fn::Equals" : [{"Ref" : "AWS::Region"}, "eu-central-1"]},
+        {"Fn::Equals" : [{"Ref" : "AWS::Region"}, "ap-northeast-1"]},
+        {"Fn::Equals" : [{"Ref" : "AWS::Region"}, "ap-southeast-2"]},
+        {"Fn::Equals" : [{"Ref" : "AWS::Region"}, "us-east-2"]},
+        {"Fn::Equals" : [{"Ref" : "AWS::Region"}, "us-gov-west-1"]},
+        {"Fn::Equals" : [{"Ref" : "AWS::Region"}, "us-iso-east-1"]}
+      ]
+    }
+  },
+
+  "Resources" : {
+    "VPC": {
+      "Metadata": {
+        "Comment": "VPC for sagemaker horovod training job."
+      },
+      "Type": "AWS::EC2::VPC",
+      "Properties": {
+        "CidrBlock": "10.0.0.0/16",
+        "EnableDnsHostnames": "false",
+        "EnableDnsSupport": "true"
+      }
+    },
+    "Subnet1": {
+      "Metadata": {
+        "Comment": "Subnet 1 for sagemaker horovod training job."
+      },
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+        "AvailabilityZone": {
+          "Fn::Select": [
+            "0",
+            {
+              "Fn::GetAZs": {
+                "Ref": "AWS::Region"
+              }
+            }
+          ]
+        },
+        "CidrBlock": {
+          "Ref": "SubnetCidrBlock1"
+        },
+        "VpcId": {
+          "Ref": "VPC"
+        }
+      }
+    },
+    "Subnet2": {
+      "Metadata": {
+        "Comment": "Subnet 2 for sagemaker horovod training job."
+      },
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+        "AvailabilityZone": {
+          "Fn::Select": [
+            "1",
+            {
+              "Fn::GetAZs": {
+                "Ref": "AWS::Region"
+              }
+            }
+          ]
+        },
+        "CidrBlock": {
+          "Ref": "SubnetCidrBlock2"
+        },
+        "VpcId": {
+          "Ref": "VPC"
+        }
+      }
+    },
+    "SecurityGroup": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "VpcId": { "Ref": "VPC" },
+        "GroupDescription": "Customer VPC Security Group"
+      }
+    },
+    "SecurityGroupIngress": {
+      "Type": "AWS::EC2::SecurityGroupIngress",
+      "Properties": {
+        "GroupId": { "Ref": "SecurityGroup" },
+        "IpProtocol": "tcp",
+        "ToPort": "65535",
+        "FromPort": "0",
+        "SourceSecurityGroupId": { "Ref": "SecurityGroup" }
+      }
+    },
+    "TrafficEncryptedSecurityGroup": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "VpcId": { "Ref": "VPC" },
+        "GroupDescription": "Traffic-Encrypted Customer VPC Security Group"
+      }
+    },
+    "IkeSecurityGroupIngress": {
+      "Type": "AWS::EC2::SecurityGroupIngress",
+      "Properties": {
+        "GroupId": { "Ref": "TrafficEncryptedSecurityGroup" },
+        "IpProtocol": "udp",
+        "ToPort": "500",
+        "FromPort": "500",
+        "SourceSecurityGroupId": { "Ref": "TrafficEncryptedSecurityGroup" }
+      }
+    },
+    "EspSecurityGroupIngress": {
+      "Type": "AWS::EC2::SecurityGroupIngress",
+      "Properties": {
+        "GroupId": { "Ref": "TrafficEncryptedSecurityGroup" },
+        "IpProtocol": "50",
+        "ToPort": "0",
+        "FromPort": "0",
+        "SourceSecurityGroupId": { "Ref": "TrafficEncryptedSecurityGroup" }
+      }
+    },
+    "RouteTable": {
+      "Type" : "AWS::EC2::RouteTable",
+      "Properties" : {
+        "VpcId" : { "Ref": "VPC" }
+      }
+    },
+    "Subnet1RouteTableAssociation": {
+      "Type" : "AWS::EC2::SubnetRouteTableAssociation",
+      "Properties" : {
+        "RouteTableId" : { "Ref": "RouteTable" },
+        "SubnetId" : { "Ref": "Subnet1" }
+      }
+    },
+    "Subnet2RouteTableAssociation": {
+      "Type" : "AWS::EC2::SubnetRouteTableAssociation",
+      "Properties" : {
+        "RouteTableId" : { "Ref": "RouteTable" },
+        "SubnetId" : { "Ref": "Subnet2" }
+      }
+    },
+    "VpcEndpoint": {
+      "Type" : "AWS::EC2::VPCEndpoint",
+      "Properties" : {
+        "PolicyDocument" : {
+          "Version":"2012-10-17",
+          "Statement":[
+            {
+              "Action":[
+                "s3:GetObject",
+                "s3:PutObject",
+                "s3:ListBucket",
+                "s3:GetBucketLocation",
+                "s3:DeleteObject",
+                "s3:ListMultipartUploadParts",
+                "s3:AbortMultipartUpload"
+              ],
+              "Effect":"Allow",
+              "Resource":["*"],
+              "Principal": "*"
+            }
+          ]
+        },
+        "RouteTableIds" : [
+          {
+            "Ref": "RouteTable"
+          }
+        ],
+        "ServiceName" : {
+          "Fn::Join": [
+            "",
+            [
+              "com.amazonaws.",
+              {
+                "Ref": "AWS::Region"
+              },
+              ".s3"
+            ]
+          ]
+        },
+        "VpcId" : { "Ref": "VPC" }
+      }
+    }
+  },
+  "Outputs": {
+    "VpcId": {
+      "Description": "Vpc ID",
+      "Value": {
+        "Ref": "VPC"
+      }
+    },
+    "Subnet1Id": {
+      "Description": "Subnet1 ID",
+      "Value": {
+        "Ref": "Subnet1"
+      }
+    },
+    "Subnet2Id": {
+      "Description": "Subnet2 ID",
+      "Value": {
+        "Ref": "Subnet2"
+      }
+    },
+    "SecurityGroupId": {
+      "Description": "Security Group ID",
+      "Value": {
+        "Ref": "SecurityGroup"
+      }
+    },
+    "TrafficEncryptedSecurityGroupId": {
+      "Description": "Traffic-Encrypted Security Group ID",
+      "Value": {
+        "Ref": "TrafficEncryptedSecurityGroup"
+      }
+    }
+  }
+}

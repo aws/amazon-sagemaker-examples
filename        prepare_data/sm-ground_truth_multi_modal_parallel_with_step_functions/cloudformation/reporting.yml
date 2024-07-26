@@ -1,0 +1,313 @@
+# Copyright 2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# Permission is hereby granted, free of charge, to any person obtaining a copy of this
+# software and associated documentation files (the "Software"), to deal in the Software
+# without restriction, including without limitation the rights to use, copy, modify,
+# merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
+# permit persons to whom the Software is furnished to do so.
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+# INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+# PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+# HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+# OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+# This template is intended to deploy resources specific to SMGTWorkflows
+
+# AUTHOR: Gaurav Rele (grele@)
+# COLLABORATORS: Vidya Sagar Ravipati (ravividy@)
+
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+Description: 'SMGTWorkflows V0 CloudFormation Template'
+
+Parameters:
+  Prefix:
+    Type: String
+    Description: Prefix of all resources deployed in this solution.
+  LoggingLevel:
+    Type: String
+    Description: DEBUG
+    Default: DEBUG
+  GlueJobTriggerCron:
+    Type: String
+    Description: "Cron Schedule for AWS Glue Workflow"
+    Default: cron(0 * * * ? *)
+  CognitoUserPoolId:
+    Type: String
+    Description: "Cognito User Id"
+    Default: ""
+  GlueProcessingInputBucketId:
+    Type: String
+    Description: "Glue input bucket"
+    Default: ""
+  BatchProcessingInputBucketId:
+    Type: String
+    Description: "Glue input bucket"
+    Default: ""
+
+Resources:
+  # ---------------------------------------------------------------------------
+  # S3
+  # ---------------------------------------------------------------------------
+  CWLogsRawDataDumpS3Path:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub ${Prefix}-${AWS::AccountId}-${AWS::Region}-cw-logs
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+  GlueProcessingOutputBucketId:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName:
+      BucketName: !Sub ${Prefix}-${AWS::AccountId}-${AWS::Region}-wm-glue-output
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+  AthenaWorkgroupBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub ${Prefix}-${AWS::AccountId}-${AWS::Region}-athena
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+  CodeArtifactsUploadBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub ${Prefix}-${AWS::AccountId}-${AWS::Region}-code
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+
+  # ---------------------------------------------------------------------------
+  # Glue
+  # ---------------------------------------------------------------------------
+  # Glue IAM Roles
+  GlueIAMRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - s3.amazonaws.com
+                - glue.amazonaws.com
+            Action:
+            - sts:AssumeRole
+      Path: /
+      Policies:
+        - PolicyName: s3listbuckets
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+            - Action:
+              - s3:*
+              - glue:*
+              - logs:*
+              Resource: "*"
+              Effect: Allow
+        - PolicyName: cognitoAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+            - Action:
+              - cognito-idp:ListUsers
+              Resource: "*"
+              Effect: Allow
+
+  # Adding Glue workflow components
+  SMGTGlueReportsDatabase:
+    Type: AWS::Glue::Database
+    Properties:
+      CatalogId: !Ref AWS::AccountId
+      DatabaseInput:
+        Name: smgt-gluedatabase
+        Description: Database to hold tables for reporting
+
+  SMGTGlueWorkflow:
+    Type: AWS::Glue::Workflow
+    Properties:
+      Description: Workflow for orchestrating reporting jobs
+      Name: SMGT-Glue-Workflow
+
+  ScheduledJobTrigger:
+    Type: 'AWS::Glue::Trigger'
+    Properties:
+      Type: SCHEDULED
+      Description: DESCRIPTION_SCHEDULED
+      Schedule: !Ref GlueJobTriggerCron
+      StartOnCreation: false
+      Actions:
+        - CrawlerName: !Ref SMGTOutputManifestS3InputCrawlerForVideoObjects
+        - JobName: !Ref WorkerMetricsProcessor
+        #- CrawlerName: !Ref SMGTOutputManifestS3InputCrawlerForVideoObjectsAudit
+      WorkflowName: !Ref SMGTGlueWorkflow
+
+  # SMGTExporterS3InputCrawler:
+  #   Type: AWS::Glue::Crawler
+  #   Properties:
+  #     Name: SMGTExporterS3InputCrawler
+  #     Role: !GetAtt GlueIAMRole.Arn
+  #     Description: AWS Glue crawler
+  #     DatabaseName: !Ref SMGTGlueReportsDatabase
+  #     Targets:
+  #       S3Targets:
+  #         - Path: !Join ["", ["s3://",!Ref CWLogsRawDataDumpS3Path,'/groundtruth-logs/'] ]
+
+  SMGTOutputManifestS3InputCrawlerForVideoObjects:
+    Type: AWS::Glue::Crawler
+    Properties:
+      Name: SMGTOutputManifestS3InputCrawlerForVideoObjects
+      Role: !GetAtt GlueIAMRole.Arn
+      Description: AWS Glue crawler
+      DatabaseName: !Ref SMGTGlueReportsDatabase
+      Configuration: "{\"Version\": 1.0,\"Grouping\":{\"TableGroupingPolicy\":\"CombineCompatibleSchemas\"},\"CrawlerOutput\":{\"Partitions\":{\"AddOrUpdateBehavior\":\"InheritFromTable\"}}}"
+      TablePrefix: "output_manifest_"
+      Targets:
+        S3Targets:
+          - Path: !Join ["", ["s3://",!Ref BatchProcessingInputBucketId,'/batch_manifests/VideoObjectTracking/']]
+            Exclusions:
+              - "**/annotations/**"
+              - "**/temp/**"
+              - "**/intermediate/**"
+
+  WorkerMetricsProcessor:
+    Type: "AWS::Glue::Job"
+    Properties:
+      Role: !Ref GlueIAMRole
+      GlueVersion : "2.0"
+      DefaultArguments:
+        "--INPUT_PATH":   !Join ["", ["s3://",!Ref GlueProcessingOutputBucketId,"/raw_worker_metrics/"] ]
+        "--OUTPUT_PATH":   !Join ["", ["s3://",!Ref GlueProcessingOutputBucketId,"/processed_worker_metrics/"] ]
+        "--TRANSFORMATION_CTX": "datasource0"
+        "--POOL_ID":               !Ref CognitoUserPoolId
+        "--add_source_ref":       false
+        "--job-bookmark-option":  "job-bookmark-enable"
+      Command:
+        Name: "glueetl"
+        ScriptLocation: !Sub s3://${Prefix}-${AWS::AccountId}-${AWS::Region}/glue_reporting_transform_script.py
+        PythonVersion: "3"
+
+  ConditionalJobTriggerForAudit:
+    Type: AWS::Glue::Trigger
+    Properties:
+      Description: Trigger for job
+      Type: CONDITIONAL
+      StartOnCreation: True
+      Actions:
+        #- JobName: !Ref WorkerMetricsProcessor
+        - CrawlerName: !Ref SMGTOutputManifestS3InputCrawlerForVideoObjectsAudit
+      Predicate:
+        Conditions:
+          - LogicalOperator: EQUALS
+            CrawlerName: !Ref SMGTOutputManifestS3InputCrawlerForVideoObjects
+            CrawlState: SUCCEEDED
+      WorkflowName: !Ref SMGTGlueWorkflow
+
+  SMGTOutputManifestS3InputCrawlerForVideoObjectsAudit:
+    Type: AWS::Glue::Crawler
+    Properties:
+      Name: SMGTOutputManifestS3InputCrawlerForVideoObjectsAudit
+      Role: !GetAtt GlueIAMRole.Arn
+      Description: AWS Glue crawler
+      DatabaseName: !Ref SMGTGlueReportsDatabase
+      Configuration: "{\"Version\": 1.0,\"Grouping\":{\"TableGroupingPolicy\":\"CombineCompatibleSchemas\"},\"CrawlerOutput\":{\"Partitions\":{\"AddOrUpdateBehavior\":\"InheritFromTable\"}}}"
+      TablePrefix: "output_manifest_"
+      Targets:
+        S3Targets:
+          - Path: !Join ["", ["s3://",!Ref BatchProcessingInputBucketId,"/batch_manifests/VideoObjectTrackingAudit/"]]
+            Exclusions:
+              - "**/annotations/**"
+              - "**/temp/**"
+              - "**/intermediate/**"
+
+  ConditionalJobTriggerForOutputCrawler:
+    Type: AWS::Glue::Trigger
+    Properties:
+      Description: Trigger for job that runs on analytics bucket
+      Type: CONDITIONAL
+      StartOnCreation: True
+      Actions:
+        - CrawlerName: !Ref SMGTWorkerMetricsS3OutputCrawler
+        - CrawlerName: !Ref SMGTIntermediateAnnotationsCrawler
+      Predicate:
+        Conditions:
+          - LogicalOperator: EQUALS
+            JobName: !Ref WorkerMetricsProcessor
+            State: SUCCEEDED
+      WorkflowName: !Ref SMGTGlueWorkflow
+
+  SMGTWorkerMetricsS3OutputCrawler:
+    Type: AWS::Glue::Crawler
+    Properties:
+      Name: SMGTWorkerMetricsS3OutputCrawler
+      Role: !GetAtt GlueIAMRole.Arn
+      Description: AWS Glue crawler
+      DatabaseName: !Ref SMGTGlueReportsDatabase
+      Configuration: "{\"Version\": 1.0,\"Grouping\":{\"TableGroupingPolicy\":\"CombineCompatibleSchemas\"},\"CrawlerOutput\":{\"Partitions\":{\"AddOrUpdateBehavior\":\"InheritFromTable\"}}}"
+      TablePrefix: "worker_metrics_"
+      Targets:
+        S3Targets:
+          - Path: !Join ["", ["s3://",!Ref GlueProcessingOutputBucketId,'/processed_worker_metrics/'] ]
+
+  SMGTIntermediateAnnotationsCrawler:
+    Type: AWS::Glue::Crawler
+    Properties:
+      Name: SMGTIntermediateAnnotationsCrawler
+      Role: !GetAtt GlueIAMRole.Arn
+      Description: AWS Glue crawler
+      DatabaseName: !Ref SMGTGlueReportsDatabase
+      Configuration: "{\"Version\": 1.0,\"Grouping\":{\"TableGroupingPolicy\":\"CombineCompatibleSchemas\"},\"CrawlerOutput\":{\"Partitions\":{\"AddOrUpdateBehavior\":\"InheritFromTable\"}}}"
+      TablePrefix: "annotations_"
+      Targets:
+        S3Targets:
+          - Path: !Join ["", ["s3://",!Ref BatchProcessingInputBucketId,"/batch_manifests/"] ]
+            Exclusions:
+              - "**/worker-response/**"
+              - "**/temp/**"
+              - "**/intermediate/**"
+              - "**/manifests/**"
+  # ---------------------------------------------------------------------------
+  # Athena
+  # ---------------------------------------------------------------------------
+  SMGTAthenaWorkGroup:
+    Type: AWS::Athena::WorkGroup
+    Properties:
+      Name: SMGTReportsWorkGroup
+      Description: Workgroup for reports
+      State: ENABLED
+      WorkGroupConfiguration:
+        PublishCloudWatchMetricsEnabled: true
+        ResultConfiguration:
+          OutputLocation: !Sub s3://${AthenaWorkgroupBucket}/
+
+  WorkerMetricsNamedQuery:
+    Type: AWS::Athena::NamedQuery
+    Properties:
+      Database: !Ref SMGTGlueReportsDatabase
+      Description: WorkerMetrics
+      Name: "Worker Metrics"
+      QueryString:
+        "Select * from worker_metrics_"
+      WorkGroup: !Ref SMGTAthenaWorkGroup
+
+  OutputMetricsNamedQuery:
+    Type: AWS::Athena::NamedQuery
+    Properties:
+      Database: !Ref SMGTGlueReportsDatabase
+      Description: Output Metrics
+      Name: "Output Metrics"
+      QueryString:
+        "Select * from output_metrics_"
+      WorkGroup: !Ref SMGTAthenaWorkGroup

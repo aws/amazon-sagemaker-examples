@@ -1,0 +1,39 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: >-
+  Creates FSx Lustre file-system.
+Parameters:
+  SubnetId:
+    Description: Subnet Id for FSx Lustre file-system
+    AllowedPattern: '(subnet\-)([a-z0-9]+)'
+    Type: String
+  SecurityGroupId:
+    Description: Security Groupd Id for FSx Lustre file-system
+    AllowedPattern: '(sg\-)([a-z0-9]+)'
+    Type: String
+  StorageCapacityGiB:
+    Description: Storage capacity in multiples of 3600 GiB
+    Type: Number
+    MinValue: 3600
+    Default: 3600
+  S3ImportPath:
+    Description: S3 import path for importing data
+    Type: String
+
+Resources:
+  FSxFileSystem:
+    Type: AWS::FSx::FileSystem
+    Properties: 
+      FileSystemType: 'LUSTRE'
+      LustreConfiguration: 
+        ImportPath: !Ref S3ImportPath
+      SecurityGroupIds: 
+        - !Ref SecurityGroupId
+      StorageCapacity: !Ref StorageCapacityGiB
+      SubnetIds: 
+        - !Ref SubnetId
+      Tags:
+        - Key: Name
+          Value: !Ref 'AWS::StackName'
+Outputs:
+  FSxFileSystemId:
+    Value: !Ref FSxFileSystem

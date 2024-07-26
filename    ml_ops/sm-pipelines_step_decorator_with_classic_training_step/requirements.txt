@@ -1,0 +1,3 @@
+sagemaker>=v2.211.0,<3
+numpy
+pandas>=2.0.0

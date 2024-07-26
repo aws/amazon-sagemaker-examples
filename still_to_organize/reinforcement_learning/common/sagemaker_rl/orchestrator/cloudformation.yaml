@@ -1,0 +1,176 @@
+AWSTemplateFormatVersion: 2010-09-09  
+Description: >-
+  AWS CloudFormation Template to Create a Resource needed for Continual Learning Example (TODO). Please 
+  find additional information at https://github.com/awslabs/amazon-sagemaker-examples
+Parameters:
+  ExperimentDbName:
+    Description: Table name for DynamoDb Table to store Experiment State.
+    Type: String
+    # Default: cl-experiment-table
+  ModelDbName:
+    Description: Table name for DynamoDb Table to store Experiment State.
+    Type: String
+    # Default: cl-model-table
+  JoinDbName:
+    Description: Table name for DynamoDb Table to store Joining State.
+    Type: String
+    # Default: cl-join-table
+  IAMRoleName:
+    Description: Role currently used by both Firehose and SageMaker 
+    # Todo: split this permission!
+    Type: String
+  ExperimentDbRCU:
+    Description: ExperimentDb DynamoDb Tables Read Capacity
+    Type: String
+    Default: '5'
+  ExperimentDbWCU:
+    Description: ExperimentDb DynamoDb Tables Write Capacity
+    Type: String
+    Default: '5'
+  ModelDbRCU:
+    Description: ModelDb DynamoDb Tables Read Capacity
+    Type: String
+    Default: '5'
+  ModelDbWCU:
+    Description: ModelDb DynamoDb Tables Write Capacity
+    Type: String
+    Default: '5'
+  JoinDbRCU:
+    Description: ExperimentDb DynamoDb Tables Read Capacity
+    Type: String
+    Default: '5'
+  JoinDbWCU:
+    Description: JoinDb DynamoDb Tables Write Capacity
+    Type: String
+    Default: '5'
+  # To add support for VPC/SG, uncomment this and modify Resource Manager to 
+  # start using VPC/SecurityGroup
+  # DefaultVpcId:
+  #   Type: AWS::EC2::VPC::Id
+  #   Description: VpcId of your existing Virtual Private Cloud (VPC), with internet connection.
+  #   ConstraintDescription: must be the VPC Id of an existing Virtual Private Cloud.
+  # DefaultSecurityGroupId:
+  #   Type: AWS::EC2::SecurityGroup::Id
+  #   Description: Create a new SecurityGroup for EC2 instance
+  #   ConstraintDescription: must be the SecurityGroupId of an existing SecurityGroup.
+Resources:
+  ExperimentDb:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+        -
+          AttributeName: "experiment_id"
+          AttributeType: "S"
+      KeySchema:
+        -
+          AttributeName: "experiment_id"
+          KeyType: "HASH"
+      ProvisionedThroughput:
+        ReadCapacityUnits: !Ref ExperimentDbRCU
+        WriteCapacityUnits: !Ref ExperimentDbWCU
+      TableName: !Ref ExperimentDbName
+  ModelDb:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+        -
+          AttributeName: "experiment_id"
+          AttributeType: "S"
+        -
+          AttributeName: "model_id"
+          AttributeType: "S"
+      KeySchema:
+        -
+          AttributeName: "experiment_id"
+          KeyType: "HASH"
+        -
+          AttributeName: "model_id"
+          KeyType: "RANGE"
+      ProvisionedThroughput:
+        ReadCapacityUnits: !Ref ModelDbRCU
+        WriteCapacityUnits: !Ref ModelDbWCU
+      TableName: !Ref ModelDbName
+  JoinDb:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+        -
+          AttributeName: "experiment_id"
+          AttributeType: "S"
+        -
+          AttributeName: "join_job_id"
+          AttributeType: "S"
+      KeySchema:
+        -
+          AttributeName: "experiment_id"
+          KeyType: "HASH"
+        -
+          AttributeName: "join_job_id"
+          KeyType: "RANGE"
+      ProvisionedThroughput:
+        ReadCapacityUnits: !Ref JoinDbRCU
+        WriteCapacityUnits: !Ref JoinDbWCU
+      TableName: !Ref JoinDbName
+  SageMakerAssumedRolePolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          -
+            Effect: "Allow"
+            Action:
+              - "cloudwatch:PutMetricData"
+              - "logs:CreateLogStream"
+              - "logs:PutLogEvents"
+              - "logs:CreateLogGroup"
+              - "logs:DescribeLogStreams"
+              - "s3:AbortMultipartUpload"
+              - "s3:GetBucketLocation"
+              - "s3:GetObject"
+              - "s3:ListBucket"
+              - "s3:ListBucketMultipartUploads"
+              - "s3:PutObject"
+              - "ecr:GetAuthorizationToken"
+              - "ecr:BatchCheckLayerAvailability"
+              - "ecr:GetDownloadUrlForLayer"
+              - "ecr:BatchGetImage"
+              - "dynamodb:Query"
+              - "dynamodb:DescribeTable"
+              - "firehose:PutRecord"
+              - "firehose:PutRecordBatch"
+            Resource:
+              - "*"
+      PolicyName: SageMakerAssumedRolePolicy
+      Roles:
+        - {Ref: SageMakerAssumedRole}
+  SageMakerAssumedRole:
+    Type: AWS::IAM::Role
+    Properties: 
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          -
+            Effect: "Allow"
+            Action:
+              - "sts:AssumeRole"
+            Principal:
+              Service:
+                - "sagemaker.amazonaws.com"
+                - "firehose.amazonaws.com"
+      RoleName: !Ref IAMRoleName
+Outputs:
+  IAMRoleArn:
+    Description: ARN for newly created IAM Role.
+    Value: !GetAtt 
+      - SageMakerAssumedRole
+      - Arn
+  ExperimentDbTableName:
+    Description: Table Name for Experiment Tracking DynamoDb
+    Value: !Ref ExperimentDb
+  ModelDbTableName:
+    Description: Table Name for Model Tracking DynamoDb
+    Value: !Ref ModelDb
+  JoinDbTableName:
+    Description: Table Name for Join Job Tracking DynamoDb
+    Value: !Ref JoinDb

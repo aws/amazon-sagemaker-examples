@@ -1,0 +1,140 @@
+{
+    "bloom-560m": {
+        "instance type": "ml.g5.12xlarge",
+        "env": {
+                "HF_MODEL_ID":"bigscience/bloom-560m",
+                "HF_TASK":"text-generation",
+                "SM_NUM_GPUS":"4"
+        },
+        "sample_input": "What is the weather forecast for Seattle today?"
+    },
+    "gpt-neox-20b": {
+        "instance type": "ml.g5.12xlarge",
+        "env": {
+                "HF_MODEL_ID": "EleutherAI/gpt-neox-20b",
+                "HF_TASK": "text-generation",
+                "SM_NUM_GPUS":"4"
+        },
+        "sample_input": "The diamondback terrapin was the first reptile to"
+    },
+    "falcon-40b": {
+        "instance type": "ml.g5.12xlarge",
+        "env": {
+                "HF_MODEL_ID":"tiiuae/falcon-40b",
+                "HF_TASK":"text-generation",
+                "SM_NUM_GPUS":"4"
+        },
+        "sample_input": "My name is Julien and I like to"
+    },
+    "starcoder": {
+        "instance type": "ml.g4dn.12xlarge",
+        "env": {
+                "HF_MODEL_ID": "bigcode/starcoder",
+                "HF_TASK": "text-generation",
+                "SM_NUM_GPUS": "4",
+                "HF_MODEL_QUANTIZE": "bitsandbytes",
+                "HUGGING_FACE_HUB_TOKEN": "<your own huggingface access token>"
+        },
+        "sample_input": "def print_hello_world():"
+    },
+    "falcon-40b-instruct": {
+        "instance type": "ml.g5.12xlarge",
+        "env": {
+                "HF_MODEL_ID":"tiiuae/falcon-40b-instruct",
+                "HF_TASK":"text-generation",
+                "SM_NUM_GPUS":"4"
+        },
+        "sample_input": "My name is Julien and I like to"
+    },
+    "falcon-7b": {
+        "instance type": "ml.g5.2xlarge",
+        "env": {
+                "HF_MODEL_ID":"tiiuae/falcon-7b",
+                "HF_TASK":"text-generation",
+                "SM_NUM_GPUS":"1"
+        },
+        "sample_input": "My name is Julien and I like to"
+    },
+    "falcon-7b-instruct": {
+        "instance type": "ml.g5.2xlarge",
+        "env": {
+                "HF_MODEL_ID":"tiiuae/falcon-7b-instruct",
+                "HF_TASK":"text-generation",
+                "SM_NUM_GPUS":"1"
+        },
+        "sample_input": "Hey Falcon! Any recommendations for my holidays in Abu Dhabi?"
+    },
+    "bloom-7b1": {
+        "instance type": "ml.g5.12xlarge",
+        "env": {
+                "HF_MODEL_ID": "bigscience/bloom-7b1",
+                "HF_TASK": "text-generation",
+                "SM_NUM_GPUS": "4",
+                "HF_MODEL_QUANTIZE": "bitsandbytes"
+        },
+        "sample_input": "What is the weather forecast for Seattle today?"
+    },
+    "distilgpt2": {
+        "instance type": "ml.g5.xlarge",
+        "env": {
+                "HF_MODEL_ID": "distilgpt2",
+                "HF_TASK": "text-generation"
+        },
+        "sample_input": "The diamondback terrapin was the first reptile to"
+    },
+    "gpt2": {
+        "instance type": "ml.g5.xlarge",
+        "env": {
+                "HF_MODEL_ID": "gpt2",
+                "HF_TASK": "text-generation",
+                "SM_NUM_GPUS": "1"
+        },
+         "sample_input": "The diamondback terrapin was the first reptile to"
+    },
+    "gpt2-large": {
+        "instance type": "ml.g5.xlarge",
+        "env": {
+                "HF_MODEL_ID": "gpt2-large",
+                "HF_TASK": "text-generation"
+        },
+        "sample_input": "The diamondback terrapin was the first reptile to"
+    },
+    "santacoder": {
+        "instance type": "ml.g5.xlarge",
+        "env": {
+                "HF_MODEL_ID": "bigcode/santacoder",
+                "HF_TASK": "text-generation",
+                "SM_NUM_GPUS": "1",
+                "HF_MODEL_QUANTIZE": "bitsandbytes"
+        },
+        "sample_input": "def all_odd_elements(sequence): #Returns every odd element of the sequence."
+    },
+    "gpt-neo-27Bb": {
+        "instance type": "ml.g5.8xlarge",
+        "env": {
+                "HF_MODEL_ID":"EleutherAI/gpt-neo-2.7B",
+                "HF_TASK":"text-generation",
+                "SM_NUM_GPUS": "1"
+        },
+        "sample_input": "The diamondback terrapin was the first reptile to"
+    },
+    "open-llama-13b": {
+        "instance type": "ml.g5.12xlarge",
+        "env": {
+                "HF_MODEL_ID":"openlm-research/open_llama_13b",
+                "HF_TASK":"text-generation",
+                "SM_NUM_GPUS": "4"
+        },
+        "sample_input": "The diamondback terrapin was the first reptile to"
+    },
+    "open-llama-7b": {
+        "instance type": "ml.g5.2xlarge",
+        "env": {
+                "HF_MODEL_ID":"openlm-research/open_llama_7b_v2",
+                "HF_TASK":"text-generation",
+                "SM_NUM_GPUS": "1",
+                "HF_MODEL_QUANTIZE": "bitsandbytes"
+        },
+        "sample_input": "The diamondback terrapin was the first reptile to"
+    }
+}

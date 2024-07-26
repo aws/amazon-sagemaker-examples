@@ -1,0 +1,27 @@
+{
+  "AWSTemplateFormatVersion" : "2010-09-09",
+  "Resources" : {
+    "obsDynamoDBTable" : {
+      "Type" : "AWS::DynamoDB::Table",
+      "Properties" : {
+        "AttributeDefinitions" : [
+          {
+            "AttributeName" : "key",
+            "AttributeType" : "S"   
+          }
+        ],
+        "KeySchema" : [
+          {
+            "AttributeName" : "key",
+            "KeyType" : "HASH"
+          }
+        ],
+        "ProvisionedThroughput" : {
+          "ReadCapacityUnits" : "5",
+          "WriteCapacityUnits" : "5"
+        },
+        "TableName" : "latest_observations"
+      }
+    }
+  }
+}
