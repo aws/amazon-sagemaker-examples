@@ -10,7 +10,7 @@ Otherwise, you will get an error message prompting you to provide an image_uri w
 ## Install the beta SageMaker Python SDK
 
 ```bash
-pip install -r requirements.txt
+pip install -r requirements.txt -U
 ```
 
 ## Run the example
