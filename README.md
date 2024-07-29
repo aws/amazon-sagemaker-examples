@@ -38,7 +38,7 @@ As of February 7, 2022, the default branch is named "main". See our [announcemen
 
 ## :notebook: Example Notebook Categories
 
-### SageMaker End-to-End
+### End-to-End ML Lifecycle
 
 These examples are a diverse collection of end-to-end notebooks that demonstrate how to build, train, and deploy machine learning models using Amazon SageMaker. These notebooks cover a wide range of machine learning tasks and use cases, providing you with a comprehensive understanding of the SageMaker workflow. Each notebook in this folder is self-contained and includes detailed documentation, code samples, and instructions for running the examples on SageMaker. Whether you're a beginner or an experienced practitioner, this folder offers a comprehensive collection of end-to-end notebooks that will help you leverage the power of Amazon SageMaker for a wide range of machine learning tasks and use cases.
 
@@ -46,7 +46,7 @@ These examples are a diverse collection of end-to-end notebooks that demonstrate
 
 The example notebooks within this folder showcase Sagemaker's data preparation capabilities. Data preparation in machine learning refers to the process of collecting, preprocessing, and organizing raw data to make it suitable for analysis and modeling. This step ensures that the data is in a format from which machine learning algorithms can effectively learn. Data preparation tasks may include handling missing values, removing outliers, scaling features, encoding categorical variables, assessing potential biases and taking steps to mitigate them, splitting data into training and testing sets, labeling, and other necessary transformations to optimize the quality and usability of the data for subsequent machine learning tasks.
 
-### Building and Training Models
+### Build and Train Models
 
 Amazon SageMaker Training is a fully managed machine learning (ML) service offered by SageMaker that helps you efficiently build and train a wide range of ML models at scale. The core of SageMaker jobs is the containerization of ML workloads and the capability of managing AWS compute resources. The SageMaker Training platform takes care of the heavy lifting associated with setting up and managing infrastructure for ML training workloads. With SageMaker Training, you can focus on building, developing, training, and fine-tuning your model.
 
