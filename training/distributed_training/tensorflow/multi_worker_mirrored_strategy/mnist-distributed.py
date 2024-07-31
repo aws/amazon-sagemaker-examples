@@ -32,8 +32,10 @@ def model(x_train, y_train, x_test, y_test, strategy):
             ]
         )
 
-        model.compile(optimizer="adam", loss="sparse_categorical_crossentropy", metrics=["accuracy"])
-    
+        model.compile(
+            optimizer="adam", loss="sparse_categorical_crossentropy", metrics=["accuracy"]
+        )
+
     model.fit(x_train, y_train)
     model.evaluate(x_test, y_test)
 
@@ -73,25 +75,26 @@ if __name__ == "__main__":
 
     train_data, train_labels = _load_training_data(args.train)
     eval_data, eval_labels = _load_testing_data(args.train)
-    
+
     print("Tensorflow version: ", tf.__version__)
     print("TF_CONFIG", os.environ.get("TF_CONFIG"))
-    
+
     communication_options = tf.distribute.experimental.CommunicationOptions(
-        implementation=tf.distribute.experimental.CommunicationImplementation.NCCL)
+        implementation=tf.distribute.experimental.CommunicationImplementation.NCCL
+    )
     strategy = tf.distribute.MultiWorkerMirroredStrategy(
-        communication_options=communication_options)
-    
-    print('Number of devices: {}'.format(strategy.num_replicas_in_sync))
-    
+        communication_options=communication_options
+    )
+
+    print("Number of devices: {}".format(strategy.num_replicas_in_sync))
+
     mnist_classifier = model(train_data, train_labels, eval_data, eval_labels, strategy)
-    
-    task_type, task_id = (strategy.cluster_resolver.task_type,
-                      strategy.cluster_resolver.task_id)
-    
-    print("Task type: ",task_type)
-    print("Task id: ",task_id)
-    
+
+    task_type, task_id = (strategy.cluster_resolver.task_type, strategy.cluster_resolver.task_id)
+
+    print("Task type: ", task_type)
+    print("Task id: ", task_id)
+
     # Save the model on chief worker
     if strategy.cluster_resolver.task_id == 0:
         print("Saving model on chief")
