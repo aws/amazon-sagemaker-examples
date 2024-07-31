@@ -19,18 +19,8 @@ import numpy as np
 import tensorflow as tf
 
 
-def model(x_train, y_train, x_test, y_test):
+def model(x_train, y_train, x_test, y_test, strategy):
     """Generate a simple model"""
-    communication_options = tf.distribute.experimental.CommunicationOptions(
-        implementation=tf.distribute.experimental.CommunicationImplementation.NCCL)
-    strategy = tf.distribute.MultiWorkerMirroredStrategy(
-        communication_options=communication_options)
-    
-    print('Number of devices: {}'.format(strategy.num_replicas_in_sync))
-    
-    
-    
-    
     with strategy.scope():
 
         model = tf.keras.models.Sequential(
@@ -85,11 +75,27 @@ if __name__ == "__main__":
     eval_data, eval_labels = _load_testing_data(args.train)
     
     print("Tensorflow version: ", tf.__version__)
-
+    print("TF_CONFIG", os.environ.get("TF_CONFIG"))
     
-    mnist_classifier = model(train_data, train_labels, eval_data, eval_labels)
-
-    if args.current_host == args.hosts[0]:
-        # save model to an S3 directory with version number '00000001' in Tensorflow SavedModel Format
-        # To export the model as h5 format use model.save('my_model.h5')
+    communication_options = tf.distribute.experimental.CommunicationOptions(
+        implementation=tf.distribute.experimental.CommunicationImplementation.NCCL)
+    strategy = tf.distribute.MultiWorkerMirroredStrategy(
+        communication_options=communication_options)
+    
+    print('Number of devices: {}'.format(strategy.num_replicas_in_sync))
+    
+    mnist_classifier = model(train_data, train_labels, eval_data, eval_labels, strategy)
+    
+    task_type, task_id = (strategy.cluster_resolver.task_type,
+                      strategy.cluster_resolver.task_id)
+    
+    print("Task type: ",task_type)
+    print("Task id: ",task_id)
+    
+    # Save the model on chief worker
+    if strategy.cluster_resolver.task_id == 0:
+        print("Saving model on chief")
         mnist_classifier.save(os.path.join(args.sm_model_dir, "000000001"))
+    else:
+        print("Saving model in /tmp on worker")
+        mnist_classifier.save(f"/tmp/{strategy.cluster_resolver.task_id}")
