@@ -196,6 +196,7 @@ More examples for models such as BERT and YOLOv5 can be found in [distributed_tr
 - [Train GPT-2 with Sharded Data Parallel](https://github.com/aws/amazon-sagemaker-examples/tree/main/training/distributed_training/pytorch/model_parallel/gpt2/smp-train-gpt-simple-sharded-data-parallel.ipynb) shows how to train GPT-2 with near-linear scaling using Sharded Data Parallelism technique in SageMaker Model Parallelism Library.
 - [Train EleutherAI GPT-J with Model Parallel](https://github.com/aws/amazon-sagemaker-examples/blob/main/training/distributed_training/pytorch/model_parallel/gpt-j/11_train_gptj_smp_tensor_parallel_notebook.ipynb) shows how to train EleutherAI GPT-J with PyTorch and Tensor Parallelism technique in the SageMaker Model Parallelism Library.
 - [Train MaskRCNN with Data Parallel](https://github.com/aws/amazon-sagemaker-examples/blob/main/training/distributed_training/pytorch/data_parallel/maskrcnn/pytorch_smdataparallel_maskrcnn_demo.ipynb) shows how to train MaskRCNN with PyTorch and SageMaker Data Parallelism Library.
+- [Distributed training with TensorFlow Multi-Worker Mirrored Strategy API on Amazon SageMaker](https://github.com/aws/amazon-sagemaker-examples/blob/main/training/distributed_training/tensorflow/multi_worker_mirrored_strategy/tensorflow_multi_worker_mirrored_strategy.ipynb) shows how to train an MNIST Classifier with TensorFlow using TensorFlow's Multi-Worker Mirrored Strategy for Distributed Training.
 
 ### Amazon SageMaker Smart Sifting
 
