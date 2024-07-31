@@ -39,15 +39,15 @@ def model(x_train, y_train, x_test, y_test):
 
 def _load_training_data(base_dir):
     """Load MNIST training data"""
-    x_train = np.load(os.path.join(base_dir, "train_data.npy"))
-    y_train = np.load(os.path.join(base_dir, "train_labels.npy"))
+    x_train = np.load(os.path.join(base_dir, "input_train.npy"))
+    y_train = np.load(os.path.join(base_dir, "input_train_labels.npy"))
     return x_train, y_train
 
 
 def _load_testing_data(base_dir):
     """Load MNIST testing data"""
-    x_test = np.load(os.path.join(base_dir, "eval_data.npy"))
-    y_test = np.load(os.path.join(base_dir, "eval_labels.npy"))
+    x_test = np.load(os.path.join(base_dir, "input_test.npy"))
+    y_test = np.load(os.path.join(base_dir, "input_test_labels.npy"))
     return x_test, y_test
 
 
