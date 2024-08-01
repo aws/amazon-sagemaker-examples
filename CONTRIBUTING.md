@@ -6,7 +6,6 @@ documentation, we greatly value feedback and contributions from our community.
 Please read through this document before submitting any issues or pull requests to ensure we have all the necessary
 information to effectively respond to your bug report or contribution.
 
-
 ## Report Bugs/Feature Requests
 
 We welcome you to use the GitHub issue tracker to report bugs or suggest features.
@@ -18,7 +17,6 @@ reported the issue. Please try to include as much information as you can. Detail
 * Any modifications you've made relevant to the bug.
 * A description of your environment or deployment.
 
-
 ## Contribute via Pull Requests (PRs)
 
 Before sending us a pull request, please ensure that:
@@ -26,8 +24,7 @@ Before sending us a pull request, please ensure that:
 * You are working against the latest source on the *main* branch.
 * You check the existing open and recently merged pull requests to make sure someone else hasn't already addressed the problem.
 * You open an issue to discuss any significant work - we would hate for your time to be wasted.
-* **NOTE:: If you are submitting an entirely new notebook, please ensure it demonstrates a functionality of SageMaker not yet showcased by any other existing notebook in this repository. If you don't meet this criteria, your PR will be rejected.**
-
+* **NOTE: If you are submitting an entirely new notebook, please ensure it demonstrates a functionality of SageMaker not yet showcased by any other existing notebook in this repository. If you don't meet this criteria, your PR will be rejected.**
 
 ### Pull Down the Code
 
@@ -35,7 +32,6 @@ Before sending us a pull request, please ensure that:
 1. Create a fork of this repository on GitHub. You should end up with a fork at `https://github.com/<username>/amazon-sagemaker-examples`.
    1. Follow the instructions at [Fork a Repo](https://help.github.com/en/articles/fork-a-repo) to fork a GitHub repository.
 1. Clone your fork of the repository: `git clone https://github.com/<username>/amazon-sagemaker-examples` where `<username>` is your github username.
-
 
 ### Run the Linter
 
@@ -45,7 +41,6 @@ Apply Python code formatting to Jupyter notebook files using [black](https://pyp
 1. In terminal, run the following black command on each of your ipynb notebook files and verify that the linter passes: `python3 -m black -l 100 {path}/{notebook-name}.ipynb`
 1. Some notebook features such as `%` bash commands or `%%` cell magic cause black to fail. As long as you run the above command to format as much as possible, that is sufficient, even if the check fails
 
-
 ### Test Your Notebook End-to-End
 
 Our [CI system](https://github.com/aws/sagemaker-example-notebooks-testing) runs modified or added notebooks, in parallel, for every Pull Request.
@@ -54,8 +49,8 @@ Please ensure that your notebook runs end-to-end so that it passes our CI.
 The `sagemaker-bot` will comment on your PR with a link for `Build logs`.
 If your PR does not pass CI, you can view the logs to understand how to fix your notebook(s) and code.
 
-
 ### Add CI badges to your notebook
+
 Our [CI system](https://github.com/aws/sagemaker-example-notebooks-testing) tests each notebook in this repo everyday to see if it is fully functional. We provide badges to display the results of these daily tests so you and your customers can see if your notebook is working or needs to be fixed. **It is required that all notebooks have these badges.**
 
 The badges should be added using the following steps:
@@ -109,6 +104,26 @@ This notebook was tested in multiple regions. The test results are as follows, e
 
 ```
 
+### Name your notebook
+
+We have migrated to a new standarized naming convention for all notebooks with the repository. The naming format follows the pattern: sm - {name_of_sagemaker_feature} _ {any_key_secondary_feature} _ {detailed_description_of_notebook_focus} . ipynb
+
+Examples:
+- sm-jumpstart_foundation_trainium_inferentia_finetuning_deployment.ipynb
+- sm-training_compiler_language_modeling_multi_gpu_multi_node.ipynb
+- sm-clarify_text_explainability_text_sentiment_analysis.ipynb
+
+###  Place your notebook into the correct folder
+
+We have implemented a flattened directory structure in order to increase the discoverability of notebooks within the repository. Once you have completed the notebook, place it into the folder that best corresponds with the primary functionality that you highlighting within your example notebook. Here is a list of the folders and a brief description of their primary purposes:
+
+- end_to_end_ml_lifecycle - end-to-end notebooks that demonstrate how to build, train, and deploy machine learning models using Amazon SageMaker
+- prepare_data - noteboooks that showcase Amazon SageMaker's data preparation capabilities
+- building_and_train_models - notebooks that highlight Amazon SageMaker tools to build and train ML models at scale
+- deploy_and_monitor - notebooks that demonstrate Amazon SageMaker's ML infrastructure and model deployment options as well as SageMaker's ability to monitor the quality of your machine learning models in real time
+- responsible_ai - notebooks that highlight Amazon SageMaker's abilities to improve your machine learning models by detecting potential bias and helping to explain the predictions that your models make from your tabular, computer vision, natural processing, or time series datasets
+- ml_ops - notebooks that feature Amazon SageMaker's ability to implement machine learning models in production environments with continuous integration and deployment
+- generative_ai - notebooks that demonstate Amazon SageMaker's generative AI capabilities to create new, synthetic data across various modalities, such as text, images, audio, and video, based on the patterns and relationships learned from training data
 
 ### Add Your Notebook to the Website
 
@@ -168,28 +183,30 @@ python -m http.server 8000
 
 #### Add a notebook to the website
 
-You will typically modify an index.rst file and add the notebook by name, minus the extension. For example, if the new notebook is in a subfolder in the `aws_marketplace` folder:
-https://github.com/aws/amazon-sagemaker-examples/blob/main/aws_marketplace/creating_marketplace_products/algorithms/Bring_Your_Own-Creating_Algorithm_and_Model_Package.ipynb
-You would modify this file: https://github.com/aws/amazon-sagemaker-examples/blob/main/aws_marketplace/index.rst
+You will modify the index.rst file at the highest level of the directory and add the notebook by name, minus the extension into the section that corresponds to the folder in which you added the notebook. For example, if the new notebook is in a subfolder in the `generative_ai` folder:
+https://github.com/aws/amazon-sagemaker-examples/blob/default/generative_ai/sm-jumpstart_foundation_finetuning_gpt_j_6b_domain_adaptation.ipynb
+You would modify this file: https://github.com/aws/amazon-sagemaker-examples/blob/default/index.rst
 
 
-1. Look for the table of contents directive, `toctree` :
-
-   ```
-
-   .. toctree::
-      :maxdepth: 1
-
-   ```
-
-1. Add an entry for the new notebook:
+1. Look for the table of contents directive, `toctree` with the caption that matches the subfolder you placed the notebook into:
 
    ```
 
    .. toctree::
       :maxdepth: 1
+      :caption: Generatative AI
 
-      creating_marketplace_products/algorithms/Bring_Your_Own-Creating_Algorithm_and_Model_Package
+   ```
+
+2. Add an entry for the new notebook:
+
+   ```
+
+   .. toctree::
+      :maxdepth: 1
+      :caption: Generatative AI
+
+      generative_ai/sm-jumpstart_foundation_finetuning_gpt_j_6b_domain_adaptation
    ```
 
 #### Adjusting navigation
