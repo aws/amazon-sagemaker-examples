@@ -14,7 +14,7 @@ djl:
 sagemaker:
   model:
     name: "llama-2-13b-chat-hf-transformers-neuronx"
-    image: "763104351884.dkr.ecr.us-west-2.amazonaws.com/djl-inference:0.28.0-neuronx-sdk2.18.2"
+    container:  "containers/pytorch-inf2"
     env: 
       HUGGINGFACE_HUB_CACHE: "/tmp"
       TRANSFORMERS_CACHE: "/tmp"

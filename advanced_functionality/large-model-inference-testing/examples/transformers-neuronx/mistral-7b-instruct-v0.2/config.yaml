@@ -5,22 +5,26 @@ huggingface:
 djl:
   engine: "Python"
   option.entryPoint: "djl_python.transformers_neuronx"
-  option.tensor_parallel_degree: 12
+  option.tensor_parallel_degree: 8
   option.amp: "f16"
-  option.n_positions: 2048
+  option.n_positions: 8192
   option.model_loading_timeout: 1800
   option.model_loader: "tnx"
+  option.rolling_batch: "auto"
+  option.rolling_batch_strategy: "continuous_batching"
+  option.max_rolling_batch_size: 8
+  option.output_formatter: "json"
   option.trust_remote_code: true
 sagemaker:
   model:
     name: "mistral-7b-instruct-v0-2-transformers-neuronx"
-    image: "763104351884.dkr.ecr.us-west-2.amazonaws.com/djl-inference:0.28.0-neuronx-sdk2.18.2"
+    container:  "containers/pytorch-inf2"
     env: 
       HUGGINGFACE_HUB_CACHE: "/tmp"
       TRANSFORMERS_CACHE: "/tmp"
   endpoint:
     name: "mistral-7b-instruct-v0-2-transformers-neuronx"
-    instance_type: "ml.inf2.24xlarge"
+    instance_type: "ml.inf2.48xlarge"
     initial_instance_count: 1
     variant_name: "test"
     model_data_download_timeout_secs: 1800
@@ -29,9 +33,10 @@ test:
   module_name: "prompt_generator"
   module_dir: "modules/inst-semeval2017"
   prompt_generator: "PromptGenerator"
-  params: { "use_sample": true, "max_new_tokens": 1024, "top_k": 50 }
+  params: { "do_sample": true, "max_new_tokens": 1024, "top_k": 50 }
   warmup_iters: 1
   max_iters: 10
+  n_concurrent: 4
   output_dir: "output"
-  locust_users: 8
-  locust_workers: 2
+  locust_users: 24
+  locust_workers: 4
