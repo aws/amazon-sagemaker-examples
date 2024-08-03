@@ -4,6 +4,7 @@ huggingface:
   download: true
 djl:
   engine: Python
+  option.entryPoint: djl_python.huggingface
   option.dtype: fp16
   option.task: text-generation
   option.rolling_batch: vllm

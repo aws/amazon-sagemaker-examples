@@ -4,14 +4,15 @@ huggingface:
   download: true
 djl:
   engine: Python
+  option.entryPoint: djl_python.huggingface
   option.dtype: fp16
   option.task: text-generation
   option.rolling_batch: vllm
-  option.max_rolling_batch_size: 2
-  option.tensor_parallel_degree: 2
+  option.max_rolling_batch_size: 8
+  option.tensor_parallel_degree: 8
   option.output_formatter: "json"
   option.model_loading_timeout: 1200
-  option.max_model_len: 2048
+  option.max_model_len: 8192
   option.trust_remote_code: true
 sagemaker:
   model:
@@ -22,7 +23,7 @@ sagemaker:
       TRANSFORMERS_CACHE: "/tmp"
   endpoint:
     name: "mistral-7b-instruct-v0-2-vllm"
-    instance_type: "ml.g5.12xlarge"
+    instance_type: "ml.g5.48xlarge"
     initial_instance_count: 1
     variant_name: "test"
     model_data_download_timeout_secs: 1200
@@ -34,6 +35,7 @@ test:
   params: { "do_sample": true, "max_new_tokens": 1024, "top_k": 50 }
   warmup_iters: 1
   max_iters: 10
+  n_concurrent: 4
   output_dir: "output"
-  locust_users: 8
-  locust_workers: 2
+  locust_users: 24
+  locust_workers: 4
