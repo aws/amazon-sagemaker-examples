@@ -1,0 +1,2 @@
+{"source-ref":"s3://AWSDOC-EXAMPLE-BUCKET/example_image.jpg","species":"0","species-metadata":{"class-name": "dog","confidence": 0.00,"type": "groundtruth/image-classification","job-name": "identify-animal-species","human-annotated": "yes","creation-date": "2018-10-18T22:18:13.527256"}}
+{"source":"The food was delicious","mood":"1","mood-metadata":{"class-name": "positive","confidence": 0.8,"type": "groundtruth/text-classification","job-name": "label-sentiment","human-annotated": "yes","creation-date": "2020-10-18T22:18:13.527256"}}
