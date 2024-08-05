@@ -58,4 +58,12 @@ LLM Monitoring
    :maxdepth: 1
 
    llm_monitor_byoc/byoc_llm_monitor
+
+LLM Mutliple Evauation Monitoring
+==============================
+
+.. toctree::
+   :maxdepth: 1
+
+   llm_multiple_evals_monitor_byoc/byoc_llm_multiple_evals_monitor
  
