@@ -1,5 +1,9 @@
 ![SageMaker](https://github.com/aws/amazon-sagemaker-examples/raw/main/_static/sagemaker-banner.png)
 
+# :exclamation::fire: Announcement: New Folder Structure :fire::exclamation:
+
+Starting 7 August, 2024, we are introducing a new flattened folder structure within the SageMaker Example Notebooks repository in order to improve the discoverability of the notebooks. The new structure uses standardized folder and notebook naming conventions to align with common workflows and SageMaker services. It also includes an archived folder for redundant, outdated, and low-viewed notebooks. To ease the transition, we have created an [excel sheet](new_file_structure_updated_notebook_names_and_folders.xlsx) showing the old naming convention and its new corresponding name.
+
 # Amazon SageMaker Examples
 
 Example Jupyter notebooks that demonstrate how to build, train, and deploy machine learning models using Amazon SageMaker.
@@ -33,8 +37,6 @@ These example notebooks are automatically loaded into SageMaker Notebook Instanc
 They can be accessed by clicking on the `SageMaker Examples` tab in Jupyter or the SageMaker logo in JupyterLab.
 
 Although most examples utilize key Amazon SageMaker functionality like distributed, managed training or real-time hosted endpoints, these notebooks can be run outside of Amazon SageMaker Notebook Instances with minimal modification (updating IAM role definition and installing the necessary libraries).
-
-As of February 7, 2022, the default branch is named "main". See our [announcement](https://github.com/aws/amazon-sagemaker-examples/discussions/3131) for details and how to update your existing clone.
 
 ## :notebook: Example Notebook Categories
 
@@ -80,5 +82,5 @@ For more details, please take a look at the [LICENSE](https://github.com/aws/ama
 ## :handshake: Contributing
 
 Although we're extremely excited to receive contributions from the community, we're still working on the best mechanism to take in examples from external sources. Please bear with us in the short-term if pull requests take longer than expected or are closed.
-Please read our [contributing guidelines](https://github.com/aws/amazon-sagemaker-examples/blob/master/CONTRIBUTING.md)
+Please read our [contributing guidelines](https://github.com/aws/amazon-sagemaker-examples/blob/default/CONTRIBUTING.md)
 if you'd like to open an issue or submit a pull request.
