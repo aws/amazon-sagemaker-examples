@@ -64,7 +64,7 @@ class CloudWatchLogger:
                     logger.info(f"Logged metrics: {json.dumps(metric_data)}")
                     logger.info(f"Logged to {destination}")
         except PermissionError as e:
-
+            logger.warning(f"Unable to write to {destination}")
             print(f"Error: {e}")
 
         print(f"Evaluation results logged to: {destination}")
