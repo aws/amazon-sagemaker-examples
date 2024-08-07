@@ -4,6 +4,8 @@
 
 Starting 7 August, 2024, we are introducing a new flattened folder structure within the SageMaker Example Notebooks repository in order to improve the discoverability of the notebooks. The new structure uses standardized folder and notebook naming conventions to align with common workflows and SageMaker services. It also includes an archived folder for redundant, outdated, and low-viewed notebooks. To ease the transition, we have created an [excel sheet](new_file_structure_updated_notebook_names_and_folders.xlsx) showing the old naming convention and its new corresponding name.
 
+To ensure dependencies to the repository remain unbroken, we will be switching the default branch of the repository from 'main' to 'default'. Please ensure that all future PRs are to the 'default' branch and they follow all of the updated [contribution guidelines](CONTRIBUTING.md).
+
 # Amazon SageMaker Examples
 
 Example Jupyter notebooks that demonstrate how to build, train, and deploy machine learning models using Amazon SageMaker.
