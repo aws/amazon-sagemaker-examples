@@ -6,4 +6,4 @@ unstructured==0.9.3
 langchainplus-sdk==0.0.8
 streamlit==1.23.1
 streamlit-chat==0.0.2.2
-transformers==4.30.2
+transformers==4.38.0
