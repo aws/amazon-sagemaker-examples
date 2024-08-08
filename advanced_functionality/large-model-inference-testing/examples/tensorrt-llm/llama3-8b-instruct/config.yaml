@@ -6,7 +6,6 @@ djl:
   engine: "MPI"
   option.entryPoint: "djl_python.tensorrt_llm"
   option.tensor_parallel_degree: 4
-  option.rolling_batch: 
   option.max_num_tokens: 4096
   option.dtype: "fp16"
   option.rolling_batch: "trtllm"
