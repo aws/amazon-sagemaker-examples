@@ -27,7 +27,7 @@ def parse_args():  # pylint: disable=too-many-statements
     opt_grp.add_argument("--seed", type=int, default=12345)
     opt_grp.add_argument("--same_seed", type=int, default=0)
     opt_grp.add_argument("--bf16", default=1, type=int, help="automatic mixed precision training")
-    opt_grp.add_argument("--fp8", default=1, type=int, help="fp8 mixed precision training")
+    opt_grp.add_argument("--fp8", default=0, type=int, help="fp8 mixed precision training")
     opt_grp.add_argument("--fp8_amax_history_len", default=1024, type=int, help="amax history length")
     opt_grp.add_argument("--fp8_amax_compute_algo", default="max", type=str, help="amax computation algorithm: 'max' or 'most_recent'")
     opt_grp.add_argument("--grad_clip", default=1.0, type=float, help="gradient clipping")
