@@ -18,6 +18,7 @@ RUN cd /NeMo && pip install -r /NeMo/requirements/requirements_nlp.txt
 RUN pip3 install git+https://github.com/NVIDIA/Megatron-LM.git@0d983e64afcd84cab83124e0b7ca89a3d8ec9655
 RUN pip3 install transformers==4.40.1
 RUN pip3 install datasets==2.19.0
+RUN pip3 install huggingface_hub==0.22.0
 
 RUN apt-get -y install --no-install-recommends libgomp1 build-essential
 RUN apt-get -y install openssh-server
