@@ -1,10 +1,16 @@
 ![SageMaker](https://github.com/aws/amazon-sagemaker-examples/raw/main/_static/sagemaker-banner.png)
 
-# :exclamation::fire: Announcement: New Folder Structure :fire::exclamation:
+# :exclamation::fire: Announcing SageMaker-Core: A New Python SDK for Amazon SageMaker :fire::exclamation:
 
-Starting 7 August, 2024, we are introducing a new flattened folder structure within the SageMaker Example Notebooks repository in order to improve the discoverability of the notebooks. The new structure uses standardized folder and notebook naming conventions to align with common workflows and SageMaker services. It also includes an archived folder for redundant, outdated, and low-viewed notebooks. To ease the transition, we have created an [excel sheet](new_file_structure_updated_notebook_names_and_folders.xlsx) showing the old naming convention and its new corresponding name.
+## Introduction
+Today, Amazon SageMaker is excited to announce the release of SageMaker-Core, a new Python SDK that provides an object-oriented interface for interacting with SageMaker resources such as TrainingJob, Model, and Endpoint. This SDK introduces the resource chaining feature, allowing developers to pass resource objects as parameters, eliminating manual parameter specification and simplifying code management. SageMaker-Core abstracts low-level details like resource state transitions and polling logic, achieving full parity with SageMaker APIs. It also includes usability improvements such as auto code completion, comprehensive documentation, and type hints, enhancing the overall developer experience.
 
-To ensure dependencies to the repository remain unbroken, we will be switching the default branch of the repository from 'main' to 'default'. Please ensure that all future PRs are to the 'default' branch and they follow all of the updated [contribution guidelines](CONTRIBUTING.md).
+## Use Case
+SageMaker-Core is ideal for ML practitioners who seek full customization of AWS primitives for their ML workloads. SageMaker-Core is an improvement over Boto3, providing a more intuitive and efficient way to manage SageMaker resources. By providing an intuitive object-oriented interface and resource chaining, the SDK allows for seamless integration and management of SageMaker resources. This flexibility, combined with intelligent defaults enables developers to tailor their ML workloads according to their needs. Comprehensive documentation, and type hints help developers write code faster and with fewer errors without navigating complex API documentation.
+
+## Call to Action
+To learn more about SageMaker-Core, visit the [documentation](https://sagemaker-core.readthedocs.io) and [example notebooks](https://github.com/aws/amazon-sagemaker-examples/tree/default/sagemaker-core). Get started today by integrating SageMaker-Core into your machine learning workflows and experience the benefits of a streamlined and efficient development process.
+
 
 # Amazon SageMaker Examples
 
