@@ -26,6 +26,7 @@ from checkpoints import (
     is_action_rank,
     load_checkpoint,
     save_checkpoint,
+    get_current_replication_group,
 )
 from data.pipelines import GPTDataPipeline, create_data_pipeline
 from fsdp_utils import get_backward_fetch_policy, get_sharding_strategy, get_transformer_layer
@@ -49,6 +50,7 @@ from torch.sagemaker import transform
 from torch.sagemaker.delayed_param import DelayedParamIniter
 from torch.sagemaker.grad_norm import clip_grad_norm_
 from torch.sagemaker.utils import utils as tsm_utils  # pylint: disable=no-name-in-module
+from torch.sagemaker.utils.process_group_utils import get_global_ranks
 from train_utils import (
     apply_activation_checkpoint,
     compute_num_params,
@@ -63,6 +65,11 @@ from transformers import set_seed
 import utils
 
 logger = get_logger()
+
+try:
+    from torch.sagemaker.distributed.checkpoint.async_utils import AsyncCallsQueue
+except ImportError:
+    logger.warn("Please upgrade Megatron >= 0.7.0")
 
 
 def finetune_with_pretrained_weights_check(args) -> bool:
@@ -84,6 +91,7 @@ def eval_model(model, data_pipeline, num_batches):
     with torch.no_grad():
         for batch_idx, input_data in enumerate(data_pipeline.val_dataloader):
             input_ids, _ = data_pipeline.get_val_batch(input_data)
+            input_ids, = get_batch_for_cp_rank((input_ids,))
 
             if batch_idx >= num_batches:
                 break
@@ -98,6 +106,7 @@ def eval_model(model, data_pipeline, num_batches):
         loss /= n_batches
         ppl = math.exp(loss)
     else:
+        logger.warn(f"Running validation loop with 0 validation batches. Increase args.validation_batches to rectify")
         loss = -1.0
         ppl = -1.0
 
@@ -110,6 +119,30 @@ def reduce_loss(loss):
     loss_scalar = loss_detached.item() / dist.get_world_size()
     return loss_scalar
 
+def get_batch_for_cp_rank(batch):
+    # Based on https://github.com/NVIDIA/NeMo/blob/58d6bcee313a44d926a54e51c69222ddae20f070/nemo/collections/nlp/models/language_modeling/megatron_gpt_model.py#L840
+    cp_size = tsm.state.cp_size
+    cp_rank = tsm.state.cp_rank
+    if cp_size > 1:
+        return_batch = []
+        for val in batch:
+            if val is not None:
+                seq_dim = 1
+                val = val.view(
+                    *val.shape[0:seq_dim],
+                    2 * cp_size,
+                    val.shape[seq_dim] // (2 * cp_size),
+                    *val.shape[(seq_dim + 1) :],
+                )
+                index = torch.tensor([cp_rank, (2 * cp_size - cp_rank - 1)], device=val.device)
+                val = val.index_select(seq_dim, index)
+                val = val.view(*val.shape[0:seq_dim], -1, *val.shape[(seq_dim + 2) :])
+            return_batch.append(val)
+        return_batch = tuple(return_batch)
+    else:
+        return_batch = batch
+    return return_batch
+
 
 def train_step(  # pylint: disable=too-many-arguments,too-many-branches,too-many-locals
     args, display_step: int, batch_idx: int, nvtx_warmup_iters,
@@ -119,15 +152,16 @@ def train_step(  # pylint: disable=too-many-arguments,too-many-branches,too-many
         torch.cuda.nvtx.range_push(f"iteration{batch_idx}")
 
     input_ids, _, labels = data_pipeline.get_batch(input_data)
+    if tsm.state.context_parallel_degree > 1:
+        input_ids, labels = get_batch_for_cp_rank((input_ids, labels))
 
     if batch_idx == 0:
         # checking only on batch 0 to reduce checks during runtime
         assert (
-            input_ids.shape[1] == args.max_context_width
-        ), f"Input data passed {input_ids.shape} does not respect max_context_width set. Note that this is not strictly necessary, but added to prevent mistakes. If you intend to do this, please remove this check."
-        assert (
-            input_ids.shape[1] <= args.max_context_width
-        ), "Input data passed is larger than max_context_width for model. You need to change max_context_width so model can expect larger sequences"
+            input_ids.shape[1] == (args.max_context_width // tsm.state.context_parallel_degree)
+        ), (f"Input data passed {input_ids.shape} does not respect max_context_width set. If context parallelism is enabled,",
+         f"input_ids sequence length == (args.max_context_width / tsm.state.context_parallel_degree) ",
+         f"Note that this is not strictly necessary, but added to prevent mistakes. If you intend to do this, please remove this check.")
 
     optimizer.zero_grad(set_to_none=True)
 
@@ -222,14 +256,19 @@ def train(
     dp_rank = global_rank
     dp_size = world_size
 
-    if tsm.state.tensor_parallel_degree > 1:
-        dp_rank //= tsm.state.tensor_parallel_degree
-        dp_size //= tsm.state.tensor_parallel_degree
+    if args.use_smp_implementation > 0:
+        dp_rank //= (tsm.state.tensor_parallel_degree * tsm.state.context_parallel_degree)
+        dp_size //= (tsm.state.tensor_parallel_degree * tsm.state.context_parallel_degree)
 
     if global_rank == 0:
         logger.info("Creating train dataloader")
 
-    throughputs = []
+    # There is high variance on initial steps, so skip these many first
+    # With bf16 we don't need to wait longer than 15 steps for the training to stabalize
+    min_steps_for_training_stabalization = 15
+
+    offset_acc_throughput = 0
+    offset_acc_tflops_per_gpu = 0
     # Set the same seed for computation
     set_seed(args.seed)
 
@@ -239,8 +278,19 @@ def train(
     cur_seq_index = resume_from_sequence_number
     cur_val_seq_index = val_resume_from_sequence_number
     epoch = start_epoch
+    checkpoint_type = CheckpointingMethod[args.checkpoint_type.upper()]
+    async_calls = None
+    if checkpoint_type in [CheckpointingMethod.ASYNC_SHARDED, CheckpointingMethod.ASYNC_LOCAL]:
+        try:
+            async_calls = AsyncCallsQueue()
+        except Exception:
+            raise NotImplementedError("async_sharded checkpointing not supported")
+
+
+
     while total_steps < args.max_steps:
         nvtx_warmup_iters = 3
+
         if global_rank == 0:
             logger.info("Starting training with epoch %s.", epoch)
 
@@ -273,17 +323,22 @@ def train(
             cur_seq_index += batch_num_sequences
             sample_processed = batch_num_sequences * dp_size
             throughput = sample_processed / step_time
-            throughputs.append(throughput)
 
             tflops_per_gpu = compute_tflops(args, sample_processed, step_time, world_size)
+
+            if total_steps >= min_steps_for_training_stabalization:
+                offset_acc_tflops_per_gpu += tflops_per_gpu
+                offset_acc_throughput += throughput
 
             if not total_steps % args.logging_freq and args.log_reduced_training_loss > 0:
                 loss_scalar = reduce_loss(loss)
             else:
                 loss_scalar = loss.item()
 
+
             current_lr = lr_scheduler.get_lr()
             display_step = total_steps - 1
+
             if global_rank == 0:
                 write_metrics_train_step(
                     writers,
@@ -294,7 +349,8 @@ def train(
                     current_lr,
                     grad_norm,
                 )
-                if not total_steps % args.logging_freq:
+
+                if total_steps % args.logging_freq == 0:
                     log_train_metrics(
                         args,
                         total_steps,
@@ -304,10 +360,9 @@ def train(
                         tflops_per_gpu,
                         current_lr,
                         grad_norm,
-                        throughputs,
-                        num_params,
-                        dp_size,
-                        batch_seqlen,
+                        min_steps_for_training_stabalization,
+                        offset_acc_throughput,
+                        offset_acc_tflops_per_gpu
                     )
 
             # evaluate on validation
@@ -366,7 +421,8 @@ def train(
                     checkpointing_pg_metadata,
                     tensor_parallel_degree=int(tsm.state.tensor_parallel_degree),
                     expert_parallel_degree=int(tsm.state.expert_parallel_degree),
-                    checkpoint_type=args.checkpoint_type,
+                    checkpoint_type=checkpoint_type,
+                    async_calls=async_calls,
                 )
                 if args.enable_memory_profiling > 0:
                     msg = f"({_DEFAULT_STATE_DICT_TYPE})"
@@ -379,8 +435,19 @@ def train(
                 epoch += 1
         else:
             epoch += 1
-    # Using median throughput across all steps, could be more robust.
-    return total_steps, np.median(throughputs) if throughputs else 0
+
+    # wait for all async save done
+    if async_calls:
+        if checkpoint_type == CheckpointingMethod.ASYNC_LOCAL:
+            _, process_group = get_current_replication_group(global_rank)
+        else:
+            process_group, _, _ = checkpointing_pg_metadata
+        async_calls.maybe_finalize_async_calls(
+            blocking=True, process_group=process_group
+        )
+
+
+    return total_steps
 
 
 @record
@@ -390,14 +457,13 @@ def main(args):
 
     # Sanity check for args.
     # - Checkpoints.
-    # TODO(sliuxl): Supporting one single checkpoint dir now, and multiple dirs support is missing.
     ckpt_lens = (
         len(args.checkpoint_dir),
         len(args.checkpoint_freq),
         len(args.num_kept_checkpoints),
     )
     if len(set(ckpt_lens)) != 1:
-        raise ValueError(f"Len mismatch for checkpoint dir, freq vs num to keep:  {ckpt_lens}.")
+        raise ValueError(f"Len mismtach for checkpoint dir, freq vs num to keep:  {ckpt_lens}.")
 
     if args.distributed_backend == "smddp":
         import smdistributed.dataparallel.torch.torch_smddp  # pylint: disable=unused-import
@@ -406,6 +472,22 @@ def main(args):
     global_rank = dist.get_rank()
     device = global_rank % torch.cuda.device_count()
     world_size = dist.get_world_size()
+    # Reset all SMP related args if use_smp_implementation=0
+    if args.use_smp_implementation == 0:
+        tsm.state.tensor_parallel_degree = 1
+        tsm.state.expert_parallel_degree = 1
+        tsm.state.context_parallel_degree = 1
+        args.moe = 0
+        args.fp8 = 0
+        print_dict = {
+            "tensor_parallel_degree": tsm.state.tensor_parallel_degree,
+            "expert_parallel_degree": tsm.state.expert_parallel_degree,
+            "context_parallel_degree": tsm.state.context_parallel_degree,
+            "moe": args.moe,
+            "fp8": args.fp8,
+        }
+        if global_rank == 0:
+            logger.warn(f"use_smp_implementation is set to 0. Resetting these params to default values: {print_dict}")
 
     if args.tensorboard_dir and global_rank == 0:
         from torch.utils.tensorboard import SummaryWriter
@@ -425,14 +507,6 @@ def main(args):
 
     tsm.init()
 
-    if args.use_smp_implementation < 1 < tsm.state.tensor_parallel_degree:
-        args.use_smp_implementation = 1
-        if global_rank == 0:
-            logger.info(
-                "Tensor parallelism is enabled as tensor_parallel_degree is set to %d > 1. "
-                "Switching use_smp_implementation to 1 so we can use SMP optimized implementation.",
-                tsm.state.tensor_parallel_degree
-            )
     if args.use_smp_implementation:
         # For our Mem usage fix to TE, this needs to be True
         args.use_orig_params = 1
@@ -454,6 +528,7 @@ def main(args):
             * args.max_context_width
             * args.train_batch_size
             / tsm.state.tensor_parallel_degree
+            / tsm.state.context_parallel_degree
         )
         logger.info("Global batch size in tokens: %10d (%5.2fM).", gbs, gbs / 1024 ** 2)
 
@@ -472,14 +547,16 @@ def main(args):
 
         # Using config for finetune mode, else uses args to create model
         model_config = AutoConfig.from_pretrained(args.hf_pretrained_model_name_or_dir)
+        # Disable KV cache for HF models
         if hasattr(model_config, "use_cache"):
-             model_config.use_cache = False
+            model_config.use_cache = False
     else:
         model_config = get_model_config(args)
 
     delayed_param_initer = None
     with tsm_utils.timeit(True, "Model creation", global_rank):
         if args.delayed_param:
+            model_config.delayed_param = True
             if finetune_with_pretrained_weights_check(args) and dist.get_rank() == 0:
                 # create model with pretrained weights on one rank even if we want to use
                 # delayed param, param init on other ranks will still be delayed
@@ -503,6 +580,7 @@ def main(args):
             if finetune_check(args):
                 dist.barrier()
         else:
+            model_config.delayed_param = False
             model = create_model(
                 args,
                 model_config=model_config,
@@ -518,11 +596,10 @@ def main(args):
                 from torch.sagemaker.moe.moe_config import MoEConfig
                 moe_config = MoEConfig(
                     smp_moe=args.use_smp_implementation > 0,
-                    random_seed=args.seed,
                     moe_load_balancing=args.moe_load_balancing,
                     global_token_shuffle=args.global_token_shuffle > 0,
                     moe_all_to_all_dispatcher=args.moe_all_to_all_dispatcher > 0,
-                    use_cpu_initialization=finetune_with_pretrained_weights_check(args) and dist.get_rank() == 0,
+                    use_cpu_initialization=finetune_with_pretrained_weights_check(args) and dist.get_rank() == 0
                 )
             else:
                 moe_config = None
@@ -618,7 +695,11 @@ def main(args):
 
     fp8_recipe = None
     if args.fp8==1 and args.use_smp_implementation==1:
-        fp8_recipe = DelayedScaling(fp8_format=Format.HYBRID, amax_history_len=args.fp8_amax_history_len, amax_compute_algo=args.fp8_amax_compute_algo)
+        fp8_recipe = DelayedScaling(
+            fp8_format=Format.HYBRID,
+            amax_history_len=args.fp8_amax_history_len,
+            amax_compute_algo=args.fp8_amax_compute_algo,
+        )
 
     if args.activation_checkpointing > 0:
         apply_activation_checkpoint(args, model=model)
@@ -682,7 +763,7 @@ def main(args):
 
     train_start_time = time.time()
     # total_steps, throughput, loss
-    total_steps, _ = train(
+    total_steps = train(
         model,
         optimizer,
         lr_scheduler,

@@ -3,7 +3,6 @@ datasets>=2.19.1
 einops
 evaluate
 expecttest
-flash-attn>=2.3.6,<2.4
 h5py
 humanize
 hypothesis
