@@ -44,7 +44,7 @@ Benefits
 
 Docs and Examples
 -----------------
-Learn more about the sagemaker-core SDK and its features by visting the `What's New Annountcement <https://aws.amazon.com/about-aws/whats-new/2024/09/sagemaker-core-object-oriented-sdk-amazon-sagemaker>`_.
+Learn more about the sagemaker-core SDK and its features by visting the `What's New Announcement <https://aws.amazon.com/about-aws/whats-new/2024/09/sagemaker-core-object-oriented-sdk-amazon-sagemaker>`_.
 
 For examples and walkthroughs, see the `SageMaker Core Examples <https://github.com/aws/amazon-sagemaker-examples/tree/default/%20%20%20%20%20%20%20%20%20sagemaker-core>`_.
 
