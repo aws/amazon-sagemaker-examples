@@ -14,6 +14,7 @@ These examples showcases Amazon SageMaker's capabilities in the exciting field o
 - [Fine-tune LLaMA 2 models on SageMaker JumpStart](sm-jumpstart_foundation_llama_2_finetuning.ipynb)
 - [Fine-tune LLaMA 3 models on SageMaker JumpStart](sm-jumpstart_foundation_llama_3_finetuning.ipynb)
 - [Text completion: Run Llama 3 models in SageMaker JumpStart](sm-jumpstart_foundation_llama_3_text_completion.ipynb)
+- [Domain fine-tuning Llama-3 8B model on SageMaker JumpStart](sm-jumpstart_foundation_llama_3_8b_domain_adaption_finetuning.ipynb)
 - [Introduction to SageMaker JumpStart - text moderation with Llama Guard](sm-jumpstart_foundation_llama_guard_text_moderation.ipynb)
 - [Introduction to SageMaker JumpStart - Text Generation with Mistral models](sm-jumpstart_foundation_mistral_7b_domain_adaption_finetuning.ipynb)
 - [Retrieval-Augmented Generation: Question Answering based on Custom Dataset with Open-sourced LangChain Library](sm-jumpstart_foundation_rag_langchain_question_answering.ipynb)
