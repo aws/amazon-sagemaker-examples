@@ -124,9 +124,9 @@ class MegatronGPTDataPipeline(DataPipeline):
             skip_warmup=model_cfg.data.get("skip_warmup", True),
             tokenizer=tokenizer,
         )
-        self.train_dataloader = self._create_dataloader(self.train_dataset, self.train_batch_size)
-        self.val_dataloader = self._create_dataloader(self.val_dataset, self.val_batch_size)
-        self.test_dataloader = self._create_dataloader(self.test_dataset, self.val_batch_size)
+        self.train_dataloader = self._create_dataloader(self.train_dataset, self.train_batch_size, self.resume_from_sequence_number)
+        self.val_dataloader = self._create_dataloader(self.val_dataset, self.val_batch_size, 0)
+        self.test_dataloader = self._create_dataloader(self.test_dataset, self.val_batch_size, 0)
 
         logger.info(
             f"Lengths of dataloaders {len(self.train_dataloader)}, {len(self.val_dataloader)}"

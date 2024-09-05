@@ -126,10 +126,9 @@ def log_train_metrics(
     tflops_per_gpu,
     current_lr,
     grad_norm,
-    throughputs,
-    num_params,
-    world_size,
-    batch_seqlen,
+    min_steps_for_training_stabalization,
+    offset_acc_throughput,
+    offset_acc_tflops_per_gpu
 ):
     """Log train metrics."""
     _logger.info(
@@ -142,18 +141,16 @@ def log_train_metrics(
         grad_norm,
     )
 
-    # Compute average throughput and tflops after 30 steps to remove
-    # high variance in initial steps
-    if len(throughputs) > 30 and not total_steps % args.logging_freq_for_avg:
-        avg_throughput = np.average(throughputs[30:])
-        from train_utils import compute_tflops
+    if total_steps >= min_steps_for_training_stabalization and total_steps % args.logging_freq_for_avg == 0:
+        offset_step_count = total_steps - min_steps_for_training_stabalization + 1
+        avg_throughput = offset_acc_throughput / offset_step_count
+        avg_tflops_per_gpu = offset_acc_tflops_per_gpu / offset_step_count
 
-        avg_tflops = compute_tflops(avg_throughput, num_params, world_size, batch_seqlen)
         _logger.info(
             "Batch %d Running Avg Speed: %.2f samples/sec, Running Avg Model TFLOPS/GPU: %.2f",  # pylint: disable=line-too-long
             display_step,
             avg_throughput,
-            avg_tflops,
+            avg_tflops_per_gpu
         )
 
 
