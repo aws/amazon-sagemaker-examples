@@ -26,7 +26,7 @@ def get_backward_fetch_policy(policy: str):
 
 def get_transformer_layer(model_type="gpt2", use_smp_implementation=False, moe=False):
     """Get transformer layer."""
-    if use_smp_implementation and not moe:
+    if use_smp_implementation:
         # For pt-2.1-tsm-2.1 releases and below,
         # We can't checkpoint our transformer.TransformerLayer class as it takes a tuple as input,
         # so we checkpoint the te.TETransformerLayer directly instead.
@@ -66,7 +66,7 @@ def get_transformer_layer(model_type="gpt2", use_smp_implementation=False, moe=F
         from smpv1.transformer import DistributedTransformerLayer
 
         transformer_layer = DistributedTransformerLayer
-    elif model_type == "llama_v2":
+    elif model_type == "llama_v2" or model_type == "llama_v3":
         from transformers.models.llama.modeling_llama import LlamaDecoderLayer
 
         transformer_layer = LlamaDecoderLayer
@@ -78,4 +78,9 @@ def get_transformer_layer(model_type="gpt2", use_smp_implementation=False, moe=F
         from transformers.models.mixtral.modeling_mixtral import MixtralDecoderLayer
 
         transformer_layer = MixtralDecoderLayer
+    else:
+        raise ValueError(
+            f"Unsupported model type passed: {model_type}. "
+            f"Please pass one of the supported model types or add support for the passed model."
+        )
     return transformer_layer

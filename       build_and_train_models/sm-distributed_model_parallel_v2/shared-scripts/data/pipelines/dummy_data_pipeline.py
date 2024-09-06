@@ -19,13 +19,13 @@ class DummyDataPipeline(DataPipeline):
         self.train_dataset = DummyDataset(
             data_type=data_type, vocabulary_size=vocabulary_size, seqlen=sequence_length
         )
-        self.train_dataloader = self._create_dataloader(self.train_dataset, self.train_batch_size)
+        self.train_dataloader = self._create_dataloader(self.train_dataset, self.train_batch_size, 0)
 
         if val_batch_size:
             self.val_dataset = DummyDataset(
                 data_type=data_type, vocabulary_size=vocabulary_size, seqlen=sequence_length
             )
-            self.val_dataloader = self._create_dataloader(self.val_dataset, self.val_batch_size)
+            self.val_dataloader = self._create_dataloader(self.val_dataset, self.val_batch_size, 0)
 
     def get_batch(self, data):
         return data[0], data[1], data[0]

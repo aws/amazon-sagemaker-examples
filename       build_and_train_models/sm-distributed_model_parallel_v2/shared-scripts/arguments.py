@@ -148,7 +148,7 @@ def parse_args():  # pylint: disable=too-many-statements
         help="Checkpoint folder name to load from",
     )
     ckpt_grp.add_argument(
-        "--checkpoint_type", type=str, default="sharded", choices=["local", "sharded", "use_pg_with_util"]
+        "--checkpoint_type", type=str, default="sharded", choices=["local", "sharded", "use_pg_with_util", "async_sharded", "async_local"]
     )
     ckpt_grp.add_argument(
         "--model_dir",
@@ -202,7 +202,7 @@ def parse_args():  # pylint: disable=too-many-statements
     model_grp.add_argument("--summary_first_pdrop", type=float, default=0.1)
     model_grp.add_argument("--initializer_range", type=float, default=0.02)
     model_grp.add_argument(
-        "--model_type", type=str, default="gpt_neox", choices=["gpt_neox", "llama_v2", "gpt2", "mistral", "mixtral"]
+        "--model_type", type=str, default="gpt_neox", choices=["gpt_neox", "llama_v2", "gpt2", "mistral", "mixtral", "llama_v3"]
     )
     model_grp.add_argument("--rotary_pct", type=float, default=0.25)
     model_grp.add_argument("--rotary_emb_base", type=int, default=10000)
@@ -277,6 +277,18 @@ def parse_args():  # pylint: disable=too-many-statements
         help="Whether to use MoE implementation of Megatron. "
         "All models may not be supported."
     )
+    model_grp.add_argument(
+        "--moe_fp8_checkpoint_attn",
+        type=int,
+        default=1,
+        help="Checkpoint attention layer for MoE"
+    )
+    model_grp.add_argument(
+        "--moe_fp8_checkpoint_moe",
+        type=int,
+        default=1,
+        help="Checkpoint moe layer for MoE"
+    )
     ### FSDP args
     fsdp_grp = parser.add_argument_group(
         title="fsdp", description="arguments for fully sharded data parallel"
@@ -295,6 +307,23 @@ def parse_args():  # pylint: disable=too-many-statements
         type=int,
         help="This flag needs to be set when you need multiple param groups for optimizer, such as for weight decay",
     )
+    # Note that `shard_degree` might rewrite `sharding_strategy`:
+    #
+    # 1. When there is no explicit `shard_degree` or `0`, will fall back to native PyTorch, for all
+    #    `sharding_strategy` cases.
+    #
+    # 2. When there is explicit `shard_degree` and it's in `[1, world_size]`:
+    #    - Will rewrite `sharding_strategy` to `HYBRID_SHARD`, when and only when it's not either of
+    #      the two native hybrid strategies, i.e. `{HYBRID_SHARD, _HYBRID_SHARD_ZERO2}`.
+    #
+    #    - Will use hybrid sharding implementation by SageMaker:
+    #      - 1: Should be equivalent to native PyTorch's `NO_SHARD`.
+    #           - Might have some issues when exporting checkpoints to the disk in native PyTorch.
+    #      - 8: Should be equivalent to native PyTorch's `HYBRID_SHARD`.
+    #      - $world_size: Should be equivalent to native PyTorch's `FULL_SHARD`, though throughput
+    #                     might be worse with unnecessary communications.
+    #      - Other values e.g. 2, 4, 16, etc, as long as $world_size is divisible by them:
+    #          - Newly supported sharding implementation by SageMaker.
     fsdp_grp.add_argument(
         "--backward_fetch_policy",
         type=str,

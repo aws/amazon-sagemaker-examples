@@ -78,8 +78,8 @@ def compute_tflops(args, global_batch_size, step_time, world_size):
     )
 
     # Convert to TFLOPs per GPU
-    tflops_per_gpu = num_flops / (
-                 step_time * 10**12 * world_size)
+    tflops_per_gpu = num_flops / (step_time * 10**12 * world_size)
+
     return tflops_per_gpu
 
 
@@ -151,10 +151,10 @@ def create_model(args, model_config, dtype, pretrained_model_weights=None):
             model = AutoModelForCausalLM.from_pretrained(pretrained_model_weights, config=model_config)
         else:
             model = AutoModelForCausalLM.from_pretrained(
-                 pretrained_model_weights,
-                 attn_implementation="flash_attention_2",
-                 config=model_config
-             )
+                pretrained_model_weights,
+                attn_implementation="flash_attention_2",
+                config=model_config
+            )
     else:
         if pversion.parse(transformers.__version__) < pversion.parse("4.37.1"):
             model = AutoModelForCausalLM.from_config(model_config)
@@ -174,7 +174,7 @@ def create_model(args, model_config, dtype, pretrained_model_weights=None):
             layout = "b h s d"
             layers = model.transformer.h
             attn_name = "attn"  # Note: Only self attention is referenced
-        elif args.model_type == "llama_v2":
+        elif args.model_type == "llama_v2" or args.model_type == "llama_v3":
             layout = "b s h d"
             layers = model.model.layers
             attn_name = "self_attn"
@@ -192,8 +192,7 @@ def create_model(args, model_config, dtype, pretrained_model_weights=None):
                 attn_weights,
             )
 
-        if args.model_type == "llama_v2":
-            # pre 4.34 we use rubik's class
+        if args.model_type == "llama_v2" or args.model_type == "llama_v3":
             from torch.sagemaker.nn.huggingface.llama_flashattn import LlamaFlashAttention
 
             flash_attn_class = LlamaFlashAttention
@@ -289,6 +288,25 @@ def get_model_config(args):
             tie_word_embeddings=False,
             rope_scaling=None,
         )
+    elif "llama_v3" in args.model_type:
+        from transformers import LlamaConfig
+
+        model_config = LlamaConfig(
+            vocab_size=args.vocab_size,
+            hidden_size=args.hidden_width,
+            intermediate_size=args.llama_intermediate_size,
+            num_hidden_layers=args.num_layers,
+            num_attention_heads=args.num_heads,
+            num_key_value_heads=args.num_key_value_heads,
+            hidden_act="silu",
+            max_position_embeddings=args.max_context_width,
+            initializer_range=args.initializer_range,
+            rms_norm_eps=1e-5,
+            use_cache=False,
+            pretraining_tp=1,
+            tie_word_embeddings=False,
+            rope_scaling=None,
+        )
     elif "mistral" in args.model_type:
         from transformers import MistralConfig
 
@@ -346,6 +364,17 @@ def get_model_config(args):
 
 def apply_activation_checkpoint(args, model=None):
     """Apply activation checkpoint."""
+    if args.fp8==1 and args.moe==1 and args.use_smp_implementation==1:
+        # Checkpoint attention and moe layers separately when using FP8 and MoE.
+        # Currently, checkpointing entire TransformerLayer is not supported.
+        apply_activation_checkpoint_moe(
+            args,
+            model=model,
+            checkpoint_attn=args.moe_fp8_checkpoint_attn > 0,
+            checkpoint_moe=args.moe_fp8_checkpoint_moe > 0,
+        )
+        return
+
     from torch.distributed.algorithms._checkpoint.checkpoint_wrapper import (
         CheckpointImpl,
         apply_activation_checkpointing,
@@ -362,9 +391,10 @@ def apply_activation_checkpoint(args, model=None):
         import torch.sagemaker as tsm
         checkpoint_fn = functools.partial(
             transformer_engine.pytorch.checkpoint,
-            distribute_saved_activations=False,
-            get_cuda_rng_tracker=tsm.state.get_rng_state_tracker,
-            tp_group=tsm.state.tp_process_group,
+            distribute_saved_activations=False, # only used when use_reentrant=True
+            get_rng_state_tracker=tsm.state.get_rng_state_tracker,
+            tp_group=tsm.state.tp_process_group, # only used when distributed_save_activations=True & use_reentrant=True
+            use_reentrant=False,
         )
         checkpoint_impl = CheckpointImpl.NO_REENTRANT
     else:
@@ -380,6 +410,53 @@ def apply_activation_checkpoint(args, model=None):
         model, checkpoint_wrapper_fn=entrant_wrapper, check_fn=check_fn_gpt
     )
 
+def apply_activation_checkpoint_moe(args, model=None, checkpoint_attn=True, checkpoint_moe=True):
+    """
+    Use TE checkpoint for attention, and megatron/native checkpoint for MoE layer.
+    """
+    from torch.distributed.algorithms._checkpoint.checkpoint_wrapper import (
+        CheckpointImpl,
+        apply_activation_checkpointing,
+        checkpoint_wrapper,
+    )
+    checkpoint_impl = CheckpointImpl.NO_REENTRANT
+
+    if checkpoint_attn:
+        from transformer_engine.pytorch.attention import MultiheadAttention
+        import transformer_engine
+        import torch.sagemaker as tsm
+
+        check_fn_attn = lambda submodule: isinstance(  # pylint: disable=unnecessary-lambda-assignment
+            submodule, MultiheadAttention
+        )
+        checkpoint_fn_attn = functools.partial(
+            transformer_engine.pytorch.checkpoint,
+            distribute_saved_activations=False,
+            get_rng_state_tracker=tsm.state.get_rng_state_tracker,
+            tp_group=tsm.state.tp_process_group,
+            use_reentrant=False,
+        )
+        # flash attn v2 does not work with no_reentrant
+        # our activation offloading for 2.0 also does not work with no_reentrant
+        entrant_wrapper_attn = functools.partial(
+            checkpoint_wrapper, checkpoint_impl=checkpoint_impl, checkpoint_fn=checkpoint_fn_attn
+        )
+        apply_activation_checkpointing(
+            model, checkpoint_wrapper_fn=entrant_wrapper_attn, check_fn=check_fn_attn
+        )
+
+    if checkpoint_moe:
+        from torch.sagemaker.moe.moe_layer import MoELayer
+        check_fn_moe = lambda submodule: isinstance(  # pylint: disable=unnecessary-lambda-assignment
+            submodule, MoELayer
+        )
+        checkpoint_fn_moe = None
+        entrant_wrapper_moe = functools.partial(
+            checkpoint_wrapper, checkpoint_impl=checkpoint_impl, checkpoint_fn=checkpoint_fn_moe
+        )
+        apply_activation_checkpointing(
+            model, checkpoint_wrapper_fn=entrant_wrapper_moe, check_fn=check_fn_moe
+        )
 
 def patch_neox_rope(model):
     """Patch neox rope."""
