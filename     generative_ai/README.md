@@ -26,3 +26,4 @@ These examples showcases Amazon SageMaker's capabilities in the exciting field o
 - [Retrieval-Augmented Generation: Question Answering using LangChain and Cohere's Generate and Embedding Models from SageMaker JumpStart](sm-jumpstart_rag_question_answering_with_cohere_and_langchain.ipynb)
 - [Introduction to JumpStart - Text to Image](sm-jumpstart_stable_diffusion_text_to_image.ipynb)
 - [Introduction to JumpStart - Text Embedding](sm-jumpstart_text_embedding.ipynb)
+- [Introduction to JumpStart - Time Series Forecasting](sm-jumpstart_time_series_forecasting.ipynb)
