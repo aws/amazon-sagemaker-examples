@@ -185,6 +185,7 @@ We recommend the following notebooks as a broad introduction to the capabilities
    generative_ai/sm-jumpstart_rag_question_answering_with_cohere_and_langchain
    generative_ai/sm-jumpstart_stable_diffusion_text_to_image
    generative_ai/sm-jumpstart_text_embedding
+   generative_ai/sm-jumpstart_time_series_forecasting
 
 .. toctree::
    :maxdepth: 1
