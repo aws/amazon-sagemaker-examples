@@ -4,5 +4,5 @@ ftfy
 scipy
 accelerate
 diffusers==0.13.0
-opencv-python-headless==4.7.0.68
+opencv-python-headless==4.8.1.78
 xformers==0.0.23+cu118
