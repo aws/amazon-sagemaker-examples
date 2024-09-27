@@ -1,6 +1,6 @@
 boto3==1.26.150
 botocore==1.29.150
-langchain==0.0.195
+langchain==0.2.10
 faiss-cpu==1.7.4
 unstructured==0.9.3 
 langchainplus-sdk==0.0.8
