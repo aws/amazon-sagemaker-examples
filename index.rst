@@ -174,6 +174,7 @@ We recommend the following notebooks as a broad introduction to the capabilities
    generative_ai/sm-jumpstart_foundation_llama_3_finetuning
    generative_ai/sm-jumpstart_foundation_llama_3_text_completion
    generative_ai/sm-jumpstart_foundation_llama_3_8b_domain_adaption_finetuning.ipynb
+   generative_ai/sm-jumpstart_foundation_llama_3_2_3b_finetuning.ipynb
    generative_ai/sm-jumpstart_foundation_llama_guard_text_moderation
    generative_ai/sm-jumpstart_foundation_mistral_7b_domain_adaption_finetuning
    generative_ai/sm-jumpstart_foundation_rag_langchain_question_answering
