@@ -205,7 +205,61 @@ def parse_args():  # pylint: disable=too-many-statements
         "--model_type", type=str, default="gpt_neox", choices=["gpt_neox", "llama_v2", "gpt2", "mistral", "mixtral", "llama_v3"]
     )
     model_grp.add_argument("--rotary_pct", type=float, default=0.25)
-    model_grp.add_argument("--rotary_emb_base", type=int, default=10000)
+    model_grp.add_argument(
+        "--rotary_emb_base",
+        type=int,
+        default=10000,
+        help="The base period of the RoPE embeddings.",
+    )
+    model_grp.add_argument(
+        "--rope_scaling_type",
+        type=str,
+        choices=["default", "llama3"],
+        default=None,
+        help=(
+            "The sub-variant of RoPE to use. Can be one of ['default', 'llama3'], "
+            "with 'default' being the original RoPE implementation and 'llama3' "
+            "being the Llama3.1 RoPE implementation."
+        ),
+    )
+    model_grp.add_argument(
+        "--rope_scaling_factor",
+        type=float,
+        default=8.0,
+        help=(
+            "Used with all rope types except 'default'. "
+            "The scaling factor to apply to the RoPE embeddings. "
+            "In most scaling types, a `factor` of x will enable the model "
+            "to handle sequences of length x * original maximum pre-trained length."
+        ),
+    )
+    model_grp.add_argument(
+        "--rope_scaling_high_freq_factor",
+        type=float,
+        default=4.0,
+        help=(
+            "Only used with 'llama3'. "
+            "Scaling factor applied to high frequency components of the RoPE."
+        ),
+    )
+    model_grp.add_argument(
+        "--rope_scaling_low_freq_factor",
+        type=float,
+        default=1.0,
+        help=(
+            "Only used with 'llama3'. "
+            "Scaling factor applied to low frequency components of the RoPE."
+        ),
+    )
+    model_grp.add_argument(
+        "--rope_scaling_original_max_position_embeddings",
+        type=int,
+        default=8192,
+        help=(
+            "Used with 'dynamic', 'longrope' and 'llama3'. "
+            "The original max position embeddings used during pretraining."
+        ),
+    )
     model_grp.add_argument("--use_smp_flash_attn", type=int, default=1)
     model_grp.add_argument(
         "--llama_intermediate_size",
@@ -270,6 +324,7 @@ def parse_args():  # pylint: disable=too-many-statements
         "All models may not be supported."
         "When using tensor_parallel_degree, this is automatically enabled.",
     )
+    model_grp.add_argument("--cp_comm_type", type=str, default="p2p", help="Which context parallelism implementation to use, p2p or all_gather. p2p implementation runs asynchronously, allowing compute overlap", choices=["p2p", "all_gather"])
     model_grp.add_argument(
         "--moe",
         type=int,
