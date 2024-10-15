@@ -7,8 +7,10 @@ version: 2
 conda:
   environment: environment.yml
 
-python:
-  version: 3.6
+build:
+  os: ubuntu-22.04
+  tools:
+    python: "mambaforge-22.9"
 
 sphinx:
   configuration: conf.py

@@ -1,0 +1,20 @@
+#
+###### Requirements without Version Specifiers ######
+keras
+tensorflow
+pandas
+seaborn
+pillow
+
+# More examples below to illustrate ways to list specific dependencies 
+###### Requirements with Version Specifiers ######
+#   See https://www.python.org/dev/peps/pep-0440/#version-specifiers
+#numpy==1.13.0
+#docopt == 0.6.1             # Version Matching. Must be version 0.6.1
+#keyring >= 4.1.1            # Minimum version 4.1.1
+#coverage != 3.5             # Version Exclusion. Anything except version 3.5
+#Mopidy-Dirble ~= 1.1        # Compatible release. Same as >= 1.1, == 1.*
+#
+###### Example for referring to other requirements files with additional dependencies ######
+# -r other-requirements.txt
+#

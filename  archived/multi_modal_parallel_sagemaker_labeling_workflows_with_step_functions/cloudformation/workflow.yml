@@ -1,0 +1,825 @@
+# Copyright 2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# Permission is hereby granted, free of charge, to any person obtaining a copy of this
+# software and associated documentation files (the "Software"), to deal in the Software
+# without restriction, including without limitation the rights to use, copy, modify,
+# merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
+# permit persons to whom the Software is furnished to do so.
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+# INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+# PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+# HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+# OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+# This template is intended to deploy resources specific to SMGTWorkflows
+
+# AUTHOR: Jeremy Feltracco (jpfelt@)
+# COLLABORATORS: Vidya Sagar Ravipati (ravividy@), Jae Sung Jang (jaejang@)
+
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+Description: 'SMGTWorkflows V0 CloudFormation Template'
+
+Globals:
+  Function:
+    Timeout: 900
+    Runtime: python3.8
+    Layers: [!Ref Boto3LambdaLayer]
+    Environment:
+      Variables:
+        PREFIX: !Ref Prefix
+        DEFAULT_WORKTEAM_ARN: !Ref FirstLevelWorkteam
+        SMGT_QA_FIRST_LEVEL_TEAM_ARN: !Ref FirstLevelWorkteam
+        SMGT_QA_SECOND_LEVEL_TEAM_ARN: !Ref SecondLevelWorkteam
+        FIRST_LEVEL_WORKTEAM_NAME: !GetAtt FirstLevelWorkteam.WorkteamName
+        SECOND_LEVEL_WORKTEAM_NAME: !GetAtt SecondLevelWorkteam.WorkteamName
+        # These are intentionally the same. We use the key to separate out traffic.
+        SMGT_QA_FIRST_LEVEL_OUTPUT_SNS_ARN: !Ref JobOutputSns
+        SMGT_QA_SECOND_LEVEL_OUTPUT_SNS_ARN: !Ref JobOutputSns
+        DEFAULT_STATUS_SNS_ARN: !Ref DefaultStatusSns
+        SMGT_QA_LABELER_EXECUTION_ROLE_ARN: !GetAtt LabelerExecutionRole.Arn
+        JOB_OUTPUT_BUCKET_ID: !Ref JobOutputBucket
+        BATCH_PROCESSING_BUCKET_ID: !Ref BatchProcessingBucket
+        BATCH_EXECUTION_METADATA_TABLE_NAME: !Ref BatchExecutionMetadataTable
+        # Manually specify so avoid circular dependency
+        BATCH_CREATION_STEP_FUNCTION_ARN: !Sub arn:aws:states:${AWS::Region}:${AWS::AccountId}:stateMachine:${Prefix}-batch-process
+        # The bucket is created in the reporting template. manually specify to avoid circular depenency
+        GLUE_WM_BUCKET_NAME: !Sub ${Prefix}-${AWS::AccountId}-${AWS::Region}-wm-glue-output
+
+Parameters:
+  Prefix:
+    Type: String
+    Description: Prefix of all resources deployed in this solution.
+    Default: smgt-workflows
+  LoggingLevel:
+    Type: String
+    Description: DEBUG
+    Default: DEBUG
+  CognitoUserPoolId:
+    Type: String
+    Description: User pool backing a SageMaker workforce
+  CognitoUserPoolClientId:
+    Type: String
+    Description: User pool client ID backing a SageMaker workforce
+  JobCompletionTimeout:
+    Type: Number
+    Description: Amount of time to wait before failing the item.
+    Default: 1209600
+
+Resources:
+  # ---------------------------------------------------------------------------
+  # S3
+  # ---------------------------------------------------------------------------
+  JobOutputBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub ${Prefix}-${AWS::AccountId}-${AWS::Region}-job-output
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      CorsConfiguration:
+        CorsRules:
+          - AllowedHeaders: ["*"]
+            AllowedMethods: [GET, PUT, POST, HEAD]
+            AllowedOrigins: ["*"]
+            ExposedHeaders: [Etag]
+            MaxAge: 3000
+  BatchProcessingBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub ${Prefix}-${AWS::AccountId}-${AWS::Region}-batch-processing
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      CorsConfiguration:
+        CorsRules:
+          - AllowedHeaders: ["*"]
+            AllowedMethods: [GET, PUT, POST, HEAD]
+            AllowedOrigins: ["*"]
+            ExposedHeaders: [Etag]
+            MaxAge: 3000
+  BatchInputBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub ${Prefix}-${AWS::AccountId}-${AWS::Region}-batch-input
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      CorsConfiguration:
+        CorsRules:
+          - AllowedHeaders: ["*"]
+            AllowedMethods: [GET, PUT, POST, HEAD]
+            AllowedOrigins: ["*"]
+            ExposedHeaders: [Etag]
+            MaxAge: 3000
+
+  # ---------------------------------------------------------------------------
+  # DynamoDB
+  # ---------------------------------------------------------------------------
+  BatchExecutionMetadataTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: BatchId
+          AttributeType: S
+        - AttributeName: BatchStatus
+          AttributeType: S
+        - AttributeName: ParentBatchId
+          AttributeType: S
+        - AttributeName: BatchMetadataType
+          AttributeType: S
+        - AttributeName: LabelingJobName
+          AttributeType: S
+      BillingMode: PAY_PER_REQUEST
+      GlobalSecondaryIndexes:
+        - IndexName: BatchStatusIndex
+          KeySchema:
+            - AttributeName: BatchStatus
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+        - IndexName: ParentBatchIdIndex
+          KeySchema:
+            - AttributeName: ParentBatchId
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+        - IndexName: LabelingJobNameIndex
+          KeySchema:
+            - AttributeName: LabelingJobName
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+        - IndexName: BatchMetadataTypeStatusIndex
+          KeySchema:
+            - AttributeName: BatchMetadataType
+              KeyType: HASH
+            - AttributeName: BatchStatus
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      KeySchema:
+        - AttributeName: BatchId
+          KeyType: HASH
+      TableName: !Sub ${Prefix}-batch-execution-metadata
+
+  # ---------------------------------------------------------------------------
+  # IAM
+  # ---------------------------------------------------------------------------
+  LabelerExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Action: sts:AssumeRole
+            Principal:
+              Service: sagemaker.amazonaws.com
+            Effect: Allow
+            Sid: ""
+      RoleName: !Sub ${Prefix}-labeler-execution-role
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonSageMakerGroundTruthExecution
+      MaxSessionDuration: 43200
+      Policies:
+        - PolicyName: !Sub ${Prefix}-s3-policy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action: s3:*
+                Resource: !Sub arn:aws:s3:::${Prefix}-*
+        - PolicyName: !Sub ${Prefix}-sns-policy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - sns:Subscribe
+                  - sns:Unsubscribe
+                  - sns:Publish
+                Resource: !Sub arn:aws:sns:${AWS::Region}:${AWS::AccountId}:${Prefix}-*
+
+  LambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Action: sts:AssumeRole
+            Principal:
+              Service: lambda.amazonaws.com
+            Effect: Allow
+            Sid: ""
+      RoleName: !Sub ${Prefix}-lambda-role
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - arn:aws:iam::aws:policy/AmazonSageMakerFullAccess
+        - arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs
+      Policies:
+        - PolicyName: !Sub ${Prefix}-dynamo-policy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - dynamodb:BatchGetItem
+                  - dynamodb:GetItem
+                  - dynamodb:Query
+                  - dynamodb:Scan
+                  - dynamodb:BatchWriteItem
+                  - dynamodb:PutItem
+                  - dynamodb:UpdateItem
+                Resource: !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${Prefix}-*
+              - Effect: Allow
+                Action:
+                  - dynamodb:Query
+                  - dynamodb:Scan
+                Resource: !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${Prefix}-*/index/*
+        - PolicyName: !Sub ${Prefix}-s3-policy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action: s3:*
+                Resource: !Sub arn:aws:s3:::${Prefix}-*
+        - PolicyName: !Sub ${Prefix}-sqs-policy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action: sqs:*
+                Resource: !Sub arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:${Prefix}-*
+        - PolicyName: !Sub ${Prefix}-sns-policy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - sns:Subscribe
+                  - sns:Unsubscribe
+                  - sns:Publish
+                  - sns:CreateTopic
+                Resource: !Sub arn:aws:sns:${AWS::Region}:${AWS::AccountId}:${Prefix}-*
+        - PolicyName: !Sub ${Prefix}-cognito-policy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action: cognito-idp:ListUsersInGroup
+                Resource: !Sub arn:aws:sns:${AWS::Region}:${AWS::AccountId}:${Prefix}-*
+        - PolicyName: !Sub ${Prefix}-states-policy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - states:StartExecution
+                  - states:SendTask*
+                Resource: !Sub arn:aws:states:${AWS::Region}:${AWS::AccountId}:stateMachine:${Prefix}-*
+  StepFunctionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Action: sts:AssumeRole
+            Principal:
+              Service:
+                - events.amazonaws.com
+                - !Sub states.${AWS::Region}.amazonaws.com
+            Effect: Allow
+            Sid: ""
+      RoleName: !Sub ${Prefix}-step-function-role
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonSageMakerGroundTruthExecution
+      MaxSessionDuration: 43200
+      Policies:
+        - PolicyName: !Sub ${Prefix}-lambda-policy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action: lambda:InvokeFunction
+                Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${Prefix}-*
+
+  # ---------------------------------------------------------------------------
+  # Lambda
+  # ---------------------------------------------------------------------------
+  Boto3LambdaLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: !Sub ${Prefix}-boto3-lambda-layer
+      Description: Dependencies for sam app [temp-units-conv]
+      ContentUri: ../src/boto3_layer
+  ApiInfraCreateLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub ${Prefix}-api-infra-create
+      CodeUri: ../src/lambda_src/
+      Handler: main.api_infra_create_lambda_handler
+      Role: !GetAtt LambdaRole.Arn
+      Events:
+        ApiCall:
+          Type: Api
+          Properties:
+            RestApiId: !Ref WorkflowApi
+            Path: /infra/create
+            Method: post
+  ApiInfraShowLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub ${Prefix}-api-infra-show
+      CodeUri: ../src/lambda_src/
+      Handler: main.api_infra_show_lambda_handler
+      Role: !GetAtt LambdaRole.Arn
+      Events:
+        ApiCall:
+          Type: Api
+          Properties:
+            RestApiId: !Ref WorkflowApi
+            Path: /infra/show
+            Method: get
+  ApiInfraStopLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub ${Prefix}-api-infra-stop
+      CodeUri: ../src/lambda_src/
+      Handler: main.api_infra_stop_lambda_handler
+      Role: !GetAtt LambdaRole.Arn
+      Events:
+        ApiCall:
+          Type: Api
+          Properties:
+            RestApiId: !Ref WorkflowApi
+            Path: /infra/stop
+            Method: delete
+  ApiBatchShowLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub ${Prefix}-api-batch-show
+      CodeUri: ../src/lambda_src/
+      Handler: main.api_batch_show_lambda_handler
+      Role: !GetAtt LambdaRole.Arn
+      Events:
+        ApiCall:
+          Type: Api
+          Properties:
+            RestApiId: !Ref WorkflowApi
+            Path: /batch/show
+            Method: get
+  ApiBatchCreateLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub ${Prefix}-api-batch-create
+      CodeUri: ../src/lambda_src/
+      Handler: main.api_batch_create_lambda_handler
+      Role: !GetAtt LambdaRole.Arn
+      Events:
+        ApiCall:
+          Type: Api
+          Properties:
+            RestApiId: !Ref WorkflowApi
+            Path: /batch/create
+            Method: post
+  ApiBatchMetadataPost:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub ${Prefix}-api-batch-metadata-post
+      CodeUri: ../src/lambda_src/
+      Handler: main.api_batch_post_metadata_lambda_handler
+      Role: !GetAtt LambdaRole.Arn
+      Events:
+        ApiCall:
+          Type: Api
+          Properties:
+            RestApiId: !Ref WorkflowApi
+            Path: /batch-metadata/post
+            Method: post
+  ApiWorkforceShow:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub ${Prefix}-api-workforce-show
+      CodeUri: ../src/lambda_src/
+      Handler: main.api_workforce_show_lambda_handler
+      Role: !GetAtt LambdaRole.Arn
+      Events:
+        ApiCall:
+          Type: Api
+          Properties:
+            RestApiId: !Ref WorkflowApi
+            Path: /workforce/show
+            Method: get
+  InfraStopHandler:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub ${Prefix}-infra-stop-handler
+      CodeUri: ../src/lambda_src/
+      Handler: main.sqs_infra_stop_request_handler
+      Role: !GetAtt LambdaRole.Arn
+      Environment:
+        Variables:
+          SQS_INFRA_STOP_QUEUE_URL: !Ref InfraStopQueue
+          SQS_INFRA_STOP_QUEUE_WAIT_SECONDS: 600
+  InfraStopEventSourceMapping:
+    Type: AWS::Lambda::EventSourceMapping
+    Properties:
+      EventSourceArn: !GetAtt InfraStopQueue.Arn
+      FunctionName: !Ref InfraStopHandler
+      BatchSize: 1
+  SmgtResponseLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub ${Prefix}-smgt-response
+      CodeUri: ../src/lambda_src/
+      Handler: main.smgt_response_lambda_handler
+      Role: !GetAtt LambdaRole.Arn
+  SmgtResponseEventSourceMapping:
+    Type: AWS::Lambda::EventSourceMapping
+    Properties:
+      EventSourceArn: !GetAtt JobOutputQueue.Arn
+      FunctionName: !Ref SmgtResponseLambda
+      BatchSize: 1
+  LabelingJobStateChangeLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub ${Prefix}-labeling-job-state-change
+      CodeUri: ../src/lambda_src/
+      Handler: main.labeling_job_state_change_handler
+      Role: !GetAtt LambdaRole.Arn
+  LabelingJobStateChangePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref LabelingJobStateChangeLambda
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt LabelingJobStateChangeRule.Arn
+  StepFunctionTransformationLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub ${Prefix}-sf-transformation
+      CodeUri: ../src/lambda_src/
+      Handler: main.step_functions_transformation_lambda_handler
+      Role: !GetAtt LambdaRole.Arn
+  StepFunctionTriggerLabelingJobLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub ${Prefix}-sf-trigger-labeling-job
+      CodeUri: ../src/lambda_src/
+      Handler: main.step_functions_trigger_labeling_job_lambda_handler
+      Role: !GetAtt LambdaRole.Arn
+  StepFunctionSecondLevelSnsAndCheckResponseLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub ${Prefix}-sf-send-second-level-sns-and-check-response
+      CodeUri: ../src/lambda_src/
+      Handler: main.step_functions_send_second_level_sns_and_check_response_lambda_handler
+      Role: !GetAtt LambdaRole.Arn
+  StepFunctionWaitBatchCompletionLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub ${Prefix}-sf-wait-batch-completion
+      CodeUri: ../src/lambda_src/
+      Handler: main.step_functions_wait_batch_completion_lambda_handler
+      Role: !GetAtt LambdaRole.Arn
+  StepFunctionWaitBatchMetadataInputLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub ${Prefix}-sf-wait-batch-metadata-input
+      CodeUri: ../src/lambda_src/
+      Handler: main.step_functions_wait_batch_metadata_input_lambda_handler
+      Role: !GetAtt LambdaRole.Arn
+  StepFunctionCopyLogsAndSendBatchCompleted:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub ${Prefix}-sf-copy-logs-and-send-batch-completed
+      CodeUri: ../src/lambda_src/
+      Handler: main.step_functions_copy_logs_and_send_batch_completed_lambda_handler
+      Role: !GetAtt LambdaRole.Arn
+  StepFunctionBatchError:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub ${Prefix}-sf-batch-error
+      CodeUri: ../src/lambda_src/
+      Handler: main.step_functions_batch_error_lambda_handler
+      Role: !GetAtt LambdaRole.Arn
+
+  # ---------------------------------------------------------------------------
+  # Cognito
+  # ---------------------------------------------------------------------------
+  FirstLevelUserGroup:
+    Type: AWS::Cognito::UserPoolGroup
+    Properties:
+      Description: "Performs first round labeling"
+      GroupName: !Sub ${Prefix}-first-level
+      UserPoolId: !Ref CognitoUserPoolId
+  SecondLevelUserGroup:
+    Type: AWS::Cognito::UserPoolGroup
+    Properties:
+      Description: "Performs second round labeling"
+      GroupName: !Sub ${Prefix}-second-level
+      UserPoolId: !Ref CognitoUserPoolId
+
+  # ---------------------------------------------------------------------------
+  # SageMaker
+  # ---------------------------------------------------------------------------
+  FirstLevelWorkteam:
+    Type: AWS::SageMaker::Workteam
+    Properties:
+      WorkteamName: !Sub ${Prefix}-first-level
+      Description: Perform cuboid audit
+      MemberDefinitions:
+        - CognitoMemberDefinition:
+            CognitoClientId: !Ref CognitoUserPoolClientId
+            CognitoUserGroup: !Ref FirstLevelUserGroup
+            CognitoUserPool: !Ref CognitoUserPoolId
+  SecondLevelWorkteam:
+    Type: AWS::SageMaker::Workteam
+    Properties:
+      WorkteamName: !Sub ${Prefix}-second-level
+      Description: Perform cuboid audit
+      MemberDefinitions:
+        - CognitoMemberDefinition:
+            CognitoClientId: !Ref CognitoUserPoolClientId
+            CognitoUserGroup: !Ref SecondLevelUserGroup
+            CognitoUserPool: !Ref CognitoUserPoolId
+
+  # ---------------------------------------------------------------------------
+  # SNS
+  # ---------------------------------------------------------------------------
+  DefaultStatusSns:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: !Sub ${Prefix}-job-completion
+  JobOutputSns:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: !Sub ${Prefix}-job-output
+  JobOutputSubscription:
+    Type: AWS::SNS::Subscription
+    Properties:
+      TopicArn: !Ref JobOutputSns
+      Protocol: sqs
+      Endpoint: !GetAtt JobOutputQueue.Arn
+
+  # ---------------------------------------------------------------------------
+  # SQS
+  # ---------------------------------------------------------------------------
+  JobOutputQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub ${Prefix}-job-output-queue
+      VisibilityTimeout: 900
+  JobOutputQueuePolicy:
+    Type: AWS::SQS::QueuePolicy
+    Properties:
+      PolicyDocument: !Sub |
+        {
+          "Statement": [{
+            "Effect": "Allow",
+            "Principal": "*",
+            "Action": "SQS:SendMessage",
+            "Resource": "${JobOutputQueue.Arn}",
+            "Condition": {
+              "ArnEquals": {
+                "aws:SourceArn": "${JobOutputSns}"
+              }
+            }
+          }]
+        }
+      Queues:
+        - !Ref JobOutputQueue
+  InfraStopQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub ${Prefix}-infra-stop-queue
+      VisibilityTimeout: 900
+
+  # ---------------------------------------------------------------------------
+  # Cloudwatch
+  # ---------------------------------------------------------------------------
+  LabelingJobStateChangeRule:
+    Type: AWS::Events::Rule
+    Properties:
+      Description: Captures any state changes to labeling jobs.
+      EventPattern: !Sub |
+        {
+          "detail-type": [
+            "SageMaker Ground Truth Labeling Job State Change"
+          ]
+        }
+      Targets:
+        - Arn: !GetAtt LabelingJobStateChangeLambda.Arn
+          Id: "AllowExecutionFromCloudwatch"
+          InputTransformer:
+            InputPathsMap:
+              status: $.detail.LabelingJobStatus
+              resources: $.resources
+            InputTemplate: |
+              {
+                "status": <status>,
+                "job_arns": <resources>
+              }
+
+  # ---------------------------------------------------------------------------
+  # API
+  # ---------------------------------------------------------------------------
+  WorkflowApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: prod
+      Auth:
+        DefaultAuthorizer: AWS_IAM
+
+  # ---------------------------------------------------------------------------
+  # Step Functions
+  # ---------------------------------------------------------------------------
+  BatchProcessStateMachineStepFunction:
+    Type: "AWS::StepFunctions::StateMachine"
+    Properties:
+      StateMachineName: !Sub ${Prefix}-batch-process
+      DefinitionString: !Sub |
+        {
+          "Comment": "Runs batch processing of SMGT QA labeling jobs.",
+          "StartAt": "Transformation",
+          "States": {
+            "Transformation": {
+              "Type": "Task",
+              "Resource": "${StepFunctionTransformationLambda.Arn}",
+              "Next": "TriggerLabelingFirstLevel",
+              "ResultPath": "$.transformation_step_output"
+            },
+            "TriggerLabelingFirstLevel": {
+                "Type": "Task",
+                "Resource": "${StepFunctionTriggerLabelingJobLambda.Arn}",
+                "Parameters": {
+                  "parent_batch_id.$": "$.transformation_step_output.batch_id",
+                  "job_level": 1
+                },
+                "ResultPath": "$.first_level_step_output",
+                "Next": "CheckForFirstLevelCompletion",
+                "Catch": [{
+                    "ErrorEquals": ["States.ALL"],
+                    "Next": "BatchError",
+                    "ResultPath": "$.error-info"
+                }]
+            },
+            "CheckForFirstLevelCompletion": {
+              "Type": "Task",
+              "Resource": "arn:aws:states:::lambda:invoke.waitForTaskToken",
+              "Parameters": {
+                  "FunctionName": "${StepFunctionWaitBatchCompletionLambda}",
+                  "Payload": {
+                      "token.$": "$$.Task.Token",
+                      "execution_id.$": "$$.Execution.Id",
+                      "batch_id.$": "$.first_level_step_output.batch_id"
+                  }
+              },
+              "ResultPath": "$.first_level_completion_step_output",
+              "TimeoutSeconds": ${JobCompletionTimeout},
+              "Next": "SendSecondLevelSnsAndCheckResponse",
+              "Catch": [{
+                  "ErrorEquals": ["States.ALL"],
+                  "Next": "BatchError",
+                  "ResultPath": "$.error-info"
+              }]
+            },
+            "SendSecondLevelSnsAndCheckResponse": {
+              "Type": "Task",
+              "ResultPath": "$.down_sample_step_output",
+              "Parameters": {
+                "batch_id.$": "$.first_level_step_output.batch_id"
+              },
+              "Resource": "${StepFunctionSecondLevelSnsAndCheckResponseLambda.Arn}",
+              "Next": "TriggerLabelingSecondLevel",
+              "Catch": [{
+                  "ErrorEquals": ["States.ALL"],
+                  "Next": "BatchError",
+                  "ResultPath": "$.error-info"
+              }]
+            },
+            "TriggerLabelingSecondLevel": {
+              "Type": "Task",
+              "Resource": "${StepFunctionTriggerLabelingJobLambda.Arn}",
+              "Parameters": {
+                  "parent_batch_id.$": "$.transformation_step_output.batch_id",
+                  "job_level": 2
+              },
+              "ResultPath": "$.second_level_step_output",
+              "Next": "CheckForSecondLevelCompletion",
+              "Catch": [{
+                  "ErrorEquals": ["States.ALL"],
+                  "Next": "BatchError",
+                  "ResultPath": "$.error-info"
+              }]
+            },
+            "CheckForSecondLevelCompletion": {
+              "Type": "Task",
+              "Resource": "arn:aws:states:::lambda:invoke.waitForTaskToken",
+              "Parameters": {
+                "FunctionName": "${StepFunctionWaitBatchCompletionLambda}",
+                "Payload": {
+                    "token.$": "$$.Task.Token",
+                    "execution_id.$": "$$.Execution.Id",
+                    "batch_id.$": "$.second_level_step_output.batch_id"
+                }
+              },
+              "ResultPath": "$.second_level_completion_step_output",
+              "TimeoutSeconds": ${JobCompletionTimeout},
+              "Next": "SendThirdLevelSnsAndCheckResponse",
+              "Catch": [{
+                  "ErrorEquals": ["States.ALL"],
+                  "Next": "BatchError",
+                  "ResultPath": "$.error-info"
+              }]
+            },
+            "SendThirdLevelSnsAndCheckResponse": {
+              "Type": "Task",
+              "ResultPath": "$.down_sample_step_output",
+              "Parameters": {
+                "batch_id.$": "$.second_level_step_output.batch_id"
+              },
+              "Resource": "${StepFunctionSecondLevelSnsAndCheckResponseLambda.Arn}",
+              "Next": "TriggerLabelingThirdLevel",
+              "Catch": [{
+                  "ErrorEquals": ["States.ALL"],
+                  "Next": "BatchError",
+                  "ResultPath": "$.error-info"
+              }]
+            },
+            "TriggerLabelingThirdLevel": {
+              "Type": "Task",
+              "Resource": "${StepFunctionTriggerLabelingJobLambda.Arn}",
+              "Parameters": {
+                  "parent_batch_id.$": "$.transformation_step_output.batch_id",
+                  "job_level": 3
+              },
+              "ResultPath": "$.third_level_step_output",
+              "Next": "CheckForThirdLevelCompletion",
+              "Catch": [{
+                  "ErrorEquals": ["States.ALL"],
+                  "Next": "BatchError",
+                  "ResultPath": "$.error-info"
+              }]
+            },
+            "CheckForThirdLevelCompletion": {
+              "Type": "Task",
+              "Resource": "arn:aws:states:::lambda:invoke.waitForTaskToken",
+              "Parameters": {
+                "FunctionName": "${StepFunctionWaitBatchCompletionLambda}",
+                "Payload": {
+                    "token.$": "$$.Task.Token",
+                    "execution_id.$": "$$.Execution.Id",
+                    "batch_id.$": "$.third_level_step_output.batch_id"
+                }
+              },
+              "ResultPath": "$.second_level_completion_step_output",
+              "TimeoutSeconds": ${JobCompletionTimeout},
+              "Next": "CopyLogsAndSendBatchCompleted",
+              "Catch": [{
+                  "ErrorEquals": ["States.ALL"],
+                  "Next": "BatchError",
+                  "ResultPath": "$.error-info"
+              }]
+            },
+            "CopyLogsAndSendBatchCompleted": {
+              "Type": "Task",
+              "Parameters": {
+                "input.$": "$",
+                "execution_id.$": "$$.Execution.Id"
+              },
+              "Resource": "${StepFunctionCopyLogsAndSendBatchCompleted.Arn}",
+              "Next": "Complete",
+              "Catch": [{
+                  "ErrorEquals": ["States.ALL"],
+                  "Next": "BatchError",
+                  "ResultPath": "$.error-info"
+              }]
+            },
+            "BatchError": {
+              "Type": "Task",
+              "Resource": "${StepFunctionBatchError.Arn}",
+              "Parameters": {
+                "input.$": "$",
+                "execution_id.$": "$$.Execution.Id"
+              },
+              "Next": "Complete"
+            },
+            "Complete": {
+              "Type": "Succeed"
+            }
+          }
+        }
+      RoleArn: !GetAtt StepFunctionRole.Arn
+
+Outputs:
+  JobOutputBucket:
+    Value: !Ref JobOutputBucket
+  BatchProcessingBucket:
+    Value: !Ref BatchProcessingBucket

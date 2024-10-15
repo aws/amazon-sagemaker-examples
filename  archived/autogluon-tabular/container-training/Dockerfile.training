@@ -1,0 +1,30 @@
+ARG REGISTRY_URI
+FROM ${REGISTRY_URI}
+
+
+RUN pip install -U pip
+RUN pip install -U wheel setuptools
+RUN pip install --no-cache-dir autogluon==0.1.0
+RUN pip install shap
+RUN pip install PrettyTable
+RUN pip install bokeh
+
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends graphviz libgraphviz-dev pkg-config \
+  && rm -rf /var/lib/apt/lists/* \
+  && pip install pygraphviz
+  
+ENV PATH="/opt/ml/code:${PATH}"
+
+# Copies the training code inside the container
+COPY container-training/train.py /opt/ml/code/train.py
+COPY container-training/inference.py /opt/ml/code/inference.py
+
+# Install seaborn for plot
+RUN pip install seaborn
+
+# this environment variable is used by the SageMaker PyTorch container to determine our user code directory.
+ENV SAGEMAKER_SUBMIT_DIRECTORY /opt/ml/code
+
+# Defines train.py as script entrypoint
+ENV SAGEMAKER_PROGRAM train.py

@@ -1,0 +1,16 @@
+# Sample curl commands for inference
+
+# Test /ping
+curl http://localhost:8080/ping
+
+# Sample inference requests using curl
+
+curl --data-raw 'I,0.365,0.295,0.095,0.25,0.1075,0.0545,0.08,9.0' -H 'Content-Type: text/csv' -v http://localhost:8080/invocations
+
+curl --data-raw 'M,0.59,0.44,0.15,0.8725,0.387,0.215,0.245,8.0' -H 'Content-Type: text/csv' -v http://localhost:8080/invocations
+
+curl --data-raw 'M,0.59,0.44,0.15,0.8725,0.387,0.215,0.245' -H 'Content-Type: text/csv' -v http://localhost:8080/invocations
+
+curl --data-raw 'F,0.585,0.465,0.145,0.9855,0.4325,0.2145,0.2845,10.0' -H 'Content-Type: text/csv' -v http://localhost:8080/invocations
+
+curl --data-raw 'I,0.365,0.295,0.095,0.25,0.1075,0.0545,0.08,9.0' -H 'Content-Type: text/csv' -v http://localhost:8080/invocations

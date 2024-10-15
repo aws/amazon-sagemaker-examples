@@ -1,0 +1,4 @@
+# These are required only for re-packaging the training job outputs to work with TorchServe - as
+# described in train.py's enable_torchserve_multi_model():
+sagemaker-pytorch-inference>=2,<3
+torch-model-archiver

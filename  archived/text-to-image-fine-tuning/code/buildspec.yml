@@ -1,0 +1,35 @@
+version: 0.2
+      
+phases:
+  pre_build:
+    commands:
+      # Log into ECR, and if the ECR repository doesn't exist then create one
+      - echo Logging in to Amazon ECR...
+      - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
+      - aws ecr describe-repositories --repository-names ${IMAGE_REPO_NAME} || aws ecr create-repository --repository-name ${IMAGE_REPO_NAME}
+  build:
+    commands:
+      - echo Build started on `date`
+      # Clone the specific version of the GitHub repository for Kohya SS
+      # Tested as of version v22.6.2. If you use newer versions, you will want to check the Dockerfile and the docker-compose.yaml file in the 
+      # repository, and the training entrypoint for SDXL (sdxl_train_network.py) in the custom "train" file located in this repository
+      - git clone https://github.com/bmaltais/kohya_ss.git --branch ${KOHYA_SS_VERSION}
+      # Overwrite the Dockerfile with the custom one we have in the CodeCommit repository
+      # Our Dockerfile has minor tweaks to enable using SageMaker Training Jobs
+      - mv -f ./Dockerfile ./kohya_ss/Dockerfile
+      # Move the custom train file we have in the CodeCommit repository, to the kohya_ss directory since this is the build context for docker-compose
+      # Right now, the train filename does not conflict with anything in the kohya_ss directory for this version of code,
+      # but eventually the Docker context may be changed so we don't have to add the train file to this directory
+      - chmod +x ./train && mv -f ./train ./kohya_ss/train
+      - cd kohya_ss
+      - echo Building the Docker image that will be used for training...          
+      # Build and tag the container image
+      - docker compose build --no-cache=true --progress=plain
+      # The "kohya-ss-gui:latest" name comes from the Kohya SS Docker config: https://github.com/bmaltais/kohya_ss/blob/v22.6.2/docker-compose.yaml#L5
+      - docker tag kohya-ss-gui:latest $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:$IMAGE_TAG   
+  post_build:
+    commands:
+      # Push the container image to ECR
+      - echo Build completed on `date`
+      - echo Pushing the Docker image...
+      - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:$IMAGE_TAG

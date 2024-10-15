@@ -1,5 +1,0 @@
-AWS_REGION = "us-east-1"
-MODEL_METADATA_S3_KEY = "s3://simapp-testcases-687392285187/simapp-testcases-prefix/model/model_metadata.json"
-REWARD_FUNCTION_S3_SOURCE = "s3://simapp-testcases-687392285187/simapp-testcases-prefix/customer_reward_function.py"
-S3_BUCKET = "simapp-testcases-687392285187"
-S3_PREFIX = "simapp-testcases-prefix"
