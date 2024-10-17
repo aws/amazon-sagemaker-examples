@@ -606,9 +606,9 @@ def main(args):
             load_state_dict_from_rank0 = finetune_with_pretrained_weights_check(args)
             if args.moe and args.delayed_param and (not load_state_dict_from_rank0 or dist.get_rank() != 0):
                 with init_empty_weights():
-                    model = transform(model, config=moe_config, load_state_dict_from_rank0=load_state_dict_from_rank0)
+                    model = transform(model, config=moe_config, load_state_dict_from_rank0=load_state_dict_from_rank0, cp_comm_type=args.cp_comm_type)
             else:
-                model = transform(model, config=moe_config, load_state_dict_from_rank0=load_state_dict_from_rank0)
+                model = transform(model, config=moe_config, load_state_dict_from_rank0=load_state_dict_from_rank0, cp_comm_type=args.cp_comm_type)
 
         if args.delayed_param:
             # param init fn for delayed param creation

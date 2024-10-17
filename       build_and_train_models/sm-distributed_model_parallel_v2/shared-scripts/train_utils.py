@@ -287,10 +287,25 @@ def get_model_config(args):
             pretraining_tp=1,
             tie_word_embeddings=False,
             rope_scaling=None,
+            rope_theta=args.rotary_emb_base,
         )
     elif "llama_v3" in args.model_type:
         from transformers import LlamaConfig
 
+        rope_scaling = None
+        if args.rope_scaling_type == "llama3":
+            if pversion.parse(transformers.__version__) < pversion.parse("4.44.2"):
+                raise ValueError(
+                    "Rope scaling type 'llama3' is only supported for transformers >= 4.44.2. "
+                    "Please upgrade transformers or pass None to use the original RoPE implementation."
+                )
+            rope_scaling = {
+                "rope_type": "llama3",
+                "factor": args.rope_scaling_factor,
+                "high_freq_factor": args.rope_scaling_high_freq_factor,
+                "low_freq_factor": args.rope_scaling_low_freq_factor,
+                "original_max_position_embeddings": args.rope_scaling_original_max_position_embeddings,
+            }
         model_config = LlamaConfig(
             vocab_size=args.vocab_size,
             hidden_size=args.hidden_width,
@@ -305,7 +320,8 @@ def get_model_config(args):
             use_cache=False,
             pretraining_tp=1,
             tie_word_embeddings=False,
-            rope_scaling=None,
+            rope_scaling=rope_scaling,
+            rope_theta=args.rotary_emb_base,
         )
     elif "mistral" in args.model_type:
         from transformers import MistralConfig

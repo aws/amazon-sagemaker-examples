@@ -23,7 +23,6 @@ from torch.distributed.checkpoint.optimizer import load_sharded_optimizer_state_
 from torch.distributed.fsdp import FullyShardedDataParallel as FSDP
 from torch.distributed.fsdp import StateDictType
 from torch.distributed.fsdp.api import FullStateDictConfig, ShardedOptimStateDictConfig
-from torch.sagemaker.distributed.fsdp import checkpoint as tsm_fsdp_checkpoint
 from torch.sagemaker.utils.process_group_utils import get_global_ranks
 
 SUPPORT_ASYNC_SAVE = True
@@ -57,7 +56,6 @@ class CheckpointingMethod(Enum):
     SHARDED = auto()
     LOCAL = auto()
     FULL = auto()
-    USE_PG_WITH_UTIL = auto()
     ASYNC_SHARDED = auto()
     ASYNC_LOCAL = auto()
 
@@ -142,34 +140,6 @@ def _retry_write_to_disk(func, max_attempts=_MAX_ATTEMPTS):
                     continue
 
             raise error
-
-
-def _save_with_util(  # pylint: disable=too-many-arguments
-    model,
-    optimizer,
-    scheduler,
-    user_content,
-    sharding_strategy,
-    save_dir: str,
-    checkpointing_pg_metadata,
-):
-    """Save FSDP checkpoint: With process groups."""
-    # By default, it'll use process groups when exporting checkpoints.
-    tsm_fsdp_checkpoint.save_model_checkpoint(
-        model,
-        _DEFAULT_STATE_DICT_TYPE,
-        save_dir,
-        sharding_strategy,
-        checkpointing_pg_metadata,
-        log=dist.get_rank() == 0,
-        optimizer=optimizer,
-        scheduler=scheduler,
-        extra_exports=(
-            {key: user_content[key] for key in _EXPORT_KEYS}
-            if user_content is not None
-            else None
-        ),
-    )
 
 
 def _save_sharded(  # pylint: disable=too-many-arguments
@@ -399,7 +369,7 @@ def _save_async_local(
         state_dict = state_dict | user_content
 
     if global_rank == 0:
-        logger.info("Processed state dict to save. Starting write to disk now.")     
+        logger.info("Processed state dict to save. Starting write to disk now.")
     async_save(
         state_dict,
         checkpoint_id=checkpoint_dir,
@@ -475,16 +445,6 @@ def save_checkpoint(  # pylint: disable=too-many-arguments,too-many-locals
         _save_local(model, optimizer, scheduler, user_content, save_dir)
     elif checkpoint_type == CheckpointingMethod.FULL:
         _save_full(model, save_dir, user_content)
-    elif checkpoint_type == CheckpointingMethod.USE_PG_WITH_UTIL:
-        _save_with_util(
-            model,
-            optimizer,
-            scheduler,
-            user_content,
-            sharding_strategy,
-            save_dir,
-            checkpointing_pg_metadata,
-        )
     elif checkpoint_type == CheckpointingMethod.ASYNC_SHARDED:
         if tensor_parallel_degree > 1:
             save_dir = os.path.join(
@@ -564,30 +524,6 @@ def save_checkpoint(  # pylint: disable=too-many-arguments,too-many-locals
         regex=_CHECKPOINT_DIR_REGEX,
         # Both log messages and do the actual remove as needed for one single rank.
         log=dist.get_rank() == 0,
-    )
-
-
-# pylint: disable=too-many-arguments,too-many-locals
-def _load_with_util(
-    model,
-    optimizer,
-    scheduler,
-    checkpoint_dir,
-    sharding_strategy,
-    checkpointing_pg_metadata,
-):
-    """Load FSDP checkpoint: With process groups."""
-    # By default, it'll use process groups when exporting checkpoints.
-    return tsm_fsdp_checkpoint.load_model_checkpoint(
-        model,
-        _DEFAULT_STATE_DICT_TYPE,
-        checkpoint_dir,
-        sharding_strategy,
-        checkpointing_pg_metadata,
-        log=dist.get_rank() == 0,
-        optimizer=optimizer,
-        scheduler=scheduler,
-        extra_imports={key: 0 for key in _EXPORT_KEYS},
     )
 
 
@@ -836,16 +772,7 @@ def load_checkpoint(
     if isinstance(checkpoint_type, str):
         checkpoint_type = CheckpointingMethod[checkpoint_type.upper()]
 
-    if checkpoint_type == CheckpointingMethod.USE_PG_WITH_UTIL:
-        loaded = _load_with_util(
-            model,
-            optimizer,
-            scheduler,
-            checkpoint_dir,
-            sharding_strategy,
-            checkpointing_pg_metadata,
-        )
-    elif checkpoint_type == CheckpointingMethod.SHARDED:
+    if checkpoint_type == CheckpointingMethod.SHARDED:
         if tensor_parallel_degree > 1:
             checkpoint_dir = os.path.join(
                 checkpoint_dir, f"tp{tensor_parallel_degree}-{state.tp_rank}"
@@ -893,13 +820,7 @@ def load_checkpoint(
     if dist.get_rank() == 0:
         logger.info("Checkpoint loaded from %s.", checkpoint_dir)
 
-    if checkpoint_type == CheckpointingMethod.USE_PG_WITH_UTIL:
-        model = loaded[tsm_fsdp_checkpoint.EXPORT_KEY_MODEL]
-        optimizer = loaded[tsm_fsdp_checkpoint.EXPORT_KEY_OPTIMIZER]
-        scheduler = loaded[tsm_fsdp_checkpoint.EXPORT_KEY_SCHEDULER]
-        state_dict = loaded[tsm_fsdp_checkpoint.EXPORT_KEY_IDENTITY]
-    else:
-        state_dict = loaded
+    state_dict = loaded
 
     resume_from_sequence_number = backward_compat_get_resume_from_sequence_number(
         args, state_dict
