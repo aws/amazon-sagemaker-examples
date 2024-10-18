@@ -43,3 +43,4 @@ The example notebooks within this folder showcase the capabilities of Amazon Sag
 - [Tabular classification with Amazon SageMaker LightGBM and CatBoost algorithm](sm-lightgbm_catboost_tabular_classification.ipynb)
 - [An Introduction to Linear Learner with MNIST](sm-linear_learner_mnist.ipynb)
 - [Tabular classification with Amazon SageMaker TabTransformer algorithm](sm-tabtransformer_tabular_classification.ipynb)
+- [Finetuning Text generation model with Tensorboard](sm-jumpstart_tensorflow_finetune_flan/sm-jumpstart_tensorflow_finetune_flan.ipynb)
