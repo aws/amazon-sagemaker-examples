@@ -1,0 +1,149 @@
+#!/usr/bin/env python3
+
+import copy
+import os
+import signal
+import subprocess
+import sys
+
+from jinja2 import Template
+import re
+
+def get_conf(num_servers):
+
+    template = Template("""
+    worker_processes 1;
+    daemon off; # Prevent forking
+
+    pid /tmp/nginx.pid;
+    error_log /var/log/nginx/error.log;
+
+    events {
+      # defaults
+    }
+
+    http {
+        include /etc/nginx/mime.types;
+        default_type application/octet-stream;
+        access_log /var/log/nginx/access.log combined;
+        
+        upstream backend {
+            {%- for server in servers %}
+            server localhost:{{ server.port }};
+            {%- endfor %}
+        }
+
+        server {
+            listen 8080 deferred;
+            client_max_body_size 5m;
+
+            keepalive_timeout 5;
+            proxy_read_timeout 1200s;
+            
+            location / {
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header Host $http_host;
+                proxy_redirect off;
+                
+                rewrite ^/invocations$ /v2/models/model/generate break; 
+                rewrite ^/ping$ /v2/health/ready break; 
+                proxy_pass http://backend;
+            }
+        }
+    }
+    """)
+
+    servers = [ { "port": (8000+x*32)} for x in range(num_servers) ]
+    data = { "servers": servers}
+
+    nginx_conf = template.render(data)
+    server_ports = [ {"http": (8000+32*x), "grpc": (8001+32*x), "metrics": (8002+32*x)} for x in range(num_servers)]
+
+    return nginx_conf, server_ports
+
+def get_core_groups():
+    """Lists files in a directory that start with a given prefix."""
+
+    directory = "/dev"
+    prefix = "neuron"
+    files = []
+    for filename in os.listdir(directory):
+        if re.search(f'^{prefix}\\d+', filename):
+            files.append(filename)
+    
+    num_cores = len(files)*2
+    model_server_cores = int(os.environ.get("MODEL_SERVER_CORES", num_cores))
+     
+    cores = [ x for x in range(num_cores)]
+    core_groups = [cores[x:x+model_server_cores] for x in range(0, len(cores), model_server_cores)]
+    core_groups = core_groups[: (num_cores// model_server_cores)]
+    return core_groups
+
+def sigterm_handler(*pids):
+    for pid in pids:
+        try:
+            print(f"sigterm_handler: kill {pid}")
+            os.kill(pid, signal.SIGTERM)
+        except OSError:
+            pass
+    
+    sys.exit(0)
+
+def start_server():
+    core_groups = get_core_groups()
+    print(f"Inference server core groups; {core_groups}")
+    num_servers = len(core_groups)
+
+    nginx_conf, triton_server_ports = get_conf(num_servers=num_servers)
+    print(f"nginx.conf: {nginx_conf}")
+    print(f"triton server ports: {triton_server_ports}")
+
+    with open("/tmp/nginx.conf", "w+" ) as f:
+        f.write(nginx_conf)
+
+    # link the log streams to stdout/err so they will be logged to the container logs
+    subprocess.check_call(['ln', '-sf', '/dev/stdout', '/var/log/nginx/access.log'])
+    subprocess.check_call(['ln', '-sf', '/dev/stderr', '/var/log/nginx/error.log'])
+    nginx = subprocess.Popen(['nginx', '-c', '/tmp/nginx.conf'], stderr=subprocess.STDOUT)
+    
+    model_repo = os.getenv("MODEL_REPO", "/opt/ml/model/model_repo" )
+    pids = [nginx.pid]
+    print(f"nginx pid: {nginx.pid}")
+    
+    for i, ports in enumerate(triton_server_ports):
+        env_copy = copy.deepcopy(os.environ)
+        group = core_groups[i]
+        env_copy['NEURON_RT_VISIBLE_CORES']=f"{group[0]}-{group[-1]}"
+        env_copy['NEURON_RT_ROOT_COMM_ID']=f"localhost:{48620+i}"
+        http = ports['http']
+        grpc = ports['grpc']
+        metrics = ports['metrics']
+        print(f"server instance: {i}: http: {http}, grpc: {grpc}, metric: {metrics}")
+        print(f"server instance: {i}: NEURON_RT_VISIBLE_CORES={env_copy['NEURON_RT_VISIBLE_CORES']}")
+        server = subprocess.Popen(['tritonserver', 
+                                   f"--model-repository={model_repo}",
+                                   f"--grpc-port={grpc}",
+                                   f"--http-port={http}",
+                                   f"--metrics-port={metrics}",
+                                   "--disable-auto-complete-config"],
+                                   stderr=subprocess.STDOUT,
+                                   env=env_copy)
+        pids.append(server.pid)
+        print(f"server {i} pid: {server.pid}")
+
+    signal.signal(signal.SIGTERM, lambda a, b: sigterm_handler(*pids))
+
+    # Exit the inference server upon exit of either subprocess
+    pids = set(pids)
+    while True:
+        pid, status = os.wait()
+        print(f"Process {pid} exited, exit_status: {status}: exit_code: {os.waitstatus_to_exitcode(status)}")
+        if pid in pids:
+            break
+
+    sigterm_handler(nginx.pid)
+
+# The main routine to invoke the start function.
+
+if __name__ == '__main__':
+    start_server()

@@ -1,0 +1,13 @@
+{
+  "model_id": "meta-llama/Meta-Llama-3-8B-Instruct",
+  "tensor_parallel_degree": 8,
+  "amp": "f16",
+  "n_positions": 8192,
+  "model_loading_timeout": 1200,
+  "model_loader": "tnx",
+  "rolling_batch": "auto",
+  "rolling_batch_strategy": "continuous_batching",
+  "max_rolling_batch_size": 8,
+  "output_formatter": "json",
+  "trust_remote_code": true
+}

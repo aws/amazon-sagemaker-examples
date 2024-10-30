@@ -1,0 +1,33 @@
+sagemaker:
+  model:
+    name: "meta-llama-3-8b-instruct-tritonserver-neuronx"
+    container: "containers/tritonserver-djl-lmi-neuronx"
+    tritonserver: true
+    env: 
+      HF_HOME: "/tmp"
+      MODEL_REPO: "/opt/ml/model/model_repo"
+      MODEL_ID: "meta-llama/Meta-Llama-3-8B-Instruct"
+      NEURON_CC_FLAGS: "--model-type=transformer"
+      NEURON_COMPILE_CACHE_URL: "/tmp"
+      OMP_NUM_THREADS: "16"
+      MODEL_SERVER_CORES: "8"
+      FI_EFA_FORK_SAFE: "1"
+  endpoint:
+    name: "meta-llama-3-8b-instruct-tritonserver-neuronx"
+    instance_type: "ml.trn1.32xlarge"
+    initial_instance_count: 1
+    variant_name: "test"
+    model_data_download_timeout_secs: 1200
+    container_startup_health_check_timeout_secs: 1200
+test:
+  module_name: "llama3_prompt_generator"
+  module_dir: "modules/inst-semeval2017"
+  prompt_generator: "PromptGenerator"
+  generator_keys: { "inputs": "text_input", "parameters": "sampling_parameters"}
+  params: '{ "do_sample": true, "max_new_tokens": 1024, "top_k": 50 }'
+  warmup_iters: 1
+  n_concurrent: 4
+  max_iters: 10
+  output_dir: "output"
+  locust_users: 32
+  locust_workers: 4

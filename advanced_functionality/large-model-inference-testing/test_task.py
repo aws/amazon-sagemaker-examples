@@ -90,6 +90,7 @@ def _test_text_generation(model_id:str,
     warmup_iters = int(test_spec.get('warmup_iters', 1))
     max_iters = int(test_spec.get('max_iters', 10))
     params = test_spec.get("params", None)
+    keys = test_spec.get("generator_keys", dict())
 
     cumu_time = 0.0
     cumu_tokens = 0
@@ -110,7 +111,7 @@ def _test_text_generation(model_id:str,
                                     endpoint_name, 
                                     prompt=prompt,
                                     params=params, 
-                                    stream=streaming_enabled)
+                                    stream=streaming_enabled, keys=keys)
                 latency = time.time() - start_time
                 
                 if ttft is None:

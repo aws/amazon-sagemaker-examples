@@ -1,6 +1,7 @@
 import json
 import io
 import time
+from typing import Union
 
 class LineIterator:
 
@@ -31,9 +32,12 @@ class LineIterator:
             self.buffer.seek(0, io.SEEK_END)
             self.buffer.write(chunk['PayloadPart']['Bytes'])
 
-def __invoke_endpoint(client, endpoint_name:str, prompt:str, params:dict):
-    data= { "inputs": prompt }
-    data["parameters"] = params
+def __invoke_endpoint(client, endpoint_name:str, prompt:str, params:Union[dict, str], keys: dict):
+    
+    key_inputs = keys.get("inputs", "inputs")
+    key_parameters = keys.get("parameters", "parameters")
+    data= { key_inputs: prompt, key_parameters: params }
+ 
     body = json.dumps(data).encode("utf-8")
     response = client.invoke_endpoint(EndpointName=endpoint_name, 
                                     ContentType="application/json", 
@@ -43,9 +47,12 @@ def __invoke_endpoint(client, endpoint_name:str, prompt:str, params:dict):
     json_obj = json.loads(json_str)
     return json_obj
 
-def __invoke_streaming_endpoint(client, endpoint_name:str, prompt:str, params:dict):
-    data= { "inputs": prompt }
-    data["parameters"] = params
+def __invoke_streaming_endpoint(client, endpoint_name:str, prompt:str, params:Union[dict, str], keys: dict):
+    
+    key_inputs = keys.get("inputs", "inputs")
+    key_parameters = keys.get("parameters", "parameters")
+    data= { key_inputs: prompt, key_parameters: params }
+    
     body = json.dumps(data).encode("utf-8")
     response = client.invoke_endpoint_with_response_stream(EndpointName=endpoint_name, 
                                     ContentType="application/json", 
@@ -54,20 +61,24 @@ def __invoke_streaming_endpoint(client, endpoint_name:str, prompt:str, params:di
     return event_stream
 
 
-def __generate(client, endpoint_name:str, prompt:str, params=dict()):
-    json_obj = __invoke_endpoint(client, endpoint_name, prompt, params)
+def __generate(client, endpoint_name:str, prompt:str, params:Union[dict, str], keys: dict):
+    json_obj = __invoke_endpoint(client, 
+                                 endpoint_name=endpoint_name, 
+                                 prompt=prompt, params=params, keys=keys)
     json_obj_type = type(json_obj)
     while json_obj_type is list:
         json_obj = json_obj[0]
         json_obj_type = type(json_obj)
     
     generated_text = ''
-
+    
     if json_obj_type is dict:
         if 'outputs' in json_obj:
             output = json_obj['outputs']
         elif 'generated_text' in json_obj:
             output = json_obj['generated_text']
+        elif 'text_output' in json_obj:
+            output = json_obj['text_output']
         else:
             raise RuntimeError(f"Unexpected output: {json_obj}")
         if type(output) is list:
@@ -78,9 +89,11 @@ def __generate(client, endpoint_name:str, prompt:str, params=dict()):
 
     return generated_text, None
 
-def __generate_streaming(client, endpoint_name:str, prompt:str, params: dict):
+def __generate_streaming(client, endpoint_name:str, prompt:str, params:Union[dict, str], keys: dict):
 
-    event_stream = __invoke_streaming_endpoint(client, endpoint_name, prompt, params)
+    event_stream = __invoke_streaming_endpoint(client, 
+                                               endpoint_name=endpoint_name, 
+                                               prompt=prompt, params=params, keys=keys)
     start_time = time.time()
     ttft = None
     generated_text =  ''
@@ -97,19 +110,19 @@ def __generate_streaming(client, endpoint_name:str, prompt:str, params: dict):
                 
     return generated_text, ttft
 
-def generate(client, endpoint_name:str, prompt:str, params:dict, stream:bool):
+def generate(client, endpoint_name:str, prompt:str, params:Union[dict, str], stream:bool, keys:dict):
     text = None
     ttft = None
     if stream:
         text, ttft = __generate_streaming(client=client, 
                                           endpoint_name=endpoint_name, 
                                           prompt=prompt, 
-                                          params=params)
+                                          params=params, keys=keys)
     else:
         text, ttft = __generate(client=client, 
                                 endpoint_name=endpoint_name, 
                                 prompt=prompt, 
-                                params=params)
+                                params=params, keys=keys)
 
     index = text.find(prompt)
     if index != -1:

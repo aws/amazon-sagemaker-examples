@@ -24,6 +24,7 @@ class EndpointClient:
         self.smr_client = boto3.client("sagemaker-runtime", config=config)
 
         self.params = json.loads(os.getenv("MODEL_PARAMS", "{}"))
+        self.keys = json.loads(os.getenv("GENERATOR_KEYS", "{}"))
         self.streaming_enabled = os.getenv("STREAMING_ENABLED", "false").lower() in [ "true"]
         self.task_name = os.getenv("TASK_NAME", "text-generation")
 
@@ -46,7 +47,7 @@ class EndpointClient:
         text, ttft = generate(self.smr_client, self.endpoint_name, 
                                     prompt=prompt, 
                                     params=self.params, 
-                                    stream=self.streaming_enabled)
+                                    stream=self.streaming_enabled, keys=self.keys)
         if ttft is not None:
             request_meta['response'] = {"prompt": prompt, "text": text, "ttft": ttft}
         else:
