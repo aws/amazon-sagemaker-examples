@@ -1,0 +1,82 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Resources:
+  DataZoneFederationRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: 'datazone_environment_federation_role'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: 'Allow'
+            Principal:
+              Service:
+                - 'auth.datazone.amazonaws.com'
+                - 'datazone.amazonaws.com'
+            Action:
+              - 'sts:AssumeRole'
+              - 'sts:TagSession'
+ 
+  DataZoneFederationPolicy:
+    DependsOn: ['DataZoneFederationRole']
+    Type: 'AWS::IAM::Policy'
+    Properties:
+      Roles:
+        - !Ref DataZoneFederationRole
+      PolicyName: !Sub 'datazone-usr-federation-policy'
+      PolicyDocument:
+        Statement:
+          - Action:
+              - 'sagemaker:CreateUserProfile'
+              - 'sagemaker:DescribeUserProfile'
+              - 'sagemaker:CreatePresignedDomainUrl'
+              - 'sagemaker:ListTags'
+              - 'sagemaker:AddTags'
+              - 'sagemaker:UpdateDomain'
+              - 'sagemaker:DescribeDomain'
+              - 'iam:ListRoleTags'
+            Effect: Allow
+            Resource: '*'
+  SageMakerManageAccessRole:
+      Type: AWS::IAM::Role
+      Properties:
+        AssumeRolePolicyDocument:
+          Statement:
+            - Action: sts:AssumeRole
+              Effect: Allow
+              Principal:
+                AWS: !Join
+                  - ''
+                  - - 'arn:'
+                    - !Ref AWS::Partition
+                    - !Sub ':iam::${AWS::AccountId}:root'
+            - Action: sts:AssumeRole
+              Condition:
+                StringEquals:
+                  aws:SourceAccount: !Ref "AWS::AccountId"
+                ArnLike:
+                  aws:SourceArn: !Sub arn:aws:datazone:${AWS::Region}:${AWS::AccountId}:domain/dzd*
+              Effect: Allow
+              Principal:
+                Service:
+                  - sagemaker.amazonaws.com
+                  - datazone.amazonaws.com
+              Sid: DataZoneTrustPolicyStatement
+          Version: '2012-10-17'
+        ManagedPolicyArns:
+          - !Join
+            - ''
+            - - 'arn:'
+              - !Ref AWS::Partition
+              - ':iam::aws:policy/service-role/AmazonDataZoneGlueManageAccessRolePolicy'
+          - !Join
+            - ''
+            - - 'arn:'
+              - !Ref AWS::Partition
+              - ':iam::aws:policy/service-role/AmazonDataZoneRedshiftManageAccessRolePolicy'
+          - !Join
+            - ''
+            - - 'arn:'
+              - !Ref AWS::Partition
+              - ':iam::aws:policy/AmazonDataZoneSageMakerManageAccessRolePolicy'
+        RoleName: AmazonDataZoneSageMakerManageAccessRoleBYOD
