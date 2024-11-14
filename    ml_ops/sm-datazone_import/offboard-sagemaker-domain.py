@@ -10,7 +10,6 @@ their account and detach the SageMaker Resources from their DataZone counterpart
 
 
 class SageMakerDomainOffboarder:
-
     def _offboard_sm_domain(self):
         print("List of SageMaker Domains for your account.")
         print("--------------------------------------------------------------------")
