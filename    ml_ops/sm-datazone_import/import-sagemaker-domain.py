@@ -13,7 +13,6 @@ more information.
 
 
 class SageMakerDomainImporter:
-
     def __init__(self, region, stage, federation_role, account_id) -> None:
         self.region = region
         self.stage = stage
@@ -171,7 +170,7 @@ class SageMakerDomainImporter:
 
         # get role name from arn "arn:aws:iam::047923724610:role/service-role/AmazonSageMaker-ExecutionRole-20241008T155288"
         role_name = self.sm_user_info["exec_role_arn"][
-            self.sm_user_info["exec_role_arn"].rfind("/") + 1 :
+            self.sm_user_info["exec_role_arn"].rfind("/") + 1:
         ]  # rfind searches from back of string
         self.iam_client.tag_role(RoleName=role_name, Tags=sm_exec_role_tags)
         print(
@@ -183,21 +182,38 @@ class SageMakerDomainImporter:
             print(t)
 
         print("--------------------------------------------------------------------")
-        print("Getting DataZone UserProfiles in account...")
-        dz_users = self.dz_client.search_user_profiles(
-            domainIdentifier=self.dz_domain_id, userType="DATAZONE_IAM_USER"
-        )["items"]
+        print("Getting IAM DataZone UserProfiles in account...")
 
-        dz_users_map_id_to_arn = {}
-        for dz_user in dz_users:
-            user_role_arn = dz_user["details"]["iam"]["arn"]
-            dz_user_id = dz_user["id"]
-            print(f"UserId: {dz_user_id}       UserRole: {user_role_arn}")
-            dz_users_map_id_to_arn[dz_user_id] = user_role_arn
+        user_types = [
+            "SSO_USER",
+            # remove DATAZONE_USER as these are redundant with others.
+            "DATAZONE_SSO_USER",
+            "DATAZONE_IAM_USER",
+        ]
+        all_dz_users = []  # [( payload, type ), ... ]
+        for user_type in user_types:
+            search_response = self.dz_client.search_user_profiles(
+                domainIdentifier=self.dz_domain_id, userType=user_type
+            )["items"]
+            dz_user_map = {"Items": search_response, "Type": user_type}
+            all_dz_users.append(dz_user_map)
+
+        # For all user types, iterate through all users.
+        for dz_user_map in all_dz_users:
+            dz_users, user_type = dz_user_map["Items"], dz_user_map["Type"]
+            for dz_user in dz_users:
+                user_name = "None"
+                if user_type == "DATAZONE_IAM_USER":
+                    user_name = dz_user["details"]["iam"]["arn"]
+                if user_type == "SSO_USER" or user_type == "DATAZONE_SSO_USER":
+                    user_name = dz_user["details"]["sso"]["username"]
+
+                dz_user_id = dz_user["id"]
+                print(f"UserId: {dz_user_id}\tUserType: {user_type}\tUser: {user_name}")
 
         self.dz_users_id_list = []
         while True:
-            dz_uzer = input("Enter a DataZone UserId to map to (or 'done' to finish): ")
+            dz_uzer = input("Enter a DataZone UserId to map to ('done' to finish): ")
             if dz_uzer == "done":
                 break
             self.dz_users_id_list.append(dz_uzer)
@@ -294,6 +310,24 @@ class SageMakerDomainImporter:
             self.env_id = dz_env_map[self.env_name]
 
         return self.env_id
+
+    def _add_environment_action(self):
+        items = self.dz_client.list_environment_actions(
+            domainIdentifier=self.dz_domain_id, environmentIdentifier=self.env_id
+        )["items"]
+        sm_env_action = None
+        for item in items:
+            if "sageMaker" in item["parameters"]:
+                sm_env_action = item
+
+        if sm_env_action is None:
+            self.dz_client.create_environment_action(
+                domainIdentifier=self.dz_domain_id,
+                environmentIdentifier=self.env_id,
+                name="SageMaker Environment Action Link",
+                description="Link from DataZone Data Portal to SageMaker Studio",
+                parameters={"sageMaker": {}},
+            )
 
     def _associate_fed_role(self):
         # Associate fed role
@@ -397,7 +431,7 @@ class SageMakerDomainImporter:
             f"Listing linked items for domain {self.dz_domain_id}, project {self.dz_project_id}, and environment {self.env_id}."
         )
         list_result = self.byod_client.list_linked_types(
-            self.dz_domain_id,
+            domainIdentifier=self.dz_domain_id,
             projectIdentifier=self.dz_project_id,
             environmentIdentifier=self.env_id,
         )
@@ -418,10 +452,10 @@ class SageMakerDomainImporter:
             link = link_response["actionLink"]
             print(link)
         except botocore.exceptions.ClientError as error:
-            print(error)
             print(
                 "Environment action link could not be generated - this is most likely due to the current principal is not a user of the DataZone project."
             )
+            print(error)
 
     def import_interactive(self):
         print(
@@ -434,6 +468,7 @@ class SageMakerDomainImporter:
         self._map_users()
         self._configure_blueprint()
         self._configure_environment()
+        self._add_environment_action()
         self._associate_fed_role()
         self._link_domain()
         self._link_users()
