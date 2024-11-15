@@ -56,6 +56,25 @@
       "idempotent":true,
       "internalonly":true
     },
+    "CreateEnvironmentAction":{
+      "name":"CreateEnvironmentAction",
+      "http":{
+        "method":"POST",
+        "requestUri":"/v2/domains/{domainIdentifier}/environments/{environmentIdentifier}/actions",
+        "responseCode":201
+      },
+      "input":{"shape":"CreateEnvironmentActionInput"},
+      "output":{"shape":"CreateEnvironmentActionOutput"},
+      "errors":[
+        {"shape":"InternalServerException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"ConflictException"},
+        {"shape":"ValidationException"},
+        {"shape":"UnauthorizedException"}
+      ]
+    },
     "GetEnvironmentActionLink":{
       "name":"GetEnvironmentActionLink",
       "http":{
@@ -110,6 +129,17 @@
       },
       "exception":true
     },
+    "ActionParameters":{
+      "type":"structure",
+      "members":{
+        "awsConsoleLink":{"shape":"AwsConsoleLinkParameters"},
+        "sageMaker":{
+          "shape":"SageMakerParameters",
+          "internalonly":true
+        }
+      },
+      "union":true
+    },
     "AuthorizedPrincipal":{
       "type":"structure",
       "members":{
@@ -123,6 +153,12 @@
         "SERVICE_PRINCIPAL",
         "DATAZONE_USER_PROFILE"
       ]
+    },
+    "AwsConsoleLinkParameters":{
+      "type":"structure",
+      "members":{
+        "uri":{"shape":"EnvironmentActionURI"}
+      }
     },
     "BatchDeleteLinkedTypesErrors":{
       "type":"list",
@@ -238,6 +274,48 @@
         "CUSTOM"
       ]
     },
+    "CreateEnvironmentActionInput":{
+      "type":"structure",
+      "required":[
+        "domainIdentifier",
+        "environmentIdentifier",
+        "name",
+        "parameters"
+      ],
+      "members":{
+        "domainIdentifier":{
+          "shape":"DomainId",
+          "location":"uri",
+          "locationName":"domainIdentifier"
+        },
+        "environmentIdentifier":{
+          "shape":"EnvironmentId",
+          "location":"uri",
+          "locationName":"environmentIdentifier"
+        },
+        "name":{"shape":"String"},
+        "parameters":{"shape":"ActionParameters"},
+        "description":{"shape":"String"}
+      }
+    },
+    "CreateEnvironmentActionOutput":{
+      "type":"structure",
+      "required":[
+        "domainId",
+        "environmentId",
+        "id",
+        "name",
+        "parameters"
+      ],
+      "members":{
+        "domainId":{"shape":"DomainId"},
+        "environmentId":{"shape":"EnvironmentId"},
+        "id":{"shape":"EnvironmentActionId"},
+        "name":{"shape":"String"},
+        "parameters":{"shape":"ActionParameters"},
+        "description":{"shape":"String"}
+      }
+    },
     "DomainId":{
       "type":"string",
       "pattern":"dzd[_][a-zA-Z0-9_-]{1,36}"
@@ -247,6 +325,15 @@
       "box":true,
       "max":43200,
       "min":900
+    },
+    "EnvironmentActionId":{
+      "type":"string",
+      "pattern":"[a-zA-Z0-9_-]{1,36}"
+    },
+    "EnvironmentActionURI":{
+      "type":"string",
+      "max":2048,
+      "min":1
     },
     "EnvironmentId":{
       "type":"string",
@@ -455,6 +542,11 @@
         "senderFault":true
       },
       "exception":true
+    },
+    "SageMakerParameters":{
+      "type":"structure",
+      "members":{
+      }
     },
     "ServiceQuotaExceededException":{
       "type":"structure",
