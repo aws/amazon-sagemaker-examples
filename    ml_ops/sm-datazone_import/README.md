@@ -4,7 +4,7 @@ This example contains python scripts to import an existing SageMaker Domain into
 
 ## Setup
 
-1. Add the byod service model
+1. Add the Bring-Your-Own-Domain (BYOD) service model
 
 ```bash
 aws configure add-model --service-model file://resources/datazone-linkedtypes-2018-05-10.normal.json --service-name datazone-byod
@@ -34,3 +34,8 @@ python import-sagemaker-domain.py \
     --federation-role ARN_OF_FEDERATION_ROLE \
     --account-id ACCOUNTID
 ```
+
+### Additional Configuration
+
+- SageMaker execution roles need DataZone API permissions in order for the Assets UI to function. See [DataZoneUserPolicy.json](./resources/DataZoneUserPolicy.json) for an example.
+- Ensure the DataZone Domain trusts SageMaker. In the AWS DataZone console navigate to Domain details and select the "Trusted services".

@@ -60,6 +60,9 @@ class SageMakerDomainImporter:
                 self.sm_domain_name, self.sm_domain_id
             )
         )
+        sm_domain = self.sm_client.describe_domain(DomainId=self.sm_domain_id)
+        self.auth_mode = sm_domain["AuthMode"]
+        self.default_execution_role = sm_domain["DefaultUserSettings"]["ExecutionRole"]
         return self.sm_domain_id
 
     def _choose_dz_domain(self):
@@ -107,15 +110,18 @@ class SageMakerDomainImporter:
         )
         return self.dz_project_id
 
-    def _tag_dm_domain(self):
+    def _tag_sm_domain(self):
         # [3.5 Tagging] Before getting started on byod-e2e, ensure that CX has the SM domain and ExecutionRole's tagged accordingly.
         # 	1. Tag the SM domain by admin (DZ DomainId and tag the stage, and domainAccountId)
         # 	2. Tag the execution role with DZ domainId and projectId
 
+        # TODO - remove project/env tags once front end behavior is fixed
         domain_tag = {"Key": "AmazonDataZoneDomain", "Value": self.dz_domain_id}
+        project_tag = {"Key": "AmazonDataZoneProject", "Value": self.dz_project_id}
+        env_tag = {"Key": "AmazonDataZoneEnvironment", "Value": self.env_id}
         account_tag = {"Key": "AmazonDataZoneDomainAccount", "Value": self.account_id}
         stage_tag = {"Key": "AmazonDataZoneStage", "Value": self.stage}
-        sm_domain_tags = [domain_tag, account_tag, stage_tag]
+        sm_domain_tags = [domain_tag, project_tag, env_tag, account_tag, stage_tag]
         sm_domain_arn = "arn:aws:sagemaker:{}:{}:domain/{}".format(
             self.region, self.account_id, self.sm_domain_id
         )
@@ -156,9 +162,18 @@ class SageMakerDomainImporter:
         self.sm_user_info = {}
         self.sm_user_info["name"] = sm_user_name
         self.sm_user_info["arn"] = sm_user_profile_full["UserProfileArn"]
-        self.sm_user_info["exec_role_arn"] = sm_user_profile_full["UserSettings"][
-            "ExecutionRole"
-        ]
+        exec_role = None
+        if "UserSettings" in sm_user_profile_full:
+            user_settings = sm_user_profile_full["UserSettings"]
+            if "ExecutionRole" in user_settings:
+                exec_role = user_settings["ExecutionRole"]
+
+        if exec_role is None:
+            print(f'User {sm_user_name} has no execution role set, using default from domain.')
+            exec_role = self.default_execution_role
+
+        self.sm_user_info["exec_role_arn"] = exec_role
+
         self.sm_user_info["id"] = sm_user_profile_full[
             "HomeEfsFileSystemUid"
         ]  # e.g. d-7d4uvydb9rcy
@@ -170,7 +185,7 @@ class SageMakerDomainImporter:
 
         # get role name from arn "arn:aws:iam::047923724610:role/service-role/AmazonSageMaker-ExecutionRole-20241008T155288"
         role_name = self.sm_user_info["exec_role_arn"][
-            self.sm_user_info["exec_role_arn"].rfind("/") + 1:
+            self.sm_user_info["exec_role_arn"].rfind("/") + 1 :
         ]  # rfind searches from back of string
         self.iam_client.tag_role(RoleName=role_name, Tags=sm_exec_role_tags)
         print(
@@ -360,7 +375,7 @@ class SageMakerDomainImporter:
             {
                 "itemIdentifier": f"arn:aws:sagemaker:{self.region}:{self.account_id}:domain/{self.sm_domain_id}",
                 "itemType": "SAGEMAKER_DOMAIN",
-                "configuration": {"AuthMode": "NonSSO"},
+                "configuration": {"AuthMode": self.auth_mode},
                 "connectedEntities": [
                     {
                         "connectedEntityIdentifier": self.env_id,
@@ -464,10 +479,10 @@ class SageMakerDomainImporter:
         self._choose_sm_domain()
         self._choose_dz_domain()
         self._choose_dz_project()
-        self._tag_dm_domain()
+        self._configure_environment()
+        self._tag_sm_domain()
         self._map_users()
         self._configure_blueprint()
-        self._configure_environment()
         self._add_environment_action()
         self._associate_fed_role()
         self._link_domain()
