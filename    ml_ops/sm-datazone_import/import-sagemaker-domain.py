@@ -253,17 +253,16 @@ class SageMakerDomainImporter:
                 managed_key, self.managed_blueprint_id
             )
         )
+
+        # if already enabled returns success
+        self.dz_client.put_environment_blueprint_configuration(
+            domainIdentifier=self.dz_domain_id,
+            environmentBlueprintIdentifier=self.managed_blueprint_id,
+            enabledRegions=[self.region],
+        )
+
         print("--------------------------------------------------------------------")
 
-        decision = input(
-            "Do you need to enable the configuration for the specified environment blueprint into Amazon DataZone? (put_env_blueprint_config)? [y/n]: "
-        )
-        if decision == "y":
-            self.dz_client.put_environment_blueprint_configuration(
-                domainIdentifier=self.dz_domain_id,
-                environmentBlueprintIdentifier=self.managed_blueprint_id,
-                enabledRegions=[self.region],
-            )
         return self.managed_blueprint_id
 
     def _configure_environment(self):
@@ -336,7 +335,7 @@ class SageMakerDomainImporter:
                 sm_env_action = item
 
         if sm_env_action is None:
-            self.dz_client.create_environment_action(
+            self.byod_client.create_environment_action(
                 domainIdentifier=self.dz_domain_id,
                 environmentIdentifier=self.env_id,
                 name="SageMaker Environment Action Link",
@@ -479,10 +478,10 @@ class SageMakerDomainImporter:
         self._choose_sm_domain()
         self._choose_dz_domain()
         self._choose_dz_project()
+        self._configure_blueprint()
         self._configure_environment()
         self._tag_sm_domain()
         self._map_users()
-        self._configure_blueprint()
         self._add_environment_action()
         self._associate_fed_role()
         self._link_domain()
