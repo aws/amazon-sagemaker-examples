@@ -22,6 +22,8 @@ class SageMakerDomainOffboarder:
         # Firstly, domain remove tags.
         sm_domain_tags = [
             "AmazonDataZoneDomain",
+            "AmazonDataZoneProject",
+            "AmazonDataZoneEnvironment",
             "AmazonDataZoneDomainAccount",
             "AmazonDataZoneStage",
         ]
@@ -138,6 +140,25 @@ class SageMakerDomainOffboarder:
             )
         )
 
+    def _select_dz_environment(self):
+        print("--------------------------------------------------------------------")
+        print("List of DataZone Environments.")
+        print("--------------------------------------------------------------------")
+        dz_env_map = {}
+        for env in self.dz_client.list_environments(
+            domainIdentifier=self.dz_domain_id, projectIdentifier=self.dz_project_id
+        )["items"]:
+            print(f'Name: {env["name"]}')
+            dz_env_map[env["name"]] = env["id"]
+        self.env_name = input("Please provide the name of DataZone environment: ")
+        self.env_id = dz_env_map[self.env_name]
+        print(
+            "Chosen DataZone Environment [{}] with Environment Id [{}]".format(
+                self.env_name, self.env_id
+            )
+        )
+        return self.env_id
+
     def _delete_linked_items(self):
         user_profile_arn = "arn:aws:sagemaker:{}:{}:user-profile/{}/{}".format(
             self.region, self.account_id, self.sm_domain_id, self.sm_user_name
@@ -165,6 +186,18 @@ class SageMakerDomainOffboarder:
             itemIdentifiers=[sm_domain_arn],
         )
 
+    def _delete_env_action_link(self):
+        for action_link in self.dz_client.list_environment_actions(
+            domainIdentifier=self.dz_domain_id, environmentIdentifier=self.env_id
+        )["items"]:
+            name = action_link["name"]
+            if "SageMaker" in name:
+                action_id = action_link["id"]
+                self.dz_client.delete_environment_action(
+                    domainIdentifier=self.dz_domain_id,
+                    environmentIdentifier=self.env_id,
+                    identifier=action_id)
+
     def _print_results(self):
         # Verify no linked entities
         print("--------------------------------------------------------------------")
@@ -182,7 +215,9 @@ class SageMakerDomainOffboarder:
         self._offboard_sm_users()
         self._select_dz_domain()
         self._select_dz_project()
+        self._select_dz_environment()
         self._delete_linked_items()
+        self._delete_env_action_link()
         self._print_results()
 
 
