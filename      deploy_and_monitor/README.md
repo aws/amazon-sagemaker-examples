@@ -4,6 +4,8 @@
 
 The example notebooks within this folder showcase the capabilities of Amazon SageMaker in deploying and monitoring machine learning models.
 
+- [Deploy Models with ModelBuilder using IN_PROCESS Mode](sm-model_builder/model_builder_in_process_mode.ipynb)
+- [Get Started Building and Deploying Models with ModelBuilder](sm-model_builder/model_builder_handshake.ipynb)
 - [A/B Testing with Amazon SageMaker](sm-a_b_testing/sm-a_b_testing.ipynb)
 - [Faster autoscaling on Amazon SageMaker realtime endpoints (Application Autoscaling)](sm-app_autoscaling_realtime_endpoints/sm-app_autoscaling_realtime_endpoints.ipynb)
 - [Faster autoscaling on Amazon SageMaker realtime endpoints with inference components (Application Autoscaling)](sm-app_autoscaling_realtime_endpoints_inference_components/sm-app_autoscaling_realtime_endpoints_inference_components.ipynb)
