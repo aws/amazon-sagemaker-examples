@@ -4,6 +4,7 @@
 
 The example notebooks within this folder showcase the capabilities of Amazon SageMaker in building and training machine learning models.
 
+- [ModelTrainer - New and Improved Training Interface for the SageMaker PySDK](sm-model_trainer/model_trainer_overview.ipynb)
 - [Visualize Training Jobs and Performance of Your Model Using TensorBoard on SageMaker](sm-distributed_data_parallelism_pytorch/sm-distributed_data_parallelism_pytorch.ipynb)
 - [Use SageMaker Distributed Model Parallel with Amazon SageMaker to Launch Training Job with Model Parallelization](sm-distributed_model_parallel/sm-distributed_model_parallel.ipynb)
 - [Time Series Modeling with Amazon Forecast and DeepAR on SageMaker - DeepAR on SageMaker](sm-forecast_deepar_time_series_modeling/sm-forecast_deepar_time_series_modeling.ipynb)
