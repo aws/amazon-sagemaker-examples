@@ -28,3 +28,4 @@ These examples showcases Amazon SageMaker's capabilities in the exciting field o
 - [Introduction to JumpStart - Text to Image](sm-jumpstart_stable_diffusion_text_to_image.ipynb)
 - [Introduction to JumpStart - Text Embedding](sm-jumpstart_text_embedding.ipynb)
 - [Introduction to JumpStart - Time Series Forecasting](sm-jumpstart_time_series_forecasting.ipynb)
+- [Text Embedding - Custom Pre/Post-Processing](sm-text_embedding_custom_processing.ipynb)
