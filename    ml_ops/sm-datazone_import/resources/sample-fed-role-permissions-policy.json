@@ -1,0 +1,26 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Action": [
+                "sagemaker:CreateUserProfile",
+                "sagemaker:DescribeUserProfile",
+                "sagemaker:CreatePresignedDomainUrl"
+            ],
+            "Resource": [
+                "arn:aws:sagemaker:*:789706018617:*/<YOUR-SM-DOMAIN-ID-HERE>/*"
+            ],
+            "Effect": "Allow"
+        },
+        {
+            "Sid": "Statement1",
+            "Effect": "Allow",
+            "Action": [
+                "iam:ListRoleTags"
+            ],
+            "Resource": [
+                "*"
+            ]
+        }
+    ]
+}

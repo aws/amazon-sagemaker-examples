@@ -1,0 +1,22 @@
+{
+	"Version": "2012-10-17",
+	"Statement": [
+		{
+			"Effect": "Allow",
+			"Principal": {
+				"Service": [
+					"datazone.amazonaws.com",
+					"lakeformation.amazonaws.com",
+					"glue.amazonaws.com",
+					"auth.datazone.amazonaws.com"
+				]
+			},
+			"Action": [
+				"sts:AssumeRole",
+				"sts:TagSession",
+				"sts:SetContext",
+				"sts:SetSourceIdentity"
+			]
+		}
+	]
+}

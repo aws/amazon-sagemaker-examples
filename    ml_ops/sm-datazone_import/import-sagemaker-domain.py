@@ -1,6 +1,7 @@
 import argparse
 import boto3
 import botocore
+import time
 from botocore.exceptions import ClientError
 
 """
@@ -13,10 +14,9 @@ more information.
 
 
 class SageMakerDomainImporter:
-    def __init__(self, region, stage, federation_role, account_id) -> None:
+    def __init__(self, region, stage, account_id) -> None:
         self.region = region
         self.stage = stage
-        self.federation_role = federation_role
         self.account_id = account_id
         # Setup client.
         sm_endpoint_url = "https://api.sagemaker." + region + ".amazonaws.com"  # prod
@@ -169,7 +169,9 @@ class SageMakerDomainImporter:
                 exec_role = user_settings["ExecutionRole"]
 
         if exec_role is None:
-            print(f'User {sm_user_name} has no execution role set, using default from domain.')
+            print(
+                f"User {sm_user_name} has no execution role set, using default from domain."
+            )
             exec_role = self.default_execution_role
 
         self.sm_user_info["exec_role_arn"] = exec_role
@@ -233,6 +235,30 @@ class SageMakerDomainImporter:
                 break
             self.dz_users_id_list.append(dz_uzer)
 
+    def _link_multiple_users_and_projects(self):
+        """
+        Add the option for the user to attach Users in subset B to Project B.
+        """
+        print("--------------------------------------------------------------------")
+        decision = input(
+            "Would you like to onboard an additional subset of user profiles to another project? "
+            "(This would require you to have another project created. In this new project, you will create"
+            "a new environment if not already created, as well) [y/n]: "
+        )
+        if decision == "y":
+            self._choose_dz_project()
+            self._configure_blueprint()
+            self._configure_environment()
+            self._tag_sm_domain()
+            self._map_users()
+            self._associate_fed_role()
+            self._add_environment_action()
+            self._link_domain()
+            self._link_users()
+            self._debug_print_results()
+            self._get_env_link()
+            self._link_multiple_users_and_projects()
+
     def _configure_blueprint(self):
         # [4] Create environment profile + environment and use new API BatchPutLinkedTypes to connect DataZone and SageMaker entities.
 
@@ -266,7 +292,6 @@ class SageMakerDomainImporter:
         return self.managed_blueprint_id
 
     def _configure_environment(self):
-        print("--------------------------------------------------------------------")
         decision_env = input(
             "Do you need to create a new DataZone environment? [y/n]: "
         )
@@ -346,6 +371,9 @@ class SageMakerDomainImporter:
     def _associate_fed_role(self):
         # Associate fed role
         print("--------------------------------------------------------------------")
+        self.federation_role = input(
+            "Federation Role Arn to federate into sagemaker studio from datazone portal: "
+        )
         print(
             "Associating Environment Role using Federation Role [{}] ...".format(
                 self.federation_role
@@ -367,6 +395,8 @@ class SageMakerDomainImporter:
                 print(
                     "Environment has a role configured already. Skipping role association ..."
                 )
+            else:
+                print(f"Caught error: {repr(e)}")
 
     def _link_domain(self):
         # attach SAGEMAKER_DOMAIN
@@ -394,7 +424,7 @@ class SageMakerDomainImporter:
         )
         print("--------------------------------------------------------------------")
 
-        print("Linking SageMaker Domain")
+        print(f"Linking SageMaker Domain using project id [{self.dz_project_id}]")
         link_domain_response = self.byod_client.batch_put_linked_types(
             domainIdentifier=self.dz_domain_id,
             projectIdentifier=self.dz_project_id,
@@ -402,7 +432,7 @@ class SageMakerDomainImporter:
             items=linkedDomainItems,
         )
         print(link_domain_response)
-        print("Linked SageMaker Domain")
+        print("Linked SageMaker Domain.")
 
     def _link_users(self):
         # attach SAGEMAKER_USER_PROFILE
@@ -429,7 +459,9 @@ class SageMakerDomainImporter:
             linkedUserItems.append(linkedUserItem)
 
         print("--------------------------------------------------------------------")
-        print("Linking SageMaker User Profiles")
+        print(
+            f"Linking SageMaker User Profiles using project id [{self.dz_project_id}]"
+        )
         link_users_response = self.byod_client.batch_put_linked_types(
             domainIdentifier=self.dz_domain_id,
             projectIdentifier=self.dz_project_id,
@@ -437,7 +469,7 @@ class SageMakerDomainImporter:
             items=linkedUserItems,
         )
         print(link_users_response)
-        print("Linked SageMaker User Profiles")
+        print("Linked SageMaker User Profiles.")
         print("--------------------------------------------------------------------")
 
     def _debug_print_results(self):
@@ -482,12 +514,13 @@ class SageMakerDomainImporter:
         self._configure_environment()
         self._tag_sm_domain()
         self._map_users()
-        self._add_environment_action()
         self._associate_fed_role()
+        self._add_environment_action()
         self._link_domain()
         self._link_users()
         self._debug_print_results()
         self._get_env_link()
+        self._link_multiple_users_and_projects()
 
 
 if __name__ == "__main__":
@@ -507,13 +540,6 @@ if __name__ == "__main__":
         help="Stage to test e2e BYOD. This impacts the endpoint targeted.",
     )
     parser.add_argument(
-        "--federation-role",
-        type=str,
-        required=True,
-        default="test",
-        help="Role used to federate access into environment.",
-    )
-    parser.add_argument(
         "--account-id",
         type=str,
         required=True,
@@ -524,10 +550,9 @@ if __name__ == "__main__":
 
     region = args.region
     stage = args.stage
-    federation_role = args.federation_role
     account_id = args.account_id
 
     print("--------------------------------------------------------------------")
-    importer = SageMakerDomainImporter(region, stage, federation_role, account_id)
+    importer = SageMakerDomainImporter(region, stage, account_id)
     importer.import_interactive()
     print("--------------------------------------------------------------------")
