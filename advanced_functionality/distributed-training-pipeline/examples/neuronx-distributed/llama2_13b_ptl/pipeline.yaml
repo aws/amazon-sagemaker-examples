@@ -3,7 +3,7 @@ huggingface:
   revision: "5c31dfb671ce7cfe2d7bb7c04375e44c55e815b1"
   tensors: false
 pipeline:
-  name: "neuronx-distributed-llama2-13b"
+  name: "neuronx-distributed-llama2-13b-ptl"
   version: "v1"
   container: pytorch-neuronx
   steps:

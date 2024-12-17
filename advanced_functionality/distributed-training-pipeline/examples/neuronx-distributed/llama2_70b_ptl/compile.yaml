@@ -5,12 +5,12 @@ resources:
 git:
   repo_url: "https://github.com/aws-neuron/neuronx-distributed.git"
   branch: main
-  commit: 8520967d0a39e703e03ba0edbe595230f7e16bde
+  commit: 083d3ea26f58d6b91d6e0f0deb2c0670fdb7bbb0
 pre_script: 
   - pip3 install --upgrade pip
-  - SCRIPT_DIR=$GIT_CLONE_DIR/examples/training/llama2/lightning
-  - cp -r $GIT_CLONE_DIR/examples/training/llama2/tp_pp_llama2_hf_pretrain/70B_config $SCRIPT_DIR/
-  - cp $GIT_CLONE_DIR/examples/training/llama2/*.* $SCRIPT_DIR
+  - SCRIPT_DIR=$GIT_CLONE_DIR/examples/training/llama/lightning
+  - cp -r $GIT_CLONE_DIR/examples/training/llama/tp_pp_llama_hf_pretrain/70B_config_llama2 $SCRIPT_DIR/
+  - cp $GIT_CLONE_DIR/examples/training/llama/*.* $SCRIPT_DIR
   - cd $SCRIPT_DIR
   - pip3 install -r requirements.txt
   - pip3 install -r requirements_ptl.txt
@@ -24,9 +24,9 @@ pre_script:
   - TMP_CACHE_DIR=$SM_OUTPUT_DATA_DIR/cache
   - mkdir -p $CKPT_ROOT
   - tb_dir=$HOME/tb/compile
-  - '[[ -d $tb_dir ]] && rm -rf $tb_dir'
+  - 'if [ -d $tb_dir ]; then rm -rf $tb_dir; fi'
   - mkdir -p $tb_dir
-  - DATA_PATH="$DATA_ROOT/examples_datasets/wikicorpus_llama2_7B_tokenized_4k"
+  - DATA_PATH="$DATA_ROOT/examples_datasets/wikicorpus_llama2_tokenized_4k"
   - DISTRIBUTED_ARGS="--nproc_per_node $PET_NPROC_PER_NODE --nnodes $PET_NNODES --node_rank $PET_NODE_RANK --master_addr $PET_MASTER_ADDR --master_port $PET_MASTER_PORT"
   - GBS=1024
   - SEQ_LEN=4096
@@ -39,7 +39,7 @@ pre_script:
   - LLAMA2_ARGS="--train_batch_size $BS 
     --use_meta_device_init 1 
     --data_dir $DATA_PATH 
-    --model_path $SCRIPT_DIR/70B_config 
+    --model_path $SCRIPT_DIR/70B_config_llama2 
     --max_steps $max_steps 
     --seq_len $SEQ_LEN 
     --pipeline_parallel_size $PP_DEGREE 

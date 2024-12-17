@@ -5,7 +5,7 @@ resources:
 git:
   repo_url: "https://github.com/aws-neuron/neuronx-distributed.git"
   branch: main
-  commit: 8520967d0a39e703e03ba0edbe595230f7e16bde
+  commit: 083d3ea26f58d6b91d6e0f0deb2c0670fdb7bbb0
 pre_script:
   - pip3 install --upgrade pip
   - SCRIPT_DIR=$GIT_CLONE_DIR/examples/training/tp_dp_gpt_neox_hf_pretrain/tp_dp_gpt_neox_6.9b_hf_pretrain
@@ -45,8 +45,6 @@ pre_script:
     --grad_accum_usteps $ACC_STEPS"
   - echo DISTRIBUTED_ARGS=$DISTRIBUTED_ARGS
   - echo "#!/bin/bash" >  compile.sh
-  - echo "sysctl -w net.ipv4.ip_local_reserved_ports=48620" >> compile.sh
-  - echo "export NEURON_RT_ROOT_COMM_ID=$HOSTNAME:48620" >> compile.sh
   - echo export NEURON_CC_FLAGS=\"--model-type=transformer -O1 --enable-saturate-infinity --cache_dir=$TMP_CACHE_DIR\" >> ./compile.sh
   - echo "torchrun  $DISTRIBUTED_ARGS tp_dp_gpt_neox_6.9b_hf_pretrain.py --data_dir $DATA_PATH --output_dir $CKPT_ROOT $GPT_ARGS 2>&1 | tee $OUTPUT_LOG"  >> compile.sh 
   - chmod u+x ./compile.sh

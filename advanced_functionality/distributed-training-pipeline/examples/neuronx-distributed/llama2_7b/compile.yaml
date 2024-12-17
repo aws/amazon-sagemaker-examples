@@ -5,12 +5,12 @@ resources:
 git:
   repo_url: "https://github.com/aws-neuron/neuronx-distributed.git"
   branch: main
-  commit: 8520967d0a39e703e03ba0edbe595230f7e16bde
+  commit: 083d3ea26f58d6b91d6e0f0deb2c0670fdb7bbb0
 pre_script: 
   - pip3 install --upgrade pip
-  - SCRIPT_DIR=$GIT_CLONE_DIR/examples/training/llama2/tp_zero1_llama2_7b_hf_pretrain
-  - cp $GIT_CLONE_DIR/examples/training/llama2/requirements.txt $SCRIPT_DIR
-  - cp $GIT_CLONE_DIR/examples/training/llama2/*.py $SCRIPT_DIR
+  - SCRIPT_DIR=$GIT_CLONE_DIR/examples/training/llama/tp_zero1_llama_hf_pretrain
+  - cp $GIT_CLONE_DIR/examples/training/llama/requirements.txt $SCRIPT_DIR
+  - cp $GIT_CLONE_DIR/examples/training/llama/*.py $SCRIPT_DIR
   - cd $SCRIPT_DIR
   - pip3 install -r requirements.txt
   - LOGS_DIR=$LOG_ROOT/$PET_NODE_RANK
@@ -22,7 +22,7 @@ pre_script:
   - mkdir -p $CACHE_DIR
   - TMP_CACHE_DIR=$SM_OUTPUT_DATA_DIR/cache
   - mkdir -p $CKPT_ROOT
-  - DATA_PATH="$DATA_ROOT/examples_datasets/wikicorpus_llama2_7B_tokenized_4k"
+  - DATA_PATH="$DATA_ROOT/examples_datasets/wikicorpus_llama2_tokenized_4k"
   - DISTRIBUTED_ARGS="--nproc_per_node $PET_NPROC_PER_NODE --nnodes $PET_NNODES --node_rank $PET_NODE_RANK --master_addr $PET_MASTER_ADDR --master_port $PET_MASTER_PORT"
   - TP_DEGREE=8
   - USE_MIX_PRECISION=1
@@ -36,7 +36,7 @@ pre_script:
   - DP=$(($PET_NPROC_PER_NODE * $PET_NNODES / $TP_DEGREE))
   - ACC_STEPS=$(($GBS / $MBS / $DP)) 
   - STEPS_THIS_RUN=2
-  - LLAMA2_ARGS="--model_path $SCRIPT_DIR 
+  - LLAMA2_ARGS="--model_path $SCRIPT_DIR/7B_config_llama2
     --data_dir $DATA_PATH 
     --tensor_parallel_size $TP_DEGREE 
     --batch_size $MBS 
@@ -56,7 +56,7 @@ pre_script:
   - echo "export TPU_NUM_DEVICES=$PET_NPROC_PER_NODE" >> ./compile.sh
   - echo "export TPU_CHIPS_PER_HOST_BOUNDS=$PET_NPROC_PER_NODE" >> ./compile.sh
   - echo export NEURON_CC_FLAGS=\"--model-type transformer --distribution-strategy=llm-training --cache_dir=$TMP_CACHE_DIR\" >> ./compile.sh
-  - echo "torchrun  $DISTRIBUTED_ARGS tp_zero1_llama2_7b_hf_pretrain.py $LLAMA2_ARGS --checkpoint_dir $CKPT_ROOT 2>&1 | tee $OUTPUT_LOG"  >> compile.sh 
+  - echo "torchrun  $DISTRIBUTED_ARGS tp_zero1_llama_hf_pretrain.py $LLAMA2_ARGS --checkpoint_dir $CKPT_ROOT 2>&1 | tee $OUTPUT_LOG"  >> compile.sh 
   - chmod u+x ./compile.sh
 post_script:
   - cp -r $TMP_CACHE_DIR/* $CACHE_DIR

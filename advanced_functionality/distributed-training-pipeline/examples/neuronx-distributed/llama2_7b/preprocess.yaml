@@ -4,16 +4,18 @@ resources:
   volume_size: 200
 git:
   repo_url: "https://github.com/aws-neuron/neuronx-distributed.git"
-  commit: 8520967d0a39e703e03ba0edbe595230f7e16bde
+  commit: 083d3ea26f58d6b91d6e0f0deb2c0670fdb7bbb0
   branch: main
 pre_script: 
   - pip3 install --upgrade pip
-  - 'if [ -d $DATA_ROOT ]; then echo "$DATA_ROOT exists" && exit 0; fi'
+  - DATA_PATH="$DATA_ROOT/examples_datasets/wikicorpus_llama2_tokenized_4k"
+  - 'if [ -d $DATA_PATH ] && [ ! -z "$(ls -A $DATA_PATH)" ]; then echo "$DATA_PATH exists and is not empty" && exit 0; fi'
   - mkdir -p $DATA_ROOT
-  - SCRIPT_DIR=$GIT_CLONE_DIR/examples/training/llama2/tp_zero1_llama2_7b_hf_pretrain
-  - cp $GIT_CLONE_DIR/examples/training/llama2/requirements.txt $SCRIPT_DIR
-  - cp $GIT_CLONE_DIR/examples/training/llama2/get_dataset.py $SCRIPT_DIR
-  - cp $GIT_CLONE_DIR/examples/training/llama2/modeling_llama_nxd.py $SCRIPT_DIR
+  - SCRIPT_DIR=$GIT_CLONE_DIR/examples/training/llama/tp_zero1_llama_hf_pretrain
+  - cp $GIT_CLONE_DIR/examples/training/llama/requirements.txt $SCRIPT_DIR
+  - cp $GIT_CLONE_DIR/examples/training/llama/get_dataset.py $SCRIPT_DIR
+  - cp $GIT_CLONE_DIR/examples/training/llama/modeling_llama_nxd.py $SCRIPT_DIR
+  - cp $SCRIPT_DIR/7B_config_llama2/config.json $SCRIPT_DIR
   - cp $TOKENIZER_MODEL $SCRIPT_DIR
   - cd $SCRIPT_DIR
   - pip3 install -r requirements.txt
@@ -31,3 +33,4 @@ train:
     -  HOME=$DATA_ROOT python3 
   args:
     - get_dataset.py 
+    - '--llama-version 2'

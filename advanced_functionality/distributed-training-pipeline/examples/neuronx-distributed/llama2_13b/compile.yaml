@@ -5,16 +5,15 @@ resources:
 git:
   repo_url: "https://github.com/aws-neuron/neuronx-distributed.git"
   branch: main
-  commit: 8520967d0a39e703e03ba0edbe595230f7e16bde
+  commit: 083d3ea26f58d6b91d6e0f0deb2c0670fdb7bbb0
 pre_script: 
   - pip3 install --upgrade pip
-  - SCRIPT_DIR=$GIT_CLONE_DIR/examples/training/llama2/tp_pp_llama2_hf_pretrain
-  - cp $GIT_CLONE_DIR/examples/training/llama2/lr.py $SCRIPT_DIR
-  - cp $GIT_CLONE_DIR/examples/training/llama2/training_utils.py $SCRIPT_DIR
-  - cp $GIT_CLONE_DIR/examples/training/llama2/convert_checkpoints.py $SCRIPT_DIR
-  - cp $GIT_CLONE_DIR/examples/training/llama2/modeling_llama_nxd.py $SCRIPT_DIR
-  - cp $SCRIPT_DIR/13B_config/config.json $SCRIPT_DIR
-  - cp $GIT_CLONE_DIR/examples/training/llama2/requirements.txt $SCRIPT_DIR
+  - SCRIPT_DIR=$GIT_CLONE_DIR/examples/training/llama/tp_pp_llama_hf_pretrain
+  - cp $GIT_CLONE_DIR/examples/training/llama/lr.py $SCRIPT_DIR
+  - cp $GIT_CLONE_DIR/examples/training/llama/training_utils.py $SCRIPT_DIR
+  - cp $GIT_CLONE_DIR/examples/training/llama/convert_checkpoints.py $SCRIPT_DIR
+  - cp $GIT_CLONE_DIR/examples/training/llama/modeling_llama_nxd.py $SCRIPT_DIR
+  - cp $GIT_CLONE_DIR/examples/training/llama/requirements.txt $SCRIPT_DIR
   - cd $SCRIPT_DIR
   - pip3 install -r requirements.txt
   - LOGS_DIR=$LOG_ROOT/$PET_NODE_RANK
@@ -26,9 +25,9 @@ pre_script:
   - mkdir -p $CACHE_DIR
   - mkdir -p $CKPT_ROOT
   - tb_dir=$HOME/tb/compile
-  - '[[ -d $tb_dir ]] && rm -rf $tb_dir'
+  - 'if [ -d $tb_dir ]; then rm -rf $tb_dir; fi'
   - mkdir -p $tb_dir
-  - DATA_PATH="$DATA_ROOT/examples_datasets/wikicorpus_llama2_7B_tokenized_4k"
+  - DATA_PATH="$DATA_ROOT/examples_datasets/wikicorpus_llama2_tokenized_4k"
   - DISTRIBUTED_ARGS="--nproc_per_node $PET_NPROC_PER_NODE --nnodes $PET_NNODES --node_rank $PET_NODE_RANK --master_addr $PET_MASTER_ADDR --master_port $PET_MASTER_PORT"
   - GBS=1024
   - SEQ_LEN=4096
@@ -41,7 +40,7 @@ pre_script:
   - LLAMA2_ARGS="--train_batch_size $BS 
     --use_meta_device_init 1 
     --training_dir $DATA_PATH 
-    --training_config $SCRIPT_DIR/13B_config 
+    --training_config $SCRIPT_DIR/13B_config_llama2 
     --max_steps $max_steps 
     --seq_len $SEQ_LEN 
     --pipeline_parallel_size $PP_DEGREE 

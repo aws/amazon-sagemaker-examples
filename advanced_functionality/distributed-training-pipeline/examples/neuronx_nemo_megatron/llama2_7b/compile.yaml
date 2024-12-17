@@ -4,13 +4,12 @@ resources:
   volume_size: 200
 git:
   repo_url: "https://github.com/aws-neuron/neuronx-nemo-megatron.git"
-  commit: 273dc42addd84407e7950d0cf35d501ae50ccd1b
+  commit: d22aabf42ceb1be5bd1f647806caf4598db801cc
   branch: main
 pre_script: 
   - pip3 install --upgrade pip
-  - ./build.sh && pip3 install ./build/*.whl
-  - pip3 install Cython==3.0.9
-  - pip3 install -r requirements.txt protobuf==3.20.3
+  - ./build.sh && pip3 install --extra-index-url=https://pip.repos.neuron.amazonaws.com --force-reinstall  torch-neuronx==2.* torchvision ./build/*.whl
+  - pip3 install -r requirements.txt
   - 'python3 -c "from nemo.collections.nlp.data.language_modeling.megatron.dataset_utils import compile_helper; compile_helper()"'
   - SCRIPT_DIR=$GIT_CLONE_DIR/nemo/examples/nlp/language_modeling
   - cd $SCRIPT_DIR
