@@ -8,7 +8,7 @@
                 "sagemaker:CreatePresignedDomainUrl"
             ],
             "Resource": [
-                "arn:aws:sagemaker:*:789706018617:*/<YOUR-SM-DOMAIN-ID-HERE>/*"
+                "arn:aws:sagemaker:*:<ACCOUNT_ID>:*/<YOUR-SM-DOMAIN-ID-HERE>/*"
             ],
             "Effect": "Allow"
         },
