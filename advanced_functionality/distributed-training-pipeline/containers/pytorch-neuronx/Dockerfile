@@ -1,4 +1,4 @@
-FROM public.ecr.aws/neuron/pytorch-training-neuronx:2.1.2-neuronx-py310-sdk2.20.2-ubuntu20.04
+FROM public.ecr.aws/neuron/pytorch-training-neuronx:2.5.1-neuronx-py310-sdk2.21.0-ubuntu22.04
 
 RUN apt-get -y update 
 RUN apt-get -y install --no-install-recommends libgomp1 build-essential

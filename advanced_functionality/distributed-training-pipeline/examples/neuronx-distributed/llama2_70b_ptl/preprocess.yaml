@@ -4,7 +4,7 @@ resources:
   volume_size: 200
 git:
   repo_url: "https://github.com/aws-neuron/neuronx-distributed.git"
-  commit: 083d3ea26f58d6b91d6e0f0deb2c0670fdb7bbb0
+  commit: 3aa65c661c45f133a99052746ed70a0121d0e695
   branch: main
 pre_script: 
   - pip3 install --upgrade pip
