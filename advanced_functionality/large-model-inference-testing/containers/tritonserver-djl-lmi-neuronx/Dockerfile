@@ -75,7 +75,7 @@ RUN apt-get -y install aws-neuronx-tools=2.*
 
 RUN pip3 config set global.extra-index-url https://pip.repos.neuron.amazonaws.com
 RUN pip3 install awscli
-RUN pip3 install --upgrade neuronx-cc==2.* --pre torch-neuronx==2.1.* torchvision transformers-neuronx
+RUN pip3 install neuronx-cc==2.15.* torch-neuronx==2.1.* torchvision transformers-neuronx
 
 RUN pip3 install ray
 
