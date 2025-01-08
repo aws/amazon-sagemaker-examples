@@ -16,7 +16,7 @@ pre_script:
   - cp $GIT_CLONE_DIR/examples/training/llama/*.* $SCRIPT_DIR
   - cp $TOKENIZER_MODEL $SCRIPT_DIR
   - cd $SCRIPT_DIR
-  - pip3 install -r requirements.txt
+  - pip3 install huggingface-hub==0.27.1
   - pip3 install -r requirements_ptl.txt
 train:
   env:

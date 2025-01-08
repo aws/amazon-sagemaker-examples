@@ -18,7 +18,7 @@ pre_script:
   - cp $SCRIPT_DIR/70B_config_llama2/config.json $SCRIPT_DIR
   - cp $TOKENIZER_MODEL $SCRIPT_DIR
   - cd $SCRIPT_DIR
-  - pip3 install -r requirements.txt
+  - pip3 install huggingface-hub==0.27.1
 train:
   env:
     - name: HOME

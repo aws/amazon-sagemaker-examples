@@ -8,7 +8,7 @@ git:
   branch: main
 pre_script: 
   - pip3 install --upgrade pip
-  - pip3 install -r $GIT_CLONE_DIR/examples/training/tp_dp_gpt_neox_hf_pretrain/common/requirements.txt 
+  - pip3 install -r $GIT_CLONE_DIR/examples/training/tp_dp_gpt_neox_hf_pretrain/common/requirements.txt huggingface-hub==0.27.1
   - mkdir -p $DATA_ROOT
 train:
   env:
