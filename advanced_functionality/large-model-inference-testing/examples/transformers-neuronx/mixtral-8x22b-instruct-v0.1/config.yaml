@@ -1,0 +1,41 @@
+huggingface:
+  model: "mistralai/Mixtral-8x22B-Instruct-v0.1"
+  revision: "a46959a1a02a9247294f5e141a4f3270059c6b32"
+  download: true
+djl:
+  engine: "Python"
+  option.entryPoint: "djl_python.transformers_neuronx"
+  option.tensor_parallel_degree: 32
+  option.amp: "f16"
+  option.n_positions: 16384
+  option.model_loading_timeout: 1800
+  option.model_loader: "tnx"
+  option.rolling_batch: "auto"
+  option.rolling_batch_strategy: "continuous_batching"
+  option.max_rolling_batch_size: 4
+  option.output_formatter: "json"
+  option.trust_remote_code: true
+sagemaker:
+  model:
+    name: "mixtral-8x22b-instruct-v01-transformers-neuronx"
+    container:  "containers/pytorch-inf2-nightly"
+    env: 
+      HF_HOME: "/tmp"
+  endpoint:
+    name: "mixtral-8x22b-instruct-v01-transformers-neuronx"
+    instance_type: "ml.trn1.32xlarge"
+    initial_instance_count: 1
+    variant_name: "test"
+    model_data_download_timeout_secs: 1800
+    container_startup_health_check_timeout_secs: 1800
+test:
+  module_name: "prompt_generator"
+  module_dir: "modules/inst-semeval2017"
+  prompt_generator: "PromptGenerator"
+  params: { "do_sample": true, "max_new_tokens": 4096, "top_k": 50 }
+  warmup_iters: 1
+  max_iters: 10
+  n_concurrent: 1
+  output_dir: "output"
+  locust_users: 32
+  locust_workers: 4
