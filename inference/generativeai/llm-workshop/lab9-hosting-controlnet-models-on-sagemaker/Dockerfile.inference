@@ -1,0 +1,30 @@
+ARG REGION
+FROM 763104351884.dkr.ecr.$REGION.amazonaws.com/djl-inference:0.21.0-fastertransformer5.3.0-cu117
+
+RUN apt update
+RUN apt install wget git -y
+RUN apt install libgl1-mesa-glx -y
+RUN apt install build-essential -y
+RUN apt install pkg-config -y
+RUN apt install libcairo2-dev -y
+RUN pip install opencv-python-headless
+RUN pip install boto3 huggingface_hub triton deepspeed accelerate
+ADD https://repo.anaconda.com/archive/Anaconda3-2023.03-1-Linux-x86_64.sh /tmp/Anaconda3-2023.03-1-Linux-x86_64.sh
+RUN chmod +x /tmp/Anaconda3-2023.03-1-Linux-x86_64.sh && /tmp/Anaconda3-2023.03-1-Linux-x86_64.sh -b -p /usr/bin/anaconda3
+RUN /usr/bin/anaconda3/bin/conda install xformers -c xformers -y
+RUN mkdir -p /opt/ml/code
+
+ADD https://api.github.com/repos/xieyongliang/stable-diffusion-webui/git/refs/heads/api webui.version.json
+RUN git clone https://github.com/xieyongliang/stable-diffusion-webui.git /opt/ml/code -b api
+
+ADD https://api.github.com/repos/xieyongliang/sd-webui-controlnet/git/refs/heads/main controlnet.version.json
+RUN git clone https://github.com/Mikubill/sd-webui-controlnet.git /opt/ml/code/extensions/sd-webui-controlnet
+
+COPY serve /opt/ml/code
+
+RUN mkdir -p /root/.cache/huggingface/accelerate
+COPY default_config.yaml /root/.cache/huggingface/accelerate/
+
+WORKDIR /opt/ml/code
+
+ENTRYPOINT ["python3", "serve"]
