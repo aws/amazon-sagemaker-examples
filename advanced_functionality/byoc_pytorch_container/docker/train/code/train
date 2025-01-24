@@ -1,0 +1,173 @@
+#!/usr/bin/env python
+
+# A sample training component that trains a simple scikit-learn decision tree model.
+# This implementation works in File mode and makes no assumptions about the input file names.
+# Input is specified as CSV with a data point in each row and the labels in the first column.
+
+
+
+from __future__ import print_function
+
+import os
+import sys
+import traceback
+
+
+import pandas as pd
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from torch.utils.data import Dataset, DataLoader
+
+
+
+prefix = '/opt/ml/'
+
+input_path = prefix + 'input/data'
+output_path = os.path.join(prefix, 'output')
+model_path = os.path.join(prefix, 'model')
+
+# This algorithm has a single channel of input data called 'training'. Since we run in
+# File mode, the input files are copied to the directory specified here.
+channel_name='train'
+training_path = os.path.join(input_path, channel_name)
+
+# These are the paths to where SageMaker mounts interesting things in your container.
+for root, dirs, files in os.walk(os.path.abspath(prefix)):
+    for file in files:
+        print(os.path.join(root, file))
+        
+class MultipleRegression(nn.Module):
+    def __init__(self, num_features):
+        super(MultipleRegression, self).__init__()
+
+        self.layer_1 = nn.Linear(num_features, 16)
+        self.layer_2 = nn.Linear(16, 32)
+        self.layer_3 = nn.Linear(32, 16)
+        self.layer_out = nn.Linear(16, 1)
+
+        self.relu = nn.ReLU()
+
+    def forward(self, inputs):
+        x = self.relu(self.layer_1(inputs))
+        x = self.relu(self.layer_2(x))
+        x = self.relu(self.layer_3(x))
+        x = self.layer_out(x)
+        return (x)
+
+    def predict(self, test_inputs):
+        x = self.relu(self.layer_1(test_inputs))
+        x = self.relu(self.layer_2(x))
+        x = self.relu(self.layer_3(x))
+        x = self.layer_out(x)
+        return (x)
+class RegressionDataset(Dataset):
+
+    def __init__(self, X_data, y_data):
+        self.X_data = X_data
+        self.y_data = y_data
+
+    def __getitem__(self, index):
+        return self.X_data[index], self.y_data[index]
+
+    def __len__ (self):
+        return len(self.X_data)
+
+
+# The function to execute the training.
+def train():
+    print('Starting the training.')
+    try:
+        # Take the set of files and read them all into a single pandas dataframe
+        input_files = [ os.path.join(training_path, file) for file in os.listdir(training_path) ]
+        if len(input_files) == 0:
+            raise ValueError(('There are no files in {}.\n' +
+                              'This usually indicates that the channel ({}) was incorrectly specified,\n' +
+                              'the data specification in S3 was incorrectly specified or the role specified\n' +
+                              'does not have permission to access the data.').format(training_path, channel_name))
+
+        df_train = pd.read_csv(os.path.join(training_path, "train.csv"), header=None) 
+        
+        X_train = df_train.iloc[: , :-1].values
+        y_train = df_train.iloc[: , -1].values
+
+
+        df_val = pd.read_csv(os.path.join(training_path, "validation.csv"), header=None) 
+        X_val = df_val.iloc[: , :-1].values
+        y_val = df_val.iloc[: , -1].values
+            
+        train_dataset = RegressionDataset(torch.from_numpy(X_train).float(), torch.from_numpy(y_train).float())
+        val_dataset = RegressionDataset(torch.from_numpy(X_val).float(), torch.from_numpy(y_val).float())
+
+        EPOCHS = 150
+        BATCH_SIZE = 64
+        LEARNING_RATE = 0.001
+        NUM_FEATURES = 10
+        
+        train_loader = DataLoader(dataset=train_dataset, batch_size=BATCH_SIZE, shuffle=True)
+        val_loader = DataLoader(dataset=val_dataset, batch_size=1)
+
+        device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
+        model = MultipleRegression(NUM_FEATURES)
+        model.to(device)
+        print(model)
+        criterion = nn.MSELoss()
+        optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
+        
+        loss_stats = {
+            'train': [],
+            "val": []
+        }
+
+
+        print("Begin training.")
+
+        for e in range(1, EPOCHS+1):
+            # TRAINING
+            train_epoch_loss = 0
+            model.train()
+            for X_train_batch, y_train_batch in train_loader:
+                X_train_batch, y_train_batch = X_train_batch.to(device), y_train_batch.to(device)
+                optimizer.zero_grad()
+                y_train_pred = model(X_train_batch)
+                train_loss = criterion(y_train_pred, y_train_batch.unsqueeze(1))
+                train_loss.backward()
+                optimizer.step()
+                train_epoch_loss += train_loss.item()
+
+
+            # VALIDATION    
+            with torch.no_grad():
+                val_epoch_loss = 0
+            model.eval()
+            for X_val_batch, y_val_batch in val_loader:
+                X_val_batch, y_val_batch = X_val_batch.to(device), y_val_batch.to(device)
+                y_val_pred = model(X_val_batch)
+                val_loss = criterion(y_val_pred, y_val_batch.unsqueeze(1))
+                val_epoch_loss += val_loss.item()
+            loss_stats['train'].append(train_epoch_loss/len(train_loader))
+            loss_stats['val'].append(val_epoch_loss/len(val_loader))
+            print(f'Epoch {e+0:03}: | Train Loss: {train_epoch_loss/len(train_loader):.5f} | Val Loss: {val_epoch_loss/len(val_loader):.5f}')
+
+        # save the model
+        torch.save(model.state_dict(), os.path.join(model_path, 'model_weights.pth') )
+        print('model path:',model_path)
+
+        print('Training complete.')
+    except Exception as e:
+        # Write out an error file. This will be returned as the failureReason in the
+        # DescribeTrainingJob result.
+        trc = traceback.format_exc()
+        with open(os.path.join(output_path, 'failure'), 'w') as s:
+            s.write('Exception during training: ' + str(e) + '\n' + trc)
+        # Printing this causes the exception to be in the training job logs, as well.
+        print('Exception during training: ' + str(e) + '\n' + trc, file=sys.stderr)
+        # A non-zero exit code causes the training job to be marked as Failed.
+        sys.exit(255)
+
+if __name__ == '__main__':
+    train()
+
+    # A zero exit code causes the job to be marked a Succeeded.
+    sys.exit(0)
