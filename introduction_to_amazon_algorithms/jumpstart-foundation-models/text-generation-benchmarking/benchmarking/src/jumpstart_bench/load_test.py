@@ -1,26 +1,36 @@
 from concurrent import futures
 import datetime
 from copy import deepcopy
+import itertools
 import logging
-from typing import Any, Callable, Dict, List, NamedTuple, Optional, Set, Type, Union
+from typing import Any
+from typing import Callable
+from typing import Dict
+from typing import List
+from typing import NamedTuple
+from typing import Optional
+from typing import Set
+from typing import Type
+from typing import Union
 import math
 import time
 
 import boto3
+from datasets import Dataset
+from jumpstart_bench.clients import SageMakerRuntimeClient
+from jumpstart_bench.payload import apply_chat_template
+from jumpstart_bench.streaming import process_response_stream
 import numpy as np
-from sagemaker.predictor import Predictor
 from transformers import AutoTokenizer
 from transformers import PreTrainedTokenizerBase
 
-from benchmarking.concurrency_probe import ConcurrentProbeIteratorBase
-from benchmarking.constants import (
-    CLOUDWATCH_PERIOD_SECONDS,
-    SM_INVOCATION_TIMEOUT_SECONDS,
-)
-from benchmarking.constants import MAX_TOTAL_RETRY_TIME_SECONDS
-from benchmarking.constants import RETRY_WAIT_TIME_SECONDS
-from benchmarking.logging import logging_prefix
-from benchmarking.custom_predictor import CustomPredictor
+from jumpstart_bench.concurrency_probe import ConcurrentProbeIteratorBase
+from jumpstart_bench.constants import CLOUDWATCH_PERIOD_SECONDS
+from jumpstart_bench.constants import SM_INVOCATION_TIMEOUT_SECONDS
+from jumpstart_bench.constants import MAX_TOTAL_RETRY_TIME_SECONDS
+from jumpstart_bench.constants import RETRY_WAIT_TIME_SECONDS
+from jumpstart_bench.logging import logging_prefix
+from jumpstart_bench.custom_predictor import CustomPredictor
 
 
 class PredictionResult(NamedTuple):
@@ -68,9 +78,19 @@ class PredictionResult(NamedTuple):
         """The word count of the output sequence."""
         return self._num_words(self.output_sequence())
 
-    def num_tokens(self, tokenizer: PreTrainedTokenizerBase) -> int:
-        """The token count of the output sequence."""
-        return len(tokenizer.encode(self.output_sequence()))
+    def num_tokens(self, tokenizer: Optional[PreTrainedTokenizerBase] = None) -> Optional[int]:
+        """The token count of the output sequence.
+        
+        First, check for TGI output signature. Then, LMI output signature. Then, use tokenizer if available.
+        """
+        if isinstance(self.result, list) and isinstance(self.result[0], dict) and "details" in self.result[0]:
+            return self.result[0]["details"]["generated_tokens"]
+        if isinstance(self.result, dict) and "details" in self.result:
+            return len([token for token in self.result["details"]["tokens"] if token["id"] != -1])
+        elif tokenizer is not None:
+            return len(tokenizer.encode(self.output_sequence(), add_special_tokens=False))
+        else:
+            return None
 
     def _text_inputs(self) -> str:
         if "inputs" in self.payload:
@@ -82,7 +102,7 @@ class PredictionResult(NamedTuple):
 
     @staticmethod
     def _num_words(text: str) -> int:
-        return len(text.split())
+        return max(len(text.split()), 1)
 
 
 class BatchInvocationStatistics(NamedTuple):
@@ -108,6 +128,21 @@ class BatchInvocationStatistics(NamedTuple):
             for i, result in enumerate(self.results)
         ]
         return self._collect_statistics(throughput_values)["Maximum"]
+    
+    def _gather_per_unit_latencies(
+        self, use_tokens: bool = True, tokenizer: Optional[PreTrainedTokenizerBase] = None
+    ) -> List[float]:
+        """Gather the average latency for each generated token across requests in a single list."""
+        per_unit_latencies = []
+        for result in self.results:
+            client_latency = result.client_latency()
+            if use_tokens is True:
+                unit_count = result.num_tokens(tokenizer)
+            else:
+                unit_count = result.num_words()
+            if unit_count > 0:
+                per_unit_latencies.extend([client_latency / unit_count] * unit_count)
+        return per_unit_latencies
 
     def get_statistics(
         self,
@@ -115,9 +150,7 @@ class BatchInvocationStatistics(NamedTuple):
         price_per_endpoint: Optional[float] = None,
     ) -> Dict[str, Any]:
         """Collect statistics on the number of input/output sequence words, the latency, and the latency per word."""
-        latency_per_word = self._collect_statistics(
-            [x.client_latency() / x.num_words() for x in self.results if x.num_words() > 0]
-        )
+        latency_per_word = self._collect_statistics(self._gather_per_unit_latencies(use_tokens=False))
         word_throughput_robust = self._throughput_robust([x.num_words() for x in self.results])
         time_to_generate_1m_words = 1e6 / word_throughput_robust / 3600
         statistics: Dict[str, Any] = {
@@ -132,11 +165,10 @@ class BatchInvocationStatistics(NamedTuple):
             "WordThroughput": self._throughput([x.num_words() for x in self.results]),
             "TimeToGenerate1MWords": time_to_generate_1m_words,
         }
-        if tokenizer is not None:
-            output_sequence_tokens = [x.num_tokens(tokenizer) for x in self.results]
-            latency_per_token = self._collect_statistics(
-                [x.client_latency() / x.num_tokens(tokenizer) for x in self.results if x.num_tokens(tokenizer) > 0]
-            )
+        output_sequence_tokens = [x.num_tokens(tokenizer) for x in self.results]
+        token_statistics_exist = any(output_sequence_tokens)
+        if token_statistics_exist:
+            latency_per_token = self._collect_statistics(self._gather_per_unit_latencies(tokenizer=tokenizer))
             token_throughput = self._throughput(output_sequence_tokens)
             token_throughput_robust = self._throughput_robust(output_sequence_tokens)
             time_to_generate_1m_tokens = 1e6 / token_throughput / 3600
@@ -150,8 +182,8 @@ class BatchInvocationStatistics(NamedTuple):
                 }
             )
         if price_per_endpoint is not None:
-            statistics.update({"CostToGenerate1MTokens": time_to_generate_1m_tokens * price_per_endpoint})
-            if tokenizer is not None:
+            statistics.update({"CostToGenerate1MWords": time_to_generate_1m_words * price_per_endpoint})
+            if token_statistics_exist:
                 statistics.update({"CostToGenerate1MTokens": time_to_generate_1m_tokens * price_per_endpoint})
         return statistics
 
@@ -173,42 +205,58 @@ class LoadTester:
     def __init__(
         self,
         predictor: CustomPredictor,
-        payload: Dict[str, Any],
+        dataset: Dataset,
         model_id: str,
-        payload_name: str,
+        dataset_name: str,
         tokenizer_model_id: Optional[str] = None,
         huggingface_hub_token: Optional[str] = None,
         price_per_endpoint: Optional[float] = None,
     ) -> None:
         self.predictor = predictor
-        self.payload = payload
         self.model_id = model_id
-        self.payload_name = payload_name
-        self._logging_prefix = logging_prefix(self.model_id, self.payload_name)
+        self.dataset_name = dataset_name
+        self._logging_prefix = logging_prefix(self.model_id, self.dataset_name)
         if tokenizer_model_id is not None:
             self.tokenizer = AutoTokenizer.from_pretrained(tokenizer_model_id, token=huggingface_hub_token)
         else:
             self.tokenizer = None
         self.price_per_endpoint = price_per_endpoint
+        self.client = SageMakerRuntimeClient()
+        
+        if "messages" in dataset.column_names:
+            logging.info(f"{self._logging_prefix} Applying chat template to dataset ...")
+            dataset = dataset.map(apply_chat_template, fn_kwargs={"tokenizer": self.tokenizer})
 
-    def predict_once_and_collect_client_results(self) -> PredictionResult:
+        self.dataset_iterator = itertools.cycle(iter(dataset))
+
+    def predict_once_and_collect_client_results(self, payload: Dict[str, Any]) -> PredictionResult:
         """Perform a single endpoint prediction and produce a PredictionResult."""
         time_utc_start = datetime.datetime.utcnow()
-        result = self.predictor.predict(self.payload)
+        if payload.get("stream") is True:
+            response = self.client.invoke_endpoint_with_response_stream(
+                endpoint_name=self.predictor.endpoint_name,
+                payload=payload,
+                inference_component_name=self.predictor.component_name,
+            )
+            result, time_utc_first_token = process_response_stream(response)
+        else:
+            result = self.predictor.predict(payload)
         time_utc_end = datetime.datetime.utcnow()
-        return PredictionResult(time_utc_start, time_utc_end, self.payload, result)
+        return PredictionResult(time_utc_start, time_utc_end, payload, result)
 
     def run_load_test(self, num_invocations: int, max_workers: int) -> Optional[BatchInvocationStatistics]:
         """Concurrently invoke an endpoint prediction multiple times and gather results in BatchInvocationStatistics."""
         time_utc_start = datetime.datetime.utcnow()
         timeout_seconds = SM_INVOCATION_TIMEOUT_SECONDS * num_invocations / max_workers
-        _logging_prefix = logging_prefix(self.model_id, self.payload_name, max_workers)
+        _logging_prefix = logging_prefix(self.model_id, self.dataset_name, max_workers)
+
+        payloads = [next(self.dataset_iterator) for i in range(num_invocations)]
 
         logging.info(f"{_logging_prefix} Begin throughput load test ...")
 
         with futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
             futures_list = [
-                executor.submit(self.predict_once_and_collect_client_results) for _ in range(num_invocations)
+                executor.submit(self.predict_once_and_collect_client_results, payload) for payload in payloads
             ]
             done, not_done = futures.wait(
                 futures_list,
@@ -255,8 +303,8 @@ class LoadTester:
         metrics["Client"] = statistics_latency.get_statistics(self.tokenizer, self.price_per_endpoint)
         metrics["ModelID"] = self.model_id
         metrics["Invocations"] = num_invocations
-        metrics["ConcurrentRequests"] = max_workers
-        metrics["PayloadName"] = self.payload_name
+        metrics["ConcurrentRequests"] = 1
+        metrics["PayloadName"] = self.dataset_name
         return metrics
 
     def run_throughput_load_test(self, num_invocations: int, max_workers: int) -> Dict[str, Any]:
@@ -265,7 +313,7 @@ class LoadTester:
         metrics.update(
             {
                 "ModelID": self.model_id,
-                "PayloadName": self.payload_name,
+                "PayloadName": self.dataset_name,
                 "Invocations": num_invocations,
                 "ConcurrentRequests": max_workers,
             }
@@ -287,7 +335,7 @@ class LoadTester:
         """
         logging.info(f"{self._logging_prefix} Begin concurrency probe ...")
         results: List[Dict[str, Any]] = []
-        concurrent_request_iterator = iterator_cls(self.model_id, self.payload_name)
+        concurrent_request_iterator = iterator_cls(self.model_id, self.dataset_name)
         for concurrent_requests in concurrent_request_iterator:
             try:
                 num_invocations = num_invocation_hook(concurrent_requests)

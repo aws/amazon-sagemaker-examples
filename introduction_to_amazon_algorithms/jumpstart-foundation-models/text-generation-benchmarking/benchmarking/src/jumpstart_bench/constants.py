@@ -15,7 +15,7 @@ SM_INVOCATION_TIMEOUT_SECONDS = 60.0
 SM_SESSION = Session(
     sagemaker_runtime_client=boto3.client(
         "sagemaker-runtime",
-        config=Config(connect_timeout=5, retries={"mode": "standard", "total_max_attempts": 10}),
+        config=Config(connect_timeout=10, retries={"mode": "standard", "total_max_attempts": 20}),
     ),
     sagemaker_client=boto3.client(
         "sagemaker",

@@ -1,7 +1,8 @@
 import json
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 import boto3
+from botocore.config import Config
 
 
 SERVICE_CODE = "AmazonSageMaker"
@@ -60,3 +61,31 @@ class SageMakerClient:
         endpoint_config = self.describe_endpoint_config(endpoint_name)
         model_name = endpoint_config["ProductionVariants"][0]["ModelName"]
         return self._client.describe_model(ModelName=model_name)
+
+
+class SageMakerRuntimeClient:
+    """Boto3 client class to access SageMaker runtime."""
+
+    def __init__(self) -> None:
+        self._client = boto3.client(
+            service_name="runtime.sagemaker",
+            config=Config(connect_timeout=10, retries={"mode": "standard", "total_max_attempts": 20}),
+        )
+
+    def invoke_endpoint_with_response_stream(
+        self,
+        endpoint_name: str,
+        payload: Dict[str, Any],
+        content_type: str = "application/json",
+        inference_component_name: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        kwargs: Dict[str, str] = {}
+        if inference_component_name is not None:
+            kwargs["InferenceComponentName"] = inference_component_name
+
+        return self._client.invoke_endpoint_with_response_stream(
+            EndpointName=endpoint_name,
+            Body=json.dumps(payload),
+            ContentType=content_type,
+            **kwargs,
+        )
