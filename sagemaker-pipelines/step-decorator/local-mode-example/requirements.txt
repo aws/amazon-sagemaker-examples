@@ -1,0 +1,6 @@
+sagemaker>=2.200.0,<3
+pandas>=2.0.0
+xgboost==1.7.1
+scikit-learn
+numpy
+s3fs
