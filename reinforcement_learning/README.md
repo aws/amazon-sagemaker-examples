@@ -2,9 +2,10 @@
 
 ### Common Reinforcement Learning Examples
 
-These examples demonstrate how to train reinforcement learning models on SageMaker for a wide range of applications.
+> [!WARNING]
+> As of April 2024, SageMaker RL containers no longer accepts new pull requests. Please follow [SageMaker RL Container's Building Your Image](https://github.com/aws/sagemaker-rl-container/tree/master?tab=readme-ov-file#building-your-image) to build your own RL images and modify examples appropriately.
 
-**IMPORTANT for rllib users:** Some examples may break with latest [rllib](https://docs.ray.io/en/latest/rllib.html) due to breaking API changes. Please refer to [Amazon SageMaker RL Container](https://github.com/aws/sagemaker-rl-container) for the latest public images and modify the configs in entrypoint scripts according to [rllib algorithm config](https://docs.ray.io/en/latest/rllib-algorithms.html).
+These examples demonstrate how to train reinforcement learning models on SageMaker for a wide range of applications.
 
 If you are using PyTorch rather than TensorFlow, please set `debugger_hook_config=False` when calling `RLEstimator()` to avoid TensorBoard conflicts.
 

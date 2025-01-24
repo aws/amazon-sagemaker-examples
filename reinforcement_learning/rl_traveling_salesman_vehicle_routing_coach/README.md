@@ -1,5 +1,8 @@
 # Traveling Salesman and Vehicle Routing with Amazon SageMaker RL
 
+> [!WARNING]
+> As of April 2024, SageMaker RL containers no longer accepts new pull requests. Please follow [SageMaker RL Container's Building Your Image](https://github.com/aws/sagemaker-rl-container/tree/master?tab=readme-ov-file#building-your-image) to build your own RL images and modify examples appropriately. Modification may include but is not limited to substituting `<YOUR_IMAGE_URL_HERE>` with your own RL image URL.
+
 The travelling salesman problem (TSP) is a classic algorithmic problem in the field of computer science and operations research. Given a list of cities and the distances between each pair of cities, the problem is to find the shortest possible route that visits each city and returns to the origin city.
 
 The problem is NP-complete as the number of combinations of cities grows larger as we add more cities.
