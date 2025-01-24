@@ -159,6 +159,15 @@ Horovod
    /sagemaker-python-sdk/keras_script_mode_pipe_mode_horovod/tensorflow_keras_CIFAR10
 
 
+TensorFlow Multi-Worker Mirrored Strategy (MWMS)
+-----------------------------------------
+
+.. toctree::
+   :maxdepth: 1
+
+   tensorflow/multi_worker_mirrored_strategy/tensorflow_multi_worker_mirrored_strategy
+
+
 .. _mxnet-distributed:
 
 Apache MXNet
