@@ -4,4 +4,4 @@ matplotlib==3.6.2
 numpy==1.24.0
 scikit-learn
 pandas==1.5.2
-sagemaker==2.126.0
+sagemaker==2.218.0
