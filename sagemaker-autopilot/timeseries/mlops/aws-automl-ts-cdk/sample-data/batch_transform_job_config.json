@@ -1,0 +1,7 @@
+{
+    "InputLocationKey": "input/training_data.csv",
+    "OutputLocationPrefix": "output-forecasted-data",
+    "InstanceType": "ml.c5.4xlarge",
+    "InstanceCount": 1,
+    "MaxPayloadInMB": 50
+}

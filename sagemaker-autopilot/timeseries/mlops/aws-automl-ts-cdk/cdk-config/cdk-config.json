@@ -1,0 +1,4 @@
+{
+    "baseResourceBucket": "automl-ts-mlops-pipeline-resource-bucket",
+    "baseConstructName": "AutoML-TS-MLOps"
+}
