@@ -7,7 +7,7 @@ import pandas as pd
 from IPython.display import HTML, display
 from matplotlib import pyplot as plt
 
-plt.style.use("seaborn-muted")
+plt.style.use("seaborn-v0_8")
 
 
 ##### TABLE
