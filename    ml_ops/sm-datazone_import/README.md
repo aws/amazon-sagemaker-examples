@@ -40,7 +40,7 @@ python import-sagemaker-domain.py \
 - SageMaker execution roles need DataZone API permissions in order for the Assets UI to function. See [DataZoneUserPolicy.json](./resources/DataZoneUserPolicy.json) for an example.
 - Ensure the DataZone Domain trusts SageMaker. In the AWS DataZone console navigate to Domain details and select the "Trusted services".
 
-### Potential errors and workarounds
+### Potential Errors and Workarounds
 
 **Cannot view ML assets in SageMaker Studio, missing "Assets" tab**
 

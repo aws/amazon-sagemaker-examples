@@ -1,7 +1,8 @@
 import argparse
 import boto3
 import botocore
-import time
+import datetime
+from dateutil.tz import tzlocal
 from botocore.exceptions import ClientError
 
 """
@@ -13,11 +14,30 @@ more information.
 """
 
 
+def assumed_role_session(account_id: str, role_name: str, base_session: botocore.session.Session = None):
+    role_arn = f"arn:aws:iam::{account_id}:role/{role_name}"
+    base_session = base_session or boto3.session.Session()._session
+    fetcher = botocore.credentials.AssumeRoleCredentialFetcher(
+        client_creator=base_session.create_client,
+        source_credentials=base_session.get_credentials(),
+        role_arn=role_arn,
+        extra_args={},
+    )
+    creds = botocore.credentials.DeferredRefreshableCredentials(
+        method="assume-role",
+        refresh_using=fetcher.fetch_credentials,
+        time_fetcher=lambda: datetime.datetime.now(tzlocal()),
+    )
+    botocore_session = botocore.session.Session()
+    botocore_session._credentials = creds
+    return boto3.Session(botocore_session=botocore_session)
+
+
 class SageMakerDomainImporter:
     def __init__(self, region, stage, account_id) -> None:
         self.region = region
         self.stage = stage
-        self.account_id = account_id
+
         # Setup client.
         sm_endpoint_url = "https://api.sagemaker." + region + ".amazonaws.com"  # prod
         dz_endpoint_url = "https://datazone." + region + ".api.aws"  # prod
@@ -31,19 +51,51 @@ class SageMakerDomainImporter:
             )
             dz_endpoint_url = "https://iceland-" + stage + "." + region + ".api.aws"
 
-        self.sm_client = boto3.client(
+        self.child_account_id = account_id
+        self.child_assume_role_name = "Admin"  # Change this if need be for default creds.
+        self.parent_account_id = None  # Will be set during the Cross-Account scenario.
+        self.parent_assume_role_name = None
+        self.cross_account_enabled = False
+
+        session = assumed_role_session(self.child_account_id, self.child_assume_role_name)
+        self.sm_client = session.client(
             "sagemaker", region_name=region, endpoint_url=sm_endpoint_url
         )
-        self.dz_client = boto3.client(
+        self.dz_client = session.client(
             "datazone", region_name=region, endpoint_url=dz_endpoint_url
         )
-        self.byod_client = boto3.client(
+        self.byod_client = session.client(
             "datazone-byod", region_name=region, endpoint_url=dz_endpoint_url
         )
-        self.iam_client = boto3.client("iam", region_name=region)
+        self.iam_client = session.client("iam", region_name=region)
+        self.sts_client = session.client("sts", region_name=region)
+
+    def __get_child_dz_clients(self):
+        session = assumed_role_session(self.child_account_id, self.child_assume_role_name)
+        dz_endpoint_url = "https://datazone." + region + ".api.aws"  # prod
+        self.dz_client = session.client(
+            "datazone", region_name=region, endpoint_url=dz_endpoint_url
+        )
+        self.byod_client = session.client(
+            "datazone-byod", region_name=region, endpoint_url=dz_endpoint_url
+        )
+
+    def __get_parent_dz_clients(self):
+        if self.cross_account_enabled:
+            session = assumed_role_session(self.parent_account_id, self.parent_assume_role_name)
+            dz_endpoint_url = "https://datazone." + region + ".api.aws"  # prod
+            self.dz_client = session.client(
+                "datazone", region_name=region, endpoint_url=dz_endpoint_url
+            )
+            self.byod_client = session.client(
+                "datazone-byod", region_name=region, endpoint_url=dz_endpoint_url
+            )
+
 
     def _choose_sm_domain(self):
-        # [1] First, identify the SageMaker Domain needed to be imported by noting its DomainId.
+        """
+        [1] First, identify the SageMaker Domain needed to be imported by noting its DomainId.
+        """
         print(
             "List of SageMaker Domains for your account. Pick the domain needed to be imported."
         )
@@ -66,8 +118,11 @@ class SageMakerDomainImporter:
         return self.sm_domain_id
 
     def _choose_dz_domain(self):
-        # [2] Select the DataZone Domain and Project.
-        # Next identify the DataZone Domain and Project to put the imported SageMaker Domain into by noting the domain’s id and the project’s id.
+        """
+        [2] Select the DataZone Domain and Project.
+        Next identify the DataZone Domain and Project to put the imported SageMaker Domain into
+        by noting the domain’s id and the project’s id.
+        """
 
         print("--------------------------------------------------------------------")
         print(
@@ -75,6 +130,7 @@ class SageMakerDomainImporter:
         )
         print("--------------------------------------------------------------------")
         dz_domain_map = {}
+        self.__get_parent_dz_clients() # Toggle to parent clients for list domains/projects.
         for domain in self.dz_client.list_domains()["items"]:
             print(f'Name: {domain["name"]}')
             dz_domain_map[domain["name"]] = domain["id"]
@@ -111,19 +167,18 @@ class SageMakerDomainImporter:
         return self.dz_project_id
 
     def _tag_sm_domain(self):
-        # [3.5 Tagging] Before getting started on byod-e2e, ensure that CX has the SM domain and ExecutionRole's tagged accordingly.
-        # 	1. Tag the SM domain by admin (DZ DomainId and tag the stage, and domainAccountId)
-        # 	2. Tag the execution role with DZ domainId and projectId
+        """
+        [3.5 Tagging] Before getting started on byod-e2e, ensure that CX has the SageMaker domain and ExecutionRole's tagged accordingly.
+            1. Tag the SageMaker domain by admin (DZ DomainId and tag the stage, and domainAccountId)
+            2. Tag the execution role with DZ domainId and projectId
+        """
 
-        # TODO - remove project/env tags once front end behavior is fixed
         domain_tag = {"Key": "AmazonDataZoneDomain", "Value": self.dz_domain_id}
-        project_tag = {"Key": "AmazonDataZoneProject", "Value": self.dz_project_id}
-        env_tag = {"Key": "AmazonDataZoneEnvironment", "Value": self.env_id}
-        account_tag = {"Key": "AmazonDataZoneDomainAccount", "Value": self.account_id}
+        account_tag = {"Key": "AmazonDataZoneDomainAccount", "Value": self.child_account_id}
         stage_tag = {"Key": "AmazonDataZoneStage", "Value": self.stage}
-        sm_domain_tags = [domain_tag, project_tag, env_tag, account_tag, stage_tag]
+        sm_domain_tags = [domain_tag, account_tag, stage_tag]
         sm_domain_arn = "arn:aws:sagemaker:{}:{}:domain/{}".format(
-            self.region, self.account_id, self.sm_domain_id
+            self.region, self.child_account_id, self.sm_domain_id
         )
 
         self.sm_client.add_tags(ResourceArn=sm_domain_arn, Tags=sm_domain_tags)
@@ -137,11 +192,13 @@ class SageMakerDomainImporter:
             print(t)
 
     def _map_users(self):
-        # [3] Get SM the Users
-        # Next create a mapping between SageMaker User Profiles and DataZone users.
-        #       - Aggregate Users in the SM Domain
-        #       - Collect SageMaker user profile data needed for mapping.
-        #       - User profile Name and tag to map the DZ user via Tag APIs.
+        """
+        [3] Get SageMaker Users
+        Next create a mapping between SageMaker User Profiles and DataZone users.
+              - Aggregate Users in the SageMaker Domain
+              - Collect SageMaker user profile data needed for mapping.
+              - User profile Name and tag to map the DZ user via Tag APIs.
+        """
 
         sm_users = []
         for user in self.sm_client.list_user_profiles(DomainIdEquals=self.sm_domain_id)[
@@ -183,7 +240,10 @@ class SageMakerDomainImporter:
         sm_exec_role_tags = []
         domain_tag = {"Key": "AmazonDataZoneDomain", "Value": self.dz_domain_id}
         project_tag = {"Key": "AmazonDataZoneProject", "Value": self.dz_project_id}
-        sm_exec_role_tags = [domain_tag, project_tag]
+        # We need this to display all necessary information in UI, as the env_id is plucked
+        # from the tag of the ExecutionRole.
+        env_tag = {"Key": "AmazonDataZoneEnvironment", "Value": self.env_id}
+        sm_exec_role_tags = [domain_tag, project_tag, env_tag]
 
         # get role name from arn "arn:aws:iam::047923724610:role/service-role/AmazonSageMaker-ExecutionRole-20241008T155288"
         role_name = self.sm_user_info["exec_role_arn"][
@@ -243,7 +303,7 @@ class SageMakerDomainImporter:
         decision = input(
             "Would you like to onboard an additional subset of user profiles to another project? "
             "(This would require you to have another project created. In this new project, you will create"
-            "a new environment if not already created, as well) [y/n]: "
+            " a new environment if not already created, as well) [y/n]: "
         )
         if decision == "y":
             self._choose_dz_project()
@@ -264,6 +324,8 @@ class SageMakerDomainImporter:
 
         print("--------------------------------------------------------------------")
         print("Listing Blueprints in Customer Account")
+        # Toggle to Child Account here - Make the call from original child account.
+        self.__get_child_dz_clients()
         blueprints = self.dz_client.list_environment_blueprints(
             domainIdentifier=self.dz_domain_id, managed=True
         )
@@ -303,12 +365,12 @@ class SageMakerDomainImporter:
             )
             self.env_id = None
             try:
-                create_env_response = self.dz_client.create_environment(
+                create_env_response = self.dz_client.create_environment(  # caller from child account
                     domainIdentifier=self.dz_domain_id,
                     name=self.env_name,
                     environmentBlueprintIdentifier=self.managed_blueprint_id,
                     projectIdentifier=self.dz_project_id,
-                    environmentAccountIdentifier=self.account_id,
+                    environmentAccountIdentifier=self.child_account_id,
                     environmentAccountRegion=self.region,
                 )
                 self.env_id = create_env_response["id"]
@@ -391,18 +453,36 @@ class SageMakerDomainImporter:
                 )
             )
         except ClientError as e:
-            if "Environment has a role configured already" in str(e):
+            if "Environment has a role configured already" in str(e) \
+                    or "(ConflictException) when calling the AssociateEnvironmentRole operation" in str(e):
                 print(
                     "Environment has a role configured already. Skipping role association ..."
                 )
             else:
                 print(f"Caught error: {repr(e)}")
 
+    def _cross_account_action(self):
+        # Decision to link domain from X-account. Required to assumeRole from child-account containing SageMaker domain.
+
+        print("--------------------------------------------------------------------")
+        decision = input("Need to import SageMaker Profiles into a different account (Cross Account)? [y/n]: ")
+        if decision == "y":
+            print("--------------------------------------------------------------------")
+            print("Provide the Cross Account Id and Role Name for the current session to assume. \n"
+                  "This would be the role in the account that originally created and houses the DataZone domain,\n"
+                  "aka the parent account in the Cross Account scenario. See ReadMe for how to configure permission "
+                  "for assumeRole.")
+            self.parent_account_id = input("Cross Account Id: ")
+            self.parent_assume_role_name = input("Cross Account Role Name to Assume: ")
+            self.__get_parent_dz_clients()
+            # Toggle this on such that we can switch between clients
+            self.cross_account_enabled = True
+
     def _link_domain(self):
         # attach SAGEMAKER_DOMAIN
-        linkedDomainItems = [
+        linked_domain_items = [
             {
-                "itemIdentifier": f"arn:aws:sagemaker:{self.region}:{self.account_id}:domain/{self.sm_domain_id}",
+                "itemIdentifier": f"arn:aws:sagemaker:{self.region}:{self.child_account_id}:domain/{self.sm_domain_id}",
                 "itemType": "SAGEMAKER_DOMAIN",
                 "configuration": {"AuthMode": self.auth_mode},
                 "connectedEntities": [
@@ -425,11 +505,12 @@ class SageMakerDomainImporter:
         print("--------------------------------------------------------------------")
 
         print(f"Linking SageMaker Domain using project id [{self.dz_project_id}]")
+        self.__get_parent_dz_clients()
         link_domain_response = self.byod_client.batch_put_linked_types(
             domainIdentifier=self.dz_domain_id,
             projectIdentifier=self.dz_project_id,
             environmentIdentifier=self.env_id,
-            items=linkedDomainItems,
+            items=linked_domain_items,
         )
         print(link_domain_response)
         print("Linked SageMaker Domain.")
@@ -439,7 +520,7 @@ class SageMakerDomainImporter:
         linkedUserItems = []
         for dz_user_id in self.dz_users_id_list:
             linkedUserItem = {
-                "itemIdentifier": f'arn:aws:sagemaker:{self.region}:{self.account_id}:user-profile/{self.sm_domain_id}/{self.sm_user_info["name"]}',
+                "itemIdentifier": f'arn:aws:sagemaker:{self.region}:{self.child_account_id}:user-profile/{self.sm_domain_id}/{self.sm_user_info["name"]}',
                 "itemType": "SAGEMAKER_USER_PROFILE",
                 "name": self.sm_user_info["name"],
                 "authorizedPrincipals": [
@@ -451,7 +532,7 @@ class SageMakerDomainImporter:
                 "connectedEntities": [
                     {
                         "connectedEntityConnectionType": "BELONGS_TO",
-                        "connectedEntityIdentifier": f"arn:aws:sagemaker:{self.region}:{self.account_id}:domain/{self.sm_domain_id}",
+                        "connectedEntityIdentifier": f"arn:aws:sagemaker:{self.region}:{self.child_account_id}:domain/{self.sm_domain_id}",
                         "connectedEntityType": "SAGEMAKER_DOMAIN",
                     }
                 ],
@@ -507,7 +588,8 @@ class SageMakerDomainImporter:
         print(
             "Note: double click the name to quickly select it (to then copy-paste it)."
         )
-        self._choose_sm_domain()
+        self._choose_sm_domain() #child account
+        self._cross_account_action() #parent vvvv
         self._choose_dz_domain()
         self._choose_dz_project()
         self._configure_blueprint()
