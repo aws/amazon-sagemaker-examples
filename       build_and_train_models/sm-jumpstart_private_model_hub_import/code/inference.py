@@ -50,7 +50,7 @@ def output_fn(prediction, accept):
 
 def predict_fn(input_data, model):
     """Perform the prediction using the loaded model."""
-    with torch.no_grad():
+    with torch.inference_mode():
         output = model(input_data)
         y_pred = (output > 0.5).float()
     return y_pred
