@@ -2,5 +2,5 @@ boto3==1.26.73
 pandas==1.5.3
 Pillow==9.4.0
 streamlit==1.20.0
-torch==1.13.1
-torchvision==0.14.1
+torch>=2.6.0
+torchvision>=0.17.0
