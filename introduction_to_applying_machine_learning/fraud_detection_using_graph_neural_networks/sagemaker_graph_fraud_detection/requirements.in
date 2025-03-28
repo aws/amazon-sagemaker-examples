@@ -1,3 +1,3 @@
-sagemaker==1.72.0
+sagemaker==2.237.3
 awscli
 watchtower==1.0.0

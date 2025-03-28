@@ -4,4 +4,4 @@ transformers
 accelerate
 sagemaker
 botocore
-pytorch-lightning==1.9.4
+pytorch-lightning==2.4.0
