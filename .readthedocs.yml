@@ -2,7 +2,7 @@
 # libraries which have C dependencies for the doc build. See:
 # https://docs.readthedocs.io/en/latest/config-file/v2.html
 
-version: 2
+version: 3
 
 conda:
   environment: environment.yml
