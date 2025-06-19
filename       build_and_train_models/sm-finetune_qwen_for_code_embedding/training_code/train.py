@@ -10,6 +10,7 @@ from sentence_transformers.training_args import SentenceTransformerTrainingArgum
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
 def main():
     parser = argparse.ArgumentParser()
 
@@ -18,25 +19,23 @@ def main():
     # available to your training script. SageMaker uses channels to organize input data; each channel corresponds to a named
     # input location in Amazon S3 that SageMaker downloads into the container before running your entry script.
     # This ensures the script dynamically references the correct data location without hardcoding S3 paths.
-    parser.add_argument('--train', type=str, default=os.getenv('SM_CHANNEL_TRAIN'))
-    parser.add_argument('--model_dir', type=str, default=os.getenv('SM_MODEL_DIR'))
+    parser.add_argument("--train", type=str, default=os.getenv("SM_CHANNEL_TRAIN"))
+    parser.add_argument("--model_dir", type=str, default=os.getenv("SM_MODEL_DIR"))
 
     # Delegated hyperparameters
-    parser.add_argument('--model_name', type=str, required=True)
-    parser.add_argument('--num_train_epochs', type=int, default=3)
-    parser.add_argument('--per_device_train_batch_size', type=int, default=16)
-    parser.add_argument('--learning_rate', type=float, default=2e-5)
-    parser.add_argument('--warmup_ratio', type=float, default=0.1)
-    parser.add_argument('--target_dimension', type=int, default=512)
-    parser.add_argument('--logging_steps', type=int, default=100)
+    parser.add_argument("--model_name", type=str, required=True)
+    parser.add_argument("--num_train_epochs", type=int, default=3)
+    parser.add_argument("--per_device_train_batch_size", type=int, default=16)
+    parser.add_argument("--learning_rate", type=float, default=2e-5)
+    parser.add_argument("--warmup_ratio", type=float, default=0.1)
+    parser.add_argument("--target_dimension", type=int, default=512)
+    parser.add_argument("--logging_steps", type=int, default=100)
+    parser.add_argument("--fp16", type=lambda x: x.lower() in ("true", "1"), default=False)
     parser.add_argument(
-        '--fp16',
-        type=lambda x: x.lower() in ('true','1'),
-        default=False
-    )
-    parser.add_argument(
-        '--save_strategy', type=str,
-        choices=['no', 'steps', 'epoch'], default='no',
+        "--save_strategy",
+        type=str,
+        choices=["no", "steps", "epoch"],
+        default="no",
     )
     args = parser.parse_args()
 
@@ -46,7 +45,9 @@ def main():
 
     # Prepare the training dataset
     logger.info(f"Loading dataset from {args.train}")
-    train_dataset = load_dataset('json', data_files=f"{args.train}/train_dataset.jsonl", split='train')
+    train_dataset = load_dataset(
+        "json", data_files=f"{args.train}/train_dataset.jsonl", split="train"
+    )
 
     """
     Construct Matryoshka dimensions
@@ -64,12 +65,12 @@ def main():
         model=model,
         loss=inner_loss,
         matryoshka_dims=dims,
-        matryoshka_weights=[2.0 if d == args.target_dimension else 1.0 for d in dims]
+        matryoshka_weights=[2.0 if d == args.target_dimension else 1.0 for d in dims],
     )
 
     # Configure training arguments
     training_args = SentenceTransformerTrainingArguments(
-        output_dir='/opt/ml/model',
+        output_dir="/opt/ml/model",
         num_train_epochs=args.num_train_epochs,
         per_device_train_batch_size=args.per_device_train_batch_size,
         learning_rate=args.learning_rate,
@@ -78,15 +79,12 @@ def main():
         logging_steps=args.logging_steps,
         eval_strategy="no",
         gradient_checkpointing=True,
-        save_strategy=args.save_strategy
+        save_strategy=args.save_strategy,
     )
 
     # Initialize and run trainer
     trainer = SentenceTransformerTrainer(
-        model=model,
-        args=training_args,
-        train_dataset=train_dataset,
-        loss=train_loss
+        model=model, args=training_args, train_dataset=train_dataset, loss=train_loss
     )
 
     logger.info("Starting training")
@@ -96,5 +94,6 @@ def main():
     logger.info(f"Saving model to {args.model_dir}")
     model.save_pretrained(args.model_dir)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()
