@@ -31,12 +31,15 @@ release = "1.0.0"
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    "nbsphinx", "IPython.sphinxext.ipython_console_highlighting"
+    "nbsphinx", 
+    "IPython.sphinxext.ipython_console_highlighting",
+    "sphinx.ext.autodoc",  # Adds support for generating documentation from docstrings
+    "sphinx.ext.napoleon",  # Supports Google and NumPy style docstrings
+    "sphinx.ext.viewcode",  # Adds links to source code
 ]
 
-# extension nbsphinx config
+# nbsphinx extension configuration
 nbsphinx_execute = "never"
-
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
@@ -45,7 +48,6 @@ templates_path = ["_templates"]
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
-
 
 # -- Options for HTML output -------------------------------------------------
 
@@ -59,13 +61,26 @@ html_theme = "sphinx_rtd_theme"
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ["_static"]
 
-# For Adobe Analytics
+# Add external JavaScript files
 html_js_files = [
     "https://a0.awsstatic.com/s_code/js/3.0/awshome_s_code.js",
     "https://d2c.aws.amazon.com/client/loader/v1/d2c-load.js",
 ]
 
+# Add external CSS files
 html_css_files = [
-    'pagination.css',
-    'search_accessories.css',
+    "pagination.css",
+    "search_accessories.css",
 ]
+
+# -- Additional options for modern compatibility -----------------------------
+
+# Add support for source mapping
+html_show_sourcelink = True
+
+# Enable math support for LaTeX-style equations
+extensions.append("sphinx.ext.mathjax")
+
+# Enable localization for internationalization
+locale_dirs = ['locale/']  # Path to localization folder
+gettext_compact = False
