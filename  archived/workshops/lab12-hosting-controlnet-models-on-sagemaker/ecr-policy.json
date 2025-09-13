@@ -4,7 +4,9 @@
       {
         "Sid": "new statement",
         "Effect": "Allow",
-        "Principal": "*",
+        "Principal": {
+          "Service": "sagemaker.amazonaws.com"
+        },
         "Action": [
           "ecr: CompleteLayerUpload",
           "ecr: InitiateLayerUpload",
