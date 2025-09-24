@@ -1,0 +1,105 @@
+=== Directory Name Analysis ===
+Directory: 'sagemaker-core'
+Length: 14
+First 3 chars: 'sag'
+---
+Directory: 'end_to_end_ml_lifecycle'
+Length: 23
+First 3 chars: 'end'
+---
+Directory: 'prepare_data'
+Length: 12
+First 3 chars: 'pre'
+---
+Directory: 'build_and_train_models'
+Length: 22
+First 3 chars: 'bui'
+---
+Directory: 'deploy_and_monitor'
+Length: 18
+First 3 chars: 'dep'
+---
+Directory: 'generative_ai'
+Length: 13
+First 3 chars: 'gen'
+---
+Directory: 'ml_ops'
+Length: 6
+First 3 chars: 'ml_'
+---
+Directory: 'responsible_ai'
+Length: 14
+First 3 chars: 'res'
+---
+Directory: 'archived'
+Length: 8
+First 3 chars: 'arc'
+---
+Directory: 'CODEOWNERS'
+Length: 10
+First 3 chars: 'COD'
+---
+Directory: 'CONTRIBUTING.md'
+Length: 15
+First 3 chars: 'CON'
+---
+Directory: 'LICENSE.txt'
+Length: 11
+First 3 chars: 'LIC'
+---
+Directory: 'Makefile'
+Length: 8
+First 3 chars: 'Mak'
+---
+Directory: 'NOTICE'
+Length: 6
+First 3 chars: 'NOT'
+---
+Directory: 'README.md'
+Length: 9
+First 3 chars: 'REA'
+---
+Directory: '_static'
+Length: 7
+First 3 chars: '_st'
+---
+Directory: '_templates'
+Length: 10
+First 3 chars: '_te'
+---
+Directory: 'conf.py'
+Length: 7
+First 3 chars: 'con'
+---
+Directory: 'config.json'
+Length: 11
+First 3 chars: 'con'
+---
+Directory: 'directory_issue_report.txt'
+Length: 26
+First 3 chars: 'dir'
+---
+Directory: 'environment.yml'
+Length: 15
+First 3 chars: 'env'
+---
+Directory: 'index.rst'
+Length: 9
+First 3 chars: 'ind'
+---
+Directory: 'intro.rst'
+Length: 9
+First 3 chars: 'int'
+---
+Directory: 'make.bat'
+Length: 8
+First 3 chars: 'mak'
+---
+Directory: 'new_file_structure_updated_notebook_names_and_folders.xlsx'
+Length: 58
+First 3 chars: 'new'
+---
+Directory: 'tox.ini'
+Length: 7
+First 3 chars: 'tox'
+---
