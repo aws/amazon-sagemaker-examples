@@ -5,9 +5,14 @@ import os
 import signal
 import subprocess
 import sys
+import re
+import time
+import shutil, stat
+from tempfile import TemporaryDirectory
+from pathlib import Path
+from huggingface_hub import snapshot_download
 
 from jinja2 import Template
-import re
 
 def get_conf(num_servers):
 
@@ -53,11 +58,11 @@ def get_conf(num_servers):
     }
     """)
 
-    servers = [ { "port": (8000+x*32)} for x in range(num_servers) ]
+    servers = [ { "port": (8000+x*8)} for x in range(num_servers) ]
     data = { "servers": servers}
 
     nginx_conf = template.render(data)
-    server_ports = [ {"http": (8000+128*x), "grpc": (8001+128*x), "metrics": (8002+128*x)} for x in range(num_servers)]
+    server_ports = [ {"http": (8000+8*x), "grpc": (8001+8*x), "metrics": (8002+8*x)} for x in range(num_servers)]
 
     return nginx_conf, server_ports
 
@@ -65,13 +70,13 @@ def get_core_groups():
     """Lists files in a directory that start with a given prefix."""
 
     directory = "/dev"
-    prefix = "neuron"
+    prefix = "nvidia"
     files = []
     for filename in os.listdir(directory):
         if re.search(f'^{prefix}\\d+', filename):
             files.append(filename)
     
-    num_cores = len(files)*2
+    num_cores = len(files)
     model_server_cores = int(os.environ.get("TENSOR_PARALLEL_SIZE", num_cores))
      
     cores = [ x for x in range(num_cores)]
@@ -82,14 +87,50 @@ def get_core_groups():
 def sigterm_handler(*pids):
     for pid in pids:
         try:
-            print(f"sigterm_handler: kill {pid}")
             os.kill(pid, signal.SIGTERM)
         except OSError:
             pass
-    
+
     sys.exit(0)
 
+def snapshot_model():
+    hf_model_id = os.environ.get("MODEL_ID", None)
+    hf_token = os.environ.get("HF_TOKEN", None)
+    model_path = "/tmp/snapshot"
+    print(f"Downloading HuggingFace model snapshot: {hf_model_id}")
+    os.makedirs(model_path, exist_ok=True)
+    with TemporaryDirectory(suffix="model", prefix="hf", dir="/tmp") as cache_dir:
+        snapshot_download(repo_id=hf_model_id, cache_dir=cache_dir, token=hf_token)
+        local_model_path = Path(cache_dir)
+        model_snapshot_path = str(list(local_model_path.glob(f"**/snapshots/*/"))[0])
+        print(f"Model snapshot: {model_snapshot_path} completed")
+        
+        print(f"Copying model snapshot files to {model_path}.")
+        for root, _, files in os.walk(model_snapshot_path):
+            for file in files:
+                full_path = os.path.join(root, file)
+                relative_path = f"{full_path[len(model_snapshot_path)+1:]}"
+                dst_path = os.path.join(model_path, relative_path)
+                dst_dir = os.path.dirname(dst_path)
+                os.makedirs(dst_dir, exist_ok=True)
+                print(f"Copying {os.path.basename(full_path)}")
+                shutil.copyfile(full_path, dst_path)
+
+    os.environ["MODEL_PATH"] = model_path
+
+def build_trtllm_engine():
+    build_script = os.getenv("BUILD_SCRIPT", None) 
+    
+    # Assert that the build script file exists
+    assert os.path.exists(build_script) and os.path.isfile(build_script), f"File {build_script} not found!"
+
+    snapshot_model()
+    print(f"Invoking build script: {build_script}")
+    subprocess.check_call(['bash', build_script])
+
 def start_server():
+    build_trtllm_engine()
+
     core_groups = get_core_groups()
     print(f"Inference server core groups; {core_groups}")
     num_servers = len(core_groups)
@@ -98,35 +139,46 @@ def start_server():
     print(f"nginx.conf: {nginx_conf}")
     print(f"triton server ports: {triton_server_ports}")
 
-    with open("/tmp/nginx.conf", "w+" ) as f:
+    with open("/opt/program/nginx.conf", "w+" ) as f:
         f.write(nginx_conf)
 
     # link the log streams to stdout/err so they will be logged to the container logs
+    print("starting nginx...")
     subprocess.check_call(['ln', '-sf', '/dev/stdout', '/var/log/nginx/access.log'])
     subprocess.check_call(['ln', '-sf', '/dev/stderr', '/var/log/nginx/error.log'])
-    nginx = subprocess.Popen(['nginx', '-c', '/tmp/nginx.conf'], stderr=subprocess.STDOUT)
-    
+    nginx = subprocess.Popen(['nginx', '-c', '/opt/program/nginx.conf'])
+
+    # Give nginx a moment to start as a daemon
+    while nginx.poll() is not None:
+        time.sleep(1)
+    _, stderr = nginx.communicate()
+    if stderr:
+        print(f"nginx stderr: {stderr}")
+
     model_repo = os.getenv("MODEL_REPO", "/opt/ml/model/model_repo" )
     pids = [nginx.pid]
-    print(f"nginx pid: {nginx.pid}")
     
     for i, ports in enumerate(triton_server_ports):
         env_copy = copy.deepcopy(os.environ)
         group = core_groups[i]
-        env_copy['NEURON_RT_VISIBLE_CORES']=f"{group[0]}-{group[-1]}"
-        env_copy['NEURON_RT_ROOT_COMM_ID']=f"localhost:{48620+i}"
+        env_copy['CUDA_VISIBLE_DEVICES']=",".join(str(x) for x in group)
         http = ports['http']
         grpc = ports['grpc']
         metrics = ports['metrics']
         print(f"server instance: {i}: http: {http}, grpc: {grpc}, metric: {metrics}")
-        print(f"server instance: {i}: NEURON_RT_VISIBLE_CORES={env_copy['NEURON_RT_VISIBLE_CORES']}")
-        server = subprocess.Popen(['tritonserver', 
-                                   f"--model-repository={model_repo}",
-                                   f"--grpc-port={grpc}",
-                                   f"--http-port={http}",
-                                   f"--metrics-port={metrics}",
-                                   "--disable-auto-complete-config"],
-                                   stderr=subprocess.STDOUT,
+        print(f"server instance: {i}: CUDA_VISIBLE_DEVICES={env_copy['CUDA_VISIBLE_DEVICES']}")
+        model_name = os.getenv("MODEL_NAME", None)
+        assert model_name, f"MODEL_NAME environment variable not defined"
+        world_size = len(core_groups[i])
+        triton_launch_script = os.getenv("TRITON_LAUNCH_SCRIPT", "/opt/TensorRT-LLM/triton_backend/scripts/launch_triton_server.py")
+        server = subprocess.Popen(['python3', 
+                                   triton_launch_script,
+                                   f"--model_repo={model_repo}",
+                                   f"--tensorrt_llm_model_name={model_name}",
+                                   f"--world_size={world_size}",
+                                   f"--grpc_port={grpc}",
+                                   f"--http_port={http}",
+                                   f"--metrics_port={metrics}"], 
                                    env=env_copy)
         pids.append(server.pid)
         print(f"server {i} pid: {server.pid}")

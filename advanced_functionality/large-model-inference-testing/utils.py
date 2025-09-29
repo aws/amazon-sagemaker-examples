@@ -111,25 +111,48 @@ def set_prompt_env(test_spec: dict):
 def snapshot_hf_model_to_s3(s3_client, s3_prefix:str, s3_bucket:str, model_config:dict, hf_spec:dict, hf_token:str=None):
     hf_model = hf_spec.get('model', None)
     download = hf_spec.get('download', None)
-    if download:
+    if download: 
         revision = hf_spec.get('revision', None)
         assert revision, "'huggingface.revision' is required if 'download' is 'true'"
         
         s3_model_prefix = f"{s3_prefix}/huggingface/models/{hf_model}/{revision}"  # folder where model checkpoint will go
         print(f"s3_model_prefix: {s3_model_prefix}")
 
-        try:
-            s3_client.head_object(Bucket=s3_bucket, Key=f"{s3_model_prefix}/config.json")
-            print(f"Skipping download; HuggingFace model already exists at s3://{s3_bucket}/{s3_model_prefix}/")
-        except:
-            install_pip_package(package_name="huggingface-hub")
-            from huggingface_hub import snapshot_download
+        filtered_hf_files = []
+        install_pip_package(package_name="huggingface-hub")
+        from huggingface_hub import snapshot_download, list_repo_files
+       
+        hf_files = list_repo_files(repo_id=hf_model, revision=revision, token=hf_token)
+        if not hf_files:
+            raise Exception(f"Unable to find any files for model: {hf_model}, revision: {revision}")
+        
+        ignore_patterns = ["*.msgpack", "*.h5"]
+
+        # Filter out ignored patterns
+        for file in hf_files:
+            should_ignore = False
+            for pattern in ignore_patterns:
+                if pattern.replace("*", "") in file:
+                    should_ignore = True
+                    break
+            if not should_ignore:
+                filtered_hf_files.append(file)
+
+        missing_files = False
+        
+        for file in filtered_hf_files:
+            try:
+                s3_client.head_object(Bucket=s3_bucket, Key=f"{s3_model_prefix}/{file}")
+            except:
+                missing_files = True
+                break
+
+        if missing_files:
             from tempfile import TemporaryDirectory
             from pathlib import Path
 
             print(f"Downloading HuggingFace model snapshot: {hf_model}, revision: {revision}")
             with TemporaryDirectory(suffix="model", prefix="hf", dir=".") as cache_dir:
-                ignore_patterns = ["*.msgpack", "*.h5"]
                 snapshot_download(repo_id=hf_model, 
                     revision=revision, 
                     cache_dir=cache_dir,

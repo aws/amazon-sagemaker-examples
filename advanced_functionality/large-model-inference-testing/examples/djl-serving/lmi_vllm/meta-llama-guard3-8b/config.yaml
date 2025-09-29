@@ -1,0 +1,37 @@
+huggingface:
+  model: "meta-llama/Llama-Guard-3-8B"
+  revision: "7327bd9f6efbbe6101dc6cc4736302b3cbb6e425"
+  download: true
+djl:
+  engine: Python
+  option.dtype: fp16
+  option.task: text-generation
+  option.rolling_batch: vllm
+  option.max_rolling_batch_size: 1
+  option.tensor_parallel_degree: 1
+  option.output_formatter: "json"
+  option.model_loading_timeout: 1200
+  option.max_model_len: 4096
+sagemaker:
+  model:
+    name: "meta-llama-guard-3-8b-lmi-vllm"
+    container: "containers/djlserving-lmi"
+  endpoint:
+    name: "meta-llama-guard-3-8b-lmi-vllm"
+    instance_type: "ml.g6.2xlarge"
+    initial_instance_count: 1
+    variant_name: "test"
+    model_data_download_timeout_secs: 1200
+    container_startup_health_check_timeout_secs: 600
+test:
+  module_name: "llama3_prompt_generator"
+  module_dir: "modules/nicholasKluge-toxic-text"
+  prompt_generator: "PromptGenerator"
+  template: { "inputs": "", "parameters": { "do_sample": true, "max_new_tokens": 1024, "top_k": 50 }  }
+  template_keys: ["inputs"]
+  warmup_iters: 1
+  n_concurrent: 1
+  max_iters: 10
+  output_dir: "output"
+  locust_users: 4
+  locust_workers: 1

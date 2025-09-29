@@ -88,19 +88,6 @@ RUN pip3 install ray
 RUN cp -r /server/build/opt/* /opt/
 RUN rm -rf /server
 
-ENV VLLM_TARGET_DEVICE=neuron
-RUN git clone https://github.com/vllm-project/vllm.git /opt/vllm
-RUN cd /opt/vllm && git fetch origin 5fbbfe9a4c13094ad72ed3d6b4ef208a7ddc0fd7
-RUN cd /opt/vllm && git reset --hard 5fbbfe9a4c13094ad72ed3d6b4ef208a7ddc0fd7
-RUN cd /opt/vllm && pip3 install -e .
-
-RUN git clone https://github.com/triton-inference-server/vllm_backend.git /opt/vllm_backend
-RUN cd /opt/vllm_backend && git fetch origin 98947a7c641057a1e3cf8fc9805dc4e3b93e7b66
-RUN cd /opt/vllm_backend && git reset --hard 98947a7c641057a1e3cf8fc9805dc4e3b93e7b66
-
-RUN mkdir -p /opt/tritonserver/backends/vllm
-RUN cp -r /opt/vllm_backend/src/* /opt/tritonserver/backends/vllm/
-
 COPY resources /opt/program
 RUN chmod u+x /opt/program/serve
 
@@ -110,3 +97,4 @@ ENV PYTHONUNBUFFERED=1
 ENV PJRT_DEVICE=NEURON
 
 WORKDIR /opt/program
+

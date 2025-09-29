@@ -1,0 +1,32 @@
+huggingface:
+  model: "jinaai/jina-embeddings-v2-small-en"
+  revision: "796cff318cdd4e5fbe8b7303a1ef8cbec36996ef"
+  download: true
+djl:
+  engine: "Python"
+  option.model_loading_timeout: 1800
+  option.max_dynamic_batch_size: 8
+  option.max_model_len: 2048
+sagemaker:
+  model:
+    name: "jina-embeddings-v2-small-en-neuronx"
+    container: "containers/djlserving-lmi-neuronx"
+    env:
+      TOKENIZERS_PARALLELISM: "false"
+  endpoint:
+    name: "jina-embeddings-v2-small-en-neuronx"
+    instance_type: "ml.inf2.xlarge"
+    initial_instance_count: 1
+    variant_name: "test"
+    model_data_download_timeout_secs: 1800
+    container_startup_health_check_timeout_secs: 1200
+test:
+  module_name: "embedding_text"
+  module_dir: "modules/inst-semeval2017"
+  prompt_generator: "EmbeddingText"
+  task_name: "text-embedding"
+  template: { "inputs": ""  }
+  template_keys: ["inputs"]
+  warmup_iters: 1
+  max_iters: 10
+  output_dir: "output"

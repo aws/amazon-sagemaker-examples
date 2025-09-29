@@ -1,0 +1,37 @@
+huggingface:
+  model: "meta-llama/Meta-Llama-3-8B-Instruct"
+  revision: "c4a54320a52ed5f88b7a2f84496903ea4ff07b45"
+  download: true
+djl:
+  engine: Python
+  option.dtype: fp16
+  option.task: text-generation
+  option.rolling_batch: vllm
+  option.max_rolling_batch_size: 4
+  option.output_formatter: "jsonlines"
+  option.tensor_parallel_degree: 4
+  option.model_loading_timeout: 1200
+  option.max_model_len: 4096
+sagemaker:
+  model:
+    name: "meta-llama-3-8b-instruct-lmi-vllm-streaming"
+    container: "containers/djlserving-lmi"
+  endpoint:
+    name: "meta-llama-3-8b-instruct-lmi-vllm-streaming"
+    instance_type: "ml.g5.48xlarge"
+    initial_instance_count: 1
+    variant_name: "test"
+    model_data_download_timeout_secs: 1200
+    container_startup_health_check_timeout_secs: 600
+test:
+  module_name: "llama3_prompt_generator"
+  module_dir: "modules/inst-semeval2017"
+  prompt_generator: "PromptGenerator"
+  template: { "inputs": "", "parameters": { "do_sample": true, "max_new_tokens": 1024, "top_k": 50 }  }
+  template_keys: ["inputs"]
+  warmup_iters: 1
+  max_iters: 10
+  n_concurrent: 4
+  output_dir: "output"
+  locust_users: 24
+  locust_workers: 4

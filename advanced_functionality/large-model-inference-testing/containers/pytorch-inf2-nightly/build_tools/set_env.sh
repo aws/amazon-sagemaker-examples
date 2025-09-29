@@ -1,4 +1,0 @@
-#!/usr/bin/env bash
-
-export IMAGE_NAME=djl-serving
-export IMAGE_TAG=pytorch-inf2-nightly

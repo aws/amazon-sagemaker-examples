@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 
 export IMAGE_NAME=tritonserver-vllm-neuronx
-export IMAGE_TAG=507e4dc-0.6.6post1
+export IMAGE_TAG=2.49.0-0.9.0.1-2.22.0

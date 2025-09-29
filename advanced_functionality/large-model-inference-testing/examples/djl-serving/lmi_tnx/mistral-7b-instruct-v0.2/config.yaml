@@ -1,0 +1,38 @@
+huggingface:
+  model: "mistralai/Mistral-7B-Instruct-v0.2"
+  revision: "41b61a33a2483885c981aa79e0df6b32407ed873"
+  download: true
+djl:
+  option.entryPoint: "djl_python.transformers_neuronx"
+  option.tensor_parallel_degree: 8
+  option.amp: "f16"
+  option.n_positions: 8192
+  option.model_loading_timeout: 1800
+  option.rolling_batch: "auto"
+  option.rolling_batch_strategy: "continuous_batching"
+  option.max_rolling_batch_size: 8
+  option.output_formatter: "json"
+  option.trust_remote_code=: true
+sagemaker:
+  model:
+    name: "mistral-7b-instruct-v0-2-lmi-tnx"
+    container: "containers/djlserving-lmi-neuronx"
+  endpoint:
+    name: "mistral-7b-instruct-v0-2-lmi-tnx"
+    instance_type: "ml.inf2.48xlarge"
+    initial_instance_count: 1
+    variant_name: "test"
+    model_data_download_timeout_secs: 1800
+    container_startup_health_check_timeout_secs: 1200
+test:
+  module_name: "prompt_generator"
+  module_dir: "modules/inst-semeval2017"
+  prompt_generator: "PromptGenerator"
+  template: { "inputs": "", "parameters": { "do_sample": true, "max_new_tokens": 1024, "top_k": 50 }  }
+  template_keys: ["inputs"]
+  warmup_iters: 1
+  max_iters: 10
+  n_concurrent: 4
+  output_dir: "output"
+  locust_users: 24
+  locust_workers: 4
