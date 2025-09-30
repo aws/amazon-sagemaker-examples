@@ -212,7 +212,7 @@ def djl_model_package_to_s3(s3_client,
     return model_pkg_key
 
 
-def triton_model_package_to_s3(s3_client, 
+def generic_model_package_to_s3(s3_client, 
                             sm_model_name: str, 
                             config_path: str, 
                             s3_prefix:str, 

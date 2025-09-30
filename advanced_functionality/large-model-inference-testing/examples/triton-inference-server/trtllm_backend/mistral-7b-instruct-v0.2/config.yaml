@@ -1,0 +1,34 @@
+sagemaker:
+  model:
+    name:  "mistral-7b-instruct-v0-2-tritonserver-trtllm"
+    container: "containers/tritonserver-trtllm"
+    tritonserver: true
+    env: 
+      HF_HOME: "/tmp"
+      MODEL_REPO: "/tmp/model_repo"
+      BUILD_SCRIPT: "/opt/ml/model/build_engine.sh"
+      MODEL_ID: "mistralai/Mistral-7B-Instruct-v0.2"
+      MODEL_NAME: "model"
+      TRITON_LAUNCH_SCRIPT: "/opt/tensorrtllm_backend/scripts/launch_triton_server.py"
+      TRTLLM_CONVERT_CKPT_SCRIPT: "/opt/TensorRT-LLM/examples/llama/convert_checkpoint.py"
+      OMP_NUM_THREADS: "16"
+      TENSOR_PARALLEL_SIZE: "8"
+  endpoint:
+    name:  "mistral-7b-instruct-v0-2-tritonserver-trtllm"
+    instance_type: "ml.g5.48xlarge"
+    initial_instance_count: 1
+    variant_name: "test"
+    model_data_download_timeout_secs: 1200
+    container_startup_health_check_timeout_secs: 1200
+test:
+  module_name: "prompt_generator"
+  module_dir: "modules/inst-semeval2017"
+  prompt_generator: "PromptGenerator"
+  template: { "text_input": "" , "max_tokens": 2048 }
+  template_keys: ["text_input"]
+  warmup_iters: 1
+  n_concurrent: 4
+  max_iters: 10
+  output_dir: "output"
+  locust_users: 32
+  locust_workers: 4
