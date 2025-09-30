@@ -12,10 +12,14 @@ RUN cd /opt/TensorRT-LLM && GIT_LFS_SKIP_SMUDGE=1 git reset --hard 42a7b0922fc9e
 
 RUN pip3 install datasets==3.1.0 evaluate~=0.4.3 rouge_score~=0.1.2 sentencepiece~=0.2.0
 
+RUN git clone https://github.com/triton-inference-server/tensorrtllm_backend.git /opt/tensorrtllm_backend
+RUN cd /opt/tensorrtllm_backend && git fetch origin ad209ced188cbae19c7041d968dd4e6d3800ece2
+RUN cd /opt/tensorrtllm_backend && git reset --hard ad209ced188cbae19c7041d968dd4e6d3800ece2
+
 COPY resources /opt/program
 RUN chmod u+x /opt/program/serve
 
-ENV PATH=/opt/program:opt/tritonserver/bin:$PATH
+ENV PATH=/opt/program:$PATH
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 

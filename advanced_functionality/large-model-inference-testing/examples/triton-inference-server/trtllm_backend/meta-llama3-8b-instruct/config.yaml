@@ -9,7 +9,7 @@ sagemaker:
       BUILD_SCRIPT: "/opt/ml/model/build_engine.sh"
       MODEL_ID: "meta-llama/Meta-Llama-3-8B-Instruct"
       MODEL_NAME: "model"
-      TRITON_LAUNCH_SCRIPT: "/opt/TensorRT-LLM/triton_backend/scripts/launch_triton_server.py"
+      TRITON_LAUNCH_SCRIPT: "/opt/tensorrtllm_backend/scripts/launch_triton_server.py"
       TRTLLM_CONVERT_CKPT_SCRIPT: "/opt/TensorRT-LLM/examples/llama/convert_checkpoint.py"
       OMP_NUM_THREADS: "16"
       TENSOR_PARALLEL_SIZE: "8"

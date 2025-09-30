@@ -10,7 +10,7 @@ RUN apt-get -y update && apt-get install -y --no-install-recommends \
 COPY resources /opt/program
 RUN chmod u+x /opt/program/serve
 
-ENV PATH=/opt/program:opt/tritonserver/bin:$PATH
+ENV PATH=/opt/program:$PATH
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 

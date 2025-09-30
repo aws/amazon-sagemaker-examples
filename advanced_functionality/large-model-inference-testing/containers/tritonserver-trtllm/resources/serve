@@ -6,8 +6,8 @@ import signal
 import subprocess
 import sys
 import re
-import time
-import shutil, stat
+import shutil
+import threading
 from tempfile import TemporaryDirectory
 from pathlib import Path
 from huggingface_hub import snapshot_download
@@ -128,6 +128,11 @@ def build_trtllm_engine():
     print(f"Invoking build script: {build_script}")
     subprocess.check_call(['bash', build_script])
 
+def print_output(pipe, prefix=''):
+    for line in iter(pipe.readline, ''):
+        print(f"{prefix}{line}", end='')
+    pipe.close()
+
 def start_server():
     build_trtllm_engine()
 
@@ -148,13 +153,6 @@ def start_server():
     subprocess.check_call(['ln', '-sf', '/dev/stderr', '/var/log/nginx/error.log'])
     nginx = subprocess.Popen(['nginx', '-c', '/opt/program/nginx.conf'])
 
-    # Give nginx a moment to start as a daemon
-    while nginx.poll() is not None:
-        time.sleep(1)
-    _, stderr = nginx.communicate()
-    if stderr:
-        print(f"nginx stderr: {stderr}")
-
     model_repo = os.getenv("MODEL_REPO", "/opt/ml/model/model_repo" )
     pids = [nginx.pid]
     
@@ -170,18 +168,40 @@ def start_server():
         model_name = os.getenv("MODEL_NAME", None)
         assert model_name, f"MODEL_NAME environment variable not defined"
         world_size = len(core_groups[i])
-        triton_launch_script = os.getenv("TRITON_LAUNCH_SCRIPT", "/opt/TensorRT-LLM/triton_backend/scripts/launch_triton_server.py")
-        server = subprocess.Popen(['python3', 
-                                   triton_launch_script,
-                                   f"--model_repo={model_repo}",
-                                   f"--tensorrt_llm_model_name={model_name}",
-                                   f"--world_size={world_size}",
-                                   f"--grpc_port={grpc}",
-                                   f"--http_port={http}",
-                                   f"--metrics_port={metrics}"], 
-                                   env=env_copy)
-        pids.append(server.pid)
-        print(f"server {i} pid: {server.pid}")
+        
+        triton_launch_script = os.getenv("TRITON_LAUNCH_SCRIPT", "/opt/tensorrtllm_backend/scripts/launch_triton_server.py")
+        assert os.path.exists(triton_launch_script) and os.path.isfile(triton_launch_script), f"File {triton_launch_script} not found!"
+        print(f"Invoking triton server launch script: {triton_launch_script}")
+        launcher = subprocess.Popen(['python3', 
+                triton_launch_script,
+                f"--model_repo={model_repo}",
+                f"--tensorrt_llm_model_name={model_name}",
+                f"--world_size={world_size}",
+                f"--grpc_port={grpc}",
+                f"--http_port={http}",
+                f"--metrics_port={metrics}"], 
+                env=env_copy,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                bufsize=1)
+
+        stdout_thread = threading.Thread(target=print_output, args=(launcher.stdout, f' Server {i} [STDOUT] '))
+        stderr_thread = threading.Thread(target=print_output, args=(launcher.stderr, f'Server {i} [STDERR] '))
+
+        stdout_thread.start()
+        stderr_thread.start()
+
+        # Wait for the launcher process to exit
+        launcher.wait()
+
+        # Wait for output threads to finish processing remaining output
+        stdout_thread.join()
+        stderr_thread.join()
+
+        # Get the exit code
+        exit_code = launcher.returncode
+        print(f"Triton Inference Server launcher process exited with code: {exit_code}")
 
     signal.signal(signal.SIGTERM, lambda a, b: sigterm_handler(*pids))
 
