@@ -6,4 +6,4 @@ These examples are a diverse collection of end-to-end notebooks that demonstrate
 
 - [Customer Churn Prediction with Amazon SageMaker Autopilot](sm-autopilot_customer_churn.ipynb)
 - [Housing Price Prediction with Amazon SageMaker Autopilot](sm-autopilot_linear_regression_california_housing.ipynb)
-- [Time-Series Forecasting with Amazon SageMaker Autopilot](sm-sm-autopilot_time_series_forecasting.ipynb)
+- [Time-Series Forecasting with Amazon SageMaker Autopilot](sm-autopilot_time_series_forecasting.ipynb)
