@@ -2,7 +2,6 @@ sagemaker:
   model:
     name: "meta-llama-3-8b-instruct-tritonserver-trtllm"
     container: "containers/tritonserver-trtllm"
-    tritonserver: true
     env: 
       HF_HOME: "/tmp"
       MODEL_REPO: "/tmp/model_repo"

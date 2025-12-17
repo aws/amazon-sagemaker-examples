@@ -2,7 +2,6 @@ sagemaker:
   model:
     name: "mistral-7b-instruct-v0-2-tritonserver-vllm"
     container: "containers/tritonserver-vllm"
-    tritonserver: true
     env: 
       HF_HOME: "/tmp"
       MODEL_REPO: "/opt/ml/model/model_repo"
