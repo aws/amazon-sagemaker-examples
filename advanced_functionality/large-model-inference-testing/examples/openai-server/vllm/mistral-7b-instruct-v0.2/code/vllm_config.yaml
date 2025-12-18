@@ -1,0 +1,12 @@
+tokenizer: "mistralai/Mistral-7B-Instruct-v0.2"
+model-impl: auto
+enable-log-requests: false
+tensor-parallel-size: 8
+max-num-seqs: 8
+dtype: auto
+max-model-len: 8192
+gpu-memory-utilization: 0.95
+enforce-eager: false
+enable-prefix-caching: false
+enable-chunked-prefill: true
+max-num-batched-tokens: 8192

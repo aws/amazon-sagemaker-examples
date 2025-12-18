@@ -60,7 +60,17 @@ def __generate(client, endpoint_name:str, data: dict):
     generated_text = ''
     
     if json_obj_type is dict:
-        if 'outputs' in json_obj:
+        # Handle OpenAI chat completions format
+        if 'choices' in json_obj and len(json_obj['choices']) > 0:
+            choice = json_obj['choices'][0]
+            if 'message' in choice and 'content' in choice['message']:
+                generated_text = choice['message']['content']
+            elif 'text' in choice:
+                generated_text = choice['text']
+            else:
+                raise RuntimeError(f"Unexpected output: {json_obj}")
+        # Handle other formats
+        elif 'outputs' in json_obj:
             output = json_obj['outputs']
         elif 'generated_text' in json_obj:
             output = json_obj['generated_text']
@@ -68,9 +78,12 @@ def __generate(client, endpoint_name:str, data: dict):
             output = json_obj['text_output']
         else:
             raise RuntimeError(f"Unexpected output: {json_obj}")
-        if type(output) is list:
-            output = output[0]
-        generated_text = output
+        
+        # Process output if not already set by OpenAI format
+        if not generated_text:
+            if type(output) is list:
+                output = output[0]
+            generated_text = output
     else:
         generated_text = json_obj
 

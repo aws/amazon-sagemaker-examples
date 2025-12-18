@@ -1,0 +1,28 @@
+sagemaker:
+  model:
+    name: "meta-llama-3-8b-instruct-openai-server-vllm"
+    container: "containers/openai-server-vllm"
+    env: 
+      HF_HOME: "/tmp"
+      MODEL_ID: "meta-llama/Meta-Llama-3-8B-Instruct"
+      OMP_NUM_THREADS: "16"
+      VLLM_CONFIG: "/opt/ml/model/vllm_config.yaml"
+  endpoint:
+    name: "meta-llama-3-8b-instruct-openai-server-vllm"
+    instance_type: "ml.g5.48xlarge"
+    initial_instance_count: 1
+    variant_name: "test"
+    model_data_download_timeout_secs: 1200
+    container_startup_health_check_timeout_secs: 1200
+test:
+  module_name: "llama3_prompt_generator"
+  module_dir: "modules/inst-semeval2017"
+  prompt_generator: "PromptGenerator"
+  template: { "model": "meta-llama/Meta-Llama-3-8B-Instruct", "max_tokens": 2048, "top_k": 50, "messages": [ { "role": "user", "content": [ {"type" : "text", "text": ""} ] } ] }
+  template_keys: ["messages.[0].content.[0].text"]
+  warmup_iters: 1
+  n_concurrent: 4
+  max_iters: 10
+  output_dir: "output"
+  locust_users: 32
+  locust_workers: 4

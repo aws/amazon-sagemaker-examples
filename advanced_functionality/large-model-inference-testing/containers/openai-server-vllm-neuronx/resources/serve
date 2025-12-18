@@ -1,0 +1,167 @@
+#!/usr/bin/env python3
+
+import copy
+import os
+import signal
+import subprocess
+import sys
+import yaml
+
+from jinja2 import Template
+import re
+
+def get_conf(num_servers):
+
+    template = Template("""
+    worker_processes 1;
+    daemon off; # Prevent forking
+
+    pid /tmp/nginx.pid;
+    error_log /var/log/nginx/error.log;
+
+    events {
+      # defaults
+    }
+
+    http {
+        include /etc/nginx/mime.types;
+        default_type application/octet-stream;
+        access_log /var/log/nginx/access.log combined;
+        
+        upstream backend {
+            {%- for server in servers %}
+            server localhost:{{ server.port }};
+            {%- endfor %}
+        }
+
+        server {
+            listen 8080 deferred;
+            client_max_body_size 5m;
+
+            keepalive_timeout 5;
+            proxy_read_timeout 1200s;
+            
+            location / {
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header Host $http_host;
+                proxy_redirect off;
+                
+                rewrite ^/invocations$ /v1/chat/completions break; 
+                rewrite ^/ping$ /health break; 
+                proxy_pass http://backend;
+            }
+        }
+    }
+    """)
+
+    servers = [ { "port": (8000+x*128)} for x in range(num_servers) ]
+    data = { "servers": servers}
+
+    nginx_conf = template.render(data)
+    server_ports = [ {"http": (8000+128*x)} for x in range(num_servers)]
+
+    return nginx_conf, server_ports
+
+def get_core_groups():
+    """Lists files in a directory that start with a given prefix."""
+
+    directory = "/dev"
+    prefix = "neuron"
+    files = []
+    for filename in os.listdir(directory):
+        if re.search(f'^{prefix}\\d+', filename):
+            files.append(filename)
+    
+    neuron_cores_per_device = int(os.environ.get("NEURON_CORES_PER_DEVICE", 2))
+    num_cores = len(files)*neuron_cores_per_device
+    model_server_cores = int(os.environ.get("TENSOR_PARALLEL_SIZE", num_cores))
+     
+    cores = [ x for x in range(num_cores)]
+    core_groups = [cores[x:x+model_server_cores] for x in range(0, len(cores), model_server_cores)]
+    core_groups = core_groups[: (num_cores// model_server_cores)]
+    return core_groups
+
+def sigterm_handler(*pids):
+    for pid in pids:
+        try:
+            os.kill(pid, signal.SIGTERM)
+        except OSError:
+            pass
+
+    sys.exit(0)
+
+def start_server():
+    core_groups = get_core_groups()
+    print(f"Inference server core groups; {core_groups}")
+    num_servers = len(core_groups)
+
+    nginx_conf, openai_server_ports = get_conf(num_servers=num_servers)
+    print(f"nginx.conf: {nginx_conf}")
+    print(f"openai_server ports: {openai_server_ports}")
+
+    with open("/opt/program/nginx.conf", "w+" ) as f:
+        f.write(nginx_conf)
+
+    # link the log streams to stdout/err so they will be logged to the container logs
+    subprocess.check_call(['ln', '-sf', '/dev/stdout', '/var/log/nginx/access.log'])
+    subprocess.check_call(['ln', '-sf', '/dev/stderr', '/var/log/nginx/error.log'])
+    nginx = subprocess.Popen(['nginx', '-c', '/opt/program/nginx.conf'])
+    
+    pids = [nginx.pid]
+    
+    neuron_compiled_artifacts = os.getenv("NEURON_COMPILED_ARTIFACTS", None)
+    for i, ports in enumerate(openai_server_ports):
+        env_copy = copy.deepcopy(os.environ)
+        group = core_groups[i]
+        env_copy['NEURON_RT_NUM_CORES']=f"{len(group)}"
+        env_copy['NEURON_RT_ROOT_COMM_ID']=f"localhost:{48620+i}"
+        if neuron_compiled_artifacts is not None:
+            env_copy["NEURON_COMPILED_ARTIFACTS"] = f"{neuron_compiled_artifacts}-{i}"
+        http = ports['http']
+        print(f"server instance: {i}: http: {http}")
+        print(f"server instance: {i}: NEURON_RT_NUM_CORES={env_copy['NEURON_RT_NUM_CORES']}")
+        
+        vllm_config = os.getenv("VLLM_CONFIG", None)
+        assert vllm_config is not None, "VLLM_CONFIG env variarable is required"
+        assert os.path.isfile(vllm_config), f"{vllm_config} does not exist"
+
+        model_id = os.getenv("MODEL_ID", None)
+        assert model_id is not None, "MODEL_ID env variarable is required"
+
+        cmd = [
+            "vllm",
+            "serve",
+            f"{model_id}",
+            "--host=0.0.0.0",
+            f"--port={http}"
+        ]
+
+        with open(vllm_config, 'r') as f:
+            config = yaml.safe_load(f)
+
+        for key, value in config.items():
+            if value is True:
+                cmd.append(f'--{key}')
+            elif value is not False and value is not None:
+                cmd.append(f'--{key}={value}')
+
+        print(f"server instance: {i}: cmd: {cmd}")
+        server = subprocess.Popen(cmd, env=env_copy)
+        pids.append(server.pid)
+
+    signal.signal(signal.SIGTERM, lambda a, b: sigterm_handler(*pids))
+
+    # Exit the inference server upon exit of either subprocess
+    pids = set(pids)
+    while True:
+        pid, _ = os.wait()
+        if pid in pids:
+            break
+
+    sigterm_handler(nginx.pid)
+    print('Inference server exiting')
+
+# The main routine to invoke the start function.
+
+if __name__ == '__main__':
+    start_server()
