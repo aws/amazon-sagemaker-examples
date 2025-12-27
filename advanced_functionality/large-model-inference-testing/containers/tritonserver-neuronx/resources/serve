@@ -5,6 +5,8 @@ import os
 import signal
 import subprocess
 import sys
+import time
+import requests
 
 from jinja2 import Template
 import re
@@ -53,7 +55,7 @@ def get_conf(num_servers):
     }
     """)
 
-    servers = [ { "port": (8000+x*32)} for x in range(num_servers) ]
+    servers = [ { "port": (8000+x*128)} for x in range(num_servers) ]
     data = { "servers": servers}
 
     nginx_conf = template.render(data)
@@ -71,7 +73,8 @@ def get_core_groups():
         if re.search(f'^{prefix}\\d+', filename):
             files.append(filename)
     
-    num_cores = len(files)*2
+    neuron_cores_per_device = int(os.environ.get("NEURON_CORES_PER_DEVICE", 2))
+    num_cores = len(files)*neuron_cores_per_device
     model_server_cores = int(os.environ.get("TENSOR_PARALLEL_SIZE", num_cores))
      
     cores = [ x for x in range(num_cores)]
@@ -88,6 +91,26 @@ def sigterm_handler(*pids):
             pass
     
     sys.exit(0)
+
+def wait_for_triton_ready(http_port, timeout=1800):
+    """Wait for Triton server to be ready by polling the health endpoint."""
+    print(f"Waiting for Triton server on port {http_port} to be ready...")
+    start_time = time.time()
+    
+    while time.time() - start_time < timeout:
+        try:
+            # Triton health endpoints: /v2/health/ready or /v2/health/live
+            response = requests.get(f"http://localhost:{http_port}/v2/health/ready", timeout=5)
+            if response.status_code == 200:
+                print(f"Triton server on port {http_port} is ready!")
+                return True
+        except (requests.ConnectionError, requests.Timeout):
+            pass
+        
+        time.sleep(5)
+    
+    print(f"Timeout waiting for Triton server on port {http_port}")
+    return False
 
 def start_server():
     core_groups = get_core_groups()
@@ -113,13 +136,16 @@ def start_server():
     for i, ports in enumerate(triton_server_ports):
         env_copy = copy.deepcopy(os.environ)
         group = core_groups[i]
-        env_copy['NEURON_RT_VISIBLE_CORES']=f"{group[0]}-{group[-1]}"
+        env_copy['NEURON_RT_NUM_CORES']=f"{len(group)}"
         env_copy['NEURON_RT_ROOT_COMM_ID']=f"localhost:{48620+i}"
+        
         http = ports['http']
         grpc = ports['grpc']
         metrics = ports['metrics']
         print(f"server instance: {i}: http: {http}, grpc: {grpc}, metric: {metrics}")
-        print(f"server instance: {i}: NEURON_RT_VISIBLE_CORES={env_copy['NEURON_RT_VISIBLE_CORES']}")
+        print(f"server instance: {i}: NEURON_RT_NUM_CORES={env_copy['NEURON_RT_NUM_CORES']}")
+        print(f"server instance: {i}: env={env_copy}")
+        
         server = subprocess.Popen(['tritonserver', 
                                    f"--model-repository={model_repo}",
                                    f"--grpc-port={grpc}",
@@ -129,7 +155,16 @@ def start_server():
                                    stderr=subprocess.STDOUT,
                                    env=env_copy)
         pids.append(server.pid)
-        print(f"server {i} pid: {server.pid}")
+        
+        # Wait for this instance to be ready before starting the next one
+        if not wait_for_triton_ready(http):
+            print(f"Failed to start Triton server instance {i}, stopping...")
+            sigterm_handler(*pids)
+            sys.exit(1)
+        
+        print(f"Triton server instance {i} is running, starting next instance...")
+
+    print("All Triton server instances started successfully!")
 
     signal.signal(signal.SIGTERM, lambda a, b: sigterm_handler(*pids))
 
@@ -142,6 +177,7 @@ def start_server():
             break
 
     sigterm_handler(nginx.pid)
+    print('Inference server exiting')
 
 # The main routine to invoke the start function.
 

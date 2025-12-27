@@ -6,6 +6,8 @@ import signal
 import subprocess
 import sys
 import yaml
+import time
+import requests
 
 from jinja2 import Template
 import re
@@ -90,6 +92,25 @@ def sigterm_handler(*pids):
 
     sys.exit(0)
 
+def wait_for_server_ready(port, timeout=1800):
+    """Wait for VLLM server to be ready by polling the health endpoint."""
+    print(f"Waiting for server on port {port} to be ready...")
+    start_time = time.time()
+    
+    while time.time() - start_time < timeout:
+        try:
+            response = requests.get(f"http://localhost:{port}/health", timeout=5)
+            if response.status_code == 200:
+                print(f"Server on port {port} is ready!")
+                return True
+        except (requests.ConnectionError, requests.Timeout):
+            pass
+        
+        time.sleep(5)
+    
+    print(f"Timeout waiting for server on port {port}")
+    return False
+
 def start_server():
     core_groups = get_core_groups()
     print(f"Inference server core groups; {core_groups}")
@@ -108,15 +129,11 @@ def start_server():
     nginx = subprocess.Popen(['nginx', '-c', '/opt/program/nginx.conf'])
     
     pids = [nginx.pid]
-    
-    neuron_compiled_artifacts = os.getenv("NEURON_COMPILED_ARTIFACTS", None)
     for i, ports in enumerate(openai_server_ports):
         env_copy = copy.deepcopy(os.environ)
         group = core_groups[i]
         env_copy['NEURON_RT_NUM_CORES']=f"{len(group)}"
-        env_copy['NEURON_RT_ROOT_COMM_ID']=f"localhost:{48620+i}"
-        if neuron_compiled_artifacts is not None:
-            env_copy["NEURON_COMPILED_ARTIFACTS"] = f"{neuron_compiled_artifacts}-{i}"
+        env_copy['NEURON_RT_ROOT_COMM_ID']=f"localhost:{48620+i}" 
         http = ports['http']
         print(f"server instance: {i}: http: {http}")
         print(f"server instance: {i}: NEURON_RT_NUM_CORES={env_copy['NEURON_RT_NUM_CORES']}")
@@ -146,9 +163,20 @@ def start_server():
                 cmd.append(f'--{key}={value}')
 
         print(f"server instance: {i}: cmd: {cmd}")
+        print(f"server instance: {i}: env={env_copy}")
         server = subprocess.Popen(cmd, env=env_copy)
         pids.append(server.pid)
+        
+        # Wait for this instance to be ready before starting the next one
+        if not wait_for_server_ready(http):
+            print(f"Failed to start server instance {i}, stopping...")
+            sigterm_handler(*pids)
+            sys.exit(1)
+        
+        print(f"Server instance {i} is running, starting next instance...")
 
+    print("All server instances started successfully!")
+    
     signal.signal(signal.SIGTERM, lambda a, b: sigterm_handler(*pids))
 
     # Exit the inference server upon exit of either subprocess
