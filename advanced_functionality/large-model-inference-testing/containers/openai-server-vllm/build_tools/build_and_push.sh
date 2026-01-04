@@ -41,7 +41,10 @@ then
 fi
 
 
-docker build  -t ${image} $DIR/..
+# docker build  -t ${image} $DIR/..
+# the --provenance=false flag is essential because SageMaker's model-hosting infrastructure 
+# does not fully support the modern OCI (Open Container Initiative) manifest indices that Docker Buildx creates by default. 
+docker buildx build --provenance=false --output type=docker -t ${image} $DIR/..
 docker tag ${image} ${fullname}
 
 # Get the login command from ECR and execute it directly
