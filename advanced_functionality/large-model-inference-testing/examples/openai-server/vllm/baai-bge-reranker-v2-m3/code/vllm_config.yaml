@@ -1,0 +1,4 @@
+served_model_name: "bge-reranker-v2-m3"
+tokenizer: "BAAI/bge-reranker-v2-m3"
+task: "score"
+gpu_memory_utilization: 0.5

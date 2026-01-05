@@ -42,8 +42,8 @@ class EndpointClient:
     def __inference_request(self, request_meta:dict):
         prompt = next(self.prompt_generator)
         data = fill_template(template=self.prompt_template, template_keys=self.prompt_template_keys, inputs=prompt)
-        result = inference(self.smr_client, self.endpoint_name, data=data)
-        request_meta['response'] = {"prompt": data, "output": result['output']}
+        result = inference(self.smr_client, self.endpoint_name, data=data, task=self.task_name)
+        request_meta['response'] = {"prompt": data, "output": result}
 
     def send(self):
 

@@ -1,0 +1,26 @@
+
+sagemaker:
+  model:
+    name: "baai-bge-reranker-v2-m3-openai-server-vllm"
+    container: "containers/openai-server-vllm"
+    env: 
+      HF_HOME: "/tmp"
+      MODEL_ID: "BAAI/bge-reranker-v2-m3"
+      VLLM_CONFIG: "/opt/ml/model/vllm_config.yaml"
+  endpoint:
+    name: "baai-bge-reranker-large-v2-m3-openai-server-vllm"
+    instance_type: "ml.g5.2xlarge"
+    initial_instance_count: 1
+    variant_name: "test"
+    model_data_download_timeout_secs: 300
+    container_startup_health_check_timeout_secs: 300
+test:
+  module_name: "reranking_pairs"
+  module_dir: "modules/ms-marco"
+  prompt_generator: "RerankerInputGenerator"
+  task_name: "rerank"
+  template: {"model": "bge-reranker-v2-m3", "query": "", "documents": []}
+  template_keys: ["query", "documents"]
+  warmup_iters: 1
+  max_iters: 10
+  output_dir: "output"

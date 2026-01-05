@@ -1,5 +1,6 @@
 import datasets
 import random
+import os
 
 class RerankerInputGenerator:
     """
@@ -24,6 +25,9 @@ class RerankerInputGenerator:
         
         # Create a mapping of queries to their passages for efficient sampling
         self._build_query_passage_mapping()
+
+        self.query_is_array = os.getenv("INFERENCE_SERVER", None) == "triton_inference_server" and \
+            os.getenv("INFERENCE_ENGINE", None) == "python"
     
     def _build_query_passage_mapping(self):
         """Build mapping from queries to available passages for efficient sampling"""
@@ -100,7 +104,10 @@ class RerankerInputGenerator:
                         candidates.append(random_passage)
             
             documents = candidates[:self.num_candidates_per_query]
-            yield [ [query], documents, [len(documents)] ]
+            if self.query_is_array:
+                query = [query]
+                
+            yield [ query, documents, [len(documents)] ]
 
 if __name__ == "__main__":
     # Example usage

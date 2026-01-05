@@ -59,7 +59,7 @@ def install_pip_package(package_name:str):
 
 def fill_template(template: dict, template_keys:list, inputs:list) -> dict:
         
-    assert len(template_keys) == len(inputs), f"template_keys: {template_keys}, prompts: {inputs}"
+    assert len(template_keys) <= len(inputs), f"template_keys: {template_keys}, prompts: {inputs}"
     for i, template_key in enumerate(template_keys):
         _template = template
         keys = template_key.split(".")

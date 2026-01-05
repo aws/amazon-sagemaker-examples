@@ -1,5 +1,6 @@
 import datasets
 import random
+import os
 
 class SequenceClassificationInputGenerator:
     """
@@ -26,6 +27,8 @@ class SequenceClassificationInputGenerator:
         
         # Prepare texts for classification
         self._prepare_texts()
+        self.text_is_array = os.getenv("INFERENCE_SERVER", None) == "triton_inference_server" and \
+            os.getenv("INFERENCE_ENGINE", None) == "python"
     
     def _prepare_texts(self):
         """Filter and prepare texts from the dataset"""
@@ -62,11 +65,14 @@ class SequenceClassificationInputGenerator:
         for idx in indices:
             text = self.texts[idx]
             
+            if self.text_is_array:
+                text = [text]
+
             if self.include_labels:
                 label = self.labels[idx]
-                yield [[text], [label]]
+                yield [text, [label]]
             else:
-                yield [[text]]
+                yield [text]
 
 if __name__ == "__main__":
     # Example usage

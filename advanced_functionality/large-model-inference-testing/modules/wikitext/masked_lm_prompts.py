@@ -1,6 +1,7 @@
 import datasets
 import random
 import re
+import os
 
 class MaskedLMInputGenerator:
     """
@@ -29,6 +30,8 @@ class MaskedLMInputGenerator:
         
         # Filter and prepare texts
         self._prepare_texts()
+        self.text_is_array = os.getenv("INFERENCE_SERVER", None) == "triton_inference_server" and \
+            os.getenv("INFERENCE_ENGINE", None) == "python"
     
     def _prepare_texts(self):
         """Filter and prepare texts from the dataset"""
@@ -92,7 +95,9 @@ class MaskedLMInputGenerator:
         for text in shuffled_texts:
             # Create masked version
             masked_text = self._create_masked_text(text)
-            yield [[masked_text]]
+            if self.text_is_array:
+                masked_text = [masked_text]
+            yield [masked_text]
 
 if __name__ == "__main__":
     # Example usage

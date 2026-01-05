@@ -34,6 +34,14 @@ def get_conf(num_servers):
             {%- endfor %}
         }
 
+        # Map the Custom Header to the internal vLLM path
+        map $http_x_amzn_sagemaker_custom_attributes $openai_path {
+            default          "/v1/chat/completions";
+            "embeddings"     "/v1/embeddings";
+            "rerank"         "/v1/rerank";
+            "score"          "/v1/score";
+        }
+                        
         server {
             listen 8080 deferred;
             client_max_body_size 5m;
@@ -46,7 +54,7 @@ def get_conf(num_servers):
                 proxy_set_header Host $http_host;
                 proxy_redirect off;
                 
-                rewrite ^/invocations$ /v1/chat/completions break; 
+                rewrite ^/invocations$ $openai_path break; 
                 rewrite ^/ping$ /health break; 
                 proxy_pass http://backend;
             }

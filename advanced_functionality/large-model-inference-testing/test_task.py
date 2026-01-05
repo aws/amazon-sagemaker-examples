@@ -39,7 +39,8 @@ def test_task(model_id: str,
         task_args = {
             "test_spec": test_spec,
             "endpoint_name": endpoint_name,
-            "results_path": results_path
+            "results_path": results_path,
+            "task_name": task_name
         }
 
     os.makedirs(results_path, exist_ok=True)
@@ -138,7 +139,8 @@ def _test_text_generation(model_id:str,
 
 def _test_inference(test_spec: dict, 
                     endpoint_name:str, 
-                    results_path: str) -> None:
+                    results_path: str,
+                    task_name: str = "embeddings") -> None:
     
     pid = os.getpid()
     sm_runtime_client = boto3.client("runtime.sagemaker")
@@ -160,7 +162,7 @@ def _test_inference(test_spec: dict,
                 start_time = time.time()
                 data = fill_template(template=prompt_template, template_keys=prompt_template_keys, inputs=prompt)
                 
-                result = inference(sm_runtime_client, endpoint_name, data=data)
+                result = inference(sm_runtime_client, endpoint_name, data=data, task=task_name)
                 latency = time.time() - start_time
                     
                 count += 1
@@ -171,9 +173,8 @@ def _test_inference(test_spec: dict,
                 iter_count = count - warmup_iters
                 cumu_time += latency
                     
-                output = result["output"]
                 prompt = prompt[0] if len(prompt) == 1 else prompt
-                result = {"prompt": prompt, "output": output, "latency": latency}
+                result = {"prompt": prompt, "output": result, "latency": latency}
                 
                 results.write(json.dumps( result )+"\n")   
                 avg_latency = cumu_time/iter_count

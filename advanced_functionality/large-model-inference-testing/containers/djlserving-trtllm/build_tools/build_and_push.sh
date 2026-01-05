@@ -40,7 +40,7 @@ then
     aws ecr create-repository --region ${region} --repository-name "${image}" > /dev/null
 fi
 
-docker build  -t ${image} $DIR/..
+docker buildx build --provenance=false --output type=docker -t ${image} $DIR/..
 docker tag ${image} ${fullname}
 
 # Get the login command from ECR and execute it directly

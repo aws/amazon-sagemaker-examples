@@ -1,5 +1,6 @@
 import datasets
 import random
+import os
 
 class TokenClassificationInputGenerator:
     """
@@ -26,6 +27,8 @@ class TokenClassificationInputGenerator:
         
         # Prepare texts and labels for token classification
         self._prepare_texts()
+        self.text_is_array = os.getenv("INFERENCE_SERVER", None) == "triton_inference_server" and \
+            os.getenv("INFERENCE_ENGINE", None) == "python"
     
     def _prepare_texts(self):
         """Filter and prepare texts from the dataset"""
@@ -71,11 +74,14 @@ class TokenClassificationInputGenerator:
         for idx in indices:
             text = self.texts[idx]
             
+            if self.text_is_array:
+                text = [text]
+
             if self.include_labels:
                 labels = self.token_labels[idx]
-                yield [[text], [labels]]
+                yield [text, [labels]]
             else:
-                yield [[text]]
+                yield [text]
 
 if __name__ == "__main__":
     # Example usage

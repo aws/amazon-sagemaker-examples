@@ -35,6 +35,14 @@ def get_conf(num_servers):
             {%- endfor %}
         }
 
+        # Map the Custom Header to Triton's V2 Inference paths
+        map $http_x_amzn_sagemaker_custom_attributes $triton_v2_path {
+            default          "/v2/models/model/generate";
+            "embeddings"     "/v2/models/model/infer";
+            "rerank"         "/v2/models/model/infer";
+            "score"          "/v2/models/model/infer";
+        }
+                        
         server {
             listen 8080 deferred;
             client_max_body_size 5m;
@@ -47,7 +55,7 @@ def get_conf(num_servers):
                 proxy_set_header Host $http_host;
                 proxy_redirect off;
                 
-                rewrite ^/invocations$ /v2/models/model/generate break; 
+                rewrite ^/invocations$ $triton_v2_path break; 
                 rewrite ^/ping$ /v2/health/ready break; 
                 proxy_pass http://backend;
             }

@@ -1,15 +1,20 @@
 import datasets
+import os
 
 class TextInputGenerator:
 
     def __init__(self) -> None:
         # Using SQuAD dataset which doesn't require trust_remote_code=True
         self.dataset = datasets.load_dataset('squad', split='validation')
-    
+        self.context_is_array = os.getenv("INFERENCE_SERVER", None) == "triton_inference_server" and \
+            os.getenv("INFERENCE_ENGINE", None) == "python"
+        
     def __call__(self) -> list:
         for example in self.dataset:
             context = example["context"]
-            yield [[context]]
+            if self.context_is_array:
+                context = [context]
+            yield [context]
 
 if __name__ == "__main__":
     # Example usage
