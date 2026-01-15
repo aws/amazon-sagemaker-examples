@@ -1,0 +1,104 @@
+resources:
+  instance_count: 2
+  instance_type: ml.p4d.24xlarge
+  volume_size: 200
+git:
+  repo_url: 'https://github.com/pacman100/DHS-LLM-Workshop.git'
+  branch: main
+  commit: 0ba41561ce6ea16d3993069c03ec1dca3ab6769d
+pre_script: 
+  - set -e
+  - MASTER_ADDR_IP=$(getent ahosts $PET_MASTER_ADDR | grep STREAM | head -1 | awk '{print $1}')
+  - echo "MASTER_ADDR_IP=$MASTER_ADDR_IP"
+  - export NCCL_SOCKET_IFNAME=$SM_NETWORK_INTERFACE_NAME
+  - export NCCL_SOCKET_FAMILY=AF_INET
+  - cat > $HOME/accel_config.json <<EOF
+  - '{
+      "compute_environment": "LOCAL_MACHINE",
+      "debug": true,
+      "distributed_type": "FSDP",
+      "mixed_precision": "bf16",
+      "main_training_function": "main",
+      "num_machines": $PET_NNODES,
+      "num_processes": $((PET_NPROC_PER_NODE * PET_NNODES )),
+      "machine_rank": $PET_NODE_RANK,
+      "main_process_ip": "$MASTER_ADDR_IP",
+      "main_process_port": $PET_MASTER_PORT,
+      "fsdp_config": {
+        "fsdp_auto_wrap_policy": "TRANSFORMER_BASED_WRAP",
+        "fsdp_backward_prefetch": "BACKWARD_PRE",
+        "fsdp_cpu_ram_efficient_loading": true,
+        "fsdp_forward_prefetch": false,
+        "fsdp_offload_params": false,
+        "fsdp_sharding_strategy": "FULL_SHARD",
+        "fsdp_state_dict_type": "SHARDED_STATE_DICT",
+        "fsdp_sync_module_states": true,
+        "fsdp_use_orig_params": true
+      }
+    }'
+  - EOF
+  - pip3 install --upgrade pip
+  - pip3 install transformers==4.57.1 datasets==4.4.1 evaluate==0.4.6 torchao==0.14.1 accelerate==1.11.0
+  - pip3 install trl==0.11.0 peft==0.18.0 bitsandbytes==0.48.2
+  - mkdir -p $HOME/logs
+  - export OUTPUT_LOG=$HOME/logs/fsdp-sft.log
+  - export DISTRIBUTED_ARGS="--nproc_per_node $PET_NPROC_PER_NODE --nnodes $PET_NNODES --node_rank $PET_NODE_RANK --master_addr $PET_MASTER_ADDR --master_port $PET_MASTER_PORT"
+  - echo "DISTRIBUTED_ARGS=$DISTRIBUTED_ARGS"
+  - cd chat_assistant/sft/training
+  - cat $HOME/accel_config.json
+  - export OUTPUT_DIR="${SM_CHANNEL_CHECKPOINTS:-/opt/ml/checkpoints}"
+  - MODEL_PATH="${SM_CHANNEL_MODEL:-/tmp/model}"
+  - '[ -n "$S3_MODEL_PATH" ] && aws s3 cp --recursive "$S3_MODEL_PATH" "$MODEL_PATH" || : '
+train:
+  distribution: "torch"
+  env:
+    - name: HOME
+      value: $SM_OUTPUT_DATA_DIR
+    - name: NCCL_DEBUG
+      value: "WARN"
+    - name: FI_EFA_USE_DEVICE_RDMA
+      value: "1"
+    - name: FI_PROVIDER
+      value: "efa"
+    - name: FI_EFA_FORK_SAFE
+      value: "1"
+    - name: "RDMAV_FORK_SAFE"
+      value: "1"
+  command:
+      - accelerate
+  args:
+    - launch
+    - --config_file
+    - $HOME/accel_config.json
+    - train.py 
+    - --seed 100 
+    - --model_name_or_path $MODEL_PATH
+    - --dataset_name "smangrul/code-chat-assistant-v1" 
+    - --chat_template_format "none" 
+    - --add_special_tokens False 
+    - --append_concat_token False 
+    - --splits "train,test" 
+    - --max_seq_len 2048 
+    - --max_steps 500 
+    - --logging_steps 25 
+    - --log_level "info" 
+    - --eval_steps 100 
+    - --save_steps 250 
+    - --logging_strategy "steps" 
+    - --packing False 
+    - --learning_rate 5e-5 
+    - --lr_scheduler_type "cosine" 
+    - --weight_decay 0.01 
+    - --warmup_ratio 0.03 
+    - --max_grad_norm 1.0 
+    - --per_device_train_batch_size 1 
+    - --per_device_eval_batch_size 1 
+    - --gradient_accumulation_steps 1 
+    - --gradient_checkpointing True 
+    - --use_reentrant False 
+    - --dataset_text_field "content" 
+    - --use_flash_attn True
+    - --ddp_timeout 36000 
+    - --optim adamw_torch 
+    - --output_dir $OUTPUT_DIR
+    - '2>&1 | tee $OUTPUT_LOG' 

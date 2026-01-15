@@ -1,31 +1,32 @@
 resources:
   instance_count: 1
-  instance_type: ml.g5.48xlarge
+  instance_type: ml.p4d.24xlarge
   volume_size: 500
 pre_script: 
-  - SCRIPT_DIR=/NeMo/scripts/nlp_language_modeling/merge_lora_weights
+  - set -e
+  - pip install transformers==4.43.4
+  - SCRIPT_DIR=/opt/NeMo/scripts/nlp_language_modeling/merge_lora_weights
   - cd $SCRIPT_DIR
-  - mkdir -p $LOG_ROOT
-  - OUTPUT_LOG=$LOG_ROOT/merge_peft.log
-  - PATH_TO_BASE_MODEL=$MODEL_PATH/ckpt.nemo
+  - mkdir -p $HOME/logs
+  - OUTPUT_LOG=$HOME/logs/merge_peft.log
+  - CHECKPOINT_DIR="${SM_CHANNEL_CHECKPOINTS:-/opt/ml/checkpoints}"
+  - PATH_TO_BASE_MODEL=$CHECKPOINT_DIR/ckpt.nemo
   - echo "PATH_TO_BASE_MODEL=$PATH_TO_BASE_MODEL"
-  - PATH_TO_PEFT_MODEL=$LOG_ROOT/nemo_experiments/$EXP_NAME/checkpoints/$EXP_NAME.nemo
+  - PATH_TO_PEFT_MODEL=$CHECKPOINT_DIR/nemo_experiments/checkpoints/${EXP_NAME}_fixed.nemo
   - echo "PATH_TO_PEFT_MODEL=$PATH_TO_PEFT_MODEL"
-  - PATH_TO_MERGED_MODEL=$LOG_ROOT/nemo_experiments/$EXP_NAME/checkpoints/merged_model.nemo
+  - PATH_TO_MERGED_MODEL=$CHECKPOINT_DIR/merged_model.nemo
   - echo "PATH_TO_MERGED_MODEL=$PATH_TO_MERGED_MODEL"
 train:
   env:
-    - name: LOG_ROOT
-      value: $SM_CHANNEL_EFS/home/$RELEASE_NAME/logs
-    - name: MODEL_PATH
-      value: "$SM_CHANNEL_FSX/huggingface/models/$HF_MODEL_ID/$HF_MODEL_REVISION"
+    - name: HOME
+      value: $SM_OUTPUT_DATA_DIR
     - name: EXP_NAME
-      value: peft_dolphin
+      value: peft
   command:
     - python
   args:
     - merge.py
-    - trainer.accelerator=cpu
+    - trainer.accelerator=gpu
     - gpt_model_file=$PATH_TO_BASE_MODEL
     - lora_model_path=$PATH_TO_PEFT_MODEL
     - merged_model_path=$PATH_TO_MERGED_MODEL

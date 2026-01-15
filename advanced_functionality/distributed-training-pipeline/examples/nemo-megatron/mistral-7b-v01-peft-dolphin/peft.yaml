@@ -3,17 +3,20 @@ resources:
   instance_type: ml.p4d.24xlarge
   volume_size: 400
 pre_script: 
+  - set -e
   - export DISTRIBUTED_ARGS="--nproc_per_node $PET_NPROC_PER_NODE --nnodes $PET_NNODES --node_rank $PET_NODE_RANK --master_addr $PET_MASTER_ADDR --master_port $PET_MASTER_PORT"
   - echo "DISTRIBUTED_ARGS=$DISTRIBUTED_ARGS"
-  - export LOGS_DIR=$LOG_ROOT/$PET_NODE_RANK
-  - mkdir -p $LOGS_DIR
-  - export OUTPUT_LOG=$LOGS_DIR/peft.log
-  - MODEL="$MODEL_PATH/ckpt.nemo"
+  - mkdir -p $HOME/logs
+  - export OUTPUT_LOG=$HOME/logs/peft.log
+  - CHECKPOINT_DIR="${SM_CHANNEL_CHECKPOINTS:-/opt/ml/checkpoints}"
+  - EXP_DIR="$SM_OUTPUT_INTERMEDIATE_DIR/nemo_experiments"
+  - MODEL="$CHECKPOINT_DIR/ckpt.nemo" 
+  - '[ -n "$S3_DATA_PATH" ] && aws s3 cp --recursive "$S3_DATA_PATH/" /tmp/ || cp -r "$SM_CHANNEL_DATA"/* /tmp/'
+  - echo "Verifying files in /tmp/:" && ls -al /tmp/
   - DATASET="dolphin"
-  - TRAIN_DS="[$DATA_ROOT/${DATASET}_train.jsonl]"
-  - VALID_DS="[$DATA_ROOT/${DATASET}_valid.jsonl]"
-  - TEST_DS="[$DATA_ROOT/${DATASET}_test.jsonl]"
-  - TEST_NAMES="[${DATASET}]"
+  - (ls -al /tmp/${DATASET}_train.jsonl && ls -al /tmp/${DATASET}_valid.jsonl) || ( echo "Missing Data" && exit 1)
+  - TRAIN_DS="[/tmp/${DATASET}_train.jsonl]"
+  - VALID_DS="[/tmp/${DATASET}_valid.jsonl]"
   - SCHEME="lora"
   - CONCAT_SAMPLING_PROBS="[1.0]"
   - TP_SIZE=8
@@ -50,7 +53,7 @@ pre_script:
     exp_manager.name=$EXP_NAME 
     exp_manager.create_wandb_logger=False
     exp_manager.checkpoint_callback_params.mode=min
-    exp_manager.explicit_log_dir=$LOG_ROOT/nemo_experiments/$EXP_NAME
+    exp_manager.explicit_log_dir=$EXP_DIR
     exp_manager.resume_if_exists=True
     exp_manager.resume_ignore_no_checkpoint=True
     exp_manager.create_checkpoint_callback=True
@@ -61,31 +64,29 @@ pre_script:
     exp_manager.early_stopping_callback_params.patience=3
     exp_manager.early_stopping_callback_params.min_delta=0.001
     model.save_nemo_on_validation_end=False"
-  - SCRIPT_DIR=/NeMo/examples/nlp/language_modeling/tuning
-  - cd $HOME
-  - 'if [ "${PET_NODE_RANK}" -eq "0" ]; then rm $DATA_ROOT/${DATASET}*.idx.* ; fi'
-  - 'if [ -d $LOG_ROOT/nemo_experiments/$EXP_NAME/checkpoints ]; then rm -rf $LOG_ROOT/nemo_experiments/$EXP_NAME/checkpoints; fi'
+  - SCRIPT_DIR=/opt/NeMo/examples/nlp/language_modeling/tuning
+  - export NCCL_SOCKET_IFNAME=$SM_NETWORK_INTERFACE_NAME
+  - export NCCL_SOCKET_FAMILY=AF_INET
+post_script:
+  - echo "Copying $EXP_DIR to $CHECKPOINT_DIR"
+  - cp -r ${EXP_DIR} $CHECKPOINT_DIR/
 train:
   distribution: "torch"
   env:
     - name: HOME
-      value: /tmp
-    - name: TMPDIR
-      value: /tmp
-    - name: TMP
-      value: /tmp
-    - name: MODEL_PATH
-      value: "$SM_CHANNEL_FSX/huggingface/models/$HF_MODEL_ID/$HF_MODEL_REVISION"
-    - name: LOG_ROOT
-      value: "$SM_CHANNEL_EFS/home/$RELEASE_NAME/logs"
-    - name: DATA_ROOT
-      value: "$SM_CHANNEL_FSX/home/$RELEASE_NAME/data"
-    - name: NCCL_SOCKET_IFNAME 
-      value: "eth0"
-    - name: NCCL_DEBUG 
-      value: "WARN"
+      value: $SM_OUTPUT_DATA_DIR
     - name: EXP_NAME
-      value: "peft_dolphin"
+      value: peft
+    - name: NCCL_DEBUG
+      value: "WARN"
+    - name: FI_EFA_USE_DEVICE_RDMA
+      value: "1"
+    - name: FI_PROVIDER
+      value: "efa"
+    - name: FI_EFA_FORK_SAFE
+      value: "1"
+    - name: "RDMAV_FORK_SAFE"
+      value: "1"
   command:
     -  "torchrun"
   args: 

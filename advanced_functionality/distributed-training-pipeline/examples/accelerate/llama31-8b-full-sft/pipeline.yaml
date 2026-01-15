@@ -1,0 +1,12 @@
+huggingface:
+  model: "meta-llama/Llama-3.1-8B"
+  revision: "d04e592bb4f6aa9cfee91e2e20afa771667e1d4b"
+  tensors: true
+pipeline:
+  name: "accelerate-llama31-8b-full-sft"
+  version: "v1"
+  container: "accelerate"
+  steps:
+    - name: finetune
+      description: "Full supervised fine tune model using Accelerate with FSDP"
+      config: finetune.yaml

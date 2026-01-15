@@ -1,32 +1,29 @@
 resources:
   instance_count: 1
-  instance_type: ml.g5.48xlarge
+  instance_type: ml.p4d.24xlarge
   volume_size: 500
 pre_script: 
-  - SCRIPT_DIR=/NeMo/scripts/checkpoint_converters
+  - set -e
+  - SCRIPT_DIR=/opt/NeMo/scripts/checkpoint_converters
   - cd $SCRIPT_DIR
-  - mkdir -p $LOG_ROOT
-  - OUTPUT_LOG=$LOG_ROOT/nemo_to_hf.log
-  - TMP_OUTPUT_PATH=/tmp/$EXP_NAME
-  - PATH_TO_MERGED_MODEL=$LOG_ROOT/nemo_experiments/$EXP_NAME/checkpoints/merged_model.nemo
+  - mkdir -p $HOME/logs
+  - OUTPUT_LOG=$HOME/logs/nemo_to_hf.log
+  - HF_MODEL_PATH=$SM_MODEL_DIR
+  - MODEL_PATH="${SM_CHANNEL_MODEL:-/tmp/model}"
+  - '[ -n "$S3_MODEL_PATH" ] && aws s3 cp --recursive "$S3_MODEL_PATH" "$MODEL_PATH" || : '
+  - CHECKPOINT_DIR="${SM_CHANNEL_CHECKPOINTS:-/opt/ml/checkpoints}"
+  - PATH_TO_MERGED_MODEL=$CHECKPOINT_DIR/merged_model.nemo
   - echo "PATH_TO_MERGED_MODEL=$PATH_TO_MERGED_MODEL"
-post_script:
-  - cp -r $TMP_OUTPUT_PATH $MODEL_PATH/
 train:
   env:
-    - name: LOG_ROOT
-      value: $SM_CHANNEL_EFS/home/$RELEASE_NAME/logs
-    - name: MODEL_PATH
-      value: "$SM_CHANNEL_FSX/huggingface/models/$HF_MODEL_ID/$HF_MODEL_REVISION"
-    - name: EXP_NAME
-      value: peft_dolphin
+    - name: HOME
+      value: $SM_OUTPUT_DATA_DIR
   command:
     - python3
   args:
-    - convert_llama_nemo_to_hf.py
+    - convert_nemo_llama_to_hf.py
     - --input_name_or_path=$PATH_TO_MERGED_MODEL
-    - --output_path=$TMP_OUTPUT_PATH/model.bin
+    - --output_path=$HF_MODEL_PATH/model.bin
     - --hf_input_path=$MODEL_PATH
-    - --hf_output_path=$TMP_OUTPUT_PATH
-    - --cpu-only
+    - --hf_output_path=$HF_MODEL_PATH
     - '2>&1 | tee $OUTPUT_LOG'

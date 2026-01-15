@@ -3,21 +3,26 @@ resources:
   instance_type: ml.p4d.24xlarge
   volume_size: 400
 pre_script: 
+  - set -e
   - export DISTRIBUTED_ARGS="--nproc_per_node $PET_NPROC_PER_NODE --nnodes $PET_NNODES --node_rank $PET_NODE_RANK --master_addr $PET_MASTER_ADDR --master_port $PET_MASTER_PORT"
   - echo "DISTRIBUTED_ARGS=$DISTRIBUTED_ARGS"
-  - export LOGS_DIR=$LOG_ROOT/$PET_NODE_RANK
-  - mkdir -p $LOGS_DIR
-  - export OUTPUT_LOG=$LOGS_DIR/peft_eval.log
-  - MODEL="$MODEL_PATH/ckpt.nemo"
-  - TEST_DS="[$DATA_ROOT/dolphin_test.jsonl]"
-  - TEST_NAMES="[dolphin]"
+  - mkdir -p $HOME/logs
+  - export OUTPUT_LOG=$HOME/logs/peft_eval.log
+  - CHECKPOINT_DIR="${SM_CHANNEL_CHECKPOINTS:-/opt/ml/checkpoints}"
+  - MODEL="$CHECKPOINT_DIR/ckpt.nemo"
+  - '[ -n "$S3_DATA_PATH" ] && aws s3 cp --recursive "$S3_DATA_PATH/" /tmp/ || cp -r "$SM_CHANNEL_DATA"/* /tmp/'
+  - echo "Verifying files in /tmp/:" && ls -al /tmp/
+  - DATASET="dolphin"
+  - ls -al /tmp/${DATASET}_test.jsonl || ( echo "Missing Data" && exit 1)
+  - TEST_DS="[/tmp/${DATASET}_test.jsonl]"
+  - TEST_NAMES="[${DATASET}]"
   - SCHEME="lora"
   - CONCAT_SAMPLING_PROBS="[1.0]"
   - TP_SIZE=8
   - PP_SIZE=1
   - TOKENS_TO_GENERATE=700
-  - OUTPUT_PREFIX=$LOG_ROOT/nemo_experiments/$EXP_NAME/eval_results
-  - PATH_TO_TRAINED_MODEL=$LOG_ROOT/nemo_experiments/$EXP_NAME/checkpoints/${EXP_NAME}.nemo
+  - OUTPUT_PREFIX=$HOME/eval_results
+  - export PATH_TO_TRAINED_MODEL=$CHECKPOINT_DIR/nemo_experiments/checkpoints/${EXP_NAME}.nemo
   - export HYDRA_FULL_ERROR=1
   - export PEFT_ARGS="
     trainer.precision=bf16
@@ -27,7 +32,7 @@ pre_script:
     model.micro_batch_size=32
     model.global_batch_size=32
     ++model.mcore_gpt=True
-    model.peft.restore_from_path=${PATH_TO_TRAINED_MODEL} 
+    model.peft.restore_from_path=$CHECKPOINT_DIR/nemo_experiments/checkpoints/${EXP_NAME}_fixed.nemo
     trainer.devices=${PET_NPROC_PER_NODE} 
     +trainer.limit_test_batches=100
     model.data.test_ds.file_names=${TEST_DS} 
@@ -43,25 +48,17 @@ pre_script:
     model.data.test_ds.output_file_path_prefix=${OUTPUT_PREFIX} 
     model.answer_only_loss=True 
     model.data.test_ds.write_predictions_to_file=True"
-  - SCRIPT_DIR=/NeMo/examples/nlp/language_modeling/tuning
-  - cd $HOME
+  - SCRIPT_DIR=/opt/NeMo/examples/nlp/language_modeling/tuning
+  - echo "PATH_TO_TRAINED_MODEL=$PATH_TO_TRAINED_MODEL"
+  - base_dir="$(dirname "$0")"
+  - python3 $base_dir/fix_peft_ckpt.py
 train:
   distribution: "torch"
   env:
     - name: HOME
-      value: /tmp
-    - name: TMPDIR
-      value: /tmp
-    - name: TMP
-      value: /tmp
-    - name: MODEL_PATH
-      value: "$SM_CHANNEL_FSX/huggingface/models/$HF_MODEL_ID/$HF_MODEL_REVISION"
-    - name: LOG_ROOT
-      value: "$SM_CHANNEL_EFS/home/$RELEASE_NAME/logs"
-    - name: DATA_ROOT
-      value: "$SM_CHANNEL_FSX/home/$RELEASE_NAME/data"
+      value: $SM_OUTPUT_DATA_DIR
     - name: EXP_NAME
-      value: "peft_dolphin"
+      value: peft
   command:
     -  "torchrun"
   args: 

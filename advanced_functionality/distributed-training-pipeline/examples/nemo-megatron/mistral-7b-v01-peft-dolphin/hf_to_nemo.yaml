@@ -1,24 +1,24 @@
 resources:
   instance_count: 1
-  instance_type: ml.g5.48xlarge
+  instance_type: ml.p4d.24xlarge
   volume_size: 400
 pre_script: 
-  - SCRIPT_DIR=/NeMo/scripts/checkpoint_converters
+  - set -e
+  - SCRIPT_DIR=/opt/NeMo/scripts/checkpoint_converters
   - cd $SCRIPT_DIR
-  - mkdir -p $LOG_ROOT
-  - OUTPUT_LOG=$LOG_ROOT/hf_to_nemo.log
-post_script:
-  - cp -r /tmp/ckpt.nemo $MODEL_PATH/
+  - mkdir -p $HOME/logs
+  - OUTPUT_LOG=$HOME/logs/hf_to_nemo.log
+  - TMP_MODEL_PATH=/tmp/model
+  - '[ -n "$S3_MODEL_PATH" ] && aws s3 cp --recursive "$S3_MODEL_PATH" "$TMP_MODEL_PATH" || cp -r "$SM_CHANNEL_MODEL" "$TMP_MODEL_PATH"'
+  - OUTPUT_DIR="${SM_CHANNEL_CHECKPOINTS:-/opt/ml/checkpoints}"
 train:
   env:
-    - name: LOG_ROOT
-      value: $SM_CHANNEL_EFS/home/$RELEASE_NAME/logs
-    - name: MODEL_PATH
-      value: "$SM_CHANNEL_FSX/huggingface/models/$HF_MODEL_ID/$HF_MODEL_REVISION"
+    - name: HOME
+      value: $SM_OUTPUT_DATA_DIR
   command:
     - python3
   args:
     - convert_mistral_7b_hf_to_nemo.py
-    - --input_name_or_path=$MODEL_PATH/ 
-    - --output_path=/tmp/ckpt.nemo 
+    - --input_name_or_path=$TMP_MODEL_PATH/ 
+    - --output_path=$OUTPUT_DIR/ckpt.nemo
     - '2>&1 | tee $OUTPUT_LOG'
