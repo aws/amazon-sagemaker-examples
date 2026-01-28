@@ -6,6 +6,7 @@ These examples showcases Amazon SageMaker's features to implement machine learni
 
 - [Model Lineage Tracking](sm-ml_lineage_tracking_model_governance_graph/sm-ml_lineage_tracking_model_governance_graph.ipynb)
 - [Deploy a MLflow Model to SageMaker](sm-mlflow_deployment/sm-mlflow_deployment.ipynb)
+- [Agent Evaluation and Model A/B Testing using MLflow](sm-mlflow_eval/strands-agents-sagemaker-model-evaluation.ipynb)
 - [SageMaker HPO with MLflow](sm-mlflow_hpo/sm-mlflow_hpo.ipynb)
 - [SageMaker Pipelines with MLflow](sm-mlflow_pipelines/sm-mlflow_pipelines.ipynb)
 - [How to Setup Amazon SageMaker with MLflow](sm-mlflow_setup/sm-mlflow_setup.ipynb)
