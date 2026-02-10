@@ -1,4 +1,4 @@
-ARG BASE_IMAGE=public.ecr.aws/neuron/pytorch-inference-neuronx:2.9.0-neuronx-py312-sdk2.27.0-ubuntu24.04
+ARG BASE_IMAGE=public.ecr.aws/neuron/pytorch-inference-neuronx:2.9.0-neuronx-py312-sdk2.27.1-ubuntu24.04
 FROM $BASE_IMAGE
 
 ENV DEBIAN_FRONTEND=noninteractive \
@@ -19,10 +19,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends wget gnupg2 \
     && rm -rf /var/lib/apt/lists/*
 
 # Python Build Essentials
-RUN pip3 install --no-cache-dir --upgrade pip setuptools wheel virtualenv build
+RUN pip3 install --no-cache-dir --upgrade pip setuptools wheel virtualenv build cmake==3.31.10
 
 # Triton Core Build - Configure to use conda Python
-RUN git clone --depth=1 --branch=r25.05 https://github.com/triton-inference-server/server.git /server && \
+RUN git clone --depth=1 --branch=r26.01 https://github.com/triton-inference-server/server.git /server && \
     cd /server && \
     Python3_ROOT_DIR=/opt/conda \
     Python3_EXECUTABLE=/opt/conda/bin/python3 \
