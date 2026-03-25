@@ -26,7 +26,7 @@ RUN cd /tmp \
     && python3 get-pip.py
 
 RUN python -m pip install --no-cache-dir torchserve
-RUN python -m pip install --no-cache-dir torch==1.7.1
+RUN python -m pip install --no-cache-dir torch>=2.6.0
 
 COPY dockerd-entrypoint.sh /usr/local/bin/dockerd-entrypoint.sh
 RUN chmod +x /usr/local/bin/dockerd-entrypoint.sh

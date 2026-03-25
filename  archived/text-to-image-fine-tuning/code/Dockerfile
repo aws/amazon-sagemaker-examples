@@ -32,7 +32,7 @@ RUN apt-get update && apt-get upgrade -y && \
 # hadolint ignore=SC2102
 RUN --mount=type=cache,id=pip-$TARGETARCH$TARGETVARIANT,sharing=locked,target=/root/.cache/pip \
     pip install -U --extra-index-url https://download.pytorch.org/whl/cu121 --extra-index-url https://pypi.nvidia.com \
-    torch==2.1.2 torchvision==0.16.2 \
+    torch>=2.6.0 torchvision>=0.17.0 \
     xformers==0.0.23.post1 \
     # Why [and-cuda]: https://github.com/tensorflow/tensorflow/issues/61468#issuecomment-1759462485
     tensorflow[and-cuda]==2.14.0 \

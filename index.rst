@@ -109,6 +109,7 @@ We recommend the following notebooks as a broad introduction to the capabilities
    build_and_train_models/sm-lightgbm_catboost_tabular_classification
    build_and_train_models/sm-linear_learner_mnist
    build_and_train_models/sm-tabtransformer_tabular_classification
+   build_and_train_models/sm-training-queues
 
 
 .. toctree::

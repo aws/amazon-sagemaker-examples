@@ -162,53 +162,6 @@ Although this workaround required add the following to conf.py and pinning promp
 
 **Follow-up for next round of dependency updates:** Another workaround could be to use the pip IPython package instead of the conda one (there’s mention the conda one might be buggy), then maybe you don’t need to add that to conf.py or fix prompt-toolkit.
 
-#### Build the website locally
-
-1. Test your setup by building the docs. Run the following from the project root to build the docs.
-
-```
-make html
-```
-
-2. It is usual to see a lot of warnings. It’s a good idea to try to address them. Some projects treat warnings as errors and will fail the build.
-3. Serve the content locally:
-
-```
-cd _build/html
-python -m http.server 8000
-```
-
-4. Either open the index.html file in the `_build/html` directory, or navigate in the browser to: `http://0.0.0.0:8000/`
-
-
-#### Add a notebook to the website
-
-You will modify the index.rst file at the highest level of the directory and add the notebook by name, minus the extension into the section that corresponds to the folder in which you added the notebook. For example, if the new notebook is in a subfolder in the `generative_ai` folder:
-https://github.com/aws/amazon-sagemaker-examples/blob/default/generative_ai/sm-jumpstart_foundation_finetuning_gpt_j_6b_domain_adaptation.ipynb
-You would modify this file: https://github.com/aws/amazon-sagemaker-examples/blob/default/index.rst
-
-
-1. Look for the table of contents directive, `toctree` with the caption that matches the subfolder you placed the notebook into:
-
-   ```
-
-   .. toctree::
-      :maxdepth: 1
-      :caption: Generatative AI
-
-   ```
-
-2. Add an entry for the new notebook:
-
-   ```
-
-   .. toctree::
-      :maxdepth: 1
-      :caption: Generatative AI
-
-      generative_ai/sm-jumpstart_foundation_finetuning_gpt_j_6b_domain_adaptation
-   ```
-
 #### Adjusting navigation
 
 Some pages have nested title elements that will impact the navigation and depth. The following shows the title, using the top and bottom hash marks (####). Then the single line equals sign (====), then the dashes (----). These are equivalent to H1, H2, and H3, respectively.
