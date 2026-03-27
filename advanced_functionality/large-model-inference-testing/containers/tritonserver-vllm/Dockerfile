@@ -1,4 +1,4 @@
-ARG BASE_IMAGE="nvcr.io/nvidia/tritonserver:24.12-vllm-python-py3"
+ARG BASE_IMAGE="nvcr.io/nvidia/tritonserver:25.10-vllm-python-py3"
 FROM ${BASE_IMAGE}
 
 RUN apt-get -y update && apt-get install -y --no-install-recommends \

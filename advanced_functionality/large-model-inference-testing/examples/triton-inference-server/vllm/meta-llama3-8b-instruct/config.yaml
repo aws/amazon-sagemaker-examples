@@ -10,7 +10,7 @@ sagemaker:
       TENSOR_PARALLEL_SIZE: "8"
   endpoint:
     name: "meta-llama-3-8b-instruct-tritonserver-vllm"
-    instance_type: "ml.g5.48xlarge"
+    instance_type: "ml.g6.48xlarge"
     initial_instance_count: 1
     variant_name: "test"
     model_data_download_timeout_secs: 1200

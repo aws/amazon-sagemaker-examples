@@ -9,7 +9,7 @@ sagemaker:
       VLLM_CONFIG: "/opt/ml/model/vllm_config.yaml"
   endpoint:
     name: "mistral-7b-instruct-v0-2-openai-server-vllm"
-    instance_type: "ml.g5.48xlarge"
+    instance_type: "ml.g6.48xlarge"
     initial_instance_count: 1
     variant_name: "test"
     model_data_download_timeout_secs: 1200

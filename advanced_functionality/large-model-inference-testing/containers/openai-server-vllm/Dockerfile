@@ -1,4 +1,4 @@
-ARG BASE_IMAGE="nvcr.io/nvidia/cuda:12.8.0-cudnn-devel-ubuntu24.04"
+ARG BASE_IMAGE="nvcr.io/nvidia/cuda:13.1.1-cudnn-devel-ubuntu24.04"
 FROM ${BASE_IMAGE}
 
 ENV DEBIAN_FRONTEND=noninteractive \
@@ -21,8 +21,8 @@ RUN apt-get update && apt-get install -y \
 # Remove the externally-managed marker
 RUN rm -f /usr/lib/python*/EXTERNALLY-MANAGED
 
-# Install vLLM 0.11.0 and its dependencies
-RUN pip3 install --no-cache-dir vllm==0.11.0
+# Install vLLM and its dependencies
+RUN pip3 install --no-cache-dir vllm==0.15.0
 
 COPY resources /opt/program
 RUN chmod u+x /opt/program/serve

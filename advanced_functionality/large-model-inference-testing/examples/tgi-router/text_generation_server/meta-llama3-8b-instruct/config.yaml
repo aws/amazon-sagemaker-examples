@@ -16,7 +16,7 @@ sagemaker:
       MAX_TOTAL_TOKENS: "2048"
   endpoint:
     name: "meta-llama-3-8b-instruct-tgi-gpu"
-    instance_type: "ml.g5.12xlarge"
+    instance_type: "ml.g6.12xlarge"
     initial_instance_count: 1
     variant_name: "test"
     model_data_download_timeout_secs: 1200
