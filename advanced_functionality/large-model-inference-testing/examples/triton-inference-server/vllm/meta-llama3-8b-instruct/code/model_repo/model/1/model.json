@@ -1,14 +1,9 @@
 {
   "model": "meta-llama/Meta-Llama-3-8B-Instruct",
   "tokenizer": "meta-llama/Meta-Llama-3-8B-Instruct",
-  "disable_log_stats": true,
   "tensor_parallel_size": 8,
   "max_num_seqs":8,
   "dtype": "auto",
   "max_model_len": 8192,
-  "gpu_memory_utilization": 0.9,
-  "enforce_eager": false,
-  "enable_prefix_caching": true,
-  "enable_chunked_prefill": false,
-  "preemption_mode": "swap"
+  "gpu_memory_utilization": 0.9
 }
