@@ -1,0 +1,29 @@
+sagemaker:
+  model:
+    name: "llava-v1-6-mistral-7b-hf-openai-server-vllm"
+    container: "containers/openai-server-vllm"
+    env: 
+      HF_HOME: "/tmp"
+      MODEL_ID: "llava-hf/llava-v1.6-mistral-7b-hf"
+      OMP_NUM_THREADS: "16"
+      VLLM_CONFIG: "/opt/ml/model/vllm_config.yaml"
+  endpoint:
+    name: "llava-v1-6-mistral-7b-hf-openai-server-vllm"
+    instance_type: "ml.g6.12xlarge"
+    initial_instance_count: 1
+    variant_name: "test"
+    model_data_download_timeout_secs: 1200
+    container_startup_health_check_timeout_secs: 1200
+    inference_ami_version: "al2023-ami-sagemaker-inference-gpu-4-1"
+test:
+  module_name: "mm_prompt_generator"
+  module_dir: "modules/mminstruction-m3it"
+  prompt_generator: "MultiModalPromptGenerator"
+  template: { "model": "llava-hf/llava-v1.6-mistral-7b-hf", "max_tokens": 512, "messages": [ { "role": "user", "content": [ {"type": "text", "text": ""}, {"type": "image_url", "image_url": {"url": ""}} ] } ] }
+  template_keys: ["messages.[0].content.[0].text", "messages.[0].content.[1].image_url.url"]
+  warmup_iters: 1
+  n_concurrent: 4
+  max_iters: 10
+  output_dir: "output"
+  locust_users: 16
+  locust_workers: 4

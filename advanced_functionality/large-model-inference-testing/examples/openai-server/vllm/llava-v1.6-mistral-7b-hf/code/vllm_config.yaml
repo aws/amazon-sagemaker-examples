@@ -1,0 +1,8 @@
+tokenizer: "llava-hf/llava-v1.6-mistral-7b-hf"
+model-impl: auto
+tensor-parallel-size: 4
+max-num-seqs: 8
+dtype: auto
+max-model-len: 4096
+gpu-memory-utilization: 0.95
+max-num-batched-tokens: 4096
