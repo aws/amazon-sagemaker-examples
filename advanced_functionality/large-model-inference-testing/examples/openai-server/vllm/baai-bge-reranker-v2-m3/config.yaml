@@ -14,6 +14,7 @@ sagemaker:
     variant_name: "test"
     model_data_download_timeout_secs: 300
     container_startup_health_check_timeout_secs: 300
+    inference_ami_version: "al2023-ami-sagemaker-inference-gpu-4-1"
 test:
   module_name: "reranking_pairs"
   module_dir: "modules/ms-marco"
