@@ -1,0 +1,48 @@
+resources:
+  instance_count: 1
+  instance_type: ml.p4d.24xlarge
+  volume_size: 400
+pre_script:
+  - set -e
+  - pip3 install bert-score==0.3.13 evaluate==0.4.6
+  - mkdir -p $HOME/logs
+  - export OUTPUT_LOG=$HOME/logs/evaluate.log
+  - export CHECKPOINT_DIR="${SM_CHANNEL_CHECKPOINTS:-/opt/ml/checkpoints}"
+  - export DATA_DIR=$HOME/data
+  - mkdir -p $DATA_DIR
+  - '[ -n "$S3_DATA_PATH" ] && aws s3 cp --recursive "$S3_DATA_PATH/" "$DATA_DIR/" || cp -r "$SM_CHANNEL_DATA"/* "$DATA_DIR/"'
+train:
+  distribution: "torch"
+  env:
+    - name: HOME
+      value: $SM_OUTPUT_DATA_DIR
+    - name: NCCL_DEBUG
+      value: "WARN"
+    - name: FI_EFA_USE_DEVICE_RDMA
+      value: "1"
+    - name: FI_PROVIDER
+      value: "efa"
+    - name: FI_EFA_FORK_SAFE
+      value: "1"
+    - name: RDMAV_FORK_SAFE
+      value: "1"
+  command:
+    - torchrun
+  args:
+    - --nproc_per_node=$PET_NPROC_PER_NODE
+    - --nnodes=$PET_NNODES
+    - --node_rank=$PET_NODE_RANK
+    - --master_addr=$PET_MASTER_ADDR
+    - --master_port=$PET_MASTER_PORT
+    - test_checkpoint.py
+    - --nemo_logs_dir=$CHECKPOINT_DIR/nemo_logs
+    - --test_path=$DATA_DIR/test.jsonl
+    - --gpus_per_node=$PET_NPROC_PER_NODE
+    - --num_nodes=$PET_NNODES
+    - --tensor_parallel_size=8
+    - --max_samples=1024
+    - --max_batch_size=16
+    - '2>&1 | tee $OUTPUT_LOG'
+post_script:
+  - echo "Validating evaluation output"
+  - 'ls $CHECKPOINT_DIR/nemo_logs/**/checkpoints/*.jsonl >/dev/null 2>&1 || (echo "ERROR: no predictions file found" && exit 1)'

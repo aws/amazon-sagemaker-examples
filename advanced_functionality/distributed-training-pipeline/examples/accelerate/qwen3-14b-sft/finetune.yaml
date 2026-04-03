@@ -1,0 +1,85 @@
+resources:
+  instance_count: 2
+  instance_type: ml.p4d.24xlarge
+  volume_size: 200
+pre_script: 
+  - set -e
+  - MASTER_ADDR_IP=$(getent ahosts $PET_MASTER_ADDR | grep STREAM | head -1 | awk '{print $1}')
+  - echo "MASTER_ADDR_IP=$MASTER_ADDR_IP"
+  - export NCCL_SOCKET_IFNAME=$SM_NETWORK_INTERFACE_NAME
+  - export NCCL_SOCKET_FAMILY=AF_INET
+  - cat > $HOME/accel_config.yaml <<EOF
+  - 'compute_environment: LOCAL_MACHINE'
+  - 'debug: true'
+  - 'distributed_type: FSDP'
+  - 'mixed_precision: bf16'
+  - 'main_training_function: main'
+  - 'num_machines: $PET_NNODES'
+  - 'num_processes: $((PET_NPROC_PER_NODE * PET_NNODES))'
+  - 'machine_rank: $PET_NODE_RANK'
+  - 'main_process_ip: "$MASTER_ADDR_IP"'
+  - 'main_process_port: $PET_MASTER_PORT'
+  - 'fsdp_config:'
+  - '  fsdp_auto_wrap_policy: TRANSFORMER_BASED_WRAP'
+  - '  fsdp_backward_prefetch: BACKWARD_PRE'
+  - '  fsdp_cpu_ram_efficient_loading: true'
+  - '  fsdp_forward_prefetch: false'
+  - '  fsdp_offload_params: false'
+  - '  fsdp_sharding_strategy: FULL_SHARD'
+  - '  fsdp_state_dict_type: SHARDED_STATE_DICT'
+  - '  fsdp_sync_module_states: true'
+  - '  fsdp_use_orig_params: true'
+  - '  fsdp_activation_checkpointing: false'
+  - EOF
+  - pip3 install --upgrade pip
+  - pip3 install transformers==4.57.1 datasets==4.4.1 peft==0.18.0
+        accelerate==1.12.0 tensorboard==2.20.0 sentencepiece==0.2.1 torchao==0.14.1
+  - pip3 install liger-kernel==0.7.0
+  - cat $HOME/accel_config.yaml
+  - mkdir -p $HOME/logs
+  - export OUTPUT_LOG=$HOME/logs/peft-sft.log
+  - export CHECKPOINT_DIR="${SM_CHANNEL_CHECKPOINTS:-/opt/ml/checkpoints}"
+  - MODEL_PATH="${SM_CHANNEL_MODEL:-/tmp/model}"
+  - '[ -n "$S3_MODEL_PATH" ] && aws s3 cp --recursive "$S3_MODEL_PATH" "$MODEL_PATH" || : '
+  - export DATA_DIR=$HOME/data
+  - mkdir -p $DATA_DIR
+  - '[ -n "$S3_DATA_PATH" ] && aws s3 cp --recursive "$S3_DATA_PATH/" "$DATA_DIR/" || cp -r "$SM_CHANNEL_DATA"/* "$DATA_DIR/"'
+train:
+  distribution: "torch"
+  env:
+    - name: HOME
+      value: $SM_OUTPUT_DATA_DIR
+    - name: NCCL_DEBUG
+      value: "WARN"
+    - name: FI_EFA_USE_DEVICE_RDMA
+      value: "1"
+    - name: FI_PROVIDER
+      value: "efa"
+    - name: FI_EFA_FORK_SAFE
+      value: "1"
+    - name: RDMAV_FORK_SAFE
+      value: "1"
+  command:
+      - accelerate
+  args:
+    - launch
+    - --config_file
+    - $HOME/accel_config.yaml
+    - text/peft_accelerate.py
+    - --hf_model_id="Qwen/Qwen3-14B"
+    - --model_path=$MODEL_PATH
+    - --data_dir=$DATA_DIR
+    - --output_dir=$CHECKPOINT_DIR
+    - --max_steps=10000
+    - --per_device_train_batch_size=8
+    - --per_device_eval_batch_size=2
+    - --gradient_accumulation_steps=1
+    - --eval_steps=100
+    - --max_eval_samples=640
+    - --early_stopping_patience=3
+    - --early_stopping_threshold=0.0001
+    - --use_liger_kernel
+    - '2>&1 | tee $OUTPUT_LOG'
+post_script:
+  - echo "Validating training output"
+  - 'ls -d $CHECKPOINT_DIR/checkpoint-* >/dev/null 2>&1 || (echo "ERROR: no checkpoints found in $CHECKPOINT_DIR" && exit 1)'

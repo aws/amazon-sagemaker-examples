@@ -1,0 +1,55 @@
+resources:
+  instance_count: 1
+  instance_type: ml.p4d.24xlarge
+  volume_size: 400
+pre_script:
+  - set -e
+  - mkdir -p $HOME/logs
+  - export OUTPUT_LOG=$HOME/logs/finetune.log
+  - export CHECKPOINT_DIR="${SM_CHANNEL_CHECKPOINTS:-/opt/ml/checkpoints}"
+  - MODEL_PATH="${SM_CHANNEL_MODEL:-/tmp/model}"
+  - '[ -n "$S3_MODEL_PATH" ] && aws s3 cp --recursive "$S3_MODEL_PATH" "$MODEL_PATH" || : '
+  - export DATA_DIR=$HOME/data
+  - mkdir -p $DATA_DIR
+  - '[ -n "$S3_DATA_PATH" ] && aws s3 cp --recursive "$S3_DATA_PATH/" "$DATA_DIR/" || cp -r "$SM_CHANNEL_DATA"/* "$DATA_DIR/"'
+  - export NCCL_SOCKET_IFNAME=$SM_NETWORK_INTERFACE_NAME
+  - export NCCL_SOCKET_FAMILY=AF_INET
+post_script:
+  - echo "Validating training output"
+  - 'ls -d $CHECKPOINT_DIR/nemo_logs >/dev/null 2>&1 || (echo "ERROR: no nemo_logs found in $CHECKPOINT_DIR" && exit 1)'
+train:
+  distribution: "torch"
+  env:
+    - name: HOME
+      value: $SM_OUTPUT_DATA_DIR
+    - name: NCCL_DEBUG
+      value: "WARN"
+    - name: FI_EFA_USE_DEVICE_RDMA
+      value: "1"
+    - name: FI_PROVIDER
+      value: "efa"
+    - name: FI_EFA_FORK_SAFE
+      value: "1"
+    - name: RDMAV_FORK_SAFE
+      value: "1"
+  command:
+    - python
+  args:
+    - fine_tune.py
+    - --hf_model_id="Qwen/Qwen3-8B"
+    - --model_path=$MODEL_PATH
+    - --data_dir=$DATA_DIR
+    - --output_dir=$CHECKPOINT_DIR
+    - --recipe_cls_name=qwen3_8b
+    - --num_nodes=$PET_NNODES
+    - --gpus_per_node=$PET_NPROC_PER_NODE
+    - --node_rank=$PET_NODE_RANK
+    - --tensor_parallel_size=8
+    - --max_steps=10000
+    - --micro_batch_size=8
+    - --accumulate_grad_batches=1
+    - --val_check_interval=800
+    - --max_seq_length=2048
+    - --early_stopping_patience=3
+    - --early_stopping_threshold=0.001
+    - '2>&1 | tee $OUTPUT_LOG'

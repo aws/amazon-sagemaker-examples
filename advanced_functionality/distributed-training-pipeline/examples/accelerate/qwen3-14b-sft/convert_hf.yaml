@@ -1,0 +1,29 @@
+resources:
+  instance_count: 1
+  instance_type: ml.p4d.24xlarge
+  volume_size: 200
+pre_script: 
+  - set -e
+  - pip3 install --upgrade pip
+  - pip3 install transformers==4.57.1 peft==0.18.0 accelerate==1.12.0
+        sentencepiece==0.2.1 torchao==0.14.1
+  - mkdir -p $HOME/logs
+  - export OUTPUT_LOG=$HOME/logs/convert_hf.log
+  - export CHECKPOINT_DIR="${SM_CHANNEL_CHECKPOINTS:-/opt/ml/checkpoints}"
+  - MODEL_PATH="${SM_CHANNEL_MODEL:-/tmp/model}"
+  - '[ -n "$S3_MODEL_PATH" ] && aws s3 cp --recursive "$S3_MODEL_PATH" "$MODEL_PATH" || : '
+train:
+  env:
+    - name: HOME
+      value: $SM_OUTPUT_DATA_DIR
+  command:
+    - python
+  args:
+    - shared/convert_checkpoint_to_hf.py
+    - --base_model="Qwen/Qwen3-14B"
+    - --model_path=$MODEL_PATH
+    - --checkpoints_dir=$CHECKPOINT_DIR
+    - '2>&1 | tee $OUTPUT_LOG'
+post_script:
+  - echo "Validating checkpoint conversion"
+  - 'ls $CHECKPOINT_DIR/checkpoint-*.hf_model/model*.safetensors >/dev/null 2>&1 || (echo "ERROR: no converted HF model found in $CHECKPOINT_DIR" && exit 1)'

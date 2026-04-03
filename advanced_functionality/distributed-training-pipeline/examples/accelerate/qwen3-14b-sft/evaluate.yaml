@@ -1,0 +1,36 @@
+resources:
+  instance_count: 1
+  instance_type: ml.p4d.24xlarge
+  volume_size: 200
+pre_script: 
+  - set -e
+  - pip3 install --upgrade pip
+  - pip3 install peft==0.18.0 torchao==0.14.1 vllm==0.12.0
+  - pip3 install bert-score==0.3.13 evaluate==0.4.6
+  - mkdir -p $HOME/logs
+  - export OUTPUT_LOG=$HOME/logs/evaluate.log
+  - export CHECKPOINT_DIR="${SM_CHANNEL_CHECKPOINTS:-/opt/ml/checkpoints}"
+  - MODEL_PATH="${SM_CHANNEL_MODEL:-/tmp/model}"
+  - '[ -n "$S3_MODEL_PATH" ] && aws s3 cp --recursive "$S3_MODEL_PATH" "$MODEL_PATH" || : '
+  - export DATA_DIR=$HOME/data
+  - mkdir -p $DATA_DIR
+  - '[ -n "$S3_DATA_PATH" ] && aws s3 cp --recursive "$S3_DATA_PATH/" "$DATA_DIR/" || cp -r "$SM_CHANNEL_DATA"/* "$DATA_DIR/"'
+train:
+  env:
+    - name: HOME
+      value: $SM_OUTPUT_DATA_DIR
+  command:
+    - python
+  args:
+    - shared/test_checkpoint.py
+    - --base_model="Qwen/Qwen3-14B"
+    - --model_path=$MODEL_PATH
+    - --checkpoints_dir=$CHECKPOINT_DIR
+    - --test_path=$DATA_DIR/test.jsonl
+    - --tensor_parallel_size=8
+    - --max_samples=1024
+    - --batch_size=128
+    - '2>&1 | tee $OUTPUT_LOG'
+post_script:
+  - echo "Validating evaluation output"
+  - 'ls $CHECKPOINT_DIR/checkpoint-*/predictions.jsonl >/dev/null 2>&1 || (echo "ERROR: no predictions file found in $CHECKPOINT_DIR" && exit 1)'

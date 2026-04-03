@@ -5,7 +5,7 @@ huggingface:
 pipeline:
   name: "accelerate-llama31-8b-full-sft"
   version: "v1"
-  container: "accelerate"
+  container: "pytorch"
   steps:
     - name: finetune
       description: "Full supervised fine tune model using Accelerate with FSDP"

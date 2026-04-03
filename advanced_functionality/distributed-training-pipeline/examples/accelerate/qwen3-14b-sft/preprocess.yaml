@@ -1,0 +1,26 @@
+resources:
+  instance_count: 1
+  instance_type: ml.m5.xlarge
+  volume_size: 200
+pre_script:
+  - set -e
+  - pip3 install --upgrade pip
+  - pip3 install transformers==4.57.1 datasets==4.4.1 sentencepiece==0.2.1
+  - export DATA_DIR=$HOME/data
+  - mkdir -p $DATA_DIR
+post_script:
+  - echo "Validating preprocessed data"
+  - '[ -f "$DATA_DIR/training.jsonl" ] && [ -f "$DATA_DIR/validation.jsonl" ] && [ -f "$DATA_DIR/test.jsonl" ] && [ -f "$DATA_DIR/.data_ready" ] || (echo "ERROR: preprocessing failed - missing output files" && exit 1)'
+  - echo "Uploading prepared data to S3"
+  - for f in $DATA_DIR/*.jsonl $DATA_DIR/.data_ready; do
+  -   '[ -f "$f" ] && aws s3 cp "$f" $S3_DATA_PATH/ || :'
+  - done
+  - echo "Data upload complete"
+train:
+  env:
+    - name: HOME
+      value: $SM_OUTPUT_DATA_DIR
+  command:
+    - python3
+  args:
+    - preprocess.py

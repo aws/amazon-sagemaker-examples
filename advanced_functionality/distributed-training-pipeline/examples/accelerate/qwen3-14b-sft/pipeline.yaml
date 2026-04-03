@@ -1,0 +1,22 @@
+huggingface:
+  model: "Qwen/Qwen3-14B"
+  revision: "40c069824f4251a91eefaf281ebe4c544efd3e18"
+  tensors: true
+pipeline:
+  name: "accelerate-qwen3-14b-sft"
+  version: "v1"
+  container: "pytorch"
+  framework: "accelerate"
+  steps:
+    - name: preprocess
+      description: "Preprocess training data"
+      config: preprocess.yaml
+    - name: finetune
+      description: "LoRA SFT using Accelerate with FSDP"
+      config: finetune.yaml
+    - name: evaluate
+      description: "Evaluate checkpoint with vLLM"
+      config: evaluate.yaml
+    - name: convert_hf
+      description: "Convert FSDP checkpoint to HuggingFace format"
+      config: convert_hf.yaml

@@ -102,3 +102,6 @@ train:
     - --optim adamw_torch 
     - --output_dir $OUTPUT_DIR
     - '2>&1 | tee $OUTPUT_LOG' 
+post_script:
+  - echo "Validating training output"
+  - 'ls -d $OUTPUT_DIR/checkpoint-* >/dev/null 2>&1 || (echo "ERROR: no checkpoints found in $OUTPUT_DIR" && exit 1)'

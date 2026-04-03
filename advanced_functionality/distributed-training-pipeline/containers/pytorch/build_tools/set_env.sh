@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 
 export IMAGE_NAME=pytorch-sagemaker
-export IMAGE_TAG=25.06-py3
+export IMAGE_TAG=25.10-py3

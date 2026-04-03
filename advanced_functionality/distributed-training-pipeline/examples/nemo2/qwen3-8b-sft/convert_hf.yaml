@@ -1,0 +1,22 @@
+resources:
+  instance_count: 1
+  instance_type: ml.p4d.24xlarge
+  volume_size: 400
+pre_script:
+  - set -e
+  - mkdir -p $HOME/logs
+  - export OUTPUT_LOG=$HOME/logs/convert_hf.log
+  - export CHECKPOINT_DIR="${SM_CHANNEL_CHECKPOINTS:-/opt/ml/checkpoints}"
+train:
+  env:
+    - name: HOME
+      value: $SM_OUTPUT_DATA_DIR
+  command:
+    - python
+  args:
+    - convert_checkpoint_to_hf.py
+    - --nemo_logs_dir=$CHECKPOINT_DIR/nemo_logs
+    - '2>&1 | tee $OUTPUT_LOG'
+post_script:
+  - echo "Validating checkpoint conversion"
+  - 'ls $CHECKPOINT_DIR/nemo_logs/**/checkpoints/*.hf_model >/dev/null 2>&1 || (echo "ERROR: no converted HF model found" && exit 1)'

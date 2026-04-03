@@ -1,0 +1,22 @@
+huggingface:
+  model: "Qwen/Qwen3-8B"
+  revision: "b968826d9c46dd6066d109eabc6255188de91218"
+  tensors: true
+pipeline:
+  name: "nemo2-qwen3-8b-sft"
+  version: "v1"
+  container: "nemo2"
+  framework: "nemo2"
+  steps:
+    - name: preprocess
+      description: "Preprocess training data"
+      config: preprocess.yaml
+    - name: finetune
+      description: "LoRA SFT using NeMo 2.0 recipes"
+      config: finetune.yaml
+    - name: evaluate
+      description: "Evaluate checkpoint with MCore dynamic inference"
+      config: evaluate.yaml
+    - name: convert_hf
+      description: "Convert NeMo checkpoint to HuggingFace format"
+      config: convert_hf.yaml
