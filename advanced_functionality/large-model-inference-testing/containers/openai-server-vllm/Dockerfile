@@ -22,7 +22,7 @@ RUN apt-get update && apt-get install -y \
 RUN rm -f /usr/lib/python*/EXTERNALLY-MANAGED
 
 # Install vLLM and its dependencies
-RUN pip3 install --no-cache-dir vllm==0.15.0
+RUN pip3 install --no-cache-dir vllm==0.19.0
 
 COPY resources /opt/program
 RUN chmod u+x /opt/program/serve
