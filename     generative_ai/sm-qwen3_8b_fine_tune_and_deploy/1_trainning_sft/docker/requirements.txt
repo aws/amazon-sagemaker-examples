@@ -1,0 +1,4 @@
+# Requirements for SFT training with LlamaFactory
+boto3
+wandb
+qwen-vl-utils

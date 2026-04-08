@@ -1,0 +1,9 @@
+# Additional dependencies for EasyR1 GRPO training
+# EasyR1 is installed in Dockerfile from GitHub
+
+boto3>=1.28.0
+sagemaker>=2.200.0
+pyyaml>=6.0
+hf_transfer>=0.1.4
+pandas
+pyarrow

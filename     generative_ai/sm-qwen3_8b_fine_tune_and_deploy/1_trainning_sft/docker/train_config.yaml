@@ -1,0 +1,59 @@
+### LlamaFactory SFT Training Config for Qwen3-VL-8B ###
+### Optimized to match Qwen3-8B job settings ###
+
+### Model
+model_name_or_path: Qwen/Qwen3-VL-8B-Instruct
+trust_remote_code: true
+
+### Method
+stage: sft
+do_train: true
+finetuning_type: lora
+
+### LoRA
+lora_rank: 8
+lora_alpha: 16
+lora_target: all
+
+### Dataset
+dataset_dir: /tmp/data
+dataset: sft_data
+template: qwen3
+#qwen3 / qwen3_vl
+cutoff_len: 2048
+max_samples: 50000
+overwrite_cache: true
+preprocessing_num_workers: 16
+dataloader_num_workers: 4
+
+### Output
+output_dir: /opt/ml/model
+logging_steps: 10
+save_steps: 500
+plot_loss: true
+overwrite_output_dir: true
+save_only_model: false
+report_to: wandb
+
+### Training - Matching Qwen3-8B settings
+per_device_train_batch_size: 1
+gradient_accumulation_steps: 10
+learning_rate: 5.0e-5
+num_train_epochs: 2
+bf16: true
+gradient_checkpointing: true
+
+### Optimizer & Scheduler (same as Qwen3-8B)
+optim: adamw_torch
+lr_scheduler_type: cosine
+warmup_ratio: 0.1
+warmup_steps: 10
+
+### Flash Attention
+flash_attn: auto
+
+### Evaluation
+val_size: 0.05
+per_device_eval_batch_size: 2
+eval_strategy: steps
+eval_steps: 100

@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual environment
+venv/
+.venv/
+
+# Environment variables
+.env
+.env.local
+
+# macOS
+.DS_Store
+
+# Data files
+
+# Jupyter
+.ipynb_checkpoints/
+
+# IDE
+.vscode/
+.idea/
+
+2_trainning_grpo/docker/build_and_push_finch.sh
+1_trainning_sft/docker/build_and_push_finch.sh
