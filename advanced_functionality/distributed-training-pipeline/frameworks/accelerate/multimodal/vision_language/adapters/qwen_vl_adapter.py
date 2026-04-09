@@ -114,19 +114,20 @@ class QwenVLAdapter(BaseVLMAdapter):
     ) -> str:
         """
         Format conversation for Qwen-VL.
-        
+
         Qwen-VL uses structured message format with content types.
+        Handles both image+text and text-only conversations.
         """
         # Convert to Qwen-VL structured format
         messages = []
-        
+
         for conv in conversations:
             role = "user" if conv["from"] == "human" else "assistant"
-            
+
             # Parse content (may contain <image> token)
             content = []
             text = conv["value"]
-            
+
             if "<image>" in text:
                 # Split by image token
                 parts = text.split("<image>")
@@ -136,22 +137,26 @@ class QwenVLAdapter(BaseVLMAdapter):
                         content.append({"type": "image"})
                     if part.strip():
                         content.append({"type": "text", "text": part.strip()})
+
+                # If content is empty after processing, add the raw text
+                if not content:
+                    content = [{"type": "text", "text": text}]
             else:
-                # Just text
+                # Just text (no image)
                 content = [{"type": "text", "text": text}]
-            
+
             messages.append({
                 "role": role,
                 "content": content
             })
-        
+
         # Apply chat template
         text = processor.apply_chat_template(
             messages,
             tokenize=False,
             add_generation_prompt=False
         )
-        
+
         return text
     
     def tokenize_conversation(

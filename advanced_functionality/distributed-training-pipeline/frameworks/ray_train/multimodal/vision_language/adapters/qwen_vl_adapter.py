@@ -97,14 +97,17 @@ class QwenVLAdapter(BaseVLMAdapter):
         processor: AutoProcessor,
         tokenizer: PreTrainedTokenizer
     ) -> str:
-        """Format conversation for Qwen-VL."""
+        """Format conversation for Qwen-VL.
+
+        Handles both image+text and text-only conversations.
+        """
         messages = []
-        
+
         for conv in conversations:
             role = "user" if conv["from"] == "human" else "assistant"
             content = []
             text = conv["value"]
-            
+
             if "<image>" in text:
                 parts = text.split("<image>")
                 for i, part in enumerate(parts):
@@ -112,14 +115,19 @@ class QwenVLAdapter(BaseVLMAdapter):
                         content.append({"type": "image"})
                     if part.strip():
                         content.append({"type": "text", "text": part.strip()})
+
+                # If content is empty after processing, add the raw text
+                if not content:
+                    content = [{"type": "text", "text": text}]
             else:
+                # Just text (no image)
                 content = [{"type": "text", "text": text}]
-            
+
             messages.append({
                 "role": role,
                 "content": content
             })
-        
+
         text = processor.apply_chat_template(
             messages,
             tokenize=False,
