@@ -32,9 +32,10 @@ pre_script:
   - '  fsdp_activation_checkpointing: false'
   - EOF
   - pip3 install --upgrade pip
-  - pip3 install transformers==4.57.1 datasets==4.4.1 peft==0.18.0
-        accelerate==1.12.0 tensorboard==2.20.0 sentencepiece==0.2.1 torchao==0.14.1
-  - pip3 install liger-kernel==0.7.0
+  - pip3 install datasets==4.8.4 peft==0.18.1
+        accelerate==1.13.0 tensorboard==2.20.0 sentencepiece==0.2.1
+        wandb==0.23.0 mpi4py==4.1.1
+  - pip3 install transformers==5.5.0 liger-kernel==0.7.0 torchao==0.17.0
   - cat $HOME/accel_config.yaml
   - mkdir -p $HOME/logs
   - export OUTPUT_LOG=$HOME/logs/peft-sft.log

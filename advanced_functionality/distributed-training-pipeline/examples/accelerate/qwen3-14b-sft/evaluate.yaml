@@ -5,8 +5,8 @@ resources:
 pre_script: 
   - set -e
   - pip3 install --upgrade pip
-  - pip3 install peft==0.18.0 torchao==0.14.1 vllm==0.12.0
-  - pip3 install bert-score==0.3.13 evaluate==0.4.6
+  - pip3 install peft==0.18.1 bert-score==0.3.13 evaluate==0.4.6 vllm==0.19.0
+  - pip3 install transformers==5.5.0 torchao==0.17.0
   - mkdir -p $HOME/logs
   - export OUTPUT_LOG=$HOME/logs/evaluate.log
   - export CHECKPOINT_DIR="${SM_CHANNEL_CHECKPOINTS:-/opt/ml/checkpoints}"

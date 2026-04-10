@@ -5,8 +5,9 @@ resources:
 pre_script: 
   - set -e
   - pip3 install --upgrade pip
-  - pip3 install transformers==4.57.1 peft==0.18.0 accelerate==1.12.0
-        sentencepiece==0.2.1 torchao==0.14.1
+  - pip3 install datasets==4.8.4 peft==0.18.1 accelerate==1.13.0
+        sentencepiece==0.2.1
+  - pip3 install transformers==5.5.0 torchao==0.17.0
   - mkdir -p $HOME/logs
   - export OUTPUT_LOG=$HOME/logs/convert_hf.log
   - export CHECKPOINT_DIR="${SM_CHANNEL_CHECKPOINTS:-/opt/ml/checkpoints}"

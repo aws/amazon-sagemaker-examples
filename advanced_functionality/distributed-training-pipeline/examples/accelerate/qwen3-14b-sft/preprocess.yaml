@@ -5,7 +5,8 @@ resources:
 pre_script:
   - set -e
   - pip3 install --upgrade pip
-  - pip3 install transformers==4.57.1 datasets==4.4.1 sentencepiece==0.2.1
+  - pip3 install datasets==4.8.4 sentencepiece==0.2.1
+  - pip3 install transformers==5.5.0
   - export DATA_DIR=$HOME/data
   - mkdir -p $DATA_DIR
 post_script:
