@@ -139,3 +139,8 @@ RUN python3 /tmp/patch_qwen3_vl.py
 COPY model_merger.py /opt/ml/code/model_merger.py
 
 WORKDIR /opt/ml/code
+
+# Override base image ENTRYPOINT and set our own
+# The NVIDIA base image has an entrypoint that interferes with SageMaker
+ENTRYPOINT []
+CMD ["/bin/bash", "/opt/ml/code/entrypoint.sh"]

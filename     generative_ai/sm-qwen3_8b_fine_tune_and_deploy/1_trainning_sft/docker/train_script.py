@@ -222,26 +222,30 @@ def merge_and_export(model_name_or_path: str, adapter_path: str, output_path: st
     config = AutoConfig.from_pretrained(model_name_or_path, trust_remote_code=True)
     model_type = config.model_type
     print(f"Detected model type: {model_type}")
-    
-    # Use appropriate model class based on type
-    if "vl" in model_type.lower() or "vision" in model_type.lower():
-        # Vision-Language model
-        from transformers import AutoModelForVision2Seq
-        model = AutoModelForVision2Seq.from_pretrained(
-            model_name_or_path,
-            torch_dtype=torch.bfloat16,
-            device_map="auto",
-            trust_remote_code=True,
-        )
-    else:
-        # Text-only model
-        from transformers import AutoModelForCausalLM
+
+    # Load model using auto_map from config (supports custom model classes)
+    from transformers import AutoModelForCausalLM
+    try:
+        # Try AutoModelForCausalLM first for standard models
         model = AutoModelForCausalLM.from_pretrained(
             model_name_or_path,
             torch_dtype=torch.bfloat16,
             device_map="auto",
             trust_remote_code=True,
         )
+    except ValueError:
+        # For VL models, use the model class from auto_map
+        print("Loading custom model class from config auto_map...")
+        from transformers import AutoModel
+        model = AutoModel.from_pretrained(
+            model_name_or_path,
+            torch_dtype=torch.bfloat16,
+            device_map="auto",
+            trust_remote_code=True,
+        )
+        # Add a dummy prepare_inputs_for_generation if needed for PEFT
+        if not hasattr(model, 'prepare_inputs_for_generation'):
+            model.prepare_inputs_for_generation = lambda *args, **kwargs: {}
     
     print(f"Loading LoRA adapter: {adapter_path}")
     model = PeftModel.from_pretrained(model, adapter_path)

@@ -22,3 +22,8 @@ ENV HF_HUB_ENABLE_HF_TRANSFER=1
 RUN mkdir -p /opt/ml/model /opt/ml/input /opt/ml/output
 
 WORKDIR /opt/ml/code
+
+# Override base image ENTRYPOINT and set our own
+# The base image has an NVIDIA entrypoint that interferes with SageMaker
+ENTRYPOINT []
+CMD ["bash", "/opt/ml/code/entrypoint.sh"]

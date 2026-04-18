@@ -1,6 +1,6 @@
 """
 Fine-tune Qwen3-VL-8B with QLoRA on SageMaker.
-Uses SageMaker SDK 3.x (sagemaker-core) API.
+Uses SageMaker SDK 3.x ModelTrainer API.
 Scripts are baked into the Docker image - no S3 upload needed.
 
 Supports:
@@ -11,18 +11,14 @@ Supports:
 from datetime import datetime
 
 import boto3
-from sagemaker.core.resources import (
-    TrainingJob,
-    AlgorithmSpecification,
+from sagemaker.train import ModelTrainer
+from sagemaker.train.configs import Compute, InputData, SourceCode
+from sagemaker.core.shapes.shapes import (
+    S3DataSource,
     OutputDataConfig,
-    ResourceConfig,
     StoppingCondition,
 )
-from sagemaker.core.shapes import (
-    Channel,
-    DataSource,
-    S3DataSource,
-)
+from sagemaker.core.helper.session_helper import Session
 
 # ==========================================
 # Configuration
@@ -40,10 +36,14 @@ def is_s3_path(path: str) -> bool:
     return path.startswith("s3://")
 
 REGION = 'us-east-2'
-sts = boto3.client('sts')
+boto3_session = boto3.Session(region_name=REGION)
+sts = boto3_session.client('sts')
 ACCOUNT_ID = sts.get_caller_identity()['Account']
 BUCKET_NAME = f"sagemaker-{REGION}-{ACCOUNT_ID}"
 ROLE_ARN = 'arn:aws:iam::YOUR_ACCOUNT_ID:role/SageMakerExecutionRole'
+
+# Create SageMaker session with explicit region
+sagemaker_session = Session(boto_session=boto3_session)
 
 # Instance configuration
 INSTANCE_TYPE = "ml.g6e.2xlarge"  # 1x L40S GPU (48GB VRAM)
@@ -53,25 +53,24 @@ INSTANCE_COUNT = 1
 TRAINING_IMAGE = f"{ACCOUNT_ID}.dkr.ecr.{REGION}.amazonaws.com/aws-sample-sft-training:latest"
 
 # Job name
-TIMESTAMP = datetime.now().strftime('%Y%m%d-%H%M%S')
-JOB_NAME = f"aws-sample-qwen3-sft-{TIMESTAMP}"
+BASE_JOB_NAME = "aws-sample-qwen3-sft"
 
 
 def main():
     print("=" * 60)
-    print("Qwen3SFT Training with QLoRA")
+    print("Qwen3SFT Training with QLoRA (ModelTrainer API)")
     print("=" * 60)
-    
+
     # Determine model source type
     use_s3_model = is_s3_path(MODEL_ID)
     model_source = "S3 (continued training)" if use_s3_model else "HuggingFace"
-    
+
     print(f"Model: {MODEL_ID}")
     print(f"Model Source: {model_source}")
     print(f"Training Data: {TRAINING_DATA_S3}")
     print(f"Instance: {INSTANCE_TYPE}")
     print(f"Image: {TRAINING_IMAGE}")
-    print(f"Job Name: {JOB_NAME}")
+    print(f"Base Job Name: {BASE_JOB_NAME}")
     print("=" * 60)
     
     # Hyperparameters
@@ -87,61 +86,64 @@ def main():
         'model_source': 's3' if use_s3_model else 'huggingface',
         'merge_weights': '1',  # '1' = merge LoRA into base model, '0' = adapter only
     }
-    
-    output_s3 = f"s3://{OUTPUT_BUCKET}/sagemaker-training/{JOB_NAME}/output"
+
+    output_s3 = f"s3://{OUTPUT_BUCKET}/sagemaker-training/{BASE_JOB_NAME}/output"
     print(f"\nOutput: {output_s3}")
     print("\nStarting training job...")
-    
-    # Build input data config
+
+    # Build input data config using ModelTrainer's InputData
     input_data_config = None
     if use_s3_model:
         # Add S3 model as input channel
+        # Note: InputData expects S3DataSource directly, not wrapped in DataSource
         input_data_config = [
-            Channel(
+            InputData(
                 channel_name="model",
-                data_source=DataSource(
-                    s3_data_source=S3DataSource(
-                        s3_uri=MODEL_ID,
-                        s3_data_type="S3Prefix",
-                        s3_data_distribution_type="FullyReplicated",
-                    )
+                data_source=S3DataSource(
+                    s3_uri=MODEL_ID,
+                    s3_data_type="S3Prefix",
+                    s3_data_distribution_type="FullyReplicated",
                 ),
             )
         ]
         print(f"S3 Model will be mounted at: /opt/ml/input/data/model")
     
-    # Create training job using SDK 3.x
+    # Create ModelTrainer using SDK 3.x
     # Scripts are baked into image at /opt/ml/code/
-    training_job_kwargs = {
-        "training_job_name": JOB_NAME,
-        "role_arn": ROLE_ARN,
-        "algorithm_specification": AlgorithmSpecification(
-            training_image=TRAINING_IMAGE,
-            training_input_mode="File",
-            container_entrypoint=['bash', '/opt/ml/code/entrypoint.sh'],
+    # Override the default "train" command with our entrypoint script
+    trainer = ModelTrainer(
+        training_image=TRAINING_IMAGE,
+        role=ROLE_ARN,
+        base_job_name=BASE_JOB_NAME,
+        sagemaker_session=sagemaker_session,  # Explicitly set region
+        source_code=SourceCode(
+            command="bash /opt/ml/code/entrypoint.sh",
         ),
-        "hyper_parameters": hyperparameters,
-        "output_data_config": OutputDataConfig(
-            s3_output_path=output_s3,
-        ),
-        "resource_config": ResourceConfig(
+        compute=Compute(
             instance_type=INSTANCE_TYPE,
             instance_count=INSTANCE_COUNT,
             volume_size_in_gb=100,
         ),
-        "stopping_condition": StoppingCondition(
+        hyperparameters=hyperparameters,
+        output_data_config=OutputDataConfig(
+            s3_output_path=output_s3,
+        ),
+        stopping_condition=StoppingCondition(
             max_runtime_in_seconds=86400,
         ),
-    }
-    
-    # Add input data config only if using S3 model
-    if input_data_config:
-        training_job_kwargs["input_data_config"] = input_data_config
-    
-    training_job = TrainingJob.create(**training_job_kwargs, region=REGION)
-    
-    print(f"\nTraining job submitted: {JOB_NAME}")
-    print(f"Monitor at: https://{REGION}.console.aws.amazon.com/sagemaker/home?region={REGION}#/jobs/{JOB_NAME}")
+        training_input_mode="File",
+    )
+
+    # Start training job
+    # ModelTrainer automatically generates job name with timestamp
+    trainer.train(
+        input_data_config=input_data_config,
+        wait=False,  # Set to True if you want to wait for completion
+        logs=True,   # Set to False to disable log streaming
+    )
+
+    print(f"\nTraining job submitted!")
+    print(f"Monitor at: https://{REGION}.console.aws.amazon.com/sagemaker/home?region={REGION}#/jobs")
 
 
 if __name__ == "__main__":

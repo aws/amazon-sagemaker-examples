@@ -202,7 +202,14 @@ def update_data_paths(config_path: str, data_dir: str, output_dir: str, model_pa
     
     # Update output path
     config['trainer']['save_checkpoint_path'] = output_dir
-    
+
+    # Force disable wandb logger - remove from logger list
+    if 'trainer' in config and 'logger' in config['trainer']:
+        loggers = config['trainer']['logger']
+        if isinstance(loggers, list) and 'wandb' in loggers:
+            loggers.remove('wandb')
+            print("Removed 'wandb' from logger list")
+
     # Save updated config
     updated_config_path = '/tmp/train_config.yaml'
     with open(updated_config_path, 'w') as f:
@@ -302,8 +309,9 @@ def main():
         f"data.train_files={train_file}",
         f"data.val_files={eval_file}",
         f"trainer.save_checkpoint_path={output_dir}",
+        "trainer.logger=[file]",  # Force disable wandb logger
     ]
-    
+
     # Add model path override if using S3 model
     if model_path:
         cmd.append(f"worker.actor.model.model_path={model_path}")
