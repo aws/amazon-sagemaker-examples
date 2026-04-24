@@ -13,7 +13,7 @@ ModelBuilder notes:
 import boto3
 from sagemaker.serve import ModelBuilder
 from sagemaker.session import Session
-from sagemaker.async_inference.async_inference_config import AsyncInferenceConfig
+from sagemaker.core.inference_config import AsyncInferenceConfig
 
 # ==========================================
 # 1. Configuration
@@ -87,15 +87,34 @@ print(f"Endpoint {ENDPOINT_NAME} is being created (10-15 min)...")
 # ==========================================
 # 4. Test inference (after endpoint is InService)
 # ==========================================
+# Async endpoints require uploading the payload to S3 first,
+# then calling invoke_async with the S3 input location.
+#
 # import json
-# response = endpoint.predict(json.dumps({
+# import uuid
+#
+# s3 = boto3.client("s3", region_name=REGION)
+# bucket = f"sagemaker-{REGION}-{AWS_ACCOUNT_ID}"
+#
+# payload = {
 #     "model": "/opt/ml/model",
-#     "messages": [
-#         {"role": "user", "content": "What is 2+2?"}
-#     ],
+#     "messages": [{"role": "user", "content": "What is 2+2?"}],
 #     "max_tokens": 128,
-# }))
-# print(response)
+# }
+# input_key = f"async_inference_input/{uuid.uuid4()}.json"
+# s3.put_object(
+#     Bucket=bucket,
+#     Key=input_key,
+#     Body=json.dumps(payload),
+#     ContentType="application/json",
+# )
+#
+# response = endpoint.invoke_async(
+#     input_location=f"s3://{bucket}/{input_key}",
+#     content_type="application/json",
+# )
+# print(f"Output location: {response.output_location}")
+# # Poll response.output_location for the result once the job completes
 
 # ==========================================
 # 5. Cleanup (when done)
