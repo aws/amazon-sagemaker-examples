@@ -1,5 +1,4 @@
 import boto3
-from sagemaker.serve import ModelBuilder
 from sagemaker.session import Session
 from sagemaker.core.resources import Model, EndpointConfig, Endpoint
 from sagemaker.core.shapes import (
