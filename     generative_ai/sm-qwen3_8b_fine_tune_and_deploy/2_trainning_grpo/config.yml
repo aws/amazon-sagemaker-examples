@@ -1,0 +1,108 @@
+data:
+  # No need to change these paths - they are overridden at runtime by train_script.py
+  # which downloads S3 data and passes the local paths via CLI args.
+  # Only used when running locally outside SageMaker.
+  train_files: /workspace/data_parquet/train.parquet
+  val_files: /workspace/data_parquet/eval.parquet
+  prompt_key: problem
+  answer_key: answer
+  image_key: images
+  video_key: videos
+  image_dir: null
+  video_fps: 2.0
+  max_prompt_length: 1800
+  max_response_length: 300
+  rollout_batch_size: 4  # equivalent to verl's data.train_batch_size
+  mini_rollout_batch_size: null  # equivalent to verl's data.gen_batch_size
+  val_batch_size: 16
+  format_prompt: null  # Not needed - problem field already contains full prompt
+  override_chat_template: null
+  shuffle: true
+  seed: 1
+  min_pixels: 262144
+  max_pixels: 4194304
+  filter_overlong_prompts: true
+
+algorithm:
+  adv_estimator: grpo
+  disable_kl: false
+  use_kl_loss: true
+  kl_penalty: low_var_kl
+  kl_coef: 1.0e-2
+  online_filtering: false  # dapo filter groups
+  filter_key: overall
+  filter_low: 0.01
+  filter_high: 0.99
+
+worker:
+  actor:
+    global_batch_size: 4  # equivalent to verl's actor.ppo_mini_batch_size
+    micro_batch_size_per_device_for_update: 1  # equivalent to verl's actor.ppo_micro_batch_size_per_gpu
+    micro_batch_size_per_device_for_experience: 2  # equivalent to verl's rollout.log_prob_micro_batch_size_per_gpu
+    max_grad_norm: 1.0
+    padding_free: true
+    dynamic_batching: true
+    ulysses_size: 1
+    model:
+      model_path: null  # Overridden by MODEL_S3 in grpo_training_sagemaker.py
+      enable_gradient_checkpointing: true
+      trust_remote_code: false
+      freeze_vision_tower: false
+    optim:
+      lr: 1.0e-6
+      weight_decay: 1.0e-2
+      strategy: adamw  # {adamw, adamw_bf16}
+      lr_warmup_ratio: 0.0
+    fsdp:
+      enable_full_shard: true
+      enable_cpu_offload: false
+      enable_rank0_init: true
+    offload:
+      offload_params: true  # true: more CPU memory; false: more GPU memory
+      offload_optimizer: true  # true: more CPU memory; false: more GPU memory
+
+  rollout:
+    n: 5
+    temperature: 1.0
+    top_p: 1.0
+    limit_images: 0
+    gpu_memory_utilization: 0.8
+    enforce_eager: true  # Required for GPUs without NVLink
+    enable_chunked_prefill: false
+    tensor_parallel_size: 4  # Use 1 for GPUs without NVLink (g6e)
+    disable_tqdm: false
+    val_override_config:
+      temperature: 0.6
+      top_p: 0.95
+      n: 1
+
+  ref:
+    fsdp:
+      enable_full_shard: true
+      enable_cpu_offload: true  # true: more CPU memory; false: more GPU memory
+      enable_rank0_init: true
+    offload:
+      offload_params: true
+
+  reward:
+    reward_function: /opt/ml/code/reward_function/math.py:compute_score
+
+trainer:
+  total_epochs: 1
+  max_steps: null
+  project_name: easy_r1
+  experiment_name: your-experiment-name
+  logger: ["file", "wandb"]  # Disabled wandb for debugging
+  nnodes: 1
+  n_gpus_per_node: 4  # Use all 4 GPUs
+  max_try_make_batch: 5  # -1 means no limit
+  val_freq: 30  # -1 to disable
+  val_before_train: true
+  val_only: false
+  val_generations_to_log: 3
+  save_freq: -1  # -1 to disable
+  save_limit: 1  # -1 to disable
+  save_model_only: true
+  save_checkpoint_path: null
+  load_checkpoint_path: null
+  find_last_checkpoint: false
