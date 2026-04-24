@@ -1,40 +1,43 @@
+"""
+Deploy fine-tuned Qwen3-VL model to SageMaker using ModelBuilder.
+
+ModelBuilder notes:
+  - Custom container passthrough: when image_uri is a non-first-party ECR image
+    and no model/inference_spec is set, ModelBuilder skips model packaging.
+  - No model_server needed (only for known servers like TGI, DJL, etc.).
+  - No SchemaBuilder needed (the custom container handles serialization).
+  - s3_model_data_url points directly to the HuggingFace model files on S3.
+  - deploy() with AsyncInferenceConfig is a first-class supported path.
+"""
+
 import boto3
+from sagemaker.serve import ModelBuilder
 from sagemaker.session import Session
-from sagemaker.core.resources import Model, EndpointConfig, Endpoint
-from sagemaker.core.shapes import (
-    Container,
-    ModelDataSource,
-    S3DataSource,
-    ProductionVariant,
-    AsyncInferenceConfig,
-    AsyncInferenceOutputConfig,
-    AsyncInferenceClientConfig,
-)
+from sagemaker.async_inference.async_inference_config import AsyncInferenceConfig
 
-# 1. Setup environment
-REGION = 'us-east-2'
+# ==========================================
+# 1. Configuration
+# ==========================================
+REGION = "us-east-2"
 AWS_ACCOUNT_ID = "YOUR_ACCOUNT_ID"
-role = 'arn:aws:iam::YOUR_ACCOUNT_ID:role/SageMakerExecutionRole'
+ROLE_ARN = "arn:aws:iam::YOUR_ACCOUNT_ID:role/SageMakerExecutionRole"
 
-# Initialize SageMaker session
-sagemaker_session = Session(boto3.Session(region_name=REGION))
+# S3 path to HuggingFace-format model (safetensors + config.json + tokenizer)
+# After EasyR1 training + model_merger.py, this is typically:
+#   s3://<bucket>/<training-job>/output/model/global_step_X/actor/huggingface/
+S3_MODEL_DATA_URL = "s3://your-bucket/path/to/huggingface-model/"
 
-# ==========================================
-# Model configuration
-# ==========================================
-s3_model_uri = "s3://your-bucket/path/to/model/"
-endpoint_name = "your-model-endpoint"
-model_name = endpoint_name
-endpoint_config_name = f"{endpoint_name}-config"
+ENDPOINT_NAME = "your-model-endpoint"
+MODEL_NAME = ENDPOINT_NAME
 
 # Custom vLLM container (build with docker/build_and_push.sh)
 ECR_REPO_NAME = "qwen3-vl-sagemaker-inference"
 IMAGE_TAG = "latest"
-container_image = f"{AWS_ACCOUNT_ID}.dkr.ecr.{REGION}.amazonaws.com/{ECR_REPO_NAME}:{IMAGE_TAG}"
+CONTAINER_IMAGE = f"{AWS_ACCOUNT_ID}.dkr.ecr.{REGION}.amazonaws.com/{ECR_REPO_NAME}:{IMAGE_TAG}"
 
 # Environment variables for vLLM container
-vllm_env = {
-    # SM_VLLM_ prefix for custom container entrypoint
+# SM_VLLM_ prefix — parsed by sagemaker-entrypoint.sh into vLLM CLI args
+VLLM_ENV = {
     "SM_VLLM_MODEL": "/opt/ml/model",
     "SM_VLLM_MAX_MODEL_LEN": "2048",
     "SM_VLLM_DTYPE": "bfloat16",
@@ -44,60 +47,58 @@ vllm_env = {
 }
 
 # ==========================================
-# Using SageMaker v3 API with Async Inference
+# 2. Initialize SageMaker session
 # ==========================================
-print("Creating model with SageMaker v3 API...")
+sagemaker_session = Session(boto3.Session(region_name=REGION))
 
-# Create Model using v3 API
-model = Model.create(
-    model_name=model_name,
-    execution_role_arn=role,
-    primary_container=Container(
-        image=container_image,
-        model_data_source=ModelDataSource(
-            s3_data_source=S3DataSource(
-                s3_uri=s3_model_uri,
-                s3_data_type="S3Prefix",
-                compression_type="None",
-            )
-        ),
-        environment=vllm_env,
+# ==========================================
+# 3. Build and deploy with ModelBuilder
+# ==========================================
+# Custom container passthrough: no model_server or SchemaBuilder needed.
+# ModelBuilder detects a non-first-party ECR image and skips model packaging.
+print("=" * 60)
+print("Building model with ModelBuilder...")
+print("=" * 60)
+
+model_builder = ModelBuilder(
+    image_uri=CONTAINER_IMAGE,
+    s3_model_data_url=S3_MODEL_DATA_URL,
+    role_arn=ROLE_ARN,
+    env_vars=VLLM_ENV,
+    sagemaker_session=sagemaker_session,
+)
+
+model = model_builder.build(model_name=MODEL_NAME)
+print(f"Model built: {MODEL_NAME}")
+
+# Deploy as async endpoint
+print(f"Deploying async endpoint: {ENDPOINT_NAME}")
+endpoint = model_builder.deploy(
+    endpoint_name=ENDPOINT_NAME,
+    instance_type="ml.g6.2xlarge",
+    initial_instance_count=1,
+    inference_config=AsyncInferenceConfig(
+        output_path=f"s3://sagemaker-{REGION}-{AWS_ACCOUNT_ID}/async_inference_output",
+        max_concurrent_invocations_per_instance=10,
     ),
 )
-print(f"Created model: {model.model_name}")
+print(f"Endpoint {ENDPOINT_NAME} is being created (10-15 min)...")
 
-# Create Endpoint Config with Async Inference
-print("Creating endpoint config with async inference...")
-endpoint_config = EndpointConfig.create(
-    endpoint_config_name=endpoint_config_name,
-    production_variants=[
-        ProductionVariant(
-            variant_name="AllTraffic",
-            model_name=model_name,
-            initial_instance_count=1,
-            instance_type="ml.g6.2xlarge",
-        )
-    ],
-    async_inference_config=AsyncInferenceConfig(
-        output_config=AsyncInferenceOutputConfig(
-            s3_output_path=f"s3://sagemaker-{REGION}-{AWS_ACCOUNT_ID}/async_inference_output",
-        ),
-        client_config=AsyncInferenceClientConfig(
-            max_concurrent_invocations_per_instance=10,
-        ),
-    ),
-)
-print(f"Created endpoint config: {endpoint_config.endpoint_config_name}")
+# ==========================================
+# 4. Test inference (after endpoint is InService)
+# ==========================================
+# import json
+# response = endpoint.predict(json.dumps({
+#     "model": "/opt/ml/model",
+#     "messages": [
+#         {"role": "user", "content": "What is 2+2?"}
+#     ],
+#     "max_tokens": 128,
+# }))
+# print(response)
 
-# Create Endpoint
-print(f"Creating async endpoint: {endpoint_name}")
-endpoint = Endpoint.create(
-    endpoint_name=endpoint_name,
-    endpoint_config_name=endpoint_config_name,
-)
-print(f"Endpoint {endpoint_name} is being created...")
-print("This may take 10-15 minutes...")
-
-# Optional: Wait for endpoint to be in service
-# endpoint.wait_for_status(status="InService", poll_seconds=30)
-# print(f"Endpoint {endpoint_name} is now InService!")
+# ==========================================
+# 5. Cleanup (when done)
+# ==========================================
+# endpoint.delete_model()
+# endpoint.delete_endpoint()
