@@ -626,10 +626,10 @@ The reward function in `reward_function/math.py` computes a multi-metric score f
 
 | Metric | Weight | Description |
 |--------|--------|-------------|
-| `recall` | 35% | Proportion of ground truth tags found |
-| `accuracy` | 35% | Classification accuracy of matched tags |
-| `precision` | 20% | Penalizes extra predicted tags |
-| `match_quality` | 5% | Fuzzy matching quality score |
+| `recall` | 30% | Proportion of ground truth tags found |
+| `accuracy` | 30% | Classification accuracy of matched tags |
+| `precision` | 25% | Penalizes extra predicted tags |
+| `match_quality` | 10% | Fuzzy matching quality score |
 | `formatting` | 5% | Correct output format (9 categories) |
 
 To customize the reward function, edit `2_trainning_grpo/docker/reward_function/math.py`:
@@ -637,10 +637,10 @@ To customize the reward function, edit `2_trainning_grpo/docker/reward_function/
 ```python
 def compute_score(
     reward_inputs: list[dict[str, Any]],
-    recall_weight: float = 0.35,
-    precision_weight: float = 0.2,
-    accuracy_weight: float = 0.35,
-    match_quality_weight: float = 0.05,
+    recall_weight: float = 0.30,
+    precision_weight: float = 0.25,
+    accuracy_weight: float = 0.30,
+    match_quality_weight: float = 0.10,
     formatting_weight: float = 0.05
 ) -> list[dict[str, float]]:
     """
@@ -683,6 +683,7 @@ GRPO training uses **Parquet format** with prompt-answer pairs. Upload your data
 | `answer` | string | The expected ground truth response (used by reward function) |
 
 **Example row:**
+
 | Column | Content |
 |--------|---------|
 | `problem` | You are a professional and rigorous product tagging expert, responsible for automatically generating and classifying tags based on the provided product information...<br><br>Product Name: MI Amazon Usb Type-C Cable Smartphone Charging (Black) \|Connectivity: Usb 2.0 (Sync And Charging)\| Universal For All Type-C Devices (Grey)... |
