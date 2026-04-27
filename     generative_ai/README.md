@@ -6,7 +6,8 @@ These examples showcases Amazon SageMaker's capabilities in the exciting field o
 
 - [Fine-tuning and deploying a Hugging Face summarization model on SageMaker with your own scripts and dataset](sm-finetuning_huggingface_with_your_own_scripts_and_data/sm-finetuning_huggingface_with_your_own_scripts_and_data.ipynb)
 - [Fine-tuning and deploying the Mixtral 8x7B LLM In SageMaker with Hugging Face, using QLoRA Parameter-Efficient Fine-Tuning](sm-mixtral_8x7b_fine_tune_and_deploy/sm-mixtral_8x7b_fine_tune_and_deploy.ipynb)
-- [Serve large models on SageMaker with DeepSpeed Container](sm-djl_deepspeed_bloom_176b_deploy.ipynb)
+- [Qwen 8B LLM Fine-tuning with SFT and GRPO, and Deployment on AWS SageMaker](sm-qwen3_8b_fine_tune_and_deploy/README.md)
+- [Serve large models on SageMaker with DeepSpeed Container](sm-mixtral_8x7b_fine_tune_and_deploy/sm-mixtral_8x7b_fine_tune_and_deploy.ipynb)(sm-djl_deepspeed_bloom_176b_deploy.ipynb)
 - [Accelerate SageMaker-PyTorch FSDP Training of Llama-v2 (or GPT-NeoX) with FP8 on P5 instances](sm-fsdp_training_of_llama_v2_with_fp8_on_p5.ipynb)
 - [Fine-tune Code Llama, Deploy and Evaluate the Fine-tuning with Human-eval Repository](sm-jumpstart_foundation_code_llama_fine_tuning_human_eval.ipynb)
 - [SageMaker JumpStart Foundation Models - Fine-tuning text generation GPT-J 6B model on domain specific dataset](sm-jumpstart_foundation_finetuning_gpt_j_6b_domain_adaptation.ipynb)
