@@ -683,10 +683,10 @@ GRPO training uses **Parquet format** with prompt-answer pairs. Upload your data
 | `answer` | string | The expected ground truth response (used by reward function) |
 
 **Example row:**
-```
-problem: "你是一個專業的商品貼標專家...這是你要分析的商品信息：商品名称：洗髮露..."
-answer: "1，品名：洗髮露；洗頭水\n2，品牌/商品系列：阿原；YUAN\n3，功能用途：..."
-```
+| Column | Content |
+|--------|---------|
+| `problem` | You are a professional and rigorous product tagging expert, responsible for automatically generating and classifying tags based on the provided product information...<br><br>Product Name: MI Amazon Usb Type-C Cable Smartphone Charging (Black) \|Connectivity: Usb 2.0 (Sync And Charging)\| Universal For All Type-C Devices (Grey)... |
+| `answer` | 1, Product Name: USB Type-C Cable; Charging Cable<br>2, Brand / Product Line: MI<br>3, Function & Usage: Fast Charging; Data Sync<br>4, Ingredients & Materials: TPE + Nylon<br>5, Specifications / Model: 1m; 3A; 480Mbps<br>6, Color: Black; Grey<br>7, Style & Features: Durable<br>8, Use Occasion: Smartphones; Tablets; Laptops<br>9, Corresponding Holiday: |
 
 **Create parquet from pandas:**
 ```python
