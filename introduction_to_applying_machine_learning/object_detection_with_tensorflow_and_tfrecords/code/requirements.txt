@@ -1,0 +1,5 @@
+tensorflow[and-cuda]~=2.15.0
+keras-cv
+sagemaker
+tensorrt
+pycocotools

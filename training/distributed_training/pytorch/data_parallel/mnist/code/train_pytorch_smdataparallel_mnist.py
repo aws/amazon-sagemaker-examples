@@ -40,6 +40,7 @@ if smdataparallel_enabled:
     try:
         import smdistributed.dataparallel.torch.torch_smddp
         backend = 'smddp'
+        print('Using smddp as backend')
     except ImportError: 
         print('smdistributed module not available, falling back to NCCL collectives.')
 
@@ -267,7 +268,7 @@ def main():
         scheduler.step()
 
     if rank == 0:
-        save_model_path = os.join(save_path,'mnist_cnn.pt')
+        save_model_path = os.path.join(save_path,'mnist_cnn.pt')
         torch.save(model.state_dict(), save_model_path)
 
 

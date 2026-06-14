@@ -10,3 +10,4 @@ Applying ML Algorithms
    introduction_to_applying_machine_learning/huggingface_sentiment_classification/huggingface_sentiment
    introduction_to_applying_machine_learning/mixtral_tune_and_deploy/mixtral-8x7b
    sagemaker_pytorch_model_zoo/sagemaker_pytorch_model_zoo
+   introduction_to_applying_machine_learning/object_detection_with_tensorflow_and_tfrecords

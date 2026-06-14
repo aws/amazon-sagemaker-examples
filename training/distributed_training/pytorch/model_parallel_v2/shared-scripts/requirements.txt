@@ -1,9 +1,9 @@
 accelerate>=0.12.0
-datasets>=2.16.1
+datasets>=2.19.1
 einops
 evaluate
 expecttest
-flash-attn>=2.3.6
+flash-attn>=2.3.6,<2.4
 h5py
 humanize
 hypothesis
@@ -14,4 +14,4 @@ protobuf
 scikit-learn
 sentencepiece!=0.1.92
 tensorboard
-transformers>=4.37.1
+transformers>=4.40.1

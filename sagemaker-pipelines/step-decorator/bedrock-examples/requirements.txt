@@ -1,0 +1,10 @@
+botocore>=1.31.57
+boto3>=1.28.57
+sagemaker>=2.198.1,<3
+typing_extensions
+pypdf
+# urllib3==2.1.0
+ipywidgets==7.7.2
+jsonlines
+datasets==2.15.0
+pandas==2.1.3

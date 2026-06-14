@@ -1,0 +1,86 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "properties": {
+    "captureData": {
+      "type": "object",
+      "properties": {
+        "endpointInput": {
+          "type": "object",
+          "properties": {
+            "observedContentType": {
+              "type": "string"
+            },
+            "mode": {
+              "type": "string"
+            },
+            "data": {
+              "type": "string"
+            },
+            "encoding": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "observedContentType",
+            "mode",
+            "data",
+            "encoding"
+          ]
+        },
+        "endpointOutput": {
+          "type": "object",
+          "properties": {
+            "observedContentType": {
+              "type": "null"
+            },
+            "mode": {
+              "type": "string"
+            },
+            "data": {
+              "type": "string"
+            },
+            "encoding": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "observedContentType",
+            "mode",
+            "data",
+            "encoding"
+          ]
+        }
+      },
+      "required": [
+        "endpointInput",
+        "endpointOutput"
+      ]
+    },
+    "eventMetadata": {
+      "type": "object",
+      "properties": {
+        "eventId": {
+          "type": "string"
+        },
+        "customAttributes": {
+          "type": "array",
+          "items": [
+            {
+              "type": "string"
+            }
+          ]
+        },
+        "inferenceTime": {
+          "type": "string"
+        }
+      }
+    },
+    "eventVersion": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "captureData"
+  ]
+}

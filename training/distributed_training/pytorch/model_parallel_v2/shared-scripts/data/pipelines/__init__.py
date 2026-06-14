@@ -5,7 +5,7 @@ from data.pipelines.hf_data_pipeline import HFDataPipeline
 
 
 def create_data_pipeline(
-    args, start_train_path_index, resume_from_sequence_number, dp_rank, dp_size
+    args, start_train_path_index, resume_from_sequence_number, val_resume_from_sequence_number, dp_rank, dp_size
 ):
     if args.use_synthetic_data:
         data_pipeline = DummyDataPipeline(
@@ -26,6 +26,7 @@ def create_data_pipeline(
             seed=args.seed,
             num_workers=args.data_num_workers,
             resume_from_sequence_number=resume_from_sequence_number,
+            val_resume_from_sequence_number=val_resume_from_sequence_number,
             dp_rank=dp_rank,
             dp_size=dp_size,
         )
@@ -38,6 +39,7 @@ def create_data_pipeline(
             seed=args.seed,
             num_workers=args.data_num_workers,
             resume_from_sequence_number=resume_from_sequence_number,
+            val_resume_from_sequence_number=val_resume_from_sequence_number,
             dp_rank=dp_rank,
             dp_size=dp_size,
         )

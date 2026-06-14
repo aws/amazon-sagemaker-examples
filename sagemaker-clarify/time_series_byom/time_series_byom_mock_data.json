@@ -1,0 +1,128 @@
+[
+    {
+        "item_id": "seattle",
+        "timestamp": "2020-01-01 16:20:00",
+        "p_mbar": 1008.89,
+        "rain_mm": 0.23,
+        "T_degC": 0.71
+    },
+    {
+        "item_id": "seattle",
+        "timestamp": "2020-01-01 16:30:00",
+        "p_mbar": 1008.76,
+        "rain_mm": 0.21,
+        "T_degC": 0.75
+    },
+    {
+        "item_id": "seattle",
+        "timestamp": "2020-01-01 16:40:00",
+        "p_mbar": 1008.66,
+        "rain_mm": 0.19,
+        "T_degC": 0.73
+    },
+    {
+        "item_id": "seattle",
+        "timestamp": "2020-01-01 16:50:00",
+        "p_mbar": null,
+        "rain_mm": 0.16,
+        "T_degC": 0.37
+    },
+    {
+        "item_id": "seattle",
+        "timestamp": "2020-01-01 17:00:00",
+        "p_mbar": null,
+        "rain_mm": 0.13,
+        "T_degC": 0.33
+    },
+    {
+        "item_id": "seattle",
+        "timestamp": "2020-01-01 17:10:00",
+        "p_mbar": null,
+        "rain_mm": 0.08,
+        "T_degC": 0.34
+    },
+    {
+        "item_id": "seattle",
+        "timestamp": "2020-01-01 17:20:00",
+        "p_mbar": null,
+        "rain_mm": 0.0,
+        "T_degC": 0.19
+    },
+    {
+        "item_id": "seattle",
+        "timestamp": "2020-01-01 17:30:00",
+        "p_mbar": null,
+        "rain_mm": 0.0,
+        "T_degC": 0.03
+    },
+    {
+        "item_id": "seattle",
+        "timestamp": "2020-01-01 17:40:00",
+        "p_mbar": null,
+        "rain_mm": 0.0,
+        "T_degC": 0.11
+    },
+    {
+        "item_id": "sanjose",
+        "timestamp": "2020-01-01 16:20:00",
+        "p_mbar": 1005.1,
+        "rain_mm": 0.0,
+        "T_degC": 2.48
+    },
+    {
+        "item_id": "sanjose",
+        "timestamp": "2020-01-01 16:30:00",
+        "p_mbar": 1005.1,
+        "rain_mm": 0.0,
+        "T_degC": 2.41
+    },
+    {
+        "item_id": "sanjose",
+        "timestamp": "2020-01-01 16:40:00",
+        "p_mbar": 977.92,
+        "rain_mm": 0.0,
+        "T_degC": 2.37
+    },
+    {
+        "item_id": "sanjose",
+        "timestamp": "2020-01-01 16:50:00",
+        "p_mbar": null,
+        "rain_mm": 0.0,
+        "T_degC": 2.40
+    },
+    {
+        "item_id": "sanjose",
+        "timestamp": "2020-01-01 17:00:00",
+        "p_mbar": null,
+        "rain_mm": 0.0,
+        "T_degC": 2.41
+    },
+    {
+        "item_id": "sanjose",
+        "timestamp": "2020-01-01 17:10:00",
+        "p_mbar": null,
+        "rain_mm": 0.0,
+        "T_degC": 2.45
+    },
+    {
+        "item_id": "sanjose",
+        "timestamp": "2020-01-01 17:20:00",
+        "p_mbar": null,
+        "rain_mm": 0.0,
+        "T_degC": 2.40
+    },
+    {
+        "item_id": "sanjose",
+        "timestamp": "2020-01-01 17:30:00",
+        "p_mbar": null,
+        "rain_mm": 0.0,
+        "T_degC": 2.38
+    },
+    {
+        "item_id": "sanjose",
+        "timestamp": "2020-01-01 17:40:00",
+        "p_mbar": null,
+        "rain_mm": 0.0,
+        "T_degC": 2.34
+    }
+]
