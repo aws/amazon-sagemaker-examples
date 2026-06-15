@@ -146,6 +146,7 @@ We recommend the following notebooks as a broad introduction to the capabilities
    deploy_and_monitor/sm-shadow_variant_shadow_api/sm-shadow_variant_shadow_api
    deploy_and_monitor/sm-triton_inferentia2/sm-triton_inferentia2
    deploy_and_monitor/sm-triton_mme_bert_trt/sm-triton_mme_bert_trt
+   deploy_and_monitor/sm-triton_mme_faster_whisper/sm-triton_mme_faster_whisper
    deploy_and_monitor/sm-triton_mme_gpu_ensemble_dali/sm-triton_mme_gpu_ensemble_dali
    deploy_and_monitor/sm-triton_nlp_bert/sm-triton_nlp_bert
    deploy_and_monitor/sm-triton_realtime_sme_flan_t5/sm-triton_realtime_sme_flan_t5
