@@ -1,9 +1,0 @@
-awscli
-Cython
-fastapi
-numpy
-pandas
-pytest
-scikit-learn
-torchvision
-darts==0.26.0

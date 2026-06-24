@@ -1,4 +1,0 @@
-numpy
-pandas
-sagemaker-inference
-xgboost
