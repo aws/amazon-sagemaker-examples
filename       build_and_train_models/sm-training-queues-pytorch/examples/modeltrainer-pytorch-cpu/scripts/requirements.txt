@@ -1,4 +1,0 @@
-boto3
-emoji
-sagemaker==2.247.1
-scikit-learn==1.7.0
