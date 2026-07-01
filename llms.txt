@@ -1,0 +1,52 @@
+# Amazon SageMaker Examples
+
+> Example notebooks for building, training, and deploying models with the Amazon SageMaker
+> Python SDK **v3**. This repository targets **v3 only**; `pip install sagemaker` installs v3.
+> SDK v3 is modular (`sagemaker-core`, `sagemaker-train`, `sagemaker-serve`, `sagemaker-mlops`)
+> and is not backward compatible with v2. v2 examples are archived, not maintained.
+
+This file follows the llms.txt convention (https://llmstxt.org): a curated index plus explicit
+instructions so AI coding agents generate correct, current (v3) code.
+
+## Instructions for LLM agents (SageMaker Python SDK)
+
+- Default to SageMaker Python SDK **v3**.
+- **Never** emit these v2 patterns unless the user explicitly asks for "v2":
+  - `from sagemaker.estimator import Estimator` → use `from sagemaker.train import ModelTrainer`
+  - framework estimator classes (`from sagemaker.pytorch import PyTorch`, TensorFlow, SKLearn,
+    XGBoost, HuggingFace) → `ModelTrainer` + `from sagemaker.core import image_uris` (`image_uris.retrieve(...)`)
+  - `estimator.fit(...)` → `model_trainer.train(...)`
+  - `from sagemaker.model import Model` / `model.deploy(...)` → `from sagemaker.serve import ModelBuilder`; `ModelBuilder(...).deploy(...)`
+  - `from sagemaker.predictor import Predictor` / `predictor.predict(...)` → `Predictor` replaced by `Endpoint` (sagemaker-core); use the predictor returned by `ModelBuilder.deploy(...)`
+  - `from sagemaker.processing import Processor/ScriptProcessor/SKLearnProcessor` → `sagemaker.core.resources.ProcessingJob`
+  - `from sagemaker.workflow...` → `from sagemaker.mlops...`
+- Removed in v3 (no replacement): MXNet, Chainer, RLEstimator, Training Compiler.
+- After generating SageMaker code, validate it contains none of the v2 patterns above. If unsure
+  of a mapping, consult the migration guide below or call the migration MCP tool.
+- No hardcoded account IDs, role ARNs, regions, or bucket names. Use `get_execution_role()` and
+  `Session().default_bucket()`.
+
+## Migration
+
+- [V2 → V3 migration guide](https://github.com/aws/sagemaker-python-sdk/blob/master/migration.md): authoritative mappings and before/after examples
+- [SageMaker Python SDK (source)](https://github.com/aws/sagemaker-python-sdk)
+- [SageMaker Python SDK docs](https://sagemaker.readthedocs.io/)
+
+## Core v3 interfaces
+
+- Training: `sagemaker.train.ModelTrainer` (+ `train.configs`: `Compute`, `SourceCode`, `InputData`)
+- Inference: `sagemaker.serve.ModelBuilder` (+ `serve.configs.InferenceSpec`), then `ModelBuilder.deploy(...)`
+- Processing: `sagemaker.core.resources.ProcessingJob`
+- MLOps / Pipelines: `sagemaker.mlops.pipeline.Pipeline`, `sagemaker.mlops.steps`
+- Images: `sagemaker.core.image_uris.retrieve(...)`
+
+## Example categories
+
+- [Build & train models](https://github.com/aws/amazon-sagemaker-examples/tree/default): training with `ModelTrainer`, frameworks, distributed training, hyperparameter tuning
+- [Deploy & monitor](https://github.com/aws/amazon-sagemaker-examples/tree/default): deployment with `ModelBuilder`, real-time/serverless/async endpoints, model monitoring
+- [Prepare data](https://github.com/aws/amazon-sagemaker-examples/tree/default): data processing and feature engineering
+- [MLOps](https://github.com/aws/amazon-sagemaker-examples/tree/default): SageMaker Pipelines, Model Registry, experiment tracking
+- [Generative AI](https://github.com/aws/amazon-sagemaker-examples/tree/default): foundation models, JumpStart, fine-tuning (SFT/DPO/RLVR)
+- [Responsible AI](https://github.com/aws/amazon-sagemaker-examples/tree/default): bias detection and explainability
+- [End-to-end ML lifecycle](https://github.com/aws/amazon-sagemaker-examples/tree/default): complete build → train → deploy workflows
+- [SageMaker Core](https://github.com/aws/amazon-sagemaker-examples/tree/default): getting started with the v3 resource API (see the `sagemaker-core/` folder, e.g. `get_started.ipynb`)
