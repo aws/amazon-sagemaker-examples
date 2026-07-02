@@ -1,8 +1,0 @@
-numpy
-pandas
-flask
-gevent
-gunicorn
-scikit-learn
-sagemaker-inference
-retrying

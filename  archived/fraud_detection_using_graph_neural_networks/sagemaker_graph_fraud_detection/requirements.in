@@ -1,3 +1,0 @@
-sagemaker==1.72.0
-awscli
-watchtower==1.0.0

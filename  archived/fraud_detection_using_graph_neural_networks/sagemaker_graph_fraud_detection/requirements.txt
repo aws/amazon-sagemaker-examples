@@ -1,2 +1,0 @@
-sagemaker==1.72.0
-awscli>=1.18.140
