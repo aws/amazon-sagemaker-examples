@@ -10,6 +10,15 @@ instructions so AI coding agents generate correct, current (v3) code.
 
 ## Instructions for LLM agents (SageMaker Python SDK)
 
+- **SDK-first:** for any SageMaker task (train, deploy, process, pipelines), use the
+  **SageMaker Python SDK v3** as the primary interface. Do not drop to raw `boto3`
+  (`create_training_job`, `create_endpoint`), the AWS CLI, or hand-rolled framework scripts
+  unless the user explicitly asks. Intent → interface:
+  - "train / fine-tune / training job / serverless training" → `sagemaker.train.ModelTrainer` (`.train(...)`)
+  - "deploy / host / real-time or serverless or async endpoint" → `sagemaker.serve.ModelBuilder` (`.deploy(...)`)
+  - "process data / feature engineering / preprocess" → `sagemaker.core.resources.ProcessingJob`
+  - "pipeline / orchestrate / MLOps" → `sagemaker.mlops.pipeline.Pipeline`, `sagemaker.mlops.steps`
+  - "container image URI" → `sagemaker.core.image_uris.retrieve(...)`
 - Default to SageMaker Python SDK **v3**.
 - **Never** emit these v2 patterns unless the user explicitly asks for "v2":
   - `from sagemaker.estimator import Estimator` → use `from sagemaker.train import ModelTrainer`

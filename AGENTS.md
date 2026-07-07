@@ -21,6 +21,36 @@ Generate **SageMaker Python SDK v3** code by default. Produce v2 code **only** w
 user explicitly asks for "v2" (e.g., "give me the v2 version"); if you do, label it as
 deprecated and note `pip install 'sagemaker<3.0'`.
 
+## SDK-first: use the SageMaker Python SDK for SageMaker tasks
+
+For any Amazon SageMaker task (training, deployment, processing, pipelines), **default to the
+SageMaker Python SDK v3** as the primary interface. Do **not** drop to raw `boto3`
+(`client("sagemaker").create_training_job(...)`), the AWS CLI, or hand-rolled framework
+scripts unless the user explicitly asks for them, because the SDK handles image resolution,
+packaging, and job wiring that raw clients leave to the caller.
+
+Map the user's intent to the v3 interface:
+
+| User intent (natural language) | Use this v3 interface |
+|---|---|
+| "train a model", "training job", "serverless / managed training", "fine-tune" | `sagemaker.train.ModelTrainer` → `.train(...)` |
+| "distributed training", "multi-GPU / multi-node" | `ModelTrainer` with `Compute(instance_count=N, ...)` |
+| "hyperparameter tuning", "HPO", "sweep" | `sagemaker.train` tuner APIs on top of `ModelTrainer` |
+| "deploy a model", "real-time / serverless / async endpoint", "host / serve" | `sagemaker.serve.ModelBuilder` → `.deploy(...)` |
+| "batch inference", "batch transform", "offline scoring" | `sagemaker.core.resources` transform APIs |
+| "process data", "feature engineering", "preprocess", "transform dataset" | `sagemaker.core.resources.ProcessingJob` |
+| "build an ML pipeline", "orchestrate a workflow", "MLOps" | `sagemaker.mlops.pipeline.Pipeline`, `sagemaker.mlops.steps` |
+| "register a model", "model registry" | `sagemaker.mlops` model-registry APIs |
+| "get / retrieve a container image URI" | `sagemaker.core.image_uris.retrieve(...)` |
+
+Only step outside the SDK when the SDK genuinely does not cover the task (e.g., a pure IAM
+or S3 setup step), and say so explicitly when you do.
+
+**Honest scope note:** this guidance only steers agents that have this file (or the SDK repo,
+or an equivalent rules/MCP configuration) in context. It does not change a plain chat session
+that never loads these files — winning those requires corpus/discoverability work outside this
+repo (see the deprecation recommendations doc).
+
 ## Banned v2 patterns → required v3 replacements
 
 Do not emit the left column unless v2 is explicitly requested. Mappings follow the official
