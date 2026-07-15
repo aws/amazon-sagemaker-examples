@@ -12,7 +12,7 @@ import traceback
 
 import flask
 import pandas as pd
-import StringIO
+from io import StringIO
 
 prefix = "/opt/ml/"
 model_path = os.path.join(prefix, "model")
@@ -28,7 +28,7 @@ class ScoringService(object):
     def get_model(cls):
         """Get the model object for this instance, loading it if it's not already loaded."""
         if cls.model == None:
-            with open(os.path.join(model_path, "decision-tree-model.pkl"), "r") as inp:
+            with open(os.path.join(model_path, "decision-tree-model.pkl"), "rb") as inp:
                 cls.model = pickle.load(inp)
         return cls.model
 
@@ -68,7 +68,7 @@ def transformation():
     # Convert from CSV to pandas
     if flask.request.content_type == "text/csv":
         data = flask.request.data.decode("utf-8")
-        s = StringIO.StringIO(data)
+        s = StringIO(data)
         data = pd.read_csv(s, header=None)
     else:
         return flask.Response(
@@ -81,7 +81,7 @@ def transformation():
     predictions = ScoringService.predict(data)
 
     # Convert from numpy back to CSV
-    out = StringIO.StringIO()
+    out = StringIO()
     pd.DataFrame({"results": predictions}).to_csv(out, header=False, index=False)
     result = out.getvalue()
 
