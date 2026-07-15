@@ -56,12 +56,21 @@ def _parse_args():
 
 
 def _find_data_file(channel_dir):
-    """Return the path to the single data file inside a channel directory."""
-    files = [
-        os.path.join(channel_dir, f)
-        for f in os.listdir(channel_dir)
-        if os.path.isfile(os.path.join(channel_dir, f))
-    ]
+    """Return the path to the single data file inside a channel directory.
+
+    ``channel_dir`` is a SageMaker-managed channel path, but we still resolve
+    each entry and confirm it stays within the channel directory so that no
+    symlink or unexpected entry can escape it via ``..`` sequences.
+    """
+    base = os.path.realpath(channel_dir)
+    files = []
+    for name in os.listdir(base):
+        candidate = os.path.realpath(os.path.join(base, name))
+        if os.path.commonpath([base, candidate]) != base:
+            # Entry resolves outside the channel directory; skip it.
+            continue
+        if os.path.isfile(candidate):
+            files.append(candidate)
     if not files:
         raise ValueError(f"No data files found in channel directory: {channel_dir}")
     return files[0]
@@ -103,7 +112,8 @@ def main():
     # Persist the trained model to the model directory so SageMaker uploads it.
     os.makedirs(args.model_dir, exist_ok=True)
     model_location = os.path.join(args.model_dir, "xgboost-model")
-    pkl.dump(bst, open(model_location, "wb"))
+    with open(model_location, "wb") as model_file:
+        pkl.dump(bst, model_file)
     logger.info("Stored trained model at %s", model_location)
 
 
