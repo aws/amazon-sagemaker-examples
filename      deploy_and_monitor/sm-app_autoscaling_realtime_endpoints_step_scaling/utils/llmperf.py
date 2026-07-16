@@ -36,7 +36,7 @@ def trigger_auto_scaling(creds, region, endpoint_name, num_concurrent_requests):
 
     # Make sure the script is executable (git does not always preserve the
     # execute bit, so set it explicitly before launching the subprocess).
-    os.chmod(script_path, 0o755)
+    os.chmod(script_path, 0o700)
 
     # Run the shell script
     print(f"Launching LLMPerf with {num_concurrent_requests} concurrent requests")
