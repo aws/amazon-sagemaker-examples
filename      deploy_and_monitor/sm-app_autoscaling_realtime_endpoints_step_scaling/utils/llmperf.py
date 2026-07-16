@@ -34,8 +34,9 @@ def trigger_auto_scaling(creds, region, endpoint_name, num_concurrent_requests):
     else:
         print(f"LLMPerf shell script file not found at {script_path}")
 
-    # Make sure the script is executable
-    # os.chmod(script_path, 0o755)
+    # Make sure the script is executable (git does not always preserve the
+    # execute bit, so set it explicitly before launching the subprocess).
+    os.chmod(script_path, 0o755)
 
     # Run the shell script
     print(f"Launching LLMPerf with {num_concurrent_requests} concurrent requests")
