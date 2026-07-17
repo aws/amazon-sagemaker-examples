@@ -35,7 +35,7 @@ def trigger_auto_scaling(creds, region, endpoint_name, num_concurrent_requests):
         print(f"LLMPerf shell script file not found at {script_path}")
 
     # Make sure the script is executable
-    # os.chmod(script_path, 0o755)
+    os.chmod(script_path, 0o700)
 
     # Run the shell script
     print(f"Launching LLMPerf with {num_concurrent_requests} concurrent requests")
