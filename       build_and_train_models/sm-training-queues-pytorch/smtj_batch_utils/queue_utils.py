@@ -1,7 +1,13 @@
 import datetime
 import logging
-from sagemaker.aws_batch.boto_client import get_batch_boto_client
-from sagemaker.aws_batch.training_queue import TrainingQueuedJob
+try:
+    # SageMaker Python SDK V3
+    from sagemaker.train.aws_batch.boto_client import get_batch_boto_client
+    from sagemaker.train.aws_batch.training_queue import TrainingQueuedJob
+except ImportError:
+    # SageMaker Python SDK V2 fallback
+    from sagemaker.aws_batch.boto_client import get_batch_boto_client
+    from sagemaker.aws_batch.training_queue import TrainingQueuedJob
 
 logging.getLogger().setLevel(logging.ERROR)
 
