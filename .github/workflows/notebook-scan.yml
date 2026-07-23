@@ -2,19 +2,14 @@ name: Notebook Scan (scheduled)
 
 # ---------------------------------------------------------------------------
 # Weekday scheduled full scan of the NotebookTestEngine example notebooks on real
-# SageMaker infrastructure. Replaces the old EventBridge weekday cron.
+# SageMaker infrastructure.
 #
-# Notes:
-#   - GitHub `schedule:` runs ONLY from the repository default branch, so this
-#     workflow lives on `default`. It scans the notebooks on the NotebookTestEngine
-#     branch via a secondary-source version override (that is where the engine's
-#     example set lives).
-#   - `schedule:` is best-effort (runs can be delayed or dropped). The engine's
-#     liveness alarm (MissedScheduledRun) remains the authoritative guard that a
-#     scan actually ran -- it reads the RunCompleted heartbeat this run emits.
-#   - full_scan lets the engine pick the day's rotation category; it exits 0 even
-#     on notebook failures (the Notebook CloudWatch alarm owns that signal), so no
-#     PR-style red check here.
+#   - GitHub `schedule:` only runs from the repository default branch, so this
+#     workflow lives on `default` and scans the NotebookTestEngine branch's
+#     notebooks via the secondary-source version override below.
+#   - TEST_MODE=full_scan: the engine picks the day's rotation category and exits 0
+#     even on notebook failures (the Notebook CloudWatch alarm owns that signal),
+#     so this job is fire-and-forget -- no PR-style pass/fail reflection.
 # ---------------------------------------------------------------------------
 
 on:
