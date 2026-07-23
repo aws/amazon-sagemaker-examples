@@ -39,7 +39,7 @@ jobs:
         uses: actions/github-script@v7
         id: collab-check
         with:
-          github-token: ${{ secrets.COLLAB_CHECK_TOKEN }}
+          github-token: ${{ secrets.COLLAB_CHECK_TOKEN || github.token }}
           result-encoding: string
           script: |
             try {
