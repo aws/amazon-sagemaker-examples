@@ -1,0 +1,61 @@
+name: Notebook Scan (scheduled)
+
+# ---------------------------------------------------------------------------
+# Weekday scheduled full scan of the NotebookTestEngine example notebooks on real
+# SageMaker infrastructure. Replaces the old EventBridge weekday cron.
+#
+# Notes:
+#   - GitHub `schedule:` runs ONLY from the repository default branch, so this
+#     workflow lives on `default`. It scans the notebooks on the NotebookTestEngine
+#     branch via a secondary-source version override (that is where the engine's
+#     example set lives).
+#   - `schedule:` is best-effort (runs can be delayed or dropped). The engine's
+#     liveness alarm (MissedScheduledRun) remains the authoritative guard that a
+#     scan actually ran -- it reads the RunCompleted heartbeat this run emits.
+#   - full_scan lets the engine pick the day's rotation category; it exits 0 even
+#     on notebook failures (the Notebook CloudWatch alarm owns that signal), so no
+#     PR-style red check here.
+# ---------------------------------------------------------------------------
+
+on:
+  schedule:
+    - cron: '0 7 * * 1-5'   # 07:00 UTC Mon-Fri (matches the retired EventBridge rule)
+  workflow_dispatch:         # manual / on-demand scan (also used for testing)
+
+permissions:
+  id-token: write   # mint the GitHub OIDC token for AWS
+  contents: read
+
+jobs:
+  notebook-scan:
+    runs-on: ubuntu-latest
+    # A category scan can run long; 360 min is GitHub's hosted-job maximum.
+    timeout-minutes: 360
+    steps:
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.NOTEBOOK_TEST_ENGINE_ROLE_ARN }}
+          aws-region: us-west-2
+          role-duration-seconds: 28800
+
+      - name: Start CodeBuild full scan (NotebookTestEngine)
+        run: |
+          set -euo pipefail
+          PROJECT=notebook-test-engine
+
+          # Scan the NotebookTestEngine branch's notebooks (that is where the NTE
+          # example set lives). The old EventBridge rule scanned the source default
+          # branch with no override; the engine's notebooks now live on this branch,
+          # so pin the 'sdk' secondary source to it. TEST_MODE=full_scan -> the
+          # engine rotates through categories by weekday and owns its own alarm
+          # signal (no PR-style red check), so this job is fire-and-forget.
+          BUILD_ID=$(aws codebuild start-build \
+            --project-name "$PROJECT" \
+            --secondary-sources-version-override "[{\"sourceIdentifier\":\"sdk\",\"sourceVersion\":\"NotebookTestEngine\"}]" \
+            --environment-variables-override \
+              "name=TEST_MODE,value=full_scan,type=PLAINTEXT" \
+            --query 'build.id' --output text)
+
+          echo "Started scan build: $BUILD_ID"
+          echo "Console: https://us-west-2.console.aws.amazon.com/codesuite/codebuild/projects/${PROJECT}/build/${BUILD_ID//:/%3A}/log"
