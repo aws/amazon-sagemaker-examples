@@ -95,12 +95,10 @@ jobs:
           PROJECT=notebook-test-engine
 
           # Check out the PR head of the 'sdk' secondary source. refs/pull/<N>/head
-          # resolves in the BASE repo even for fork PRs. We deliberately do NOT pin
-          # with ^{<sha>}: CodeBuild's shallow fetch + a peeled SHA fails with
-          # "unable to read tree" for a re-pushed (synchronize) PR head. The plain
-          # ref checks out the ref tip reliably, and concurrency:cancel-in-progress
-          # (above) already guarantees only the newest commit's run survives, so the
-          # tip IS the commit under test.
+          # resolves in the BASE repo even for fork PRs. Use the plain ref (not a
+          # ^{sha}-pinned commit) so CodeBuild checks out the ref tip;
+          # concurrency:cancel-in-progress (above) keeps only the newest commit's run,
+          # so the tip is the commit under test.
           SDK_VERSION="refs/pull/${PR_NUMBER}/head"
 
           BUILD_ID=$(aws codebuild start-build \
