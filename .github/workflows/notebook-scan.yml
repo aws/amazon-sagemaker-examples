@@ -19,7 +19,7 @@ name: Notebook Scan (scheduled)
 
 on:
   schedule:
-    - cron: '0 7 * * 1-5'   # 07:00 UTC Mon-Fri (matches the retired EventBridge rule)
+    - cron: '10 7 * * 1-5'   # 07:10 UTC Mon-Fri (off-the-hour to reduce GitHub schedule drop/delay risk)
   workflow_dispatch:         # manual / on-demand scan (also used for testing)
 
 permissions:
