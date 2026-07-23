@@ -103,6 +103,7 @@ jobs:
             --secondary-sources-version-override "[{\"sourceIdentifier\":\"sdk\",\"sourceVersion\":\"${SDK_VERSION}\"}]" \
             --environment-variables-override \
               "name=TEST_MODE,value=pr_check,type=PLAINTEXT" \
+              "name=MAX_CONCURRENT,value=18,type=PLAINTEXT" \
               "name=PR_NUMBER,value=${PR_NUMBER},type=PLAINTEXT" \
               "name=PR_BRANCH,value=${PR_BRANCH},type=PLAINTEXT" \
               "name=PR_REPO,value=${PR_REPO},type=PLAINTEXT" \
