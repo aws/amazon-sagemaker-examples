@@ -1,0 +1,54 @@
+networks:
+  sagemaker-local:
+    name: sagemaker-local
+services:
+  algo-1:
+    entrypoint:
+    - /bin/bash
+    - -c
+    - chmod +x /opt/ml/input/data/sm_drivers/sm_train.sh && /opt/ml/input/data/sm_drivers/sm_train.sh
+    environment:
+    - TRAINING_JOB_NAME=local-mode-multi-container-20251124175521
+    - AWS_REGION=us-west-2
+    - AWS_ACCESS_KEY_ID=<your-access-key-id>
+    - AWS_SECRET_ACCESS_KEY=<your-secret-access-key>
+    - AWS_SESSION_TOKEN=<your-session-token>
+    image: 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training:2.0.0-cpu-py310
+    networks:
+      sagemaker-local:
+        aliases:
+        - algo-1
+    volumes:
+    - /Users/aruthen/amazon/sagemaker-python-sdk/v3-examples/training-examples/model:/opt/ml/model
+    - /var/folders/12/bjmscmk114v7hxrzj6v4wd840000gq/T/tmp2xe4qebu/data/train:/opt/ml/input/data/train
+    - /var/folders/12/bjmscmk114v7hxrzj6v4wd840000gq/T/tmp2xe4qebu/data/test:/opt/ml/input/data/test
+    - /var/folders/12/bjmscmk114v7hxrzj6v4wd840000gq/T/tmp2xe4qebu/source:/opt/ml/input/data/code
+    - /Users/aruthen/amazon/sagemaker-python-sdk/v3-examples/training-examples/nfw8umuu:/opt/ml/input/data/sm_drivers
+    - /Users/aruthen/amazon/sagemaker-python-sdk/v3-examples/training-examples/algo-1/output:/opt/ml/output
+    - /Users/aruthen/amazon/sagemaker-python-sdk/v3-examples/training-examples/algo-1/output/data:/opt/ml/output/data
+    - /Users/aruthen/amazon/sagemaker-python-sdk/v3-examples/training-examples/algo-1/input:/opt/ml/input
+  algo-2:
+    entrypoint:
+    - /bin/bash
+    - -c
+    - chmod +x /opt/ml/input/data/sm_drivers/sm_train.sh && /opt/ml/input/data/sm_drivers/sm_train.sh
+    environment:
+    - TRAINING_JOB_NAME=local-mode-multi-container-20251124175521
+    - AWS_REGION=us-west-2
+    - AWS_ACCESS_KEY_ID=<your-access-key-id>
+    - AWS_SECRET_ACCESS_KEY=<your-secret-access-key>
+    - AWS_SESSION_TOKEN=<your-session-token>
+    image: 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training:2.0.0-cpu-py310
+    networks:
+      sagemaker-local:
+        aliases:
+        - algo-2
+    volumes:
+    - /Users/aruthen/amazon/sagemaker-python-sdk/v3-examples/training-examples/model:/opt/ml/model
+    - /var/folders/12/bjmscmk114v7hxrzj6v4wd840000gq/T/tmp2xe4qebu/data/train:/opt/ml/input/data/train
+    - /var/folders/12/bjmscmk114v7hxrzj6v4wd840000gq/T/tmp2xe4qebu/data/test:/opt/ml/input/data/test
+    - /var/folders/12/bjmscmk114v7hxrzj6v4wd840000gq/T/tmp2xe4qebu/source:/opt/ml/input/data/code
+    - /Users/aruthen/amazon/sagemaker-python-sdk/v3-examples/training-examples/nfw8umuu:/opt/ml/input/data/sm_drivers
+    - /Users/aruthen/amazon/sagemaker-python-sdk/v3-examples/training-examples/algo-2/output:/opt/ml/output
+    - /Users/aruthen/amazon/sagemaker-python-sdk/v3-examples/training-examples/algo-2/output/data:/opt/ml/output/data
+    - /Users/aruthen/amazon/sagemaker-python-sdk/v3-examples/training-examples/algo-2/input:/opt/ml/input

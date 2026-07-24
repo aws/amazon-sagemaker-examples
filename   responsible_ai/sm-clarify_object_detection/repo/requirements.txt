@@ -1,1 +1,0 @@
-gluoncv==0.10.4.post4
