@@ -168,6 +168,7 @@ We recommend the following notebooks as a broad introduction to the capabilities
    generative_ai/sm-mixtral_8x7b_fine_tune_and_deploy/sm-mixtral_8x7b_fine_tune_and_deploy
    generative_ai/sm-djl_deepspeed_bloom_176b_deploy
    generative_ai/sm-fsdp_training_of_llama_v2_with_fp8_on_p5
+   generative_ai/sm-huggingface_text_classification
    generative_ai/sm-jumpstart_foundation_code_llama_fine_tuning_human_eval
    generative_ai/sm-jumpstart_foundation_finetuning_gpt_j_6b_domain_adaptation
    generative_ai/sm-jumpstart_foundation_gemma_fine_tuning
