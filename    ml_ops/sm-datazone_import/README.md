@@ -4,13 +4,22 @@ This example contains python scripts to import an existing SageMaker Domain into
 
 ## Setup
 
-1. Add the Bring-Your-Own-Domain (BYOD) service model
+1. Ensure dependencies are up to date.
+
+Update the CLI. See instructions https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html
+`aws --version`
+
+Update boto.
+`pip install --upgrade -r requirements.txt`
+`pip show boto3`
+
+2. Add the Bring-Your-Own-Domain (BYOD) service model
 
 ```bash
 aws configure add-model --service-model file://resources/datazone-linkedtypes-2018-05-10.normal.json --service-name datazone-byod
 ```
 
-2. Create a federation role
+3. Create a federation role
 
 This role will be used by DataZone to launch the SageMaker Domain. See [BringYourOwnDomainResources.yml](.resources/BringYourOwnDomainResources.yml) for an example.
 If you are using a single SageMaker domain across multiple projects, you will need to create a separate SageMaker Execution Role and User Profile for each user in each project and a separate Federation Role per project.
