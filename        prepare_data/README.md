@@ -2,7 +2,7 @@
 
 ### Prepare Data
 
-The example notebooks within this folder showcase Sagemaker's data preparation capabilities. Data preparation in machine learning refers to the process of collecting, preprocessing, and organizing raw data to make it suitable for analysis and modeling.
+The example notebooks within this folder showcase SageMaker's data preparation capabilities. Data preparation in machine learning refers to the process of collecting, preprocessing, and organizing raw data to make it suitable for analysis and modeling.
 
 - [Data Wrangler Data Prep Widget - Example Notebook](sm-data_wrangler_data_prep_widget/sm-data_wrangler_data_prep_widget.ipynb)
 - [Amazon SageMaker Feature Store: Feature Processor Introduction](sm-feature_store_feature_processor/sm-feature_store_feature_processor.ipynb)
