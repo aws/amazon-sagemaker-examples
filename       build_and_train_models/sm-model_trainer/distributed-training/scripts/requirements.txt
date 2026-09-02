@@ -1,7 +1,0 @@
-transformers==4.31
-datasets==2.16.1
-fsspec==2023.6.0
-accelerate>=0.21
-tokenizers>=0.13.3
-bitsandbytes
-peft
