@@ -109,21 +109,27 @@ This notebook was tested in multiple regions. The test results are as follows, e
 We have migrated to a new standarized naming convention for all notebooks with the repository. The naming format follows the pattern: sm - {name_of_sagemaker_feature} _ {any_key_secondary_feature} _ {detailed_description_of_notebook_focus} . ipynb
 
 Examples:
-- sm-jumpstart_foundation_trainium_inferentia_finetuning_deployment.ipynb
-- sm-training_compiler_language_modeling_multi_gpu_multi_node.ipynb
-- sm-clarify_text_explainability_text_sentiment_analysis.ipynb
+- sm-managed_spot_training_xgboost.ipynb
+- sm-script_mode_distributed_training_horovod_tensorflow.ipynb
+- sm-shadow_variant_shadow_api.ipynb
 
 ###  Place your notebook into the correct folder
 
-We have implemented a flattened directory structure in order to increase the discoverability of notebooks within the repository. Once you have completed the notebook, place it into the folder that best corresponds with the primary functionality that you highlighting within your example notebook. Here is a list of the folders and a brief description of their primary purposes:
+The repository is organized by ML capability, in lifecycle order. Once you have completed the notebook, place it into the folder that best corresponds with the primary capability it demonstrates. Here is the list of folders and a brief description of their primary purposes:
 
-- end_to_end_ml_lifecycle - end-to-end notebooks that demonstrate how to build, train, and deploy machine learning models using Amazon SageMaker
-- prepare_data - noteboooks that showcase Amazon SageMaker's data preparation capabilities
-- building_and_train_models - notebooks that highlight Amazon SageMaker tools to build and train ML models at scale
-- deploy_and_monitor - notebooks that demonstrate Amazon SageMaker's ML infrastructure and model deployment options as well as SageMaker's ability to monitor the quality of your machine learning models in real time
-- responsible_ai - notebooks that highlight Amazon SageMaker's abilities to improve your machine learning models by detecting potential bias and helping to explain the predictions that your models make from your tabular, computer vision, natural processing, or time series datasets
-- ml_ops - notebooks that feature Amazon SageMaker's ability to implement machine learning models in production environments with continuous integration and deployment
-- generative_ai - notebooks that demonstate Amazon SageMaker's generative AI capabilities to create new, synthetic data across various modalities, such as text, images, audio, and video, based on the patterns and relationships learned from training data
+- training - notebooks that train models with `ModelTrainer`: script and framework training, distributed training, managed spot with checkpointing, heterogeneous clusters, bring-your-own-container, AWS Batch training queues, and `@remote` local-code execution
+- model_customization - notebooks that fine-tune and customize foundation models: SFT, DPO, RLVR, RLAIF, MTRL and CPT trainers, recipe overrides, data mixing, JumpStart fine-tuning, and distributed fine-tuning across serverless, serverful and HyperPod compute
+- evaluation - notebooks that evaluate models through the `*Evaluator` surface: benchmark evaluation, custom scorers, LLM-as-a-judge, and Inspect AI
+- inference - notebooks that deploy and serve models with `ModelBuilder` and sagemaker-core: real-time, serverless and async endpoints, in-process and local-container modes, inference pipelines, multi-model and multi-container endpoints, A/B testing, shadow variants, deployment guardrails, autoscaling, model optimization, batch transform, Bedrock deployment, Marketplace model packages, and Augmented AI
+- mlops - notebooks that operationalize ML on SageMaker: Pipelines with Model Registry, lineage tracking, experiment tracking, Feature Store, processing jobs, EMR Serverless steps, Clarify, and MLflow
+
+These folders carry leading-space ordering prefixes so that they list in lifecycle order
+(`      training`, `     model_customization`, `    evaluation`, `   inference`, `  mlops`).
+Match the existing folder name exactly, including the prefix, when adding a notebook.
+
+If your notebook needs companion files (scripts, data, images), give it its own subfolder
+named after the notebook and keep every reference relative to that subfolder, so the example
+stays self-contained and can be moved without edits.
 
 ### Add Your Notebook to the Website
 
