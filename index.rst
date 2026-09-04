@@ -32,28 +32,14 @@ We recommend the following notebooks as a broad introduction to the capabilities
 
 .. toctree::
    :maxdepth: 1
-   :caption: Prepare data
-
-   prepare_data/sm-marketplace_augmented_ai_with_marketplace_ml_models/sm-marketplace_augmented_ai_with_marketplace_ml_models
-
-
-.. toctree::
-   :maxdepth: 1
    :caption: Build and Train Models
 
    build_and_train_models/sm-forecast_deepar_time_series_modeling/sm-forecast_deepar_time_series_modeling
-   build_and_train_models/sm-heterogeneous_clusters_for_model_training/sm-heterogeneous_clusters_for_model_training
    build_and_train_models/sm-heterogeneous_clusters_training/sm-heterogeneous_clusters_training
    build_and_train_models/sm-introduction_to_blazingtext_word2vec_text8/sm-introduction_to_blazingtext_word2vec_text8
    build_and_train_models/sm-introduction_to_object2vec_sentence_similarity/sm-introduction_to_object2vec_sentence_similarity
    build_and_train_models/sm-jax_bring_your_own/sm-jax_bring_your_own
-   build_and_train_models/sm-managed_spot_training_xgboost/sm-managed_spot_training_xgboost
-   build_and_train_models/sm-marketplace_build_model_package_for_listing/sm-marketplace_build_model_package_for_listing
    build_and_train_models/sm-marketplace_building_your_own_container_as_package/sm-marketplace_building_your_own_container_as_package
-   build_and_train_models/sm-regression_xgboost/sm-regression_xgboost
-   build_and_train_models/sm-remote_function_pytorch_mnist/sm-remote_function_pytorch_mnist
-   build_and_train_models/sm-scikit_build_your_own_container/sm-scikit_build_your_own_container
-   build_and_train_models/sm-script_mode_distributed_training_horovod_tensorflow/sm-script_mode_distributed_training_horovod_tensorflow
    build_and_train_models/sm-deepar_example
    build_and_train_models/sm-introduction_to_auogluon_tabular_regression
    build_and_train_models/sm-lightgbm_catboost_tabular_classification
@@ -65,21 +51,13 @@ We recommend the following notebooks as a broad introduction to the capabilities
    :maxdepth: 1
    :caption: Deploy and Monitor
 
-   deploy_and_monitor/sm-a_b_testing/sm-a_b_testing
    deploy_and_monitor/sm-async_inference_walkthrough/sm-async_inference_walkthrough
-   deploy_and_monitor/sm-async_inference_with_python_sdk/sm-async_inference_with_python_sdk
    deploy_and_monitor/sm-batch_inference_with_torchserve/sm-batch_inference_with_torchserve
-   deploy_and_monitor/sm-deployment_guardrails_update_inference_endpoint_with_linear_traffic_shifting/sm-deployment_guardrails_update_inference_endpoint_with_linear_traffic_shifting
    deploy_and_monitor/sm-deployment_guardrails_update_inference_endpoint_with_rolling_deployment/sm-deployment_guardrails_update_inference_endpoint_with_rolling_deployment
    deploy_and_monitor/sm-deployment_guardrails_update_inference_endpoint_with_with_canary_traffic_shifting/sm-deployment_guardrails_update_inference_endpoint_with_with_canary_traffic_shifting
    deploy_and_monitor/sm-marketplace_using_model_package_arn/sm-marketplace_using_model_package_arn
-   deploy_and_monitor/sm-mme_with_torchserve/sm-mme_with_torchserve
-   deploy_and_monitor/sm-multi_container_endpoint_direct_invocation/sm-multi_container_endpoint_direct_invocation
    deploy_and_monitor/sm-multi_model_endpoint_bring_your_own_container/sm-multi_model_endpoint_bring_your_own_container
-   deploy_and_monitor/sm-serverless_inference_huggingface_text_classification/sm-serverless_inference_huggingface_text_classification
-   deploy_and_monitor/sm-shadow_variant_shadow_api/sm-shadow_variant_shadow_api
    deploy_and_monitor/sm-app_autoscaling_realtime_endpoints/sm-app_autoscaling_realtime_endpoints
-   deploy_and_monitor/sm-app_autoscaling_realtime_endpoints_inference_components/sm-app_autoscaling_realtime_endpoints_inference_components
    deploy_and_monitor/sm-app_autoscaling_realtime_endpoints_step_scaling/sm-app_autoscaling_realtime_endpoints_step_scaling
 
 .. toctree::
@@ -93,6 +71,5 @@ We recommend the following notebooks as a broad introduction to the capabilities
    :caption: ML Ops
 
    ml_ops/sm-mlflow_deployment/sm-mlflow_deployment
-   ml_ops/sm-mlflow_pipelines/sm-mlflow_pipelines
    ml_ops/sm-pipelines_batch_inference_step_decorator/sm-pipelines_batch_inference_step_decorator
    ml_ops/sm-pipelines_emr_step_using_step_decorator/sm-pipelines_emr_step_using_step_decorator
