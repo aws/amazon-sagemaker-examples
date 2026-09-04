@@ -51,11 +51,12 @@ instructions so AI coding agents generate correct, current (v3) code.
 
 ## Example categories
 
-- [Build & train models](https://github.com/aws/amazon-sagemaker-examples/tree/default): training with `ModelTrainer`, frameworks, distributed training, hyperparameter tuning
-- [Deploy & monitor](https://github.com/aws/amazon-sagemaker-examples/tree/default): deployment with `ModelBuilder`, real-time/serverless/async endpoints, model monitoring
-- [Prepare data](https://github.com/aws/amazon-sagemaker-examples/tree/default): data processing and feature engineering
-- [MLOps](https://github.com/aws/amazon-sagemaker-examples/tree/default): SageMaker Pipelines, Model Registry, experiment tracking
-- [Generative AI](https://github.com/aws/amazon-sagemaker-examples/tree/default): foundation models, JumpStart, fine-tuning (SFT/DPO/RLVR)
-- [Responsible AI](https://github.com/aws/amazon-sagemaker-examples/tree/default): bias detection and explainability
-- [End-to-end ML lifecycle](https://github.com/aws/amazon-sagemaker-examples/tree/default): complete build → train → deploy workflows
-- [SageMaker Core](https://github.com/aws/amazon-sagemaker-examples/tree/default): getting started with the v3 resource API (see the `sagemaker-core/` folder, e.g. `get_started.ipynb`)
+The repository is organized by ML capability, in lifecycle order.
+
+- `training/`: training with `ModelTrainer` — script and framework training, distributed training, managed spot with checkpointing, heterogeneous clusters, bring-your-own-container, AWS Batch training queues, `@remote`
+- `model_customization/`: fine-tuning foundation models — SFT, DPO, RLVR, RLAIF, MTRL, CPT, recipe overrides, data mixing, JumpStart fine-tuning with a private model hub, distributed fine-tuning
+- `evaluation/`: the `*Evaluator` surface — benchmark evaluation, custom scorers, LLM-as-a-judge, Inspect AI
+- `inference/`: deployment with `ModelBuilder` and sagemaker-core — real-time/serverless/async endpoints, in-process and local-container modes, inference pipelines, multi-model and multi-container endpoints, A/B testing, shadow variants, deployment guardrails, autoscaling with inference components, `optimize()`, batch transform, Bedrock deployment, Marketplace model packages, Augmented AI
+- `mlops/`: Pipelines with Model Registry, lineage tracking, experiment tracking, Feature Store, processing jobs, EMR Serverless steps, Clarify, MLflow
+
+Browse them at https://github.com/aws/amazon-sagemaker-examples/tree/default

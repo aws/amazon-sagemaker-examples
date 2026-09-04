@@ -77,19 +77,24 @@ RLEstimator, Training Compiler.
 3. If a v2 pattern is found, fix it to v3 and re-check until clean.
 4. Only then present the code.
 
-## Repository layout (category folders)
+## Repository layout (capability folders)
 
-- `build_and_train_models/` — training with `ModelTrainer`, frameworks, distributed, tuning
-- `deploy_and_monitor/` — deployment with `ModelBuilder`, endpoints, monitoring
-- `prepare_data/` — data processing / feature engineering
-- `ml_ops/` — Pipelines, Model Registry, experiment tracking
-- `generative_ai/` — GenAI / foundation models / fine-tuning
-- `responsible_ai/` — bias, explainability
-- `end_to_end_ml_lifecycle/` — full end-to-end workflows
-- `sagemaker-core/` — SageMaker Core getting-started
+The repository is organized by ML capability, following the lifecycle order:
 
-(Category folders carry leading-space ordering prefixes in this repo; match the existing
-name exactly when adding files.)
+- `training/` — training with `ModelTrainer`: script and framework training, distributed
+  training, managed spot, heterogeneous clusters, BYOC, AWS Batch training queues, `@remote`
+- `model_customization/` — fine-tuning foundation models: SFT, DPO, RLVR, RLAIF, MTRL, CPT,
+  recipe overrides, data mixing, JumpStart fine-tuning, distributed fine-tuning
+- `evaluation/` — the `*Evaluator` surface: benchmark, custom scorer, LLM-as-a-judge, Inspect AI
+- `inference/` — deployment with `ModelBuilder` and sagemaker-core: real-time / serverless /
+  async endpoints, local and in-process modes, inference pipelines, MME / multi-container,
+  A/B testing, shadow variants, guardrails, autoscaling, `optimize()`, batch transform, Bedrock
+- `mlops/` — Pipelines and Model Registry, lineage, experiments, Feature Store, processing,
+  EMR Serverless steps, Clarify, MLflow
+
+(Category folders carry leading-space ordering prefixes in this repo — `      training`,
+`     model_customization`, `    evaluation`, `   inference`, `  mlops` — so that they list in
+lifecycle order. Match the existing name exactly, including the prefix, when adding files.)
 
 ## Code conventions
 

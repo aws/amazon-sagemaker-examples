@@ -29,43 +29,78 @@ On SageMaker Studio, you will need to open a terminal, go to your home folder, t
 
 We recommend the following notebooks as a broad introduction to the capabilities that SageMaker offers. To explore in even more depth, we provide additional notebooks covering even more use cases and frameworks.
 
+.. toctree::
+   :maxdepth: 1
+   :caption: Training
+
+         training/distributed-local-training-example
+         training/jumpstart-e2e-training-example
+         training/sm-heterogeneous_clusters_for_model_training/sm-heterogeneous_clusters_for_model_training
+         training/sm-managed_spot_training_xgboost/sm-managed_spot_training_xgboost
+         training/sm-regression_xgboost/sm-regression_xgboost
+         training/sm-remote_function_pytorch_mnist/sm-remote_function_pytorch_mnist
+         training/sm-scikit_build_your_own_container/sm-scikit_build_your_own_container
+         training/sm-script_mode_distributed_training_horovod_tensorflow/sm-script_mode_distributed_training_horovod_tensorflow
+         training/sm-training-queues_getting_started_with_model_trainer/sm-training-queues_getting_started_with_model_trainer
 
 .. toctree::
    :maxdepth: 1
-   :caption: Prepare data
+   :caption: Model Customization
 
-   prepare_data/sm-marketplace_augmented_ai_with_marketplace_ml_models/sm-marketplace_augmented_ai_with_marketplace_ml_models
-
-
-.. toctree::
-   :maxdepth: 1
-   :caption: Build and Train Models
-
-   build_and_train_models/sm-heterogeneous_clusters_for_model_training/sm-heterogeneous_clusters_for_model_training
-   build_and_train_models/sm-managed_spot_training_xgboost/sm-managed_spot_training_xgboost
-   build_and_train_models/sm-marketplace_build_model_package_for_listing/sm-marketplace_build_model_package_for_listing
-   build_and_train_models/sm-regression_xgboost/sm-regression_xgboost
-   build_and_train_models/sm-remote_function_pytorch_mnist/sm-remote_function_pytorch_mnist
-   build_and_train_models/sm-scikit_build_your_own_container/sm-scikit_build_your_own_container
-   build_and_train_models/sm-script_mode_distributed_training_horovod_tensorflow/sm-script_mode_distributed_training_horovod_tensorflow
-
-
-.. toctree::
-   :maxdepth: 1
-   :caption: Deploy and Monitor
-
-   deploy_and_monitor/sm-a_b_testing/sm-a_b_testing
-   deploy_and_monitor/sm-async_inference_with_python_sdk/sm-async_inference_with_python_sdk
-   deploy_and_monitor/sm-deployment_guardrails_update_inference_endpoint_with_linear_traffic_shifting/sm-deployment_guardrails_update_inference_endpoint_with_linear_traffic_shifting
-   deploy_and_monitor/sm-mme_with_torchserve/sm-mme_with_torchserve
-   deploy_and_monitor/sm-multi_container_endpoint_direct_invocation/sm-multi_container_endpoint_direct_invocation
-   deploy_and_monitor/sm-serverless_inference_huggingface_text_classification/sm-serverless_inference_huggingface_text_classification
-   deploy_and_monitor/sm-shadow_variant_shadow_api/sm-shadow_variant_shadow_api
-   deploy_and_monitor/sm-app_autoscaling_realtime_endpoints_inference_components/sm-app_autoscaling_realtime_endpoints_inference_components
-
+        model_customization/cpt_data_mixing_hyperpod
+        model_customization/custom-distributed-training-example
+        model_customization/dpo_trainer_example_notebook_v3_prod
+        model_customization/estimator-pytorch-gpu/estimator-pytorch-gpu
+        model_customization/mtrl_finetuning_example_notebook_v3_prod
+        model_customization/nova_data_mixing
+        model_customization/recipe_override_model_trainer_example
+        model_customization/recipe_override_sft_trainer_example
+        model_customization/rlaif_finetuning_example_notebook_v3_prod
+        model_customization/rlvr_finetuning_example_notebook_v3_prod
+        model_customization/serverless_e2e_example
+        model_customization/sft_finetuning_example_notebook_pysdk_prod_v3
+        model_customization/sft_finetuning_hyperpod
+        model_customization/sft_finetuning_serverful_smtj
+        model_customization/sm-jumpstart_private_model_hub_import_llama3-8B/sm-jumpstart_private_model_hub_import_llama3-8B
 
 .. toctree::
    :maxdepth: 1
-   :caption: ML Ops
+   :caption: Evaluation
 
-   ml_ops/sm-mlflow_pipelines/sm-mlflow_pipelines
+       evaluation/benchmark_demo
+       evaluation/custom_scorer_demo
+       evaluation/inspect_ai_evaluation_demo
+       evaluation/llm_as_judge_demo
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Inference
+
+      inference/bedrock-modelbuilder-deployment
+      inference/in-process-mode-example
+      inference/inference-pipeline-modelbuilder-vs-core-example
+      inference/local-mode-example
+      inference/optimize-example
+      inference/sm-a_b_testing/sm-a_b_testing
+      inference/sm-app_autoscaling_realtime_endpoints_inference_components/sm-app_autoscaling_realtime_endpoints_inference_components
+      inference/sm-async_inference_with_python_sdk/sm-async_inference_with_python_sdk
+      inference/sm-deployment_guardrails_update_inference_endpoint_with_linear_traffic_shifting/sm-deployment_guardrails_update_inference_endpoint_with_linear_traffic_shifting
+      inference/sm-marketplace_augmented_ai_with_marketplace_ml_models/sm-marketplace_augmented_ai_with_marketplace_ml_models
+      inference/sm-marketplace_build_model_package_for_listing/sm-marketplace_build_model_package_for_listing
+      inference/sm-mme_with_torchserve/sm-mme_with_torchserve
+      inference/sm-multi_container_endpoint_direct_invocation/sm-multi_container_endpoint_direct_invocation
+      inference/sm-serverless_inference_huggingface_text_classification/sm-serverless_inference_huggingface_text_classification
+      inference/sm-shadow_variant_shadow_api/sm-shadow_variant_shadow_api
+
+.. toctree::
+   :maxdepth: 1
+   :caption: MLOps
+
+     mlops/sagemaker_core_feature_store_introduction/sagemaker_core_feature_store_introduction
+     mlops/sm-mlflow_pipelines/sm-mlflow_pipelines
+     mlops/track_local_pytorch_experiment/track_local_pytorch_experiment
+     mlops/v3-emr-serverless-step-example
+     mlops/v3-lineage-tracking-example
+     mlops/v3-pipeline-train-create-registry
+     mlops/v3-pytorch-processing-example/v3-pytorch-processing-example
+     mlops/v3-sagemaker-clarify

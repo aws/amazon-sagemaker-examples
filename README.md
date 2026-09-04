@@ -9,7 +9,7 @@ Today, Amazon SageMaker is excited to announce the release of SageMaker-Core, a 
 SageMaker-Core is ideal for ML practitioners who seek full customization of AWS primitives for their ML workloads. SageMaker-Core is an improvement over Boto3, providing a more intuitive and efficient way to manage SageMaker resources. By providing an intuitive object-oriented interface and resource chaining, the SDK allows for seamless integration and management of SageMaker resources. This flexibility, combined with intelligent defaults enables developers to tailor their ML workloads according to their needs. Comprehensive documentation, and type hints help developers write code faster and with fewer errors without navigating complex API documentation.
 
 ## Call to Action
-To learn more about SageMaker-Core, visit the [documentation](https://sagemaker-core.readthedocs.io) and [example notebooks](https://github.com/aws/amazon-sagemaker-examples/tree/default/sagemaker-core). Get started today by integrating SageMaker-Core into your machine learning workflows and experience the benefits of a streamlined and efficient development process.
+To learn more about SageMaker-Core, visit the [documentation](https://sagemaker.readthedocs.io/en/stable/api/sagemaker_core.html) and [example notebooks](https://github.com/aws/amazon-sagemaker-examples/tree/default). Get started today by integrating SageMaker-Core into your machine learning workflows and experience the benefits of a streamlined and efficient development process.
 
 
 # Amazon SageMaker Examples
@@ -48,39 +48,58 @@ Although most examples utilize key Amazon SageMaker functionality like distribut
 
 ## :notebook: Example Notebook Categories
 
-### End-to-End ML Lifecycle
+The notebooks are organized by ML capability, following the lifecycle order of a typical
+project: train a model, customize it, evaluate it, deploy it, then operationalize it.
+Every notebook is self-contained: it lives with the scripts, data and images it needs, and
+all of its references are relative to its own folder.
 
-These examples are a diverse collection of end-to-end notebooks that demonstrate how to build, train, and deploy machine learning models using Amazon SageMaker. These notebooks cover a wide range of machine learning tasks and use cases, providing you with a comprehensive understanding of the SageMaker workflow. Each notebook in this folder is self-contained and includes detailed documentation, code samples, and instructions for running the examples on SageMaker. Whether you're a beginner or an experienced practitioner, this folder offers a comprehensive collection of end-to-end notebooks that will help you leverage the power of Amazon SageMaker for a wide range of machine learning tasks and use cases.
+### [Training](https://github.com/aws/amazon-sagemaker-examples/tree/default/%20%20%20%20%20%20training)
 
-### Prepare Data
+Amazon SageMaker Training is a fully managed service that helps you train ML models at
+scale. It containerizes your workload and manages the AWS compute for you, so you can focus
+on the model rather than the infrastructure. These examples train with `ModelTrainer` from
+SageMaker Python SDK v3 and cover script and framework training, distributed training,
+managed spot training with checkpointing, heterogeneous clusters, bringing your own
+container, submitting work through AWS Batch training queues, and running local code as a
+training job with `@remote`.
 
-The example notebooks within this folder showcase Sagemaker's data preparation capabilities. Data preparation in machine learning refers to the process of collecting, preprocessing, and organizing raw data to make it suitable for analysis and modeling. This step ensures that the data is in a format from which machine learning algorithms can effectively learn. Data preparation tasks may include handling missing values, removing outliers, scaling features, encoding categorical variables, assessing potential biases and taking steps to mitigate them, splitting data into training and testing sets, labeling, and other necessary transformations to optimize the quality and usability of the data for subsequent machine learning tasks.
+### [Model Customization](https://github.com/aws/amazon-sagemaker-examples/tree/default/%20%20%20%20%20model_customization)
 
-### Build and Train Models
+Model customization adapts a pre-trained foundation model to your data and your task, which
+is usually far cheaper and faster than training from scratch. These examples cover the
+fine-tuning techniques SageMaker supports — supervised fine-tuning (SFT), direct preference
+optimization (DPO), reinforcement learning with verifiable rewards (RLVR), RL from AI
+feedback (RLAIF), multi-turn RL (MTRL) and continued pre-training (CPT) — along with recipe
+overrides, data mixing, JumpStart fine-tuning with a private model hub, and distributed
+fine-tuning across serverless, serverful and HyperPod compute.
 
-Amazon SageMaker Training is a fully managed machine learning (ML) service offered by SageMaker that helps you efficiently build and train a wide range of ML models at scale. The core of SageMaker jobs is the containerization of ML workloads and the capability of managing AWS compute resources. The SageMaker Training platform takes care of the heavy lifting associated with setting up and managing infrastructure for ML training workloads. With SageMaker Training, you can focus on building, developing, training, and fine-tuning your model.
+### [Evaluation](https://github.com/aws/amazon-sagemaker-examples/tree/default/%20%20%20%20evaluation)
 
-### Deploy and Monitor
+Before you promote a customized model you need to know whether it actually got better.
+These examples use the SageMaker evaluator surface to score models: standard benchmark
+evaluation, your own scoring function, an LLM acting as a judge, and Inspect AI. They show
+how to evaluate a base model and a fine-tuned model on the same footing so the comparison
+is meaningful.
 
-With Amazon SageMaker, you can start getting predictions, or inferences, from your trained machine learning models. SageMaker provides a broad selection of ML infrastructure and model deployment options to help meet all your ML inference needs. With SageMaker Inference, you can scale your model deployment, manage models more effectively in production, and reduce operational burden. SageMaker provides you with various inference options, such as real-time endpoints for getting low latency inference, serverless endpoints for fully managed infrastructure and auto-scaling, and asynchronous endpoints for batches of requests. By leveraging the appropriate inference option for your use case, you can ensure efficient and model deployment and inference.
+### [Inference](https://github.com/aws/amazon-sagemaker-examples/tree/default/%20%20%20inference)
 
-After you deploy a model into your production environment, use Amazon SageMaker model monitor to continuously monitor the quality of your machine learning models in real time. Amazon SageMaker model monitor enables you to set up an automated alert triggering system when there are deviations in the model quality, such as data drift and anomalies. Amazon CloudWatch Logs collects log files of monitoring the model status and notifies when the quality of your model hits certain thresholds that you preset. CloudWatch stores the log files to an Amazon S3 bucket you specify. Early and pro-active detection of model deviations through AWS model monitor products enables you to take prompt actions to maintain and improve the quality of your deployed model.
+With Amazon SageMaker you can get predictions from your trained models through a broad set
+of deployment options, and scale them without taking on the operational burden yourself.
+These examples deploy with `ModelBuilder` and sagemaker-core, and cover real-time,
+serverless and asynchronous endpoints; in-process and local-container modes for fast
+iteration; inference pipelines; multi-model and multi-container endpoints; safe rollout
+through A/B testing, shadow variants and deployment guardrails; autoscaling with inference
+components; latency and cost optimization with `optimize()`; batch transform; deployment to
+Amazon Bedrock; AWS Marketplace model packages; and human review with Augmented AI.
 
-### Generative AI
+### [MLOps](https://github.com/aws/amazon-sagemaker-examples/tree/default/%20%20mlops)
 
-These examples showcases Amazon SageMaker's capabilities in the exciting field of generative artificial intelligence (AI). Generative AI models are designed to create new, synthetic data across various modalities, such as text, images, audio, and video, based on the patterns and relationships learned from training data. These examples provide detailed documentation, code samples, and instructions for running the generative AI models on SageMaker. And demonstrate how to preprocess data, train models, fine-tune hyperparameters, and deploy the trained models for inference.
-
-Whether you're interested in exploring the latest advancements in generative AI, or seeking to leverage these techniques for creative applications or content generation, this folder offers a comprehensive collection of examples that will help you unlock the power of SageMaker's generative AI capabilities and push the boundaries of what's possible with machine learning.
-
-### ML Ops
-
-Amazon SageMaker supports features to implement machine learning models in production environments with continuous integration and deployment. MLOps accounts for the unique aspects of AI/ML projects in project management, CI/CD, and quality assurance, helping you improve delivery time, reduce defects, and make data science more productive. MLOps refers to a methodology that is built on applying DevOps practices to machine learning workloads.
-
-### Responsible AI
-
-Amazon SageMaker offers features to improve your machine learning (ML) models by detecting potential bias and helping to explain the predictions that your models make from your tabular, computer vision, natural processing, or time series datasets. It helps you identify various types of bias in pre-training data and in post-training that can emerge during model training or when the model is in production. You can also evaluate a language model for model quality and responsibility metrics using foundation model evaluations.
-
-Model governance is a framework that gives systematic visibility into machine learning (ML) model development, validation, and usage. Amazon SageMaker provides purpose-built ML governance tools for managing control access, activity tracking, and reporting across the ML lifecycle. Manage least-privilege permissions for ML practitioners using Amazon SageMaker Role Manager, create detailed model documentation using Amazon SageMaker Model Cards, and gain visibility into your models with centralized dashboards using Amazon SageMaker Model Dashboard.
+MLOps applies DevOps practices to machine learning: continuous integration and deployment,
+reproducibility, lineage and governance. It accounts for the parts of an AI/ML project that
+ordinary software delivery does not, which shortens delivery time, reduces defects and makes
+data science more productive. These examples cover SageMaker Pipelines with the Model
+Registry, lineage tracking, experiment tracking, Feature Store, processing jobs, EMR
+Serverless steps, bias and explainability analysis with Clarify, and MLflow.
 
 ## :balance_scale: License
 
