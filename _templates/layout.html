@@ -1,0 +1,38 @@
+{# Theme layout override for the deprecated V2 example notebooks build. #}
+{#                                                                              #}
+{# 1. extrahead: injects <meta name="robots" content="noindex"> into every       #}
+{#    page's <head> so search engines drop these V2 pages from their results.    #}
+{#    No <link rel="canonical"> is emitted, and html_baseurl is intentionally    #}
+{#    NOT set: the V3 site has a different folder structure and none of the      #}
+{#    notebooks here has a same-path V3 counterpart, so a canonical would point  #}
+{#    at URLs that do not exist. noindex alone is the correct signal here, and   #}
+{#    noindex plus canonical on the same page are contradictory guidance.        #}
+{#                                                                              #}
+{#    Note that /en/v2/ is NOT disallowed in robots.txt (which lives on the      #}
+{#    default branch). That is deliberate and required: a disallowed page is     #}
+{#    never fetched, so a search crawler would never see the noindex below.      #}
+{#                                                                              #}
+{# 2. document: places the deprecation note at the top of the main content area  #}
+{#    of EVERY page -- including theme-generated pages with no source file       #}
+{#    (genindex, search) that rst_prolog and nbsphinx_prolog cannot reach. The   #}
+{#    markup mirrors a Sphinx ".. note::" admonition so it picks up the theme's  #}
+{#    own admonition styling.                                                   #}
+{% extends "!layout.html" %}
+
+{% block extrahead %}
+  {{ super() }}
+  <meta name="robots" content="noindex">
+{% endblock %}
+
+{% block document %}
+  <div class="admonition note">
+    <p class="admonition-title">Note</p>
+    <p>Version 2.x of the SageMaker Python SDK is on a deprecation path.
+    For the latest features and continued support, see the SageMaker Python SDK
+    <a class="reference external" href="https://sagemaker.readthedocs.io/en/stable/">V3 documentation</a>.</p>
+    <p>This site contains only the example notebooks built on SDK 2.x. For notebooks
+    built on SDK v3, see the
+    <a class="reference external" href="https://sagemaker-examples.readthedocs.io/en/latest/">v3 example notebooks documentation</a>.</p>
+  </div>
+  {{ super() }}
+{% endblock %}
