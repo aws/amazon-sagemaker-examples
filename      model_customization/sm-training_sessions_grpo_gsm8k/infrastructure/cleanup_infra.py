@@ -1,5 +1,5 @@
 """
-Clean up AWS resources created while running through sm-training_sessions_grpo_gsm8k.ipynb, and sm-training_sessions_deploy_grpo_checkpoint.ipynb: 
+Clean up AWS resources created while running through sm-training_sessions_1_train_grpo_gsm8k.ipynb, and sm-training_sessions_2_deploy_grpo_checkpoint.ipynb: 
 inference endpoints, training sessions, the Model Package Group and its checkpoints, 
 S3 output artifacts, and the IAM role from setup_infra.py.
 
@@ -35,7 +35,7 @@ from sagemaker.train.training_session import ServiceClient
 # the Model Package Group ARN is rebuilt from this + region + account_id
 # rather than read from a shared file.
 MODEL_PACKAGE_GROUP_NAMES = [
-    "gsm8k-grpo-training-sessions",  # sm-training_sessions_grpo_gsm8k.ipynb
+    "gsm8k-grpo-training-sessions",  # sm-training_sessions_1_train_grpo_gsm8k.ipynb
     "contractnli-sft-training-sessions",  # 3-sft.ipynb
     "gsm8k-challenge-training-sessions",  # 4-rlvr.ipynb
 ]

@@ -58,8 +58,8 @@ the updated policy.
    its S3 permissions to that Region's default bucket, so use the Region you train in. Running
    it again for a different Region replaces those permissions.
 
-3. Run `sm-training_sessions_grpo_gsm8k.ipynb`, then
-   `sm-training_sessions_deploy_grpo_checkpoint.ipynb`.
+3. Run `sm-training_sessions_1_train_grpo_gsm8k.ipynb`, then
+   `sm-training_sessions_2_deploy_grpo_checkpoint.ipynb`.
 
 The notebooks resolve the Region, account, execution role, and default S3 bucket at runtime, and
 create the model package group on first run.
@@ -107,15 +107,15 @@ requests before waiting on any of them. Each operation also has an `*_async` var
 │   ├── setup_infra.py                                # create the IAM execution role
 │   └── cleanup_infra.py                              # remove what the example created
 ├── data/                                             # GSM8K splits, written by the training notebook
-├── sm-training_sessions_grpo_gsm8k.ipynb             # GRPO training on GSM8K
-├── sm-training_sessions_deploy_grpo_checkpoint.ipynb # deploy the trained checkpoint
+├── sm-training_sessions_1_train_grpo_gsm8k.ipynb             # GRPO training on GSM8K
+├── sm-training_sessions_2_deploy_grpo_checkpoint.ipynb # deploy the trained checkpoint
 └── requirements.txt
 ```
 
-`sm-training_sessions_grpo_gsm8k.ipynb` opens a session, measures baseline accuracy on held-out
+`sm-training_sessions_1_train_grpo_gsm8k.ipynb` opens a session, measures baseline accuracy on held-out
 problems, runs the RL loop, measures accuracy again, and saves two checkpoints: a merged model
 for deployment and a resumable training state.
-`sm-training_sessions_deploy_grpo_checkpoint.ipynb` finds the merged checkpoint, hosts it on a
+`sm-training_sessions_2_deploy_grpo_checkpoint.ipynb` finds the merged checkpoint, hosts it on a
 real-time endpoint, invokes it, and deletes the endpoint.
 
 ## Prerequisites

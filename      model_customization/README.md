@@ -18,5 +18,5 @@ Fine-tune and customize foundation models: SFT, DPO, RLVR, RLAIF, MTRL and CPT t
 - [sft_finetuning_example_notebook_pysdk_prod_v3](sft_finetuning_example_notebook_pysdk_prod_v3.ipynb)
 - [Fine-Tuning with HyperPod](sft_finetuning_hyperpod.ipynb)
 - [Fine-Tuning with Serverful Training Jobs (SMTJ)](sft_finetuning_serverful_smtj.ipynb)
-- [Write your own RL training loop with SageMaker Training Sessions (GRPO on GSM8K)](sm-training_sessions_grpo_gsm8k/sm-training_sessions_grpo_gsm8k.ipynb)
+- [Write your own RL training loop with SageMaker Training Sessions (GRPO on GSM8K)](sm-training_sessions_grpo_gsm8k/sm-training_sessions_1_train_grpo_gsm8k.ipynb)
 - [Import Fine-tuned LLaMA 3 models on SageMaker JumpStart to private model hub (SageMaker Python SDK v3)](sm-jumpstart_private_model_hub_import_llama3-8B/sm-jumpstart_private_model_hub_import_llama3-8B.ipynb)

@@ -7,7 +7,7 @@ Session runtime operations, and pulling the DJL LMI inference container from
 ECR.
 
 There's only one role -- it's passed as both the training session's role_arn
-(sm-training_sessions_grpo_gsm8k.ipynb) and the inference ExecutionRoleArn (sm-training_sessions_deploy_grpo_checkpoint.ipynb).
+(sm-training_sessions_1_train_grpo_gsm8k.ipynb) and the inference ExecutionRoleArn (sm-training_sessions_2_deploy_grpo_checkpoint.ipynb).
 
 Nothing else needs to be provisioned ahead of time: the notebooks discover
 their own region/account/role/bucket at runtime via
@@ -68,8 +68,8 @@ trust_policy = {
     "Statement": [
         {
             "Effect": "Allow",
-            # Trusted by both the Training Sessions service (sm-training_sessions_grpo_gsm8k.ipynb) and
-            # SageMaker Inference (sm-training_sessions_deploy_grpo_checkpoint.ipynb) -- one role covers both.
+            # Trusted by both the Training Sessions service (sm-training_sessions_1_train_grpo_gsm8k.ipynb) and
+            # SageMaker Inference (sm-training_sessions_2_deploy_grpo_checkpoint.ipynb) -- one role covers both.
             "Principal": {
                 "Service": [
                     "training-session.sagemaker.amazonaws.com",
@@ -153,7 +153,7 @@ permissions_policy = {
             "Resource": "*",
         },
         {
-            # Lets the hosting container (sm-training_sessions_deploy_grpo_checkpoint.ipynb) publish its startup/inference
+            # Lets the hosting container (sm-training_sessions_2_deploy_grpo_checkpoint.ipynb) publish its startup/inference
             # logs to CloudWatch. Without this the endpoint still runs, but no log group
             # is ever created, so failures like a failed ping health check are undebuggable.
             "Sid": "CloudWatchLogsForHosting",
@@ -195,6 +195,6 @@ print("=" * 60)
 print(f"  role_arn: {ROLE_ARN}")
 print(f"  region:   {REGION}")
 print(
-    "\nNothing else to configure -- sm-training_sessions_grpo_gsm8k.ipynb, and sm-training_sessions_deploy_grpo_checkpoint.ipynb\n"
+    "\nNothing else to configure -- sm-training_sessions_1_train_grpo_gsm8k.ipynb, and sm-training_sessions_2_deploy_grpo_checkpoint.ipynb\n"
     "all discover region/account/role/bucket automatically at runtime."
 )
