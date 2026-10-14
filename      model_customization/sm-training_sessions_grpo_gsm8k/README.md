@@ -4,8 +4,7 @@ A minimal example of writing your own training loop against SageMaker Training S
 notebooks: train a LoRA adapter on GSM8K math problems with a GRPO-style reinforcement learning
 loop, then deploy the result to a SageMaker real-time endpoint.
 
-The loop is deliberately small so it can be read top to bottom. For longer-running SFT and RL
-setups, see the [SageMaker Training Sessions Cookbook](https://github.com/aws/sagemaker-training-sessions-cookbook).
+For longer-running SFT and RL setups, see the [SageMaker Training Sessions Cookbook](https://github.com/aws/sagemaker-training-sessions-cookbook).
 
 ## Contents
 

@@ -8,7 +8,7 @@ them (`sagemaker.core.helper.session_helper.Session`) -- there's no config
 file to read.
 
 Every category is off by default -- running with no flags only *lists* what's
-out there. Pass the matching flag to actually delete that category. Review
+out there. Pass the matching flag to delete that category. Review
 what gets listed before opting in; some resources may still be in use.
 
 Usage:
@@ -142,8 +142,8 @@ if not args.delete_endpoints and resp["Endpoints"]:
 # Step 2: Training sessions
 print("\n[2/5] Training sessions...")
 # role_arn is now a required ServiceClient parameter (a default for the sessions it creates);
-# the list/stop calls below don't use it. Built from ROLE_NAME rather than looked up, so cleanup
-# still runs after --delete-roles has removed the role.
+# the list/stop calls below don't use it. Built from ROLE_NAME, so this also
+# works after --delete-roles has removed the role.
 svc = ServiceClient(region=REGION, role_arn=f"arn:aws:iam::{ACCOUNT_ID}:role/{ROLE_NAME}")
 # Only this repo's sessions, by name prefix, so other sessions in the account are left alone.
 # list_sessions returns TrainingSessionSummary objects (attributes, not dict keys) on SDK >= 1.19.
