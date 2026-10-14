@@ -1,0 +1,6 @@
+sagemaker>=3.25.0    # SageMaker Python SDK: Training Sessions primitives (sagemaker.train.training_session, via sagemaker-train>=1.25.0)
+transformers>=4.40,<5.0  # tokenizer resolved via training_client.get_tokenizer()
+boto3>=1.28          # AWS SDK: SageMaker control plane, endpoints, IAM, S3 (both notebooks + infra scripts)
+numpy>=1.24          # GRPO advantage computation (training notebook)
+datasets>=2.14       # download/prepare GSM8K from HuggingFace (training notebook, Section 4)
+tqdm==4.66.5
