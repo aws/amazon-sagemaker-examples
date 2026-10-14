@@ -104,17 +104,18 @@ requests before waiting on any of them. Each operation also has an `*_async` var
 ```
 .
 ├── infrastructure/
-│   ├── setup_infra.py                                # create the IAM execution role
-│   └── cleanup_infra.py                              # remove what the example created
-├── data/                                             # GSM8K splits, written by the training notebook
-├── sm-training_sessions_1_train_grpo_gsm8k.ipynb             # GRPO training on GSM8K
-├── sm-training_sessions_2_deploy_grpo_checkpoint.ipynb # deploy the trained checkpoint
+│   ├── setup_infra.py                                   # create the IAM execution role
+│   └── cleanup_infra.py                                 # remove what the example created
+├── data/                                                # GSM8K splits, written by the training notebook
+├── sm-training_sessions_1_train_grpo_gsm8k.ipynb        # GRPO training on GSM8K
+├── sm-training_sessions_2_deploy_grpo_checkpoint.ipynb  # deploy the trained checkpoint
 └── requirements.txt
 ```
 
-`sm-training_sessions_1_train_grpo_gsm8k.ipynb` opens a session, measures baseline accuracy on held-out
-problems, runs the RL loop, measures accuracy again, and saves two checkpoints: a merged model
-for deployment and a resumable training state.
+`sm-training_sessions_1_train_grpo_gsm8k.ipynb` opens a session, measures baseline accuracy on
+held-out problems, runs the RL loop, measures accuracy again, and saves two checkpoints: a merged
+model for deployment and a resumable training state.
+
 `sm-training_sessions_2_deploy_grpo_checkpoint.ipynb` finds the merged checkpoint, hosts it on a
 real-time endpoint, invokes it, and deletes the endpoint.
 
