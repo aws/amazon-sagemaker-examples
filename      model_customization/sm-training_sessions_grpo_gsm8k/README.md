@@ -53,10 +53,14 @@ the updated policy.
    python infrastructure/setup_infra.py --region us-west-2
    ```
 
-   `setup_infra.py` creates a role named `SageMakerTrainingSessionRole`, trusted by both the
-   training sessions service and SageMaker Inference. The role is global, but `--region` scopes
-   its S3 permissions to that Region's default bucket, so use the Region you train in. Running
-   it again for a different Region replaces those permissions.
+   `setup_infra.py` creates `service-role/SageMakerTrainingSessionRole`, trusted by the training
+   sessions service and SageMaker AI Inference. It attaches the
+   `AmazonSageMakerTrainingSessionFullAccess` managed policy and an inline policy for hosting the
+   deployed model (JumpStart cache read, Amazon ECR image pull, CloudWatch logs). The role is
+   created under `/service-role/` because the `AmazonSageMakerTrainingSessionAccess` caller policy
+   only allows passing roles under that path. If an earlier version of this example created the
+   role at the root path, delete it with `python infrastructure/cleanup_infra.py --delete-roles`
+   and run `setup_infra.py` again.
 
 3. Run `sm-training_sessions_1_train_grpo_gsm8k.ipynb`, then
    `sm-training_sessions_2_deploy_grpo_checkpoint.ipynb`.
@@ -123,8 +127,14 @@ real-time endpoint, invokes it, and deletes the endpoint.
 
 - Linux or macOS, Python 3.10, 3.11, or 3.12
 - SageMaker Python SDK v3.25.0 or later
-- AWS credentials, and quota for training session APIs in US East (N. Virginia), US West
-  (Oregon), or Asia Pacific (Mumbai)
+- Quota for training session APIs in US East (N. Virginia), US West (Oregon), or Asia Pacific
+  (Mumbai)
+- AWS credentials:
+  - to run `setup_infra.py`: permissions to create an IAM role and attach policies to it
+  - to run the training notebook: the `AmazonSageMakerTrainingSessionAccess` managed policy
+  - to run the deploy notebook: SageMaker AI hosting permissions (create and invoke models,
+    endpoint configurations, endpoints, and inference components) and `iam:PassRole` on the
+    execution role for `sagemaker.amazonaws.com`
 
 ## Clean up
 

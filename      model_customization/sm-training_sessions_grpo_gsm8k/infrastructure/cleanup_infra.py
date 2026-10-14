@@ -144,7 +144,9 @@ print("\n[2/5] Training sessions...")
 # role_arn is now a required ServiceClient parameter (a default for the sessions it creates);
 # the list/stop calls below don't use it. Built from ROLE_NAME, so this also
 # works after --delete-roles has removed the role.
-svc = ServiceClient(region=REGION, role_arn=f"arn:aws:iam::{ACCOUNT_ID}:role/{ROLE_NAME}")
+svc = ServiceClient(
+    region=REGION, role_arn=f"arn:aws:iam::{ACCOUNT_ID}:role/service-role/{ROLE_NAME}"
+)
 # Only this repo's sessions, by name prefix, so other sessions in the account are left alone.
 # list_sessions returns TrainingSessionSummary objects (attributes, not dict keys) on SDK >= 1.19.
 sessions = [
@@ -230,6 +232,9 @@ elif any(found.values()):
 print("\n[5/5] IAM role...")
 if args.delete_roles or args.all:
     try:
+        for policy in iam.list_attached_role_policies(RoleName=ROLE_NAME)["AttachedPolicies"]:
+            iam.detach_role_policy(RoleName=ROLE_NAME, PolicyArn=policy["PolicyArn"])
+            print(f"  Detached policy {policy['PolicyName']} from {ROLE_NAME}")
         for policy in iam.list_role_policies(RoleName=ROLE_NAME)["PolicyNames"]:
             iam.delete_role_policy(RoleName=ROLE_NAME, PolicyName=policy)
             print(f"  Deleted policy {policy} from {ROLE_NAME}")
@@ -241,9 +246,7 @@ if args.delete_roles or args.all:
         print(f"  Failed to delete {ROLE_NAME}: {e}")
 else:
     print(f"  Role from setup: {ROLE_NAME}")
-    print(
-        "  Pass --delete-roles (or --all) to remove it. Only do this if you're done with the beta."
-    )
+    print("  Pass --delete-roles (or --all) to remove it.")
 
 
 did_something = (

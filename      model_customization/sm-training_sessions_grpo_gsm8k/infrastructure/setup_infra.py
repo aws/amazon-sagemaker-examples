@@ -1,24 +1,22 @@
 """
-Set up the single AWS IAM role needed for this SageMaker Training Sessions
-example: one training + inference execution role, trusted by both the
-Training Sessions service and SageMaker Inference, with permissions for the
-S3 default bucket, SageMaker Hub content, Model Package operations, Training
-Session runtime operations, and pulling the DJL LMI inference container from
-ECR.
+Set up the AWS IAM execution role for this SageMaker AI training session APIs example.
 
-There's only one role -- it's passed as both the training session's role_arn
-(sm-training_sessions_1_train_grpo_gsm8k.ipynb) and the inference ExecutionRoleArn (sm-training_sessions_2_deploy_grpo_checkpoint.ipynb).
+The role is named SageMakerTrainingSessionRole and is created under the /service-role/ path,
+which the AmazonSageMakerTrainingSessionAccess managed policy allows callers to pass to the
+training sessions service. It is trusted by the training sessions service and by SageMaker AI
+Inference, so the same role serves the training notebook (as the session role_arn) and the deploy
+notebook (as the model and endpoint ExecutionRoleArn). It gets:
 
-Nothing else needs to be provisioned ahead of time: the notebooks discover
-their own region/account/role/bucket at runtime via
-`sagemaker.core.helper.session_helper.Session()` and `get_execution_role()`
-(the same pattern SageMaker Studio notebooks use), and the S3 default bucket
-is created automatically on first use. There's no config file to manage.
+    - the AmazonSageMakerTrainingSessionFullAccess managed policy (training sessions)
+    - an inline policy for hosting: JumpStart cache read, pulling the DJL LMI container from
+      Amazon ECR, and writing endpoint logs to CloudWatch
+
+The identity that runs the training notebook needs the AmazonSageMakerTrainingSessionAccess
+managed policy. The deploy notebook additionally needs SageMaker AI hosting permissions and
+iam:PassRole on this role for sagemaker.amazonaws.com.
 
 Prerequisites:
-    - AWS credentials configured (aws configure), or run from an IAM-capable
-      environment (admin CLI, CloudShell) -- creating IAM roles requires
-      iam:CreateRole / iam:PutRolePolicy
+    - AWS credentials that can call iam:CreateRole, iam:AttachRolePolicy, and iam:PutRolePolicy
     - boto3 installed (pip install boto3)
 
 Usage:
@@ -35,8 +33,8 @@ parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument(
     "--region",
     default="us-east-1",
-    choices=["us-east-1", "us-west-2"],
-    help="Region supported by SageMaker Training Sessions (default: us-east-1)",
+    choices=["us-east-1", "us-west-2", "ap-south-1"],
+    help="Region supported by SageMaker AI training session APIs (default: us-east-1)",
 )
 args = parser.parse_args()
 
@@ -44,20 +42,15 @@ REGION = args.region
 ACCOUNT_ID = boto3.client("sts").get_caller_identity()["Account"]
 
 ROLE_NAME = "SageMakerTrainingSessionRole"
-ROLE_ARN = f"arn:aws:iam::{ACCOUNT_ID}:role/{ROLE_NAME}"
+ROLE_PATH = "/service-role/"
+ROLE_ARN = f"arn:aws:iam::{ACCOUNT_ID}:role{ROLE_PATH}{ROLE_NAME}"
+MANAGED_POLICY_ARN = "arn:aws:iam::aws:policy/AmazonSageMakerTrainingSessionFullAccess"
 
-# The conventional SageMaker default-bucket name -- what Session().default_bucket()
-# resolves to when no custom default bucket is configured for the account. Not
-# created here; the notebooks create it on first use via the SDK. This is only
-# used to scope the S3 permissions below. If your account uses a custom default
-# bucket, update this.
-BUCKET_NAME = f"sagemaker-{REGION}-{ACCOUNT_ID}"
 
 iam = boto3.client("iam")
 
 print(f"Account: {ACCOUNT_ID}")
 print(f"Region:  {REGION}")
-print(f"Bucket (conventional default): {BUCKET_NAME}")
 print("---")
 
 
@@ -83,25 +76,31 @@ trust_policy = {
 try:
     iam.create_role(
         RoleName=ROLE_NAME,
+        Path=ROLE_PATH,
         AssumeRolePolicyDocument=json.dumps(trust_policy),
-        Description="Training + inference execution role for the SageMaker Training Sessions example",
+        Description="Training + inference execution role for the SageMaker AI training session APIs example",
     )
     print(f"  Created role: {ROLE_ARN}")
 except iam.exceptions.EntityAlreadyExistsException:
+    existing = iam.get_role(RoleName=ROLE_NAME)["Role"]
+    if existing["Path"] != ROLE_PATH:
+        raise SystemExit(
+            f"  {existing['Arn']} exists outside {ROLE_PATH}. The AmazonSageMakerTrainingSessionAccess "
+            f"managed policy only allows passing roles under {ROLE_PATH}. Delete it with "
+            "`python infrastructure/cleanup_infra.py --delete-roles`, then run this script again."
+        )
+    iam.update_assume_role_policy(RoleName=ROLE_NAME, PolicyDocument=json.dumps(trust_policy))
     print(f"  Role already exists: {ROLE_ARN}")
 
 
-# Step 2: Attach permissions policy
-print("\n[2/2] Attaching permissions policy...")
-permissions_policy = {
+# Step 2: Attach permissions
+print("\n[2/2] Attaching permissions...")
+iam.attach_role_policy(RoleName=ROLE_NAME, PolicyArn=MANAGED_POLICY_ARN)
+print(f"  Attached managed policy: {MANAGED_POLICY_ARN}")
+
+hosting_policy = {
     "Version": "2012-10-17",
     "Statement": [
-        {
-            "Sid": "S3DefaultBucketAccess",
-            "Effect": "Allow",
-            "Action": ["s3:GetObject", "s3:PutObject", "s3:ListBucket", "s3:CreateBucket"],
-            "Resource": [f"arn:aws:s3:::{BUCKET_NAME}", f"arn:aws:s3:::{BUCKET_NAME}/*"],
-        },
         {
             "Sid": "JumpStartCacheAccess",
             "Effect": "Allow",
@@ -110,37 +109,6 @@ permissions_policy = {
                 f"arn:aws:s3:::jumpstart-cache-prod-{REGION}",
                 f"arn:aws:s3:::jumpstart-cache-prod-{REGION}/*",
             ],
-        },
-        {
-            "Sid": "HubContentAccess",
-            "Effect": "Allow",
-            "Action": ["sagemaker:DescribeHubContent"],
-            "Resource": "*",
-        },
-        {
-            "Sid": "ModelPackageAccess",
-            "Effect": "Allow",
-            "Action": [
-                "sagemaker:CreateModelPackageGroup",
-                "sagemaker:DescribeModelPackageGroup",
-                "sagemaker:DeleteModelPackageGroup",
-                "sagemaker:CreateModelPackage",
-                "sagemaker:DescribeModelPackage",
-                "sagemaker:DeleteModelPackage",
-                "sagemaker:ListModelPackages",
-            ],
-            "Resource": "*",
-        },
-        {
-            "Sid": "TrainingSessionRuntimeAccess",
-            "Effect": "Allow",
-            "Action": [
-                "sagemaker:ExecuteSampleOperation",
-                "sagemaker:GetSampleOperationResult",
-                "sagemaker:ExecuteTrainingOperation",
-                "sagemaker:GetTrainingOperationResult",
-            ],
-            "Resource": "*",
         },
         {
             "Sid": "ECRAccess",
@@ -153,9 +121,7 @@ permissions_policy = {
             "Resource": "*",
         },
         {
-            # Lets the hosting container (sm-training_sessions_2_deploy_grpo_checkpoint.ipynb) publish its startup/inference
-            # logs to CloudWatch. Without this the endpoint still runs, but no log group
-            # is ever created, so failures like a failed ping health check are undebuggable.
+            # Endpoint startup and inference logs from the deploy notebook's hosting container.
             "Sid": "CloudWatchLogsForHosting",
             "Effect": "Allow",
             "Action": [
@@ -166,28 +132,18 @@ permissions_policy = {
             ],
             "Resource": f"arn:aws:logs:*:{ACCOUNT_ID}:log-group:/aws/sagemaker/*",
         },
-        {
-            "Sid": "PassRole",
-            "Effect": "Allow",
-            "Action": "iam:PassRole",
-            "Resource": ROLE_ARN,
-            "Condition": {
-                "StringEquals": {
-                    "iam:PassedToService": [
-                        "training-session.sagemaker.amazonaws.com",
-                        "sagemaker.amazonaws.com",
-                    ]
-                }
-            },
-        },
     ],
 }
+for stale in iam.list_role_policies(RoleName=ROLE_NAME)["PolicyNames"]:
+    if stale != "InferenceHostingPermissions":
+        iam.delete_role_policy(RoleName=ROLE_NAME, PolicyName=stale)
+        print(f"  Removed inline policy from an earlier setup: {stale}")
 iam.put_role_policy(
     RoleName=ROLE_NAME,
-    PolicyName="TrainingSessionAndInferencePermissions",
-    PolicyDocument=json.dumps(permissions_policy),
+    PolicyName="InferenceHostingPermissions",
+    PolicyDocument=json.dumps(hosting_policy),
 )
-print("  Permissions policy attached")
+print("  Attached inline policy: InferenceHostingPermissions")
 
 print("\n" + "=" * 60)
 print("SETUP COMPLETE")
@@ -195,6 +151,6 @@ print("=" * 60)
 print(f"  role_arn: {ROLE_ARN}")
 print(f"  region:   {REGION}")
 print(
-    "\nNothing else to configure -- sm-training_sessions_1_train_grpo_gsm8k.ipynb, and sm-training_sessions_2_deploy_grpo_checkpoint.ipynb\n"
-    "all discover region/account/role/bucket automatically at runtime."
+    "\nThe identity that runs the notebooks needs the AmazonSageMakerTrainingSessionAccess managed\n"
+    "policy. The notebooks discover the Region, account, role, and bucket at runtime."
 )
