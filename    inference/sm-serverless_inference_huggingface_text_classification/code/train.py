@@ -1,68 +1,77 @@
-from transformers import AutoModelForSequenceClassification, Trainer, TrainingArguments, AutoTokenizer
-from sklearn.metrics import accuracy_score, precision_recall_fscore_support
-from datasets import load_from_disk
-from datasets import load_metric
-import numpy as np
-import random
-import logging
-import sys
 import argparse
+import json
+import logging
 import os
-import torch
+import sys
+from typing import Any, Dict, Optional, Tuple
+
+import evaluate
+import numpy as np
+from datasets import load_from_disk
+from transformers import (
+    AutoModelForSequenceClassification,
+    AutoTokenizer,
+    Trainer,
+    TrainingArguments,
+)
 
 
-metric = load_metric("accuracy")
+def _env(name: str, default: Optional[str] = None) -> str:
+    val = os.environ.get(name, default)
+    if val is None:
+        raise RuntimeError(f"missing required environment variable: {name}")
+    return val
 
 
-if __name__ == "__main__":
+def parse_args() -> argparse.Namespace:
+    p = argparse.ArgumentParser()
+    p.add_argument("--epochs", type=int, default=3)
+    p.add_argument("--train-batch-size", type=int, default=32)
+    p.add_argument("--eval-batch-size", type=int, default=64)
+    p.add_argument("--num_labels", type=int, default=6)
+    p.add_argument("--warmup_steps", type=int, default=500)
+    p.add_argument("--model_name", type=str, required=True)
+    p.add_argument("--learning_rate", type=float, default=5e-5)
+    p.add_argument("--output-data-dir", type=str, default=_env("SM_OUTPUT_DATA_DIR"))
+    p.add_argument("--model-dir", type=str, default=_env("SM_MODEL_DIR"))
+    p.add_argument("--training_dir", type=str, default=_env("SM_CHANNEL_TRAIN"))
+    p.add_argument("--test_dir", type=str, default=_env("SM_CHANNEL_TEST"))
+    return p.parse_known_args()[0]
 
-    parser = argparse.ArgumentParser()
 
-    # hyperparameters sent by the client are passed as command-line arguments to the script.
-    parser.add_argument("--epochs", type=int, default=3)
-    parser.add_argument("--train-batch-size", type=int, default=32)
-    parser.add_argument("--num_labels", type=int, default=6)
-    parser.add_argument("--eval-batch-size", type=int, default=64)
-    parser.add_argument("--warmup_steps", type=int, default=500)
-    parser.add_argument("--model_name", type=str)
-    parser.add_argument("--learning_rate", type=str, default=5e-5)
+def build_metrics(num_labels: int):
+    accuracy = evaluate.load("accuracy")
+    f1 = evaluate.load("f1")
+    average = "weighted" if num_labels > 2 else "binary"
 
-    # Data, model, and output directories
-    parser.add_argument("--output-data-dir", type=str, default=os.environ["SM_OUTPUT_DATA_DIR"])
-    parser.add_argument("--model-dir", type=str, default=os.environ["SM_MODEL_DIR"])
-    parser.add_argument("--n_gpus", type=str, default=os.environ["SM_NUM_GPUS"])
-    parser.add_argument("--training_dir", type=str, default=os.environ["SM_CHANNEL_TRAIN"])
-    parser.add_argument("--test_dir", type=str, default=os.environ["SM_CHANNEL_TEST"])
+    def compute_metrics(eval_pred: Tuple[Any, Any]) -> Dict[str, float]:
+        logits, labels = eval_pred
+        preds = np.argmax(logits, axis=-1)
+        out = accuracy.compute(predictions=preds, references=labels)
+        out.update(f1.compute(predictions=preds, references=labels, average=average))
+        return out
 
-    args, _ = parser.parse_known_args()
+    return compute_metrics
 
-    # Set up logging
-    logger = logging.getLogger(__name__)
 
+def main() -> None:
+    args = parse_args()
     logging.basicConfig(
-        level=logging.getLevelName("INFO"),
+        level=logging.INFO,
         handlers=[logging.StreamHandler(sys.stdout)],
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     )
+    log = logging.getLogger("train")
 
-    # load datasets
-    train_dataset = load_from_disk(args.training_dir)
-    test_dataset = load_from_disk(args.test_dir)
+    train_ds = load_from_disk(args.training_dir)
+    test_ds = load_from_disk(args.test_dir)
+    log.info("train=%s test=%s", len(train_ds), len(test_ds))
 
-    logger.info(f" loaded train_dataset length is: {len(train_dataset)}")
-    logger.info(f" loaded test_dataset length is: {len(test_dataset)}")
-
-    # compute metrics function for multi class classification
-    def compute_metrics(eval_pred):
-        logits, labels = eval_pred
-        predictions = np.argmax(logits, axis=-1)
-        return metric.compute(predictions=predictions, references=labels)
-
-    # download model from model hub
-    model = AutoModelForSequenceClassification.from_pretrained(args.model_name, num_labels=args.num_labels)
+    model = AutoModelForSequenceClassification.from_pretrained(
+        args.model_name, num_labels=args.num_labels
+    )
     tokenizer = AutoTokenizer.from_pretrained(args.model_name)
 
-    # define training args
     training_args = TrainingArguments(
         output_dir=args.model_dir,
         num_train_epochs=args.epochs,
@@ -70,32 +79,31 @@ if __name__ == "__main__":
         per_device_eval_batch_size=args.eval_batch_size,
         warmup_steps=args.warmup_steps,
         evaluation_strategy="epoch",
-        logging_dir=f"{args.output_data_dir}/logs",
-        learning_rate=float(args.learning_rate),
+        logging_dir=os.path.join(args.output_data_dir, "logs"),
+        learning_rate=args.learning_rate,
+        save_strategy="no",
+        report_to=[],
     )
 
-    # create Trainer instance
     trainer = Trainer(
         model=model,
         args=training_args,
-        compute_metrics=compute_metrics,
-        train_dataset=train_dataset,
-        eval_dataset=test_dataset,
+        compute_metrics=build_metrics(args.num_labels),
+        train_dataset=train_ds,
+        eval_dataset=test_ds,
         tokenizer=tokenizer,
     )
-
-    # train model
     trainer.train()
+    metrics = trainer.evaluate(eval_dataset=test_ds)
 
-    # evaluate model
-    eval_result = trainer.evaluate(eval_dataset=test_dataset)
+    out = os.path.join(args.output_data_dir, "eval_results.json")
+    with open(out, "w", encoding="utf-8") as fh:
+        json.dump(metrics, fh, indent=2, sort_keys=True)
+    log.info("eval_results=%s", metrics)
 
-    # writes eval result to file which can be accessed later in s3 ouput
-    with open(os.path.join(args.output_data_dir, "eval_results.txt"), "w") as writer:
-        print(f"***** Eval results *****")
-        for key, value in sorted(eval_result.items()):
-            writer.write(f"{key} = {value}\n")
-
-    # Saves the model to s3
     trainer.save_model(args.model_dir)
+    tokenizer.save_pretrained(args.model_dir)
 
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,7 @@
+transformers>=4.41.0,<4.50.0
+datasets>=2.19.0,<3.0.0
+evaluate>=0.4.2
+accelerate>=0.30.0
+scikit-learn>=1.4.0
+nltk>=3.8.1
+sentencepiece>=0.2.0
