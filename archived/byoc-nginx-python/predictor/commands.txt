@@ -1,0 +1,16 @@
+# build docker image
+docker build -t abalone/predictor .
+
+# mount /models to /opt/ml/model and run abalone/predictor container
+docker run --rm -v $(pwd)/models:/opt/ml/model -p 8080:8080 abalone/predictor
+
+# Test /ping
+curl http://localhost:8080/ping
+
+# Sample inference requests using curl
+
+curl --data-raw '-1.3317586042173168,-1.1425409076053987,-1.0579488602777858,-1.177706547272754,-1.130662184748842,-1.1493955859050584,-1.139968767909096,0.0,1.0,0.0' -H 'Content-Type: text/csv; charset=utf-8' -v http://localhost:8080/invocations
+
+curl --data-raw '0.3831484115366887,0.4748533892842405,0.2506716146449868,0.5674905932383428,0.8138932119974298,0.6788834503655224,0.22393875313148354,1.0,0.0,0.0' -H 'Content-Type: text/csv; charset=utf-8' -v http://localhost:8080/invocations
+
+curl --data-raw '-0.03324573832379023,0.021352297818588113,0.728888255143781,0.08516267380587607,0.06367821045408265,0.35041967853367667,0.08024614607656821,1.0,0.0,0.0' -H 'Content-Type: text/csv; charset=utf-8' -v http://localhost:8080/invocations

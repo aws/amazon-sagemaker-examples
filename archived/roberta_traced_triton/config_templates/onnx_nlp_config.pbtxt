@@ -1,0 +1,20 @@
+name: "nlp-onnx"
+platform: "onnxruntime_onnx"
+backend: "onnxruntime" 
+max_batch_size: 32
+{% for input in inputs %}
+  input {
+    name: "{{ input.name }}"
+    data_type: {{ input.data_type }}
+    dims: {{ input.dims }}
+  }{% endfor %}
+{% for output in outputs %}
+  output {
+    name: "{{ output.name }}"
+    data_type: {{ output.data_type }}
+    dims: {{ output.dims }}
+  }{% endfor %}
+instance_group {
+  count: 1
+  kind: KIND_GPU
+}

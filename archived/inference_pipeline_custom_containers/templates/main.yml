@@ -1,0 +1,104 @@
+AWSTemplateFormatVersion: 2010-09-09
+Parameters:
+  GitRepoUrl:
+    Type: String
+    Description: The Github repository
+    Default: https://github.com/aws/amazon-sagemaker-examples
+
+Resources:
+  FeatureTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: PipelineLookupTable
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: Specialty
+          AttributeType: S
+        - AttributeName: ID
+          AttributeType: S
+      KeySchema:
+        - AttributeName: Specialty
+          KeyType: HASH
+        - AttributeName: ID
+          KeyType: RANGE
+
+  GitRepo:
+    Type: AWS::SageMaker::CodeRepository
+    Properties:
+      GitConfig:
+        Branch: 'master'
+        RepositoryUrl: !Ref GitRepoUrl
+
+  NotebookRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub '${AWS::StackName}-Notebookrole'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action: sts:AssumeRole
+            Principal:
+              Service: sagemaker.amazonaws.com
+      Policies:
+        - PolicyName: !Sub '${AWS::StackName}-DDBAccess'
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'dynamodb:BatchGetItem'
+                  - 'dynamodb:BatchWriteItem'
+                  - 'dynamodb:Scan'
+                  - 'dynamodb:Query'
+                Resource: !GetAtt FeatureTable.Arn
+              - Effect: Allow
+                Action:
+                  - 'cloudformation:DescribeStacks'
+                Resource: !Ref AWS::StackId
+
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonSageMakerFullAccess
+
+  Notebook:
+    Type: AWS::SageMaker::NotebookInstance
+    Properties:
+      InstanceType: ml.t3.2xlarge
+      RoleArn: !GetAtt NotebookRole.Arn
+      DefaultCodeRepository: !GetAtt GitRepo.CodeRepositoryName
+
+  PreprocessorRepository:
+    Type: AWS::ECR::Repository
+    Properties:
+      RepositoryName: custompipeline/preprocessor
+      RepositoryPolicyText:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: SagemakerAllowPull
+            Effect: Allow
+            Principal:
+              Service: sagemaker.amazonaws.com
+            Action:
+              - ecr:GetDownloadUrlForLayer
+              - ecr:BatchGetImage
+              - ecr:BatchCheckLayerAvailability
+
+  PostprocessorRepository:
+    Type: AWS::ECR::Repository
+    Properties:
+      RepositoryName: custompipeline/postprocessor
+      RepositoryPolicyText:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: SagemakerAllowPull
+            Effect: Allow
+            Principal:
+              Service: sagemaker.amazonaws.com
+            Action:
+              - ecr:GetDownloadUrlForLayer
+              - ecr:BatchGetImage
+              - ecr:BatchCheckLayerAvailability
+
+Outputs:
+  DDBTableName:
+    Value: !Ref FeatureTable

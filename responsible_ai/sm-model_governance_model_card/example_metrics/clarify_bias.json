@@ -1,0 +1,49 @@
+{
+    "post_training_bias_metrics": {
+      "facets": {
+        "Gender": [
+          {
+            "metrics": [
+              {
+                "description": "Accuracy Difference (AD)",
+                "name": "AD",
+                "value": -0.11415724421435
+              }
+            ],
+            "value_or_threshold": "0"
+          },
+          {
+            "metrics": [
+              {
+                "name": "AD",
+                "description": "Accuracy Difference (AD)",
+                "value": -0.1141572442143538
+              }
+            ],
+            "value_or_threshold": "1"
+          }
+        ]
+      },
+      "label": "Target",
+      "label_value_or_threshold": "1"
+    },
+    "pre_training_bias_metrics": {
+      "facets": {
+        "Gender": [
+          {
+            "metrics": [
+              {
+                "description": "Conditional Demographic Disparity in Labels (CDDL)",
+                "name": "CDDL",
+                "value": 0.21491590864936
+              }
+            ],
+            "value_or_threshold": "0"
+          }
+        ]
+      },
+      "label": "Target",
+      "label_value_or_threshold": "1"
+    },
+    "version": "1.0"
+  }

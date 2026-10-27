@@ -1,0 +1,53 @@
+name: "sd_depth"
+backend: "python"
+max_batch_size: 8
+
+input [
+  {
+    name: "prompt"
+    data_type: TYPE_STRING
+    dims: [ -1 ]
+    
+  },
+  {
+    name: "negative_prompt"
+    data_type: TYPE_STRING
+    dims: [ -1 ]
+    optional: true 
+    
+  },
+  {
+    name: "image"
+    data_type: TYPE_STRING
+    dims: [ -1 ]
+    
+  },
+  {
+    name: "gen_args"
+    data_type: TYPE_STRING
+    dims: [ -1 ]
+    optional: true
+  }
+
+]
+
+output [
+  {
+    name: "generated_image"
+    data_type: TYPE_STRING	
+    dims: [ -1 ]
+  }
+]
+
+instance_group [
+  {
+    kind: KIND_GPU
+  }
+]
+
+parameters: {
+  key: "EXECUTION_ENV_PATH",
+  value: {string_value: "/tmp/conda/sd_env.tar.gz"}
+}
+
+

@@ -1,0 +1,35 @@
+platform: "pytorch_libtorch"
+max_batch_size: 32
+input [
+  {
+    name: "INPUT__0"
+    data_type: TYPE_INT32
+    dims: [512]
+  },
+  {
+    name: "INPUT__1"
+    data_type: TYPE_INT32
+    dims: [512]
+  }
+]
+output [
+  {
+    name: "OUTPUT__0"
+    data_type: TYPE_FP32
+    dims: [512, 768]
+  },
+  {
+    name: "1634__1"
+    data_type: TYPE_FP32
+    dims: [768]
+  }
+]
+instance_group [
+    {
+      count: 2
+      kind: KIND_GPU
+    }
+  ]
+dynamic_batching {
+
+  }

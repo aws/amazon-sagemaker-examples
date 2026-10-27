@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!ELEMENT BCVTB-variables (variable+)>
+<!ELEMENT variable ( EnergyPlus* )  >
+<!ELEMENT EnergyPlus (#PCDATA)>
+
+<!ATTLIST EnergyPlus name CDATA #IMPLIED
+	             type CDATA #IMPLIED>
+<!ATTLIST EnergyPlus schedule CDATA #IMPLIED>
+<!ATTLIST EnergyPlus actuator CDATA #IMPLIED>
+<!ATTLIST EnergyPlus variable CDATA #IMPLIED>
+<!ATTLIST variable source (EnergyPlus|Ptolemy) #REQUIRED>
+

@@ -1,0 +1,3 @@
+segment-anything-py==1.0
+opencv-python-headless==4.7.0.68
+matplotlib==3.6.3

@@ -1,0 +1,65 @@
+#!/usr/bin/env python
+
+from __future__ import print_function
+
+import os
+import sys
+import traceback
+import subprocess
+
+prefix = '/opt/ml/'
+
+input_path = prefix + 'input/data'
+output_path = os.path.join(prefix, 'output')
+model_path = os.path.join(prefix, 'model')
+
+# This algorithm has a single channel of input data called 'train'. Since we run in
+# File mode, the input files are copied to the directory specified here
+channel_name='train'
+training_path = os.path.join(input_path, channel_name)
+
+# The function to execute the training, will be called by the SageMaker training job
+def train():
+    print('Starting the training.')
+    try:
+        input_files = [ os.path.join(training_path, file) for file in os.listdir(training_path) ]
+        if len(input_files) == 0:
+            error_message = (
+                f"There are no files in {training_path}.\n"
+                f"This usually indicates that the channel ({channel_name}) was incorrectly specified,\n"
+                "the data specification in S3 was incorrectly specified or the role specified\n"
+                "does not have permission to access the data."
+            )
+            raise ValueError(error_message)
+
+        # Call the program that was installed in the training container, which uses the kohya-ss libraries to train
+        # Stable Diffusion XL given the kohya-sdxl-config.toml file that is present in the training S3 bucket
+        # In the future, we can set and retrieve parameters such as num_cpu_threads_per_process via the Hyperparamters
+        subprocess.run(
+            ["accelerate", 
+            "launch",
+            "--num_cpu_threads_per_process=2",
+            "./sdxl_train_network.py",
+            "--config_file",
+            os.path.join(training_path, 'kohya-sdxl-config.toml')], check=True
+        )
+
+        print('Training complete.')
+    except Exception as e:
+        # Write out an error file. This will be returned as the failureReason in the DescribeTrainingJob result
+        traceback_str = traceback.format_exc()
+        failure_log_path = os.path.join(output_path, 'failure')
+
+        with open(failure_log_path, 'w') as log_file:
+            log_file.write(f'Exception during training: {str(e)}\n{traceback_str}')
+        # Printing this causes the exception to be in the training job logs, as well.
+        print(f'Exception during training: {str(e)}\n{traceback_str}', file=sys.stderr)
+        
+        # A non-zero exit code causes the training job to be marked as Failed.
+        sys.exit(255)
+
+if __name__ == '__main__':
+    train()
+
+    # A zero exit code causes the job to be marked a Succeeded.
+    sys.exit(0)

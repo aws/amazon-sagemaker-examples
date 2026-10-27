@@ -1,0 +1,9 @@
+datasets
+numpy
+sagemaker
+sagemaker-experiments
+scipy
+torchnet
+transformers==4.21.0
+smdebug
+humanize

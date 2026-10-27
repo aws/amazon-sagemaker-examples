@@ -1,0 +1,105 @@
+---
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: autopilot
+  namespace: default
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - "*"
+  verbs:
+  - "*"
+- apiGroups:
+  - rbac.authorization.k8s.io
+  - extensions
+  - apps
+  resources:
+  - "*"
+  verbs:
+  - "*"
+- apiGroups:
+  - apiextensions.k8s.io
+  resources:
+  - customresourcedefinitions
+  - pods
+  - deployments
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - delete
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: autopilot
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: autopilot
+  namespace: default
+subjects:
+- kind: ServiceAccount
+  name: autopilot
+  namespace: default
+roleRef:
+  kind: ClusterRole
+  name: autopilot
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  labels:
+    app: autopilot
+  name: autopilot
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: autopilot
+  template:
+    metadata:
+      labels:
+        app: autopilot
+    spec:
+      serviceAccountName: autopilot
+      containers:
+      - name: autopilot
+        image: 356566070122.dkr.ecr.us-west-2.amazonaws.com/autopilot:latest
+        imagePullPolicy: Always
+        command: ["/start.sh"]
+        env:
+        - name: DEMAND_URL
+          value: "https://3vwufqstq5.execute-api.us-west-2.amazonaws.com/api/currsine24h"
+        - name: MODEL_URL
+          value: "https://cq20vmabsf.execute-api.us-west-2.amazonaws.com/api/predict/us-west-2"
+        - name: AWS_DEFAULT_REGION
+          value: "us-west-2"
+        - name: DEPLOY_NAME
+          value: "multiplayersample"
+        - name: CURRENT_SIZE_METRIC_NAME
+          value: "num_of_gs"
+        - name: NEW_SIZE_METRIC_NAME
+          value: "new_size"
+        - name: FREQUENCY
+          value: "2700"
+        - name: MIN_GS_NUM
+          value: "10"
+        - name: NODE_GROUP
+          value: "mixed-instances-1"
+        - name: QUEUE_URL
+          value: "https://sqs.us-west-2.amazonaws.com/356566070122/gameserver-GSQueue-ZQR24E3NU18E"
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace

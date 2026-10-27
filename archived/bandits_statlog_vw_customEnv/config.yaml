@@ -1,0 +1,38 @@
+resource:
+  shared_resource:
+    # cloud formation stack
+    resources_cf_stack_name: "BanditsSharedResourceStack"
+    # Dynamo table for status of an experiment
+    experiment_db:
+      table_name: "BanditsExperimentTable"
+    # Dynamo table for status of all models trained
+    model_db:
+      table_name: "BanditsModelTable"
+    # Dynamo table for status of all joining job for reward ingestion
+    join_db:
+      table_name: "BanditsJoinTable"
+    iam_role:
+      role_name: "BanditsIAMRole"
+  private_resource:
+    hosting_fleet:
+      instance_type: "ml.t2.medium"
+      instance_count: 1
+    training_fleet:
+      instance_type: "ml.c5.4xlarge"
+    evaluation_fleet:
+      instance_type: "ml.c5.4xlarge"
+# Vowpal Wabbit container
+image: "462105765813.dkr.ecr.{AWS_REGION}.amazonaws.com/sagemaker-rl-vw-container:vw-8.7.0-cpu"
+# Vowpal Wabbit algorithm parameters
+algor:
+  algorithms_parameters:
+    exploration_policy: "egreedy" # supports "egreedy", "bag", "cover"
+    epsilon: 0.001 # used if egreedy is the exploration policy
+    num_policies: 3 # used if bag or cover is the exploration policy
+    num_arms: 7
+    cfa_type: "dr" # supports "dr", "ips"
+# use local mode?
+local_mode: true
+# if true, use the same endpoint with updated model
+soft_deployment: true
+ 

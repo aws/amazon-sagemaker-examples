@@ -1,0 +1,121 @@
+{
+  "metadata": {
+    "version": 1,
+    "disable_limits": false,
+    "instance_type": "ml.m5.4xlarge"
+  },
+  "nodes": [
+    {
+      "node_id": "d30819a4-1d3f-40e2-b621-03e6bffaae99",
+      "type": "SOURCE",
+      "operator": "sagemaker.athena_source_0.1",
+      "parameters": {
+        "dataset_definition": {
+          "datasetSourceType": "Athena",
+          "name": "restate-california",
+          "catalogName": "AwsDataCatalog",
+          "databaseName": "restate",
+          "queryString": "SELECT * FROM \"restate\".\"california_10\"",
+          "s3OutputLocation": "s3://sagemaker-<region e.g. ap-southeast-1>-<AWS ACCOUNT ID>/athena/restate/",
+          "outputFormat": "parquet",
+          "workgroup": null,
+          "workgroupOutputLocation": null,
+          "enforceWorkgroupConfiguration": false
+        }
+      },
+      "trained_parameters": {
+        "query_execution_id": "ca8a88de-b2b8-403b-b841-f3a9c1a750a0",
+        "ctas_table_name": "sagemaker_tmp_5f97be7f253044558c96b79e9a8fad40"
+      },
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "default"
+        }
+      ]
+    },
+    {
+      "node_id": "5a68450a-36ea-4857-8484-01c77b472b94",
+      "type": "TRANSFORM",
+      "operator": "sagemaker.spark.infer_and_cast_type_0.1",
+      "parameters": {},
+      "trained_parameters": {
+        "schema": {
+          "longitude": "float",
+          "latitude": "float",
+          "housingmedianage": "float",
+          "totalrooms": "float",
+          "totalbedrooms": "float",
+          "population": "float",
+          "households": "float",
+          "medianincome": "float",
+          "medianhousevalue": "float"
+        }
+      },
+      "inputs": [
+        {
+          "name": "default",
+          "node_id": "d30819a4-1d3f-40e2-b621-03e6bffaae99",
+          "output_name": "default"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "default"
+        }
+      ]
+    },
+    {
+      "node_id": "1f0d5f6b-e272-4eb1-bc01-83d4d6955ec2",
+      "type": "TRANSFORM",
+      "operator": "sagemaker.spark.manage_columns_0.1",
+      "parameters": {
+        "operator": "Drop column",
+        "drop_column_parameters": {
+          "column_to_drop": [
+            "medianincome"
+          ]
+        }
+      },
+      "inputs": [
+        {
+          "name": "df",
+          "node_id": "5a68450a-36ea-4857-8484-01c77b472b94",
+          "output_name": "default"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "default"
+        }
+      ]
+    },
+    {
+      "node_id": "99ae1ec3-dd5f-453c-bfae-721dac423cd7",
+      "type": "TRANSFORM",
+      "operator": "sagemaker.spark.manage_columns_0.1",
+      "parameters": {
+        "operator": "Move column",
+        "move_column_parameters": {
+          "move_type": "Move to start",
+          "move_to_start_parameters": {
+            "column_to_move": "medianhousevalue"
+          }
+        },
+        "drop_column_parameters": {}
+      },
+      "inputs": [
+        {
+          "name": "df",
+          "node_id": "1f0d5f6b-e272-4eb1-bc01-83d4d6955ec2",
+          "output_name": "default"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "default"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,58 @@
+import os
+import shutil
+import subprocess
+import signal
+
+def _add_sigterm_handler(mms_process):
+    def _terminate(signo, frame):  # pylint: disable=unused-argument
+        try:
+            os.system('ps aux')
+            os.kill(mms_process.pid, signal.SIGTERM)
+        except OSError:
+            pass
+
+    signal.signal(signal.SIGTERM, _terminate)
+
+ckpt = os.environ.get('ckpt', None)
+embeddings_s3uri = os.environ.get('embeddings_s3uri', None)
+hypernetwork_s3uri = os.environ.get('hypernetwork_s3uri', None)
+
+cmd = "ACCELERATE=true python launch.py --api --listen --port 8080 --xformers --ckpt-dir /tmp/models/Stable-diffusion --controlnet-dir /tmp/models/ControlNet --lora-dir /tmp/models/Lora --vae-dir /tmp/models/VAE"
+
+if embeddings_s3uri:
+    cmd = '{0} --embeddings-s3uri {1} --embeddings-dir /tmp/embeddings'.format(cmd, embeddings_s3uri)
+
+if hypernetwork_s3uri:
+    cmd = '{0} --hypernetwork-s3uri {1} --hypernetwork-dir /tmp/hypernetwork'.format(cmd, hypernetwork_s3uri)
+
+if ckpt:
+    cmd = '{0} --ckpt {1}'.format(cmd, ckpt)
+
+os.makedirs('/tmp/cache/huggingface', exist_ok=True)
+os.makedirs('/tmp/models', exist_ok=True)
+
+if os.path.isdir('/opt/ml/model/Stable-diffusion'):
+    shutil.copytree('/opt/ml/model/Stable-diffusion', '/tmp/models/Stable-diffusion')
+
+if os.path.isdir('/opt/ml/model/ControlNet'):
+    shutil.copytree('/opt/ml/model/ControlNet', '/tmp/models/ControlNet')
+
+if os.path.isdir('/opt/ml/model/Lora'):
+    shutil.copytree('/opt/ml/model/Lora', '/tmp/models/Lora')
+
+if os.path.isdir('/opt/ml/model/VAE'):
+    shutil.copytree('/opt/ml/model/VAE', '/tmp/models/VAE')
+
+os.makedirs('/tmp/models/Stable-diffusion', exist_ok=True)
+os.makedirs('/tmp/models/ControlNet', exist_ok=True)
+os.makedirs('/tmp/models/Lora', exist_ok=True)
+os.makedirs('/tmp/models/VAE', exist_ok=True)
+
+os.makedirs('/tmp/embeddings', exist_ok=True)
+os.makedirs('/tmp/hypernetwork', exist_ok=True)
+
+process = subprocess.Popen(cmd, shell=True)
+
+_add_sigterm_handler(process.pid)
+
+process.wait()

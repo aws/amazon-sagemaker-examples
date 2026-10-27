@@ -1,0 +1,10 @@
+{
+    "StackName": "sagemaker-custom-pipeline",
+    "Capabilities": [
+        "CAPABILITY_NAMED_IAM"
+    ],
+    "Tags": [{
+        "Key": "Project",
+        "Value": "sagemaker-custom-pipeline"
+    }]
+}

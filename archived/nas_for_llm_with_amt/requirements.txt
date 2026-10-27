@@ -1,0 +1,7 @@
+tqdm
+scipy
+numpy
+pandas
+torch
+evaluate
+git+https://github.com/aaronkl/transformers.git

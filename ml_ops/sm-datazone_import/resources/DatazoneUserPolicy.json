@@ -1,0 +1,65 @@
+{
+    "Statement": [
+        {
+            "Condition": {
+                "StringEquals": {
+                    "iam:PassedToService": "datazone.amazonaws.com"
+                }
+            },
+            "Action": [
+                "iam:PassRole"
+            ],
+            "Resource": [
+                "arn:aws:iam::*:role/AmazonDataZone*",
+                "arn:aws:iam::*:role/service-role/AmazonDataZone*"
+            ],
+            "Effect": "Allow"
+        },
+        {
+            "Action": [
+                "datazone:AcceptSubscriptionRequest",
+                "datazone:CreateSubscriptionRequest",
+                "datazone:CreateDataSource",
+                "datazone:DeleteSubscriptionRequest",
+                "datazone:Search",
+                "datazone:SearchListings",
+                "datazone:ListSubscriptionRequests",
+                "datazone:ListAssetRevisions",
+                "datazone:GetListing",
+                "datazone:GetAsset",
+                "datazone:GetEnvironment",
+                "datazone:GetProject",
+                "datazone:RejectSubscriptionRequest",
+                "datazone:CancelSubscription",
+                "datazone:ListSubscriptions",
+                "datazone:ListDataSources",
+                "datazone:ListDataSourceRuns",
+                "datazone:ListDataSourceRunActivities",
+                "datazone:GetDataSource",
+                "datazone:GetDataSourceRun",
+                "datazone:StartDataSourceRun",
+                "datazone:UpdateDataSource",
+                "datazone:DeleteDataSource",
+                "datazone:ListEnvironments",
+                "datazone:CreateListingChangeSet",
+                "datazone:RevokeSubscription",
+                "datazone:GetGlossaryTerm",
+                "datazone:CreateAsset",
+                "datazone:CreateAssetRevision",
+                "datazone:GetUserProfile",
+                "datazone:GetUserProfile",
+                "datazone:ListSubscriptionGrants",
+                "datazone:CreateSubscriptionGrant",
+                "datazone:GetSubscriptionGrant",
+                "datazone:DeleteAsset",
+                "datazone:DeleteDataSource",
+                "datazone:GetFormType",
+                "datazone:ListGroupsForUser",
+                "datazone:ListProjectMemberships",
+                "datazone:DeleteListing"
+            ],
+            "Resource": "*",
+            "Effect": "Allow"
+        }
+    ]
+}

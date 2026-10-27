@@ -1,0 +1,23 @@
+{
+    "Version": "2008-10-17",
+    "Statement": [
+      {
+        "Sid": "new statement",
+        "Effect": "Allow",
+        "Principal": {
+          "Service": "sagemaker.amazonaws.com"
+        },
+        "Action": [
+          "ecr: CompleteLayerUpload",
+          "ecr: InitiateLayerUpload",
+          "ecr: ListImages",
+          "ecr:BatchCheckLayerAvailability",
+          "ecr:BatchGetImage",
+          "ecr:DescribeImages",
+          "ecr:DescribeRepositories",
+          "ecr:GetDownloadUrlForLayer"
+        ]
+      }
+    ]
+  }
+

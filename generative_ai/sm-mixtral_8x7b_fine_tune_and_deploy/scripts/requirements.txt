@@ -1,0 +1,6 @@
+transformers==4.36.2
+peft==0.4.0
+accelerate==0.21.0
+bitsandbytes==0.40.2
+safetensors>=0.3.1
+tokenizers>=0.13.3

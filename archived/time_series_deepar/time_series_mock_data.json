@@ -1,0 +1,402 @@
+[
+    {
+        "item_id": "mosfets",
+        "timestamp": "2019-09-11",
+        "target_value": 47650.3,
+        "dynamic_feature_1": 0.4576,
+        "dynamic_feature_2": 0.2164,
+        "dynamic_feature_3": 0.19060000000000002,
+        "static_feature_1": 1,
+        "static_feature_2": 1
+    },
+    {
+        "item_id": "mosfets",
+        "timestamp": "2019-09-12",
+        "target_value": 47380.3,
+        "dynamic_feature_1": 0.4839,
+        "dynamic_feature_2": 0.22740000000000002,
+        "dynamic_feature_3": 0.1889,
+        "static_feature_1": 1,
+        "static_feature_2": 1
+    },
+    {
+        "item_id": "mosfets",
+        "timestamp": "2019-09-13",
+        "target_value": 50905.9,
+        "dynamic_feature_1": 0.5047,
+        "dynamic_feature_2": 0.2391,
+        "dynamic_feature_3": 0.1877,
+        "static_feature_1": 1,
+        "static_feature_2": 1
+    },
+    {
+        "item_id": "mosfets",
+        "timestamp": "2019-09-14",
+        "target_value": 52401.3,
+        "dynamic_feature_1": 0.5189,
+        "dynamic_feature_2": 0.2516,
+        "dynamic_feature_3": 0.18710000000000002,
+        "static_feature_1": 1,
+        "static_feature_2": 1
+    },
+    {
+        "item_id": "mosfets",
+        "timestamp": "2019-09-15",
+        "target_value": 68734.1,
+        "dynamic_feature_1": 0.5258,
+        "dynamic_feature_2": 0.2647,
+        "dynamic_feature_3": 0.187,
+        "static_feature_1": 1,
+        "static_feature_2": 1
+    },
+    {
+        "item_id": "mosfets",
+        "timestamp": "2019-09-16",
+        "target_value": 66849.4,
+        "dynamic_feature_1": 0.525,
+        "dynamic_feature_2": 0.27840000000000004,
+        "dynamic_feature_3": 0.1874,
+        "static_feature_1": 1,
+        "static_feature_2": 1
+    },
+    {
+        "item_id": "mosfets",
+        "timestamp": "2019-09-17",
+        "target_value": null,
+        "dynamic_feature_1": 0.5166000000000001,
+        "dynamic_feature_2": 0.2927,
+        "dynamic_feature_3": 0.1884,
+        "static_feature_1": 1,
+        "static_feature_2": 1
+    },
+    {
+        "item_id": "mosfets",
+        "timestamp": "2019-09-18",
+        "target_value": null,
+        "dynamic_feature_1": 0.5011,
+        "dynamic_feature_2": 0.3074,
+        "dynamic_feature_3": 0.1899,
+        "static_feature_1": 1,
+        "static_feature_2": 1
+    },
+    {
+        "item_id": "mosfets",
+        "timestamp": "2019-09-19",
+        "target_value": null,
+        "dynamic_feature_1": 0.4791,
+        "dynamic_feature_2": 0.3224,
+        "dynamic_feature_3": 0.19190000000000002,
+        "static_feature_1": 1,
+        "static_feature_2": 1
+    },
+    {
+        "item_id": "mosfets",
+        "timestamp": "2019-09-20",
+        "target_value": null,
+        "dynamic_feature_1": 0.452,
+        "dynamic_feature_2": 0.3377,
+        "dynamic_feature_3": 0.1945,
+        "static_feature_1": 1,
+        "static_feature_2": 1
+    },
+    {
+        "item_id": "mosfets",
+        "timestamp": "2019-09-21",
+        "target_value": null,
+        "dynamic_feature_1": 0.4209,
+        "dynamic_feature_2": 0.3533,
+        "dynamic_feature_3": 0.1976,
+        "static_feature_1": 1,
+        "static_feature_2": 1
+    },
+    {
+        "item_id": "mosfets",
+        "timestamp": "2019-09-22",
+        "target_value": null,
+        "dynamic_feature_1": 0.38770000000000004,
+        "dynamic_feature_2": 0.3689,
+        "dynamic_feature_3": 0.20120000000000002,
+        "static_feature_1": 1,
+        "static_feature_2": 1
+    },
+    {
+        "item_id": "mosfets",
+        "timestamp": "2019-09-23",
+        "target_value": null,
+        "dynamic_feature_1": 0.3539,
+        "dynamic_feature_2": 0.3846,
+        "dynamic_feature_3": 0.2054,
+        "static_feature_1": 1,
+        "static_feature_2": 1
+    },
+    {
+        "item_id": "mosfets",
+        "timestamp": "2019-09-24",
+        "target_value": null,
+        "dynamic_feature_1": 0.3214,
+        "dynamic_feature_2": 0.4002,
+        "dynamic_feature_3": 0.21,
+        "static_feature_1": 1,
+        "static_feature_2": 1
+    },
+    {
+        "item_id": "mosfets",
+        "timestamp": "2019-09-25",
+        "target_value": null,
+        "dynamic_feature_1": 0.2918,
+        "dynamic_feature_2": 0.4157,
+        "dynamic_feature_3": 0.2151,
+        "static_feature_1": 1,
+        "static_feature_2": 1
+    },
+    {
+        "item_id": "mosfets",
+        "timestamp": "2019-09-26",
+        "target_value": null,
+        "dynamic_feature_1": 0.2666,
+        "dynamic_feature_2": 0.431,
+        "dynamic_feature_3": 0.2207,
+        "static_feature_1": 1,
+        "static_feature_2": 1
+    },
+    {
+        "item_id": "mosfets",
+        "timestamp": "2019-09-27",
+        "target_value": null,
+        "dynamic_feature_1": 0.2472,
+        "dynamic_feature_2": 0.446,
+        "dynamic_feature_3": 0.2267,
+        "static_feature_1": 1,
+        "static_feature_2": 1
+    },
+    {
+        "item_id": "mosfets",
+        "timestamp": "2019-09-28",
+        "target_value": null,
+        "dynamic_feature_1": 0.23450000000000001,
+        "dynamic_feature_2": 0.4605,
+        "dynamic_feature_3": 0.23320000000000002,
+        "static_feature_1": 1,
+        "static_feature_2": 1
+    },
+    {
+        "item_id": "mosfets",
+        "timestamp": "2019-09-29",
+        "target_value": null,
+        "dynamic_feature_1": 0.22920000000000001,
+        "dynamic_feature_2": 0.4747,
+        "dynamic_feature_3": 0.2401,
+        "static_feature_1": 1,
+        "static_feature_2": 1
+    },
+    {
+        "item_id": "mosfets",
+        "timestamp": "2019-09-30",
+        "target_value": null,
+        "dynamic_feature_1": 0.23170000000000002,
+        "dynamic_feature_2": 0.4883,
+        "dynamic_feature_3": 0.24750000000000003,
+        "static_feature_1": 1,
+        "static_feature_2": 1
+    },
+    {
+        "item_id": "interpol",
+        "timestamp": "2020-04-05",
+        "target_value": 411128.3,
+        "dynamic_feature_1": 0.2906,
+        "dynamic_feature_2": 0.5842,
+        "dynamic_feature_3": 0.6155,
+        "static_feature_1": 1,
+        "static_feature_2": 1
+    },
+    {
+        "item_id": "interpol",
+        "timestamp": "2020-04-06",
+        "target_value": 434365.7,
+        "dynamic_feature_1": 0.2656,
+        "dynamic_feature_2": 0.5804,
+        "dynamic_feature_3": 0.6101,
+        "static_feature_1": 1,
+        "static_feature_2": 1
+    },
+    {
+        "item_id": "interpol",
+        "timestamp": "2020-04-07",
+        "target_value": 452804.0,
+        "dynamic_feature_1": 0.24650000000000002,
+        "dynamic_feature_2": 0.5754,
+        "dynamic_feature_3": 0.6041000000000001,
+        "static_feature_1": 1,
+        "static_feature_2": 1
+    },
+    {
+        "item_id": "interpol",
+        "timestamp": "2020-04-08",
+        "target_value": 463500.6,
+        "dynamic_feature_1": 0.2341,
+        "dynamic_feature_2": 0.5694,
+        "dynamic_feature_3": 0.5977,
+        "static_feature_1": 1,
+        "static_feature_2": 1
+    },
+    {
+        "item_id": "interpol",
+        "timestamp": "2020-04-09",
+        "target_value": 466372.3,
+        "dynamic_feature_1": 0.22920000000000001,
+        "dynamic_feature_2": 0.5624,
+        "dynamic_feature_3": 0.5909,
+        "static_feature_1": 1,
+        "static_feature_2": 1
+    },
+    {
+        "item_id": "interpol",
+        "timestamp": "2020-04-10",
+        "target_value": 460178.0,
+        "dynamic_feature_1": 0.232,
+        "dynamic_feature_2": 0.5543,
+        "dynamic_feature_3": 0.5837,
+        "static_feature_1": 1,
+        "static_feature_2": 1
+    },
+    {
+        "item_id": "interpol",
+        "timestamp": "2020-04-11",
+        "target_value": null,
+        "dynamic_feature_1": 0.24230000000000002,
+        "dynamic_feature_2": 0.5453,
+        "dynamic_feature_3": 0.5760000000000001,
+        "static_feature_1": 1,
+        "static_feature_2": 1
+    },
+    {
+        "item_id": "interpol",
+        "timestamp": "2020-04-12",
+        "target_value": null,
+        "dynamic_feature_1": 0.2596,
+        "dynamic_feature_2": 0.5354,
+        "dynamic_feature_3": 0.5680000000000001,
+        "static_feature_1": 1,
+        "static_feature_2": 1
+    },
+    {
+        "item_id": "interpol",
+        "timestamp": "2020-04-13",
+        "target_value": null,
+        "dynamic_feature_1": 0.28300000000000003,
+        "dynamic_feature_2": 0.5246000000000001,
+        "dynamic_feature_3": 0.5596,
+        "static_feature_1": 1,
+        "static_feature_2": 1
+    },
+    {
+        "item_id": "interpol",
+        "timestamp": "2020-04-14",
+        "target_value": null,
+        "dynamic_feature_1": 0.3113,
+        "dynamic_feature_2": 0.513,
+        "dynamic_feature_3": 0.5509000000000001,
+        "static_feature_1": 1,
+        "static_feature_2": 1
+    },
+    {
+        "item_id": "interpol",
+        "timestamp": "2020-04-15",
+        "target_value": null,
+        "dynamic_feature_1": 0.3431,
+        "dynamic_feature_2": 0.5006,
+        "dynamic_feature_3": 0.5418000000000001,
+        "static_feature_1": 1,
+        "static_feature_2": 1
+    },
+    {
+        "item_id": "interpol",
+        "timestamp": "2020-04-16",
+        "target_value": null,
+        "dynamic_feature_1": 0.3766,
+        "dynamic_feature_2": 0.48760000000000003,
+        "dynamic_feature_3": 0.5324,
+        "static_feature_1": 1,
+        "static_feature_2": 1
+    },
+    {
+        "item_id": "interpol",
+        "timestamp": "2020-04-17",
+        "target_value": null,
+        "dynamic_feature_1": 0.4103,
+        "dynamic_feature_2": 0.47400000000000003,
+        "dynamic_feature_3": 0.5228,
+        "static_feature_1": 1,
+        "static_feature_2": 1
+    },
+    {
+        "item_id": "interpol",
+        "timestamp": "2020-04-18",
+        "target_value": null,
+        "dynamic_feature_1": 0.44220000000000004,
+        "dynamic_feature_2": 0.45980000000000004,
+        "dynamic_feature_3": 0.5129,
+        "static_feature_1": 1,
+        "static_feature_2": 1
+    },
+    {
+        "item_id": "interpol",
+        "timestamp": "2020-04-19",
+        "target_value": null,
+        "dynamic_feature_1": 0.4708,
+        "dynamic_feature_2": 0.44520000000000004,
+        "dynamic_feature_3": 0.5028,
+        "static_feature_1": 1,
+        "static_feature_2": 1
+    },
+    {
+        "item_id": "interpol",
+        "timestamp": "2020-04-20",
+        "target_value": null,
+        "dynamic_feature_1": 0.49460000000000004,
+        "dynamic_feature_2": 0.4302,
+        "dynamic_feature_3": 0.4924,
+        "static_feature_1": 1,
+        "static_feature_2": 1
+    },
+    {
+        "item_id": "interpol",
+        "timestamp": "2020-04-21",
+        "target_value": null,
+        "dynamic_feature_1": 0.5123,
+        "dynamic_feature_2": 0.41490000000000005,
+        "dynamic_feature_3": 0.48190000000000005,
+        "static_feature_1": 1,
+        "static_feature_2": 1
+    },
+    {
+        "item_id": "interpol",
+        "timestamp": "2020-04-22",
+        "target_value": null,
+        "dynamic_feature_1": 0.5231,
+        "dynamic_feature_2": 0.39940000000000003,
+        "dynamic_feature_3": 0.4712,
+        "static_feature_1": 1,
+        "static_feature_2": 1
+    },
+    {
+        "item_id": "interpol",
+        "timestamp": "2020-04-23",
+        "target_value": null,
+        "dynamic_feature_1": 0.5264,
+        "dynamic_feature_2": 0.38380000000000003,
+        "dynamic_feature_3": 0.46040000000000003,
+        "static_feature_1": 1,
+        "static_feature_2": 1
+    },
+    {
+        "item_id": "interpol",
+        "timestamp": "2020-04-24",
+        "target_value": null,
+        "dynamic_feature_1": 0.5219,
+        "dynamic_feature_2": 0.36810000000000004,
+        "dynamic_feature_3": 0.4494,
+        "static_feature_1": 1,
+        "static_feature_2": 1
+    }
+]

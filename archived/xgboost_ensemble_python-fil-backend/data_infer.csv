@@ -1,0 +1,6 @@
+User,Card,Year,Month,Day,Time,Amount,Use Chip,Merchant Name,Merchant City,Merchant State,Zip,MCC,Errors?
+1748,0,2017,9,19,11:04,$7.93,Chip Transaction,8410060611816445884,Dickinson,TX,77539.0,5812,
+1154,0,2004,4,22,04:52,$65.53,Swipe Transaction,-6249892030847354836,Revere,MA,2151.0,5411,
+1377,2,2019,4,6,16:17,$29.19,Online Transaction,1698045825511338540,ONLINE,,,7922,
+515,0,2016,3,28,06:55,$-64.00,Chip Transaction,-1288082279022882052,Kimberly,WI,54136.0,5499,
+1163,5,2019,1,29,16:06,$12.31,Chip Transaction,-8405285785047681224,Rome,Italy,,5651,

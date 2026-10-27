@@ -1,0 +1,5 @@
+Pillow
+requests
+safetensors
+tqdm
+transformers>=4.27.1

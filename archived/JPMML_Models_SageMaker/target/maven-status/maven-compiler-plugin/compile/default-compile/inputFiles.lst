@@ -1,0 +1,14 @@
+/Users/swagk/codebase/gitlab/byoc-mme-java/src/main/java/ro/edu/aws/sgm/inference/pmml/randomforest/exception/CustomizedResponseEntityExceptionHandler.java
+/Users/swagk/codebase/gitlab/byoc-mme-java/src/main/java/ro/edu/aws/sgm/inference/pmml/randomforest/pojo/InputData.java
+/Users/swagk/codebase/gitlab/byoc-mme-java/src/main/java/ro/edu/aws/sgm/inference/pmml/randomforest/app/SGMLauncher.java
+/Users/swagk/codebase/gitlab/byoc-mme-java/src/main/java/ro/edu/aws/sgm/inference/pmml/randomforest/handler/InferenceHandlerInf.java
+/Users/swagk/codebase/gitlab/byoc-mme-java/src/main/java/ro/edu/aws/sgm/inference/pmml/randomforest/exception/InsufficientMemoryException.java
+/Users/swagk/codebase/gitlab/byoc-mme-java/src/main/java/ro/edu/aws/sgm/inference/pmml/randomforest/exception/ModelNotFoundException.java
+/Users/swagk/codebase/gitlab/byoc-mme-java/src/main/java/ro/edu/aws/sgm/inference/pmml/randomforest/handler/JPMMLInferenceHandlerImpl.java
+/Users/swagk/codebase/gitlab/byoc-mme-java/src/main/java/ro/edu/aws/sgm/inference/pmml/randomforest/exception/ErrorDetails.java
+/Users/swagk/codebase/gitlab/byoc-mme-java/src/main/java/ro/edu/aws/sgm/inference/pmml/randomforest/pojo/MemoryStats.java
+/Users/swagk/codebase/gitlab/byoc-mme-java/src/main/java/ro/edu/aws/sgm/inference/pmml/randomforest/entrypoint/SGMController.java
+/Users/swagk/codebase/gitlab/byoc-mme-java/src/main/java/ro/edu/aws/sgm/inference/pmml/randomforest/app/.ipynb_checkpoints/SGMLauncher-checkpoint.java
+/Users/swagk/codebase/gitlab/byoc-mme-java/src/main/java/ro/edu/aws/sgm/inference/pmml/randomforest/exception/ModelAlreadyPresentException.java
+/Users/swagk/codebase/gitlab/byoc-mme-java/src/main/java/ro/edu/aws/sgm/inference/pmml/randomforest/pojo/Features.java
+/Users/swagk/codebase/gitlab/byoc-mme-java/src/main/java/ro/edu/aws/sgm/inference/pmml/randomforest/pojo/Model.java

@@ -1,0 +1,5 @@
+numba==0.53.1
+protobuf==3.20.*
+bertopic==0.12.0
+nvgpu
+smdebug

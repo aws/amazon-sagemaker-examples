@@ -1,0 +1,4 @@
+boto3
+transformers
+pytorch_lightning==1.0.2
+sentencepiece

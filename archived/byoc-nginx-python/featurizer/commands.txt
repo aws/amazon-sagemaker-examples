@@ -1,0 +1,18 @@
+# build docker image
+docker build -t abalone/featurizer .
+
+# prune dangling images
+docker image prune -f
+
+# mount /models to /opt/ml/model and run abalone/featurizer container
+docker run --rm -v $(pwd)/models:/opt/ml/model -p 8080:8080 abalone/featurizer
+
+# Test /ping
+curl http://localhost:8080/ping
+
+# Sample inference requests using curl
+curl --data-raw 'I,0.365,0.295,0.095,0.25,0.1075,0.0545,0.08,9.0' -H 'Content-Type: text/csv' -v http://localhost:8080/invocations
+
+curl --data-raw 'F,0.53,0.415,0.15,0.7775,0.237,0.1415,0.33,20' -H "Content-Type: text/csv" -v http://localhost:8080/invocations
+
+curl --data-raw 'M,0.43,0.35,0.11,0.406,0.1675,0.081,0.135,10' -H "Content-Type: text/csv" -v http://localhost:8080/invocations

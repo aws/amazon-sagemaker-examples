@@ -1,0 +1,19 @@
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+    name: gs-us-east-1
+    region: us-east-1
+
+nodeGroups:
+    - name: mixed-instances-1
+      minSize: 10
+      maxSize: 100
+      ssh:
+        publicKeyName: id_rsa.pub
+      instancesDistribution:
+        instanceTypes: ["c4.large","c4.xlarge","c4.2xlarge","c4.4xlarge","c4.8xlarge","c5.large","c5.xlarge","c5.2xlarge","c5.4xlarge"] 
+        onDemandPercentageAboveBaseCapacity: 0
+        spotInstancePools: 2
+        onDemandBaseCapacity: 0
+        

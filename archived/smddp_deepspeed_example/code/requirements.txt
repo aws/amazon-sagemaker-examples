@@ -1,0 +1,7 @@
+transformers==4.38.0
+datasets
+accelerate>=0.21
+bitsandbytes
+peft
+deepspeed==0.14.0
+Pydantic==1.10.15

@@ -1,0 +1,22 @@
+name: "resnet"
+platform: "pytorch_libtorch"
+max_batch_size: 128
+input {
+  name: "INPUT__0"
+  data_type: TYPE_FP32
+  dims: 3
+  dims: 224
+  dims: 224
+}
+output {
+  name: "OUTPUT__0"
+  data_type: TYPE_FP32
+  dims: 1000
+}
+instance_group {
+  count: 1
+  kind: KIND_GPU
+}
+dynamic_batching {
+  preferred_batch_size: 128
+}
