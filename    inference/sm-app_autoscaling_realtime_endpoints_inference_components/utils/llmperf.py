@@ -2,7 +2,6 @@ import glob
 import json
 import os
 import subprocess
-import time
 
 from rich import box, print
 from rich.table import Table
@@ -47,23 +46,19 @@ def trigger_auto_scaling(creds, region, endpoint_name, num_concurrent_requests):
 # helper function to monitor the process
 def monitor_process(proc):
     while True:
-        retcode = proc.poll()  # Check if the process has terminated
-        if retcode is not None:
-            # Process has terminated
-            print(f"Process {proc.pid} finished with return code {retcode}")
-
-            # Capture and print any output from the process
-            stdout, stderr = proc.communicate()
-            if stdout:
-                print(f"Process output:\n{stdout.decode('utf-8')}")
-            if stderr:
-                print(f"Process errors:\n{stderr.decode('utf-8')}")
-
+        try:
+            # Drain both pipes while waiting: polling for exit first can deadlock
+            # when a verbose child fills either OS pipe buffer.
+            stdout, stderr = proc.communicate(timeout=15)
             break
-        else:
-            # Process is still running
+        except subprocess.TimeoutExpired:
             print(f"Process {proc.pid} is still running...")
-            time.sleep(15)  # Check every 15 seconds
+
+    print(f"Process {proc.pid} finished with return code {proc.returncode}")
+    if stdout:
+        print(f"Process output:\n{stdout.decode('utf-8', errors='replace')}")
+    if stderr:
+        print(f"Process errors:\n{stderr.decode('utf-8', errors='replace')}")
 
 
 # helper function to print llmperf results
