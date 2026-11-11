@@ -56,8 +56,10 @@ def predict_fn(input_data, model):
 def output_fn(predictions, content_type):
     """
     After invoking predict_fn, the model server invokes `output_fn`.
+
+    Return one CSV record per input row, with prediction followed by SHAP contributions.
     """
     if content_type == "text/csv":
-        return ",".join(str(x) for x in predictions[0])
+        return "\n".join(",".join(str(x) for x in row) for row in predictions)
     else:
         raise ValueError("Content type {} is not supported.".format(content_type))
