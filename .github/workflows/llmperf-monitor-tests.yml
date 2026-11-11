@@ -1,0 +1,20 @@
+name: LLMPerf process monitor regression tests
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  process-monitor:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.11', '3.12', '3.13']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - run: python -m pip install 'rich>=13,<16' 'black==26.10.1'
+      - name: Test pipe draining without AWS calls
+        run: python -m unittest discover -s '   inference/sm-app_autoscaling_realtime_endpoints_inference_components/tests' -v
+      - name: Check formatting
+        run: python -m black -l 100 --check '   inference/sm-app_autoscaling_realtime_endpoints_inference_components/utils/llmperf.py' '   inference/sm-app_autoscaling_realtime_endpoints_inference_components/tests'
